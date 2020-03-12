@@ -41,6 +41,7 @@ class TestThermostatRoutesIntegration:
 
         assert actual.status_code == 401
 
+    # TODO: mock out call to weather api so it doesnt try to use env var
     def test_get_temperature__should_return_temperature(self):
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         headers = {'Authorization': bearer_token}

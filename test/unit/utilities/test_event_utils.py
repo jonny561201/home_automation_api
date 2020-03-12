@@ -2,8 +2,8 @@ from threading import Event
 
 from mock import patch, Mock, ANY
 
-from svc.constants.garage_state import GarageState
 from svc.constants.home_automation import Automation
+from svc.constants.hvac_state import HvacState
 from svc.utilities.event_utils import create_thread
 
 
@@ -14,7 +14,7 @@ class TestEvent:
     FUNCT = print
 
     def setup_method(self):
-        self.STATE = GarageState.get_instance()
+        self.STATE = HvacState.get_instance()
 
     def test_create_thread__should_set_stop_event(self, mock_event, mock_thread):
         event = Event()
