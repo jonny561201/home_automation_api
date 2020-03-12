@@ -62,18 +62,6 @@ function teardownDocker {
     popd
 }
 
-function validateEnvVariables {
-  FILE=$CURRENT_DIR/variables.sh
-  if test -f "$FILE"; then
-    source $CURRENT_DIR/variables.sh
-    echo "WEATHER_APP_ID: ${WEATHER_APP_ID}"
-  else
-    echo -e "${RED}ERROR: Create 'variables.sh' file with export WEATHER_APP_ID=<app id>${WHITE}"
-    exit 1
-  fi
-}
-
-validateEnvVariables
 validateDocker
 runUnitTests
 startPostgresDocker
