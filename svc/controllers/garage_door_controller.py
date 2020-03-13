@@ -4,6 +4,7 @@ from svc.utilities.user_garage_utils import get_garage_url_by_user
 
 def get_status(bearer_token, user_id):
     is_jwt_valid(bearer_token)
+    get_garage_url_by_user(user_id)
 
 
 def update_state(bearer_token, user_id, request):
