@@ -72,3 +72,10 @@ class TestGarageController:
         toggle_door(self.JWT_TOKEN, self.USER_ID)
 
         mock_util.toggle_garage_door_state.assert_called_with(self.JWT_TOKEN, expected_url)
+
+    def test_toggle_garage_door_state__should_return_api_response(self, mock_jwt, mock_url, mock_util):
+        response = {'fakeReturn': 'gotcha!'}
+        mock_util.toggle_garage_door_state.return_value = response
+        actual = toggle_door(self.JWT_TOKEN, self.USER_ID)
+
+        assert actual == response
