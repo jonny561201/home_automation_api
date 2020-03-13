@@ -9,7 +9,7 @@ class UserDatabaseManager:
     db_session = None
 
     def __enter__(self):
-        connection = 'postgres://postgres:password@localhost:5432/garage_door'
+        connection = 'postgresql://postgres:password@localhost:5432/garage_door'
 
         db_engine = create_engine(connection)
         session = orm.sessionmaker(bind=db_engine)
