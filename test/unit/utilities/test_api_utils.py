@@ -6,7 +6,7 @@ from requests import Response
 from svc.constants.home_automation import Automation
 from svc.utilities.api_utils import get_weather_by_city, get_light_group_attributes, get_light_state, get_all_lights, \
     create_light_group, get_light_group_state, set_light_groups, get_light_groups, get_light_api_key, set_light_state, \
-    get_full_state, get_garage_door_status, toggle_garage_door_state
+    get_full_state, get_garage_door_status, toggle_garage_door_state, update_garage_door_state
 
 
 @patch('svc.utilities.api_utils.requests')
@@ -117,6 +117,11 @@ class TestGarageApiRequests:
         actual = toggle_garage_door_state(self.FAKE_BEARER, self.URL)
 
         assert actual == 200
+
+    def test_update_garage_door_state__should_call_requests_with_url(self, mock_requests):
+        update_garage_door_state(self.FAKE_BEARER, self.URL)
+
+        mock_requests.post.assert_called_with(self.URL)
 
 
 @patch('svc.utilities.api_utils.requests')
