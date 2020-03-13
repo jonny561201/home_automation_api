@@ -29,7 +29,8 @@ def toggle_garage_door_state(bearer_token, url):
 
 
 def update_garage_door_state(bearer_token, url):
-    requests.post(url)
+    header = {'Authorization': 'Bearer ' + bearer_token}
+    requests.post(url, headers=header)
 
 
 def get_light_api_key(username, password):

@@ -121,7 +121,13 @@ class TestGarageApiRequests:
     def test_update_garage_door_state__should_call_requests_with_url(self, mock_requests):
         update_garage_door_state(self.FAKE_BEARER, self.URL)
 
-        mock_requests.post.assert_called_with(self.URL)
+        mock_requests.post.assert_called_with(self.URL, headers=ANY)
+
+    def test_update_garage_door_state__should_call_requests_with_headers(self, mock_requests):
+        header = {'Authorization': 'Bearer ' + self.FAKE_BEARER}
+        update_garage_door_state(self.FAKE_BEARER, self.URL)
+
+        mock_requests.post.assert_called_with(ANY, headers=header)
 
 
 @patch('svc.utilities.api_utils.requests')
