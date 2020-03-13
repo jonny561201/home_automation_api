@@ -16,4 +16,5 @@ def update_state(bearer_token, user_id, request):
 
 def toggle_door(bearer_token, user_id):
     is_jwt_valid(bearer_token)
-    get_garage_url_by_user(user_id)
+    url = get_garage_url_by_user(user_id)
+    api_utils.toggle_garage_door_state(bearer_token, url)

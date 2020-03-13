@@ -65,3 +65,10 @@ class TestGarageController:
         toggle_door(self.JWT_TOKEN, self.USER_ID)
 
         mock_url.assert_called_with(self.USER_ID)
+
+    def test_toggle_garage_door_state__should_call_toggle_garage_door_state(self, mock_jwt, mock_url, mock_util):
+        expected_url = 'http://www.fakeurl.com/test/location'
+        mock_url.return_value = expected_url
+        toggle_door(self.JWT_TOKEN, self.USER_ID)
+
+        mock_util.toggle_garage_door_state.assert_called_with(self.JWT_TOKEN, expected_url)
