@@ -6,7 +6,7 @@ from svc.utilities import api_utils
 def get_status(bearer_token, user_id):
     is_jwt_valid(bearer_token)
     url = get_garage_url_by_user(user_id)
-    api_utils.get_garage_door_status(bearer_token, url)
+    return api_utils.get_garage_door_status(bearer_token, url)
 
 
 def update_state(bearer_token, user_id, request):

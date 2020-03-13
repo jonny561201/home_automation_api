@@ -37,6 +37,13 @@ class TestGarageController:
 
         mock_util.get_garage_door_status.assert_called_with(self.JWT_TOKEN, expected_url)
 
+    def test_get_status__should_return_api_response(self, mock_jwt, mock_url, mock_util):
+        response = {'fake': 'data'}
+        mock_util.get_garage_door_status.return_value = response
+        actual = get_status(self.JWT_TOKEN, self.USER_ID)
+
+        assert actual == response
+
     def test_update_state__should_call_is_jwt_valid(self, mock_jwt, mock_url, mock_util):
         request = {}
         update_state(self.JWT_TOKEN, self.USER_ID, request)
