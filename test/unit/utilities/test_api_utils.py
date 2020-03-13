@@ -129,6 +129,15 @@ class TestGarageApiRequests:
 
         mock_requests.post.assert_called_with(ANY, headers=header)
 
+    def test_update_garage_door_state__should_return_serialized_response(self, mock_requests):
+        response = Response()
+        content = {'NotImportant': 'whatevs'}
+        response._content = json.dumps(content).encode()
+        mock_requests.post.return_value = response
+        actual = update_garage_door_state(self.FAKE_BEARER, self.URL)
+
+        assert actual == content
+
 
 @patch('svc.utilities.api_utils.requests')
 class TestLightApiRequests:
