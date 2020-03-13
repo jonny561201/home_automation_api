@@ -22,6 +22,10 @@ def get_garage_door_status(bearer_token, url):
     return response.json()
 
 
+def toggle_garage_door_state(bearer, url):
+    requests.get(url)
+
+
 def get_light_api_key(username, password):
     body = {'devicetype': Automation().APP_NAME}
     auth = base64.b64encode((username + ':' + password).encode('UTF-8')).decode('UTF-8')
