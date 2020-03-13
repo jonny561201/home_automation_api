@@ -23,7 +23,8 @@ def get_garage_door_status(bearer_token, url):
 
 
 def toggle_garage_door_state(bearer, url):
-    requests.get(url)
+    header = {'Authorization': 'Bearer ' + bearer}
+    requests.get(url, headers=header)
 
 
 def get_light_api_key(username, password):
