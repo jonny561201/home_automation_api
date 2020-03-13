@@ -77,11 +77,18 @@ class TestWeatherApiRequests:
 @patch('svc.utilities.api_utils.requests')
 class TestGarageApiRequests:
     URl = 'http://localhost:80/fake_url'
+    FAKE_BEARER = 'fakeBearerToken'
 
     def test_get_garage_door_status__should_call_requests_with_url(self, mock_requests):
-        get_garage_door_status(self.URl)
+        get_garage_door_status(self.URl, self.FAKE_BEARER)
 
-        mock_requests.get.assert_called_with(self.URl)
+        mock_requests.get.assert_called_with(self.URl, headers=ANY)
+
+    def test_get_garage_door_status__should_call_requests_with_headers(self, mock_requests):
+        expected_headers = {'Authorization': 'Bearer ' + self.FAKE_BEARER}
+        get_garage_door_status(self.URl, self.FAKE_BEARER)
+
+        mock_requests.get.assert_called_with(ANY, headers=expected_headers)
 
 
 @patch('svc.utilities.api_utils.requests')

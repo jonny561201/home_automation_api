@@ -16,8 +16,9 @@ def get_weather_by_city(city, unit, app_id):
     return response.status_code, response.content
 
 
-def get_garage_door_status(url):
-    requests.get(url)
+def get_garage_door_status(url, bearer_token):
+    header = {'Authorization': 'Bearer ' + bearer_token}
+    requests.get(url, headers=header)
 
 
 def get_light_api_key(username, password):
