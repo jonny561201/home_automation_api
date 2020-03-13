@@ -35,6 +35,12 @@ class TestGarageController:
 
         mock_jwt.assert_called_with(self.JWT_TOKEN)
 
+    def test_update_state__should_get_garage_url_by_user(self, mock_jwt, mock_ur):
+        request = {}
+        update_state(self.JWT_TOKEN, self.USER_ID, request)
+
+        mock_ur.assert_called_with(self.USER_ID)
+
     def test_toggle_garage_door_state__should_validate_bearer_token(self, mock_jwt, mock_url):
         toggle_door(self.JWT_TOKEN, self.USER_ID)
 
