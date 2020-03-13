@@ -76,19 +76,28 @@ class TestWeatherApiRequests:
 
 @patch('svc.utilities.api_utils.requests')
 class TestGarageApiRequests:
-    URl = 'http://localhost:80/fake_url'
+    URL = 'http://localhost:80/fake_url'
     FAKE_BEARER = 'fakeBearerToken'
 
     def test_get_garage_door_status__should_call_requests_with_url(self, mock_requests):
-        get_garage_door_status(self.URl, self.FAKE_BEARER)
+        get_garage_door_status(self.URL, self.FAKE_BEARER)
 
-        mock_requests.get.assert_called_with(self.URl, headers=ANY)
+        mock_requests.get.assert_called_with(self.URL, headers=ANY)
 
     def test_get_garage_door_status__should_call_requests_with_headers(self, mock_requests):
         expected_headers = {'Authorization': 'Bearer ' + self.FAKE_BEARER}
-        get_garage_door_status(self.URl, self.FAKE_BEARER)
+        get_garage_door_status(self.URL, self.FAKE_BEARER)
 
         mock_requests.get.assert_called_with(ANY, headers=expected_headers)
+
+    def test_get_garage_door_status__should_return_serialized_response(self, mock_requests):
+        response = Response()
+        response_content = {'doesNotMatter': 'useless key'}
+        response._content = json.dumps(response_content).encode('UTF-8')
+        mock_requests.get.return_value = response
+        actual = get_garage_door_status(self.URL, self.FAKE_BEARER)
+
+        assert actual == response_content
 
 
 @patch('svc.utilities.api_utils.requests')
