@@ -90,14 +90,16 @@ class TestGarageApiRequests:
 
         mock_requests.get.assert_called_with(ANY, headers=expected_headers)
 
-    def test_get_garage_door_status__should_return_serialized_response(self, mock_requests):
+    def test_get_garage_door_status__should_return_response(self, mock_requests):
         response = Response()
+        response.status_code = 200
         response_content = {'doesNotMatter': 'useless key'}
         response._content = json.dumps(response_content).encode('UTF-8')
         mock_requests.get.return_value = response
-        actual = get_garage_door_status(self.FAKE_BEARER, self.URL)
+        actual_status, actual_data = get_garage_door_status(self.FAKE_BEARER, self.URL)
 
-        assert actual == response_content
+        assert actual_status == 200
+        assert actual_data == response_content
 
     def test_toggle_garage_door_state__should_call_requests_with_url(self, mock_requests):
         toggle_garage_door_state(self.FAKE_BEARER, self.URL)
