@@ -50,11 +50,19 @@ class TestGarageController:
 
         mock_jwt.assert_called_with(self.JWT_TOKEN)
 
-    def test_update_state__should_get_garage_url_by_user(self, mock_jwt, mock_ur, mock_util):
+    def test_update_state__should_get_garage_url_by_user(self, mock_jwt, mock_url, mock_util):
         request = {}
         update_state(self.JWT_TOKEN, self.USER_ID, request)
 
-        mock_ur.assert_called_with(self.USER_ID)
+        mock_url.assert_called_with(self.USER_ID)
+
+    def test_update_state__should_call_update_garage_door_state(self, mock_jwt, mock_url, mock_util):
+        request = {}
+        expected_url = 'http://www.fakeurl.com/test/location'
+        mock_url.return_value = expected_url
+        update_state(self.JWT_TOKEN, self.USER_ID, request)
+
+        mock_util.update_garage_door_state.assert_called_with(self.JWT_TOKEN, expected_url, request)
 
     def test_toggle_garage_door_state__should_validate_bearer_token(self, mock_jwt, mock_url, mock_util):
         toggle_door(self.JWT_TOKEN, self.USER_ID)

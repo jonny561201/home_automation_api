@@ -16,6 +16,7 @@ def get_weather_by_city(city, unit, app_id):
     return response.status_code, response.content
 
 
+# TODO: return status code and response
 def get_garage_door_status(bearer_token, url):
     header = {'Authorization': 'Bearer ' + bearer_token}
     response = requests.get(url, headers=header)
@@ -28,6 +29,7 @@ def toggle_garage_door_state(bearer_token, url):
     return response.status_code
 
 
+# TODO: return status code and response
 def update_garage_door_state(bearer_token, url):
     header = {'Authorization': 'Bearer ' + bearer_token}
     response = requests.post(url, headers=header)
