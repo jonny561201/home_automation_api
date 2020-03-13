@@ -119,22 +119,31 @@ class TestGarageApiRequests:
         assert actual == 200
 
     def test_update_garage_door_state__should_call_requests_with_url(self, mock_requests):
-        update_garage_door_state(self.FAKE_BEARER, self.URL)
+        request = {}
+        update_garage_door_state(self.FAKE_BEARER, self.URL, request)
 
-        mock_requests.post.assert_called_with(self.URL, headers=ANY)
+        mock_requests.post.assert_called_with(self.URL, headers=ANY, data=ANY)
 
     def test_update_garage_door_state__should_call_requests_with_headers(self, mock_requests):
         header = {'Authorization': 'Bearer ' + self.FAKE_BEARER}
-        update_garage_door_state(self.FAKE_BEARER, self.URL)
+        request = {}
+        update_garage_door_state(self.FAKE_BEARER, self.URL, request)
 
-        mock_requests.post.assert_called_with(ANY, headers=header)
+        mock_requests.post.assert_called_with(ANY, headers=header, data=ANY)
+
+    def test_update_garage_door_state__should_call_requests_with_request(self, mock_requests):
+        request = {'testData': 'NotReal'}
+        update_garage_door_state(self.FAKE_BEARER, self.URL, request)
+
+        mock_requests.post.assert_called_with(ANY, headers=ANY, data=json.dumps(request))
 
     def test_update_garage_door_state__should_return_serialized_response(self, mock_requests):
         response = Response()
+        request = {}
         content = {'NotImportant': 'whatevs'}
         response._content = json.dumps(content).encode()
         mock_requests.post.return_value = response
-        actual = update_garage_door_state(self.FAKE_BEARER, self.URL)
+        actual = update_garage_door_state(self.FAKE_BEARER, self.URL, request)
 
         assert actual == content
 
