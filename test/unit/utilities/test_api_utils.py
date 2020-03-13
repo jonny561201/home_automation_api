@@ -76,17 +76,18 @@ class TestWeatherApiRequests:
 
 @patch('svc.utilities.api_utils.requests')
 class TestGarageApiRequests:
-    URL = 'http://localhost:80/fake_url'
+    BASE_URL = 'http://localhost:80'
     FAKE_BEARER = 'fakeBearerToken'
 
     def test_get_garage_door_status__should_call_requests_with_url(self, mock_requests):
-        get_garage_door_status(self.FAKE_BEARER, self.URL)
+        get_garage_door_status(self.FAKE_BEARER, self.BASE_URL)
 
-        mock_requests.get.assert_called_with(self.URL, headers=ANY)
+        expected_url = self.BASE_URL + '/garageDoor/status'
+        mock_requests.get.assert_called_with(expected_url, headers=ANY)
 
     def test_get_garage_door_status__should_call_requests_with_headers(self, mock_requests):
         expected_headers = {'Authorization': 'Bearer ' + self.FAKE_BEARER}
-        get_garage_door_status(self.FAKE_BEARER, self.URL)
+        get_garage_door_status(self.FAKE_BEARER, self.BASE_URL)
 
         mock_requests.get.assert_called_with(ANY, headers=expected_headers)
 
@@ -96,19 +97,20 @@ class TestGarageApiRequests:
         response_content = {'doesNotMatter': 'useless key'}
         response._content = json.dumps(response_content).encode('UTF-8')
         mock_requests.get.return_value = response
-        actual_status, actual_data = get_garage_door_status(self.FAKE_BEARER, self.URL)
+        actual_status, actual_data = get_garage_door_status(self.FAKE_BEARER, self.BASE_URL)
 
         assert actual_status == 200
         assert actual_data == response_content
 
     def test_toggle_garage_door_state__should_call_requests_with_url(self, mock_requests):
-        toggle_garage_door_state(self.FAKE_BEARER, self.URL)
+        toggle_garage_door_state(self.FAKE_BEARER, self.BASE_URL)
 
-        mock_requests.get.assert_called_with(self.URL, headers=ANY)
+        expected_url = self.BASE_URL + '/garageDoor/toggle'
+        mock_requests.get.assert_called_with(expected_url, headers=ANY)
 
     def test_toggle_garage_door_state__should_call_requests_with_with_headers(self, mock_requests):
         header = {'Authorization': 'Bearer ' + self.FAKE_BEARER}
-        toggle_garage_door_state(self.FAKE_BEARER, self.URL)
+        toggle_garage_door_state(self.FAKE_BEARER, self.BASE_URL)
 
         mock_requests.get.assert_called_with(ANY, headers=header)
 
@@ -116,26 +118,27 @@ class TestGarageApiRequests:
         response = Response()
         response.status_code = 200
         mock_request.get.return_value = response
-        actual = toggle_garage_door_state(self.FAKE_BEARER, self.URL)
+        actual = toggle_garage_door_state(self.FAKE_BEARER, self.BASE_URL)
 
         assert actual == 200
 
     def test_update_garage_door_state__should_call_requests_with_url(self, mock_requests):
         request = {}
-        update_garage_door_state(self.FAKE_BEARER, self.URL, request)
+        update_garage_door_state(self.FAKE_BEARER, self.BASE_URL, request)
 
-        mock_requests.post.assert_called_with(self.URL, headers=ANY, data=ANY)
+        expected_url = self.BASE_URL + '/garageDoor/state'
+        mock_requests.post.assert_called_with(expected_url, headers=ANY, data=ANY)
 
     def test_update_garage_door_state__should_call_requests_with_headers(self, mock_requests):
         header = {'Authorization': 'Bearer ' + self.FAKE_BEARER}
         request = {}
-        update_garage_door_state(self.FAKE_BEARER, self.URL, request)
+        update_garage_door_state(self.FAKE_BEARER, self.BASE_URL, request)
 
         mock_requests.post.assert_called_with(ANY, headers=header, data=ANY)
 
     def test_update_garage_door_state__should_call_requests_with_request(self, mock_requests):
         request = {'testData': 'NotReal'}
-        update_garage_door_state(self.FAKE_BEARER, self.URL, request)
+        update_garage_door_state(self.FAKE_BEARER, self.BASE_URL, request)
 
         mock_requests.post.assert_called_with(ANY, headers=ANY, data=json.dumps(request))
 
@@ -146,7 +149,7 @@ class TestGarageApiRequests:
         response.status_code = 200
         response._content = json.dumps(content).encode()
         mock_requests.post.return_value = response
-        actual_status, actual_data = update_garage_door_state(self.FAKE_BEARER, self.URL, request)
+        actual_status, actual_data = update_garage_door_state(self.FAKE_BEARER, self.BASE_URL, request)
 
         assert actual_status == 200
         assert actual_data == content
