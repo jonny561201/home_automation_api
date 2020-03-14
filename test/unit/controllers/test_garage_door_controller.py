@@ -79,11 +79,13 @@ class TestGarageController:
         mock_util.update_garage_door_state.assert_called_with(self.JWT_TOKEN, expected_url, request)
 
     def test_toggle_garage_door_state__should_validate_bearer_token(self, mock_jwt, mock_url, mock_util):
+        mock_util.toggle_garage_door_state.return_value = (self.SUCCESS_STATE, {})
         toggle_door(self.JWT_TOKEN, self.USER_ID)
 
         mock_jwt.assert_called_with(self.JWT_TOKEN)
 
     def test_toggle_garage_door_state__should_get_garage_url_by_user(self, mock_jwt, mock_url, mock_util):
+        mock_util.toggle_garage_door_state.return_value = (self.SUCCESS_STATE, {})
         toggle_door(self.JWT_TOKEN, self.USER_ID)
 
         mock_url.assert_called_with(self.USER_ID)
@@ -91,13 +93,14 @@ class TestGarageController:
     def test_toggle_garage_door_state__should_call_toggle_garage_door_state(self, mock_jwt, mock_url, mock_util):
         expected_url = 'http://www.fakeurl.com/test/location'
         mock_url.return_value = expected_url
+        mock_util.toggle_garage_door_state.return_value = (self.SUCCESS_STATE, {})
         toggle_door(self.JWT_TOKEN, self.USER_ID)
 
         mock_util.toggle_garage_door_state.assert_called_with(self.JWT_TOKEN, expected_url)
 
-    def test_toggle_garage_door_state__should_return_api_response(self, mock_jwt, mock_url, mock_util):
+    def test_toggle_garage_door_state__should_return_api_response_if_success(self, mock_jwt, mock_url, mock_util):
         response = {'fakeReturn': 'gotcha!'}
-        mock_util.toggle_garage_door_state.return_value = response
+        mock_util.toggle_garage_door_state.return_value = (self.SUCCESS_STATE, response)
         actual = toggle_door(self.JWT_TOKEN, self.USER_ID)
 
         assert actual == response
