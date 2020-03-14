@@ -26,4 +26,6 @@ def toggle_door(bearer_token, user_id):
     is_jwt_valid(bearer_token)
     base_url = get_garage_url_by_user(user_id)
     status, data = api_utils.toggle_garage_door_state(bearer_token, base_url)
+    if status > 200:
+        raise BadRequest(description='Garage node returned a failure')
     return data
