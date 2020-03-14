@@ -19,6 +19,8 @@ def update_state(bearer_token, user_id, request):
     is_jwt_valid(bearer_token)
     base_url = get_garage_url_by_user(user_id)
     status, data = api_utils.update_garage_door_state(bearer_token, base_url, request)
+    if status > 200:
+        raise BadRequest(description='Garage node returned a failure')
     return data
 
 

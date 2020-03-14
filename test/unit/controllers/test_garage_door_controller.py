@@ -91,6 +91,13 @@ class TestGarageController:
 
         assert actual == response
 
+    def test_update_state__should_raise_exception_when_failure(self, mock_jwt, mock_url, mock_util):
+        mock_util.update_garage_door_state.return_value = (self.FAILURE_STATUS, {})
+        with pytest.raises(BadRequest) as e:
+            update_state(self.JWT_TOKEN, self.USER_ID, {})
+
+        assert e.value.description == 'Garage node returned a failure'
+
     def test_toggle_garage_door_state__should_validate_bearer_token(self, mock_jwt, mock_url, mock_util):
         mock_util.toggle_garage_door_state.return_value = self.SUCCESS_STATE
         toggle_door(self.JWT_TOKEN, self.USER_ID)
