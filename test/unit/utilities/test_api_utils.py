@@ -137,10 +137,10 @@ class TestGarageApiRequests:
         mock_requests.post.assert_called_with(ANY, headers=header, data=ANY)
 
     def test_update_garage_door_state__should_call_requests_with_request(self, mock_requests):
-        request = {'testData': 'NotReal'}
+        request = '{"testData": "NotReal"}'.encode()
         update_garage_door_state(self.FAKE_BEARER, self.BASE_URL, request)
 
-        mock_requests.post.assert_called_with(ANY, headers=ANY, data=json.dumps(request))
+        mock_requests.post.assert_called_with(ANY, headers=ANY, data=request)
 
     def test_update_garage_door_state__should_return_response(self, mock_requests):
         response = Response()

@@ -33,7 +33,7 @@ def toggle_garage_door_state(bearer_token, base_url):
 def update_garage_door_state(bearer_token, base_url, request):
     header = {'Authorization': 'Bearer ' + bearer_token}
     url = '%s/garageDoor/state' % base_url
-    response = requests.post(url, headers=header, data=json.dumps(request))
+    response = requests.post(url, headers=header, data=request)
     return response.status_code, response.json()
 
 
