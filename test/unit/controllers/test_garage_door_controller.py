@@ -54,8 +54,9 @@ class TestGarageController:
     def test_get_status__should_raise_bad_request_for_failure(self, mock_jwt, mock_url, mock_util):
         response = {'fake': 'data'}
         mock_util.get_garage_door_status.return_value = (self.FAILURE_STATUS, response)
-        with pytest.raises(BadRequest):
+        with pytest.raises(BadRequest) as e:
             get_status(self.JWT_TOKEN, self.USER_ID)
+        assert e.value.description == 'Garage node returned a failure'
 
     def test_update_state__should_call_is_jwt_valid(self, mock_jwt, mock_url, mock_util):
         request = {}

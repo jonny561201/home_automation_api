@@ -11,7 +11,7 @@ def get_status(bearer_token, user_id):
     base_url = get_garage_url_by_user(user_id)
     status, data = api_utils.get_garage_door_status(bearer_token, base_url)
     if status > 200:
-        raise BadRequest
+        raise BadRequest(description='Garage node returned a failure')
     return data
 
 
