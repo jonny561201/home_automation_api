@@ -5,15 +5,15 @@ HOME_AUTO_SERVICE_FILE=homeAutomation.service
 
 
 function cloneServiceFiles {
-    if [[ -d "/home/pi/GarageDoorApi" ]]
+    if [[ -d "/home/pi/home_automation_api" ]]
     then
         echo "Directory exists."
-        cd /home/pi/GarageDoorApi
+        cd /home/pi/home_automation_api
         git pull
     else
         echo "Directory does not exist."
         cd /home/pi/
-        git clone https://github.com/jonny561201/GarageDoorApi.git
+        git https://github.com/jonny561201/home_automation_api.git
     fi
 
 }
