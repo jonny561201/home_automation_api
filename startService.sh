@@ -28,7 +28,7 @@ function stopService {
 
 function copyServiceFile {
     sudo chmod 644 ${HOME_AUTO_SERVICE_FILE}
-    sudo yes | cp ${HOME_AUTO_SERVICE_FILE} /etc/systemd/system/${HOME_AUTO_SERVICE_FILE}
+    sudo yes | cp ${HOME_AUTO_SERVICE_FILE} /lib/systemd/system/${HOME_AUTO_SERVICE_FILE}
 }
 
 function configureSystemD {
