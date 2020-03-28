@@ -1,0 +1,12 @@
+[Unit]
+Description=Home Automation API Service
+After=multi-user.target
+
+[Service]
+ExecStart=/usr/bin/python3 -u app.py
+WorkingDirectory=/home/pi/myscript
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
