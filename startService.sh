@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-
 HOME_AUTO_SERVICE_FILE=homeAutomation.service
 YELLOW='\033[1;33m'
 WHITE='\033[0m'
@@ -27,12 +26,13 @@ function installDependencies {
 function stopService {
     echo -e "${YELLOW}---------------Stopping Service---------------${WHITE}"
     sudo systemctl stop ${HOME_AUTO_SERVICE_FILE}
+    sudo rm /lib/systemd/system/${HOME_AUTO_SERVICE_FILE}
 }
 
 function copyServiceFile {
     echo  -e "${YELLOW}---------------Creating SystemD---------------${WHITE}"
     sudo chmod 644 ${HOME_AUTO_SERVICE_FILE}
-    sudo yes | cp ${HOME_AUTO_SERVICE_FILE} /lib/systemd/system/${HOME_AUTO_SERVICE_FILE}
+    sudo yes | sudo cp ${HOME_AUTO_SERVICE_FILE} /lib/systemd/system/${HOME_AUTO_SERVICE_FILE}
 }
 
 function configureSystemD {
