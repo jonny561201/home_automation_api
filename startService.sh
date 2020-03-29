@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 YELLOW='\033[1;33m'
 WHITE='\033[0m'
@@ -72,7 +72,7 @@ function dockerFlywayMigration {
     DOCKER_VOLUME=${SCRIPT_DIR}/docker/flyway/migration
     echo -e "${YELLOW}----------Flyway Volume set to: $DOCKER_VOLUME${WHITE}"
     echo -e "${YELLOW}----------Executing Flyway Migrations----------${WHITE}"
-    docker run --net=host --rm -v /${DOCKER_VOLUME}:/flyway/sql boxfuse/flyway:5.2.4 -url="jdbc:postgresql://localhost:$SQL_PORT/$DB_NAME" -user=${SQL_USER} -password=${SQL_PASS} migrate
+    sudo docker run --net=host --rm -v /${DOCKER_VOLUME}:/flyway/sql boxfuse/flyway:5.2.4 -url="jdbc:postgresql://localhost:$SQL_PORT/$DB_NAME" -user=${SQL_USER} -password=${SQL_PASS} migrate
 }
 
 validateDockerInstalled
