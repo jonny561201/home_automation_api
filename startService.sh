@@ -50,7 +50,7 @@ function configureSystemD {
 
 function migratDatabase {
     echo  -e "${YELLOW}---------------Migrating Database---------------${WHITE}"
-    python3 -m yoyo apply --database postgresql://postgres:password@localhost:5432/garage_door ./docker/flyway/migration/
+    python3 -m yoyo apply -b --database postgresql://postgres:password@localhost:5432/garage_door ./docker/flyway/migration/
 }
 
 function restartDevice {
