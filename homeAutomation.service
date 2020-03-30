@@ -3,6 +3,7 @@ Description=Home Automation API Service
 After=multi-user.target
 
 [Service]
+EnvironmentFile=/home/pi/serviceEnvVariables.txt
 ExecStart=/usr/bin/python3 -u app.py
 WorkingDirectory=/home/pi/home_automation_api
 Restart=always
