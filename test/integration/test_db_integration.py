@@ -1,3 +1,4 @@
+import os
 import uuid
 from datetime import datetime
 
@@ -12,12 +13,18 @@ from svc.db.models.user_information_model import UserInformation, DailySumpPumpL
 class TestDbValidateIntegration:
     cred_id = str(uuid.uuid4())
     user_id = str(uuid.uuid4())
+    db_user = 'postgres'
+    db_pass = 'password'
+    db_port = '5432'
+    db_name = 'garage_door'
     user_name = 'Jonny'
     password = 'fakePass'
     user = None
     user_login = None
 
     def setup_method(self):
+        os.environ.update({'SQL_USERNAME': self.db_user, 'SQL_PASSWORD': self.db_pass,
+                           'SQL_DBNAME': self.db_name, 'SQL_PORT': self.db_port})
         self.user = UserInformation(id=self.user_id, first_name='Jon', last_name='Test')
         self.user_login = UserCredentials(id=self.cred_id, user_name=self.user_name, password=self.password, user_id=self.user_id)
         with UserDatabaseManager() as database:
@@ -29,6 +36,10 @@ class TestDbValidateIntegration:
         with UserDatabaseManager() as database:
             database.session.delete(self.user)
             database.session.delete(self.user_login)
+        os.environ.pop('SQL_USERNAME')
+        os.environ.pop('SQL_PASSWORD')
+        os.environ.pop('SQL_DBNAME')
+        os.environ.pop('SQL_PORT')
 
     def test_validate_credentials__should_return_user_id_when_user_exists(self):
         with UserDatabaseManager() as database:

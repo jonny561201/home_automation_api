@@ -11,6 +11,10 @@ from svc.manager import create_app
 
 
 class TestAppRoutesIntegration:
+    db_user = 'postgres'
+    db_pass = 'password'
+    db_port = '5432'
+    db_name = 'garage_door'
     TEST_CLIENT = None
     JWT_SECRET = 'testSecret'
     USER_ID = str(uuid.uuid4())
@@ -19,6 +23,8 @@ class TestAppRoutesIntegration:
     PREFERENCE = None
 
     def setup_method(self):
+        os.environ.update({'SQL_USERNAME': self.db_user, 'SQL_PASSWORD': self.db_pass,
+                           'SQL_DBNAME': self.db_name, 'SQL_PORT': self.db_port})
         flask_app = create_app('__main__')
         self.TEST_CLIENT = flask_app.test_client()
         os.environ.update({'JWT_SECRET': self.JWT_SECRET})
@@ -34,6 +40,10 @@ class TestAppRoutesIntegration:
         with UserDatabaseManager() as database:
             database.session.delete(self.PREFERENCE)
             database.session.delete(self.USER)
+        os.environ.pop('SQL_USERNAME')
+        os.environ.pop('SQL_PASSWORD')
+        os.environ.pop('SQL_DBNAME')
+        os.environ.pop('SQL_PORT')
 
     def test_health_check__should_return_success(self):
         actual = self.TEST_CLIENT.get('healthCheck')

@@ -1,3 +1,5 @@
+import os
+
 from sqlalchemy import orm, create_engine
 from werkzeug.exceptions import BadRequest, Unauthorized
 
@@ -9,7 +11,11 @@ class UserDatabaseManager:
     db_session = None
 
     def __enter__(self):
-        connection = 'postgresql://postgres:password@localhost:5432/garage_door'
+        db_user = os.environ.get('SQL_USERNAME')
+        db_pass = os.environ.get('SQL_PASSWORD')
+        db_port = os.environ.get('SQL_PORT')
+        dbname = os.environ.get('SQL_DBNAME')
+        connection = 'postgresql://%s:%s@localhost:%s/%s' % (db_user, db_pass, db_port, dbname)
 
         db_engine = create_engine(connection)
         session = orm.sessionmaker(bind=db_engine)
