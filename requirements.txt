@@ -5,3 +5,4 @@ pytz
 psycopg2
 flask_cors
 requests
+yoyo-migrations
