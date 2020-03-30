@@ -17,6 +17,10 @@ class TestThermostatRoutesIntegration:
     USER_ID = None
     USER = None
     PREFERENCE = None
+    DB_USER = 'postgres'
+    DB_PASS = 'password'
+    DB_PORT = '5432'
+    DB_NAME = 'garage_door'
 
     def setup_method(self):
         self.USER_ID = uuid.uuid4()
@@ -24,16 +28,22 @@ class TestThermostatRoutesIntegration:
         self.PREFERENCE = UserPreference(user_id=self.USER_ID.hex, city='London', is_fahrenheit=False, is_imperial=False)
         flask_app = create_app('__main__')
         self.TEST_CLIENT = flask_app.test_client()
-        os.environ.update({'JWT_SECRET': self.JWT_SECRET})
+        os.environ.update({'JWT_SECRET': self.JWT_SECRET, 'SQL_USERNAME': self.DB_USER,
+                           'SQL_PASSWORD': self.DB_PASS, 'SQL_DBNAME': self.DB_NAME,
+                           'SQL_PORT': self.DB_PORT})
         with UserDatabaseManager() as database:
             database.session.add(self.USER)
             database.session.add(self.PREFERENCE)
 
     def teardown_method(self):
-        os.environ.pop('JWT_SECRET')
         with UserDatabaseManager() as database:
             database.session.delete(self.PREFERENCE)
             database.session.delete(self.USER)
+        os.environ.pop('JWT_SECRET')
+        os.environ.pop('SQL_USERNAME')
+        os.environ.pop('SQL_PASSWORD')
+        os.environ.pop('SQL_DBNAME')
+        os.environ.pop('SQL_PORT')
 
     def test_get_temperature__should_return_unauthorized_error_when_invalid_user(self):
         url = 'thermostat/temperature/' + '890234890234'

@@ -14,16 +14,26 @@ from svc.manager import create_app
 class TestSumpRoutes:
     TEST_CLIENT = None
     JWT_SECRET = 'fakeKey'
+    DB_USER = 'postgres'
+    DB_PASS = 'password'
+    DB_PORT = '5432'
+    DB_NAME = 'garage_door'
 
     def setup_method(self):
         flask_app = create_app('__main__')
         self.TEST_CLIENT = flask_app.test_client()
         self.BEAR_TOKEN = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         self.HEADER = {'Authorization': 'Bearer ' + self.BEAR_TOKEN.decode('UTF-8')}
-        os.environ.update({'JWT_SECRET': self.JWT_SECRET})
+        os.environ.update({'JWT_SECRET': self.JWT_SECRET, 'SQL_USERNAME': self.DB_USER,
+                           'SQL_PASSWORD': self.DB_PASS, 'SQL_DBNAME': self.DB_NAME,
+                           'SQL_PORT': self.DB_PORT})
 
     def teardown_method(self):
         os.environ.pop('JWT_SECRET')
+        os.environ.pop('SQL_USERNAME')
+        os.environ.pop('SQL_PASSWORD')
+        os.environ.pop('SQL_DBNAME')
+        os.environ.pop('SQL_PORT')
 
     def test_get_current_sump_level__should_return_not_found_when_user_does_not_exist(self):
         user_id = uuid.uuid4().hex

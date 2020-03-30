@@ -11,31 +11,31 @@ from svc.db.models.user_information_model import UserInformation, DailySumpPumpL
 
 
 class TestDbValidateIntegration:
-    cred_id = str(uuid.uuid4())
-    user_id = str(uuid.uuid4())
-    db_user = 'postgres'
-    db_pass = 'password'
-    db_port = '5432'
-    db_name = 'garage_door'
-    user_name = 'Jonny'
-    password = 'fakePass'
-    user = None
-    user_login = None
+    CRED_ID = str(uuid.uuid4())
+    USER_ID = str(uuid.uuid4())
+    DB_USER = 'postgres'
+    DB_PASS = 'password'
+    DB_PORT = '5432'
+    DB_NAME = 'garage_door'
+    USER_NAME = 'Jonny'
+    PASSWORD = 'fakePass'
+    USER = None
+    USER_LOGIN = None
 
     def setup_method(self):
-        os.environ.update({'SQL_USERNAME': self.db_user, 'SQL_PASSWORD': self.db_pass,
-                           'SQL_DBNAME': self.db_name, 'SQL_PORT': self.db_port})
-        self.user = UserInformation(id=self.user_id, first_name='Jon', last_name='Test')
-        self.user_login = UserCredentials(id=self.cred_id, user_name=self.user_name, password=self.password, user_id=self.user_id)
+        os.environ.update({'SQL_USERNAME': self.DB_USER, 'SQL_PASSWORD': self.DB_PASS,
+                           'SQL_DBNAME': self.DB_NAME, 'SQL_PORT': self.DB_PORT})
+        self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
+        self.USER_LOGIN = UserCredentials(id=self.CRED_ID, user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
         with UserDatabaseManager() as database:
-            database.session.add(self.user)
-            self.user_login.role_id = database.session.query(Roles).first().id
-            database.session.add(self.user_login)
+            database.session.add(self.USER)
+            self.USER_LOGIN.role_id = database.session.query(Roles).first().id
+            database.session.add(self.USER_LOGIN)
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
-            database.session.delete(self.user)
-            database.session.delete(self.user_login)
+            database.session.delete(self.USER)
+            database.session.delete(self.USER_LOGIN)
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
         os.environ.pop('SQL_DBNAME')
@@ -43,9 +43,9 @@ class TestDbValidateIntegration:
 
     def test_validate_credentials__should_return_user_id_when_user_exists(self):
         with UserDatabaseManager() as database:
-            actual = database.validate_credentials(self.user_name, self.password)
+            actual = database.validate_credentials(self.USER_NAME, self.PASSWORD)
 
-            assert actual == self.user_id
+            assert actual == self.USER_ID
 
     def test_validate_credentials__should_raise_unauthorized_when_user_does_not_exist(self):
         with UserDatabaseManager() as database:
@@ -56,7 +56,7 @@ class TestDbValidateIntegration:
         with UserDatabaseManager() as database:
             user_pass = 'wrongPassword'
             with pytest.raises(Unauthorized):
-                database.validate_credentials(self.user_name, user_pass)
+                database.validate_credentials(self.USER_NAME, user_pass)
 
 
 class TestDbPreferenceIntegration:
