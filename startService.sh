@@ -48,6 +48,11 @@ function configureSystemD {
     sudo systemctl enable ${HOME_AUTO_SERVICE_FILE}
 }
 
+function migratDatabase {
+    echo  -e "${YELLOW}---------------Migrating Database---------------${WHITE}"
+    sudo yoyo apply --database postgresql://postgres:password@localhost:5432/garage_door ./docker/flyway/migration/
+}
+
 function restartDevice {
     echo  -e "${YELLOW}---------------Rebooting Device---------------${WHITE}"
     sudo reboot
@@ -57,6 +62,7 @@ function restartDevice {
 stopService
 cloneServiceFiles
 installDependencies
+migratDatabase
 copyServiceFile
 configureSystemD
 restartDevice
