@@ -53,33 +53,10 @@ function restartDevice {
     sudo reboot
 }
 
-function validateDockerInstalled {
-    if [[ -x "$(command -v docker)" ]]; then
-        echo -e "${YELLOW}---------------Docker Installed---------------${WHITE}"
-        # command
-    else
-        echo -e "${RED}---------------Docker Not Installed---------------${WHITE}"
-        installDocker
-    fi
-}
 
-function installDocker {
-    curl -fsSL https://get.docker.com -o get-docker.sh
-    sudo sh get-docker.sh
-}
-
-function dockerFlywayMigration {
-    DOCKER_VOLUME=${SCRIPT_DIR}/docker/flyway/migration
-    echo -e "${YELLOW}----------Flyway Volume set to: $DOCKER_VOLUME${WHITE}"
-    echo -e "${YELLOW}----------Executing Flyway Migrations----------${WHITE}"
-    sudo docker run --net=host --rm -v /${DOCKER_VOLUME}:/flyway/sql boxfuse/flyway:5.2.4 -url="jdbc:postgresql://localhost:$SQL_PORT/$DB_NAME" -user=${SQL_USER} -password=${SQL_PASS} migrate
-}
-
-validateDockerInstalled
 stopService
 cloneServiceFiles
 installDependencies
-dockerFlywayMigration
 copyServiceFile
 configureSystemD
 restartDevice
