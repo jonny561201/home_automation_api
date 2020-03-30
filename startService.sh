@@ -6,8 +6,8 @@ RED='\033[0;31m'
 
 HOME_AUTO_SERVICE_FILE=homeAutomation.service
 SQL_PORT=5432
-SQL_PASS=password
 SQL_USER=postgres
+SQL_PASS=password
 DB_NAME=garage_door
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -50,7 +50,7 @@ function configureSystemD {
 
 function migratDatabase {
     echo  -e "${YELLOW}---------------Migrating Database---------------${WHITE}"
-    python3 -m yoyo apply -b --database postgresql://postgres:password@localhost:5432/garage_door ./docker/flyway/migration/
+    python3 -m yoyo apply -b --database postgresql://${SQL_USER}:${SQL_PASS}@localhost:${SQL_PORT}/${DB_NAME} ./docker/flyway/migration/
 }
 
 function restartDevice {
