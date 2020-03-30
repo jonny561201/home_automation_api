@@ -65,8 +65,14 @@ class TestDbPreferenceIntegration:
     UNIT = 'metric'
     USER = None
     USER_PREFERENCES = None
+    DB_USER = 'postgres'
+    DB_PASS = 'password'
+    DB_PORT = '5432'
+    DB_NAME = 'garage_door'
 
     def setup_method(self):
+        os.environ.update({'SQL_USERNAME': self.DB_USER, 'SQL_PASSWORD': self.DB_PASS,
+                           'SQL_DBNAME': self.DB_NAME, 'SQL_PORT': self.DB_PORT})
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
         self.USER_PREFERENCES = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city=self.CITY)
         with UserDatabaseManager() as database:
@@ -77,6 +83,10 @@ class TestDbPreferenceIntegration:
         with UserDatabaseManager() as database:
             database.session.delete(self.USER_PREFERENCES)
             database.session.delete(self.USER)
+        os.environ.pop('SQL_USERNAME')
+        os.environ.pop('SQL_PASSWORD')
+        os.environ.pop('SQL_DBNAME')
+        os.environ.pop('SQL_PORT')
 
     def test_get_preferences_by_user__should_return_preferences_for_valid_user(self):
         with UserDatabaseManager() as database:
@@ -142,53 +152,62 @@ class TestDbPreferenceIntegration:
 
 
 class TestDbSumpIntegration:
-
-    depth = 8.0
-    first_user_id = str(uuid.uuid4())
-    second_user_id = str(uuid.uuid4())
-    day = datetime.date(datetime.now())
-    date = datetime.now()
-    first_user = None
-    second_user = None
-    first_sump_daily = None
-    second_sump_daily = None
-    third_sump_daily = None
-    first_sump_average = None
-    second_sump_average = None
+    DB_USER = 'postgres'
+    DB_PASS = 'password'
+    DB_PORT = '5432'
+    DB_NAME = 'garage_door'
+    DEPTH = 8.0
+    FIRST_USER_ID = str(uuid.uuid4())
+    SECOND_USER_ID = str(uuid.uuid4())
+    DAY = datetime.date(datetime.now())
+    DATE = datetime.now()
+    FIRST_USER = None
+    SECOND_USER = None
+    FIRST_SUMP_DAILY = None
+    SECOND_SUMP_DAILY = None
+    THIRD_SUMP_DAILY = None
+    FIRST_SUMP_AVG = None
+    SECOND_SUMP_AVG = None
 
     def setup_method(self):
-        self.first_user = UserInformation(id=self.first_user_id, first_name='Jon', last_name='Test')
-        self.second_user = UserInformation(id=self.second_user_id, first_name='Dylan', last_name='Fake')
-        self.first_sump_daily = DailySumpPumpLevel(id=88, distance=11.0, user_id=self.first_user_id, warning_level=2, create_date=self.date)
-        self.second_sump_daily = DailySumpPumpLevel(id=99, distance=self.depth, user_id=self.second_user_id, warning_level=1, create_date=self.date)
-        self.third_sump_daily = DailySumpPumpLevel(id=100, distance=12.0, user_id=self.second_user_id, warning_level=2, create_date=self.date)
-        self.first_sump_average = AverageSumpPumpLevel(id=34, user_id=self.first_user_id, distance=12.0, create_day=self.day)
-        self.second_sump_average = AverageSumpPumpLevel(id=35, user_id=self.first_user_id, distance=self.depth, create_day=self.day)
+        os.environ.update({'SQL_USERNAME': self.DB_USER, 'SQL_PASSWORD': self.DB_PASS,
+                           'SQL_DBNAME': self.DB_NAME, 'SQL_PORT': self.DB_PORT})
+        self.FIRST_USER = UserInformation(id=self.FIRST_USER_ID, first_name='Jon', last_name='Test')
+        self.SECOND_USER = UserInformation(id=self.SECOND_USER_ID, first_name='Dylan', last_name='Fake')
+        self.FIRST_SUMP_DAILY = DailySumpPumpLevel(id=88, distance=11.0, user_id=self.FIRST_USER_ID, warning_level=2, create_date=self.DATE)
+        self.SECOND_SUMP_DAILY = DailySumpPumpLevel(id=99, distance=self.DEPTH, user_id=self.SECOND_USER_ID, warning_level=1, create_date=self.DATE)
+        self.THIRD_SUMP_DAILY = DailySumpPumpLevel(id=100, distance=12.0, user_id=self.SECOND_USER_ID, warning_level=2, create_date=self.DATE)
+        self.FIRST_SUMP_AVG = AverageSumpPumpLevel(id=34, user_id=self.FIRST_USER_ID, distance=12.0, create_day=self.DAY)
+        self.SECOND_SUMP_AVG = AverageSumpPumpLevel(id=35, user_id=self.FIRST_USER_ID, distance=self.DEPTH, create_day=self.DAY)
 
         with UserDatabaseManager() as database:
-            database.session.add_all([self.first_user, self.second_user])
-            database.session.add_all([self.first_sump_average, self.second_sump_average])
-            database.session.add_all([self.first_sump_daily, self.second_sump_daily, self.third_sump_daily])
+            database.session.add_all([self.FIRST_USER, self.SECOND_USER])
+            database.session.add_all([self.FIRST_SUMP_AVG, self.SECOND_SUMP_AVG])
+            database.session.add_all([self.FIRST_SUMP_DAILY, self.SECOND_SUMP_DAILY, self.THIRD_SUMP_DAILY])
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
-            database.session.delete(self.first_sump_daily)
-            database.session.delete(self.second_sump_daily)
-            database.session.delete(self.third_sump_daily)
-            database.session.delete(self.first_sump_average)
-            database.session.delete(self.second_sump_average)
-            database.session.delete(self.second_user)
-            database.session.delete(self.first_user)
+            database.session.delete(self.FIRST_SUMP_DAILY)
+            database.session.delete(self.SECOND_SUMP_DAILY)
+            database.session.delete(self.THIRD_SUMP_DAILY)
+            database.session.delete(self.FIRST_SUMP_AVG)
+            database.session.delete(self.SECOND_SUMP_AVG)
+            database.session.delete(self.SECOND_USER)
+            database.session.delete(self.FIRST_USER)
+        os.environ.pop('SQL_USERNAME')
+        os.environ.pop('SQL_PASSWORD')
+        os.environ.pop('SQL_DBNAME')
+        os.environ.pop('SQL_PORT')
 
     def test_get_current_sump_level_by_user__should_return_valid_sump_level(self):
         with UserDatabaseManager() as database:
-            actual = database.get_current_sump_level_by_user(self.first_user_id)
+            actual = database.get_current_sump_level_by_user(self.FIRST_USER_ID)
             assert actual['currentDepth'] == 11.0
             assert actual['warningLevel'] == 2
 
     def test_get_current_sump_level_by_user__should_return_latest_record_for_single_user(self):
         with UserDatabaseManager() as database:
-            actual = database.get_current_sump_level_by_user(self.second_user_id)
+            actual = database.get_current_sump_level_by_user(self.SECOND_USER_ID)
             assert actual['currentDepth'] == 12.0
             assert actual['warningLevel'] == 2
 
@@ -199,8 +218,8 @@ class TestDbSumpIntegration:
 
     def test_get_average_sump_level_by_user__should_return_latest_record_for_single_user(self):
         with UserDatabaseManager() as database:
-            actual = database.get_average_sump_level_by_user(self.first_user_id)
-            assert actual == {'averageDepth': self.depth, 'latestDate': str(self.day)}
+            actual = database.get_average_sump_level_by_user(self.FIRST_USER_ID)
+            assert actual == {'averageDepth': self.DEPTH, 'latestDate': str(self.DAY)}
 
     def test_get_average_sump_level_by_user__should_raise_bad_request_when_user_not_found(self):
         with UserDatabaseManager() as database:
@@ -212,14 +231,14 @@ class TestDbSumpIntegration:
         with UserDatabaseManager() as database:
             depth_info = {'depth': depth,
                           'warning_level': 3,
-                          'datetime': str(self.date)}
-            database.insert_current_sump_level(self.first_user_id, depth_info)
+                          'datetime': str(self.DATE)}
+            database.insert_current_sump_level(self.FIRST_USER_ID, depth_info)
 
-            actual = database.session.query(DailySumpPumpLevel).filter_by(user_id=self.first_user_id, distance=depth).first()
+            actual = database.session.query(DailySumpPumpLevel).filter_by(user_id=self.FIRST_USER_ID, distance=depth).first()
 
             assert float(actual.distance) == depth
 
-            database.session.query(DailySumpPumpLevel).filter_by(user_id=self.first_user_id, distance=depth).delete()
+            database.session.query(DailySumpPumpLevel).filter_by(user_id=self.FIRST_USER_ID, distance=depth).delete()
 
     def test_insert_current_sump_level__should_raise_exception_with_bad_data(self):
         depth_info = {'badData': None}
