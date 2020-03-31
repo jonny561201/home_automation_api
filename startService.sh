@@ -59,6 +59,11 @@ function createEnvironmentVariableFile {
         createFile
     else
         echo -e "${YELLOW}---------------Environment Variable File Already Exists---------------${WHITE}"
+        echo 'Would you like to recreate serviceEnvVariables file? (y/n)'
+        read USER_RESPONSE
+        if [[ ${USER_RESPONSE} == "y" ]]; then
+            createFile
+        fi
     fi
 }
 
@@ -80,7 +85,7 @@ function createFile {
     echo -e "Enter WEATHER_APP_ID:${WHITE}"
     read WEATHER_APP
 
-    echo "JWT_SECRET=${JWT_SECRET}" >> serviceEnvVariables
+    echo "JWT_SECRET=${JWT_SECRET}" > serviceEnvVariables
     echo "SQL_USERNAME=${SQL_USER}" >> serviceEnvVariables
     echo "SQL_PASSWORD=${SQL_PASS}" >> serviceEnvVariables
     echo "SQL_PASSWORD=${SQL_DB}" >> serviceEnvVariables
