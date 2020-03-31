@@ -8,8 +8,7 @@ HOME_AUTO_SERVICE_FILE=homeAutomation.service
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 function cloneServiceFiles {
-    if [[ -d "/home/pi/home_automation_api" ]]
-    then
+    if [[ -d "/home/pi/home_automation_api" ]]; then
         echo -e "${YELLOW}---------------Service Folder Exists---------------${WHITE}"
         cd /home/pi/home_automation_api
         git pull
@@ -44,7 +43,7 @@ function configureSystemD {
     sudo systemctl enable ${HOME_AUTO_SERVICE_FILE}
 }
 
-function migratDatabase {
+function migrateDatabase {
     echo  -e "${YELLOW}---------------Migrating Database---------------${WHITE}"
     python3 -m yoyo apply -b --database postgresql://${SQL_USERNAME}:${SQL_PASSWORD}@localhost:${SQL_PORT}/${SQL_DBNAME} ./docker/flyway/migration/
 }
@@ -54,11 +53,28 @@ function restartDevice {
     sudo reboot
 }
 
+function createEnvironmentVariableFile {
+    if [[ ! -f "/home/pi/home_automation_api/serviceEnvVariables" ]]; then
+        echo -e "${YELLOW}---------------Creating Environment Variable File---------------${WHITE}"
+
+        echo -e "Enter SQL_USERNAME:${WHITE}"
+        read SQL_USER
+        echo -e "Enter SQL_PASSWORD:${WHITE}"
+        read SQL_PASS
+
+        echo "SQL_USERNAME=${SQL_USER}" >> serviceEnvVariables
+        echo "SQL_PASSWORD=${SQL_PASS}" >> serviceEnvVariables
+    else
+        echo -e "${YELLOW}---------------Environment Variable File Already Exists---------------${WHITE}"
+    fi
+}
+
 
 stopService
 cloneServiceFiles
 installDependencies
-migratDatabase
+migrateDatabase
 copyServiceFile
 configureSystemD
+createEnvironmentVariableFile
 restartDevice
