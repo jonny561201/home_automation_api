@@ -15,7 +15,7 @@ function cloneServiceFiles {
     else
         echo -e "${YELLOW}---------------Cloning Service---------------${WHITE}"
         cd /home/pi/
-        git https://github.com/jonny561201/home_automation_api.git
+        git clone https://github.com/jonny561201/home_automation_api.git /home/pi/home_automation_api
     fi
 
 }
