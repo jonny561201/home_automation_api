@@ -56,17 +56,35 @@ function restartDevice {
 function createEnvironmentVariableFile {
     if [[ ! -f "/home/pi/home_automation_api/serviceEnvVariables" ]]; then
         echo -e "${YELLOW}---------------Creating Environment Variable File---------------${WHITE}"
-
-        echo -e "Enter SQL_USERNAME:${WHITE}"
-        read SQL_USER
-        echo -e "Enter SQL_PASSWORD:${WHITE}"
-        read SQL_PASS
-
-        echo "SQL_USERNAME=${SQL_USER}" >> serviceEnvVariables
-        echo "SQL_PASSWORD=${SQL_PASS}" >> serviceEnvVariables
+        createFile
     else
         echo -e "${YELLOW}---------------Environment Variable File Already Exists---------------${WHITE}"
     fi
+}
+
+function createFile {
+    echo -e "Enter SQL_USERNAME:${WHITE}"
+    read SQL_USER
+    echo -e "Enter SQL_PASSWORD:${WHITE}"
+    read SQL_PASS
+    echo -e "Enter SQL_DBNAME:${WHITE}"
+    read SQL_DB
+    echo -e "Enter SQL_PORT:${WHITE}"
+    read SQL_PORT
+    echo -e "Enter LIGHT_API_USERNAME:${WHITE}"
+    read LIGHT_API_USER
+    echo -e "Enter LIGHT_API_PASSWORD:${WHITE}"
+    read LIGHT_API_PASS
+    echo -e "Enter WEATHER_APP_ID:${WHITE}"
+    read WEATHER_APP
+
+    echo "SQL_USERNAME=${SQL_USER}" >> serviceEnvVariables
+    echo "SQL_PASSWORD=${SQL_PASS}" >> serviceEnvVariables
+    echo "SQL_PASSWORD=${SQL_DB}" >> serviceEnvVariables
+    echo "SQL_PASSWORD=${SQL_PORT}" >> serviceEnvVariables
+    echo "LIGHT_API_USERNAME=${LIGHT_API_USER}" >> serviceEnvVariables
+    echo "LIGHT_API_PASSWORD=${LIGHT_API_PASS}" >> serviceEnvVariables
+    echo "WEATHER_APP_ID=${WEATHER_APP}" >> serviceEnvVariables
 }
 
 
