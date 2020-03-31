@@ -63,6 +63,8 @@ function createEnvironmentVariableFile {
 }
 
 function createFile {
+    echo -e "Enter JWT_SECRET:${WHITE}"
+    read JWT_SECRET
     echo -e "Enter SQL_USERNAME:${WHITE}"
     read SQL_USER
     echo -e "Enter SQL_PASSWORD:${WHITE}"
@@ -78,6 +80,7 @@ function createFile {
     echo -e "Enter WEATHER_APP_ID:${WHITE}"
     read WEATHER_APP
 
+    echo "JWT_SECRET=${JWT_SECRET}" >> serviceEnvVariables
     echo "SQL_USERNAME=${SQL_USER}" >> serviceEnvVariables
     echo "SQL_PASSWORD=${SQL_PASS}" >> serviceEnvVariables
     echo "SQL_PASSWORD=${SQL_DB}" >> serviceEnvVariables
