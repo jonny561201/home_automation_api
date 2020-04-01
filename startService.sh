@@ -65,6 +65,8 @@ function createEnvironmentVariableFile {
             createFile
         fi
     fi
+    echo -e "${YELLOW}---------------Exporting Environment Variables---------------${WHITE}"
+    set -o allexport; source serviceEnvVariables; set +o allexport
 }
 
 function createFile {
@@ -99,8 +101,8 @@ function createFile {
 stopService
 cloneServiceFiles
 installDependencies
+createEnvironmentVariableFile
 migrateDatabase
 copyServiceFile
 configureSystemD
-createEnvironmentVariableFile
 restartDevice
