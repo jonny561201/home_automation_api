@@ -25,9 +25,14 @@
     * install production dependencies: `pip install -Ur requirements.txt`
     * install test dependencies: `pip install -Ur test_requirements.txt`
 2. Install docker desktop for linux containers
-3. Provide any corresponding test coverage in directories `/test/integration` and `/test/unit`
-4. Prior to committing code execute `./run_all_tests.sh`
+3. Create `settings.json` file to substitute test environment variables
+    * `Development` boolean flag to use settings file
+    * `LightApiUser` username for dresden raspberry pi app
+    * `LightApiPass` password for dresden raspberry pi app
+    * `DevWeatherAppId` app id for Open Weather free account
+    * `DevJwtSecret` jwt secret for encoding/decoding jwts 
+4. Provide any corresponding test coverage in directories `/test/integration` and `/test/unit`
+5. Prior to committing code execute `./run_all_tests.sh`
     * will start/stop a postgres docker container
     * will execute flyway against postgres database
-5. Stand up application by executing `python app.py`
-
+6. Stand up application by executing `python app.py`
