@@ -4,6 +4,7 @@ import uuid
 import jwt
 from flask import json
 from mock import patch
+from requests import Response
 
 from svc.constants.home_automation import Automation
 from svc.db.methods.user_credentials import UserDatabaseManager
@@ -51,8 +52,14 @@ class TestThermostatRoutesIntegration:
 
         assert actual.status_code == 401
 
-    # TODO: mock out call to weather api so it doesnt try to use env var
-    def test_get_temperature__should_return_temperature(self):
+    @patch('svc.utilities.api_utils.requests')
+    def test_get_temperature__should_return_temperature(self, mock_requests):
+        response = Response()
+        response.status_code = 200
+        response._content = json.dumps({'weather': [{'description': 'light drizzle'}],
+                                        'main': {'temp': 23.4, 'temp_min': 21.0, 'temp_max': 25.1}})
+
+        mock_requests.get.return_value = response
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         headers = {'Authorization': bearer_token}
 
