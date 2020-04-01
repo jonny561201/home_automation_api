@@ -88,8 +88,8 @@ function createFile {
     echo "JWT_SECRET=${JWT_SECRET}" > serviceEnvVariables
     echo "SQL_USERNAME=${SQL_USER}" >> serviceEnvVariables
     echo "SQL_PASSWORD=${SQL_PASS}" >> serviceEnvVariables
-    echo "SQL_PASSWORD=${SQL_DB}" >> serviceEnvVariables
-    echo "SQL_PASSWORD=${SQL_PORT}" >> serviceEnvVariables
+    echo "SQL_DBNAME=${SQL_DB}" >> serviceEnvVariables
+    echo "SQL_PORT=${SQL_PORT}" >> serviceEnvVariables
     echo "LIGHT_API_USERNAME=${LIGHT_API_USER}" >> serviceEnvVariables
     echo "LIGHT_API_PASSWORD=${LIGHT_API_PASS}" >> serviceEnvVariables
     echo "WEATHER_APP_ID=${WEATHER_APP}" >> serviceEnvVariables
