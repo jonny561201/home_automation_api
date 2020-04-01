@@ -6,16 +6,16 @@
 # Deployment #
 1. Copy startService.sh to `/home/pi/` directory
     * execute `chmod +x startService.sh` to make it executable
-2. Create file `/home/pi/serviceEnvVariables` and list all environment variables
-3. Execute `startService.sh` file to create service
+2. Execute `startService.sh` file to create service
     * stops service if it is running
     * clones repo down if doesnt initially exist
     * does a pip install of all production dependencies
+    * creates environment variable file `/home/pi/home_automation_api/serviceEnvVariables`
     * uses `yoyo-migrations` from python to migrate the production database
     * copies `homeAutomation.service` file into systemd
     * registers and configures service
     * reboots the device
-    * application will run on boot and pull in environment variables to file
+    * application will run on boot and pull in environment variables file
 
 
 # Development #
