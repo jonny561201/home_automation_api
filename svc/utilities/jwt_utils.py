@@ -19,7 +19,7 @@ def create_jwt_token(user_id):
     expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=2)
     settings = Settings.get_instance().get_settings()
     jwt_secret = settings.get('DevJwtSecret') if settings.get('Development') else os.environ['JWT_SECRET']
-    return jwt.encode({'user_id': user_id, 'exp': expire_time}, jwt_secret, algorithm='HS256')
+    return jwt.encode({'user': user_id, 'exp': expire_time}, jwt_secret, algorithm='HS256')
 
 
 def extract_credentials(bearer_token):

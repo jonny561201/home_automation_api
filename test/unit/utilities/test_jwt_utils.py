@@ -81,7 +81,7 @@ class TestJwt:
         expected_expiration = now + timedelta(hours=2)
         truncated_expiration = (str(expected_expiration.timestamp() * 1000))[:10]
         expected_id = 12345
-        expected_token_body = {'user_id': expected_id, 'exp': int(truncated_expiration)}
+        expected_token_body = {'user': expected_id, 'exp': int(truncated_expiration)}
 
         actual = create_jwt_token(expected_id)
 
@@ -96,7 +96,7 @@ class TestJwt:
         expected_expiration = now + timedelta(hours=2)
         truncated_expiration = (str(expected_expiration.timestamp() * 1000))[:10]
         expected_id = 12345
-        expected_token_body = {'user_id': expected_id, 'exp': int(truncated_expiration)}
+        expected_token_body = {'user': expected_id, 'exp': int(truncated_expiration)}
 
         actual = create_jwt_token(expected_id)
 

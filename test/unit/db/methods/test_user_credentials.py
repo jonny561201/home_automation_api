@@ -247,7 +247,7 @@ class TestUserDatabase:
         return preference
 
     @staticmethod
-    def __create_database_user(user=FAKE_USER, password=FAKE_PASS, role=ROLE_NAME, first=FIRST_NAME, last=LAST_NAME):
+    def __create_database_user(password=FAKE_PASS, role=ROLE_NAME, first=FIRST_NAME, last=LAST_NAME):
         roles = Roles(role_name=role)
         user = UserInformation(first_name=first, last_name=last)
         return UserCredentials(id=uuid.uuid4(), user_name=user, password=password, role=roles, user=user)
