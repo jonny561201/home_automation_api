@@ -3,6 +3,7 @@ import os
 from sqlalchemy import orm, create_engine
 from werkzeug.exceptions import BadRequest, Unauthorized
 
+from svc.constants.settings_state import Settings
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
     AverageSumpPumpLevel
 
@@ -11,10 +12,12 @@ class UserDatabaseManager:
     db_session = None
 
     def __enter__(self):
-        db_user = os.environ.get('SQL_USERNAME')
-        db_pass = os.environ.get('SQL_PASSWORD')
-        db_port = os.environ.get('SQL_PORT')
-        dbname = os.environ.get('SQL_DBNAME')
+        settings = Settings.get_instance().get_settings()
+        dev_mode = settings.get('Development', False)
+        db_user = settings.get('DbUser') if dev_mode else os.environ.get('SQL_USERNAME')
+        db_pass = settings.get('DbPass') if dev_mode else os.environ.get('SQL_PASSWORD')
+        db_port = settings.get('DbPort') if dev_mode else os.environ.get('SQL_PORT')
+        dbname = settings.get('DbName') if dev_mode else os.environ.get('SQL_DBNAME')
         connection = 'postgresql://%s:%s@localhost:%s/%s' % (db_user, db_pass, db_port, dbname)
 
         db_engine = create_engine(connection)
