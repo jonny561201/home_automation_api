@@ -13,6 +13,7 @@ def health_check():
     return "Success"
 
 
+# TODO: Add multiple roles per user
 @APP_BLUEPRINT.route('/login', methods=['GET'])
 def app_login():
     basic_token = request.headers.get('Authorization')
