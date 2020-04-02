@@ -13,21 +13,26 @@ from svc.db.models.user_information_model import UserInformation, DailySumpPumpL
 class TestDbValidateIntegration:
     CRED_ID = str(uuid.uuid4())
     USER_ID = str(uuid.uuid4())
+    ROLE_ID = str(uuid.uuid4())
     DB_USER = 'postgres'
     DB_PASS = 'password'
     DB_PORT = '5432'
     DB_NAME = 'garage_door'
     USER_NAME = 'Jonny'
     PASSWORD = 'fakePass'
+    ROLE_NAME = 'garage_door'
     USER = None
     USER_LOGIN = None
+    ROLE = None
 
     def setup_method(self):
         os.environ.update({'SQL_USERNAME': self.DB_USER, 'SQL_PASSWORD': self.DB_PASS,
                            'SQL_DBNAME': self.DB_NAME, 'SQL_PORT': self.DB_PORT})
+        self.ROLE = Roles(role_name=self.ROLE_NAME, id=self.ROLE_ID, role_desc='doesnt matter')
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
         self.USER_LOGIN = UserCredentials(id=self.CRED_ID, user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
         with UserDatabaseManager() as database:
+            database.session.add(self.ROLE)
             database.session.add(self.USER)
             self.USER_LOGIN.role_id = database.session.query(Roles).first().id
             database.session.add(self.USER_LOGIN)
@@ -36,6 +41,7 @@ class TestDbValidateIntegration:
         with UserDatabaseManager() as database:
             database.session.delete(self.USER)
             database.session.delete(self.USER_LOGIN)
+            database.session.delete(self.ROLE)
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
         os.environ.pop('SQL_DBNAME')
@@ -45,7 +51,13 @@ class TestDbValidateIntegration:
         with UserDatabaseManager() as database:
             actual = database.validate_credentials(self.USER_NAME, self.PASSWORD)
 
-            assert actual == self.USER_ID
+            assert actual['user_id'] == self.USER_ID
+
+    def test_validate_credentials__should_return_role_name_when_user_exists(self):
+        with UserDatabaseManager() as database:
+            actual = database.validate_credentials(self.USER_NAME, self.PASSWORD)
+
+            assert actual['role_name'] == self.ROLE_NAME
 
     def test_validate_credentials__should_raise_unauthorized_when_user_does_not_exist(self):
         with UserDatabaseManager() as database:

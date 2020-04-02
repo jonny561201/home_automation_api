@@ -7,8 +7,8 @@ from svc.utilities import jwt_utils
 def get_login(basic_token):
     user_name, pword = jwt_utils.extract_credentials(basic_token)
     with UserDatabaseManager() as user_database:
-        user_id = user_database.validate_credentials(user_name, pword)
-        return jwt_utils.create_jwt_token(user_id)
+        user_info = user_database.validate_credentials(user_name, pword)
+        return jwt_utils.create_jwt_token(user_info)
 
 
 def get_user_preferences(bearer_token, user_id):

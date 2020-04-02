@@ -39,7 +39,8 @@ class UserDatabase:
         user = self.session.query(UserCredentials).filter_by(user_name=user).first()
         if user is None or user.password != pword:
             raise Unauthorized
-        return user.user_id
+        role_name = user.role.role_name
+        return {'user_id': user.user_id, 'role_name': role_name}
 
     def get_preferences_by_user(self, user_id):
         preference = self.session.query(UserPreference).filter_by(user_id=user_id).first()

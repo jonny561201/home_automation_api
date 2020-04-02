@@ -8,12 +8,13 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.db.methods.user_credentials import UserDatabase
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
-    AverageSumpPumpLevel
+    AverageSumpPumpLevel, Roles
 
 
 class TestUserDatabase:
     FAKE_USER = 'testName'
     FAKE_PASS = 'testPass'
+    ROLE_NAME = 'garage_door'
     SESSION = None
     DATABASE = None
 
@@ -22,7 +23,7 @@ class TestUserDatabase:
         self.DATABASE = UserDatabase(self.SESSION)
 
     def test_validate_credentials__should_query_database_by_user_name(self):
-        user = self._create_database_user()
+        user = self.__create_database_user()
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
 
         self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
@@ -30,16 +31,25 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.assert_called_with(user_name=self.FAKE_USER)
 
     def test_validate_credentials__should_return_user_id_if_password_matches_queried_user(self):
-        user = self._create_database_user()
+        user = self.__create_database_user()
         user.user_id = '123455'
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
 
         actual = self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
 
-        assert actual == user.user_id
+        assert actual['user_id'] == user.user_id
+
+    def test_validate_credentials__should_return_role_name_if_password_matches_queried_user(self):
+        user = self.__create_database_user()
+        user.user_id = '123455'
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+
+        actual = self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
+
+        assert actual['role_name'] == user.role.role_name
 
     def test_validate_credentials__should_raise_unauthorized_if_password_does_not_match_queried_user(self):
-        user = self._create_database_user(password='mismatchedPass')
+        user = self.__create_database_user(password='mismatchedPass')
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
 
         with pytest.raises(Unauthorized):
@@ -53,8 +63,8 @@ class TestUserDatabase:
             self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
 
     def test_get_preferences_by_user__should_return_user_temp_preferences(self):
-        user = TestUserDatabase._create_database_user()
-        preference = TestUserDatabase._create_user_preference(user)
+        user = TestUserDatabase.__create_database_user()
+        preference = TestUserDatabase.__create_user_preference(user)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = preference
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
@@ -62,8 +72,8 @@ class TestUserDatabase:
         assert actual['temp_unit'] is 'celsius'
 
     def test_get_preferences_by_user__should_return_user_temp_preferences_with_fahrenheit(self):
-        user = TestUserDatabase._create_database_user()
-        preference = TestUserDatabase._create_user_preference(user, is_fahrenheit=True)
+        user = TestUserDatabase.__create_database_user()
+        preference = TestUserDatabase.__create_user_preference(user, is_fahrenheit=True)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = preference
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
@@ -72,8 +82,8 @@ class TestUserDatabase:
 
     def test_get_preferences_by_user__should_return_user_city_preferences(self):
         city = 'London'
-        user = TestUserDatabase._create_database_user()
-        preference = TestUserDatabase._create_user_preference(user, city)
+        user = TestUserDatabase.__create_database_user()
+        preference = TestUserDatabase.__create_user_preference(user, city)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = preference
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
@@ -81,8 +91,8 @@ class TestUserDatabase:
         assert actual['city'] == city
 
     def test_get_preferences_by_user__should_return_is_fahrenheit_preferences(self):
-        user = TestUserDatabase._create_database_user()
-        preference = TestUserDatabase._create_user_preference(user, 'Fake City', True)
+        user = TestUserDatabase.__create_database_user()
+        preference = TestUserDatabase.__create_user_preference(user, 'Fake City', True)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = preference
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
@@ -90,8 +100,8 @@ class TestUserDatabase:
         assert actual['is_fahrenheit'] is True
 
     def test_get_preferences_by_user__should_return_is_imperial_preferences(self):
-        user = TestUserDatabase._create_database_user()
-        preference = TestUserDatabase._create_user_preference(user, 'Fake City', True, True)
+        user = TestUserDatabase.__create_database_user()
+        preference = TestUserDatabase.__create_user_preference(user, 'Fake City', True, True)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = preference
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
@@ -99,8 +109,8 @@ class TestUserDatabase:
         assert actual['is_imperial'] is True
 
     def test_get_preferences_by_user__should_return_measure_unit_preferences(self):
-        user = TestUserDatabase._create_database_user()
-        preference = TestUserDatabase._create_user_preference(user, 'Fake City', True, True)
+        user = TestUserDatabase.__create_database_user()
+        preference = TestUserDatabase.__create_user_preference(user, 'Fake City', True, True)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = preference
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
@@ -108,8 +118,8 @@ class TestUserDatabase:
         assert actual['measure_unit'] == 'imperial'
 
     def test_get_preferences_by_user__should_return_measure_unit_preferences_for_metric(self):
-        user = TestUserDatabase._create_database_user()
-        preference = TestUserDatabase._create_user_preference(user, 'Fake City', True, False)
+        user = TestUserDatabase.__create_database_user()
+        preference = TestUserDatabase.__create_user_preference(user, 'Fake City', True, False)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = preference
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
@@ -154,7 +164,7 @@ class TestUserDatabase:
     def test_get_current_sump_level_by_user__should_return_sump_levels(self):
         expected_distance = 43.9
         expected_warning = 1
-        user = TestUserDatabase._create_database_user()
+        user = TestUserDatabase.__create_database_user()
         sump = DailySumpPumpLevel(user=user, distance=expected_distance, warning_level=expected_warning)
         self.SESSION.query.return_value.filter_by.return_value.order_by.return_value.first.return_value = sump
 
@@ -170,7 +180,7 @@ class TestUserDatabase:
 
     def test_get_average_sump_level_by_user__should_return_sump_levels(self):
         expected_depth = 12.23
-        user = TestUserDatabase._create_database_user()
+        user = TestUserDatabase.__create_database_user()
         date = datetime.date(datetime.now())
         average = AverageSumpPumpLevel(user=user, distance=expected_depth, create_day=date)
         self.SESSION.query.return_value.filter_by.return_value.order_by.return_value.first.return_value = average
@@ -207,7 +217,7 @@ class TestUserDatabase:
             self.DATABASE.insert_current_sump_level(user_id, depth_info)
 
     @staticmethod
-    def _create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
+    def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()
         preference.user = user
         preference.city = city
@@ -217,5 +227,6 @@ class TestUserDatabase:
         return preference
 
     @staticmethod
-    def _create_database_user(user=FAKE_USER, password=FAKE_PASS):
-        return UserCredentials(id=uuid.uuid4(), user_name=user, password=password)
+    def __create_database_user(user=FAKE_USER, password=FAKE_PASS, role=ROLE_NAME):
+        roles = Roles(role_name=role)
+        return UserCredentials(id=uuid.uuid4(), user_name=user, password=password, role=roles)

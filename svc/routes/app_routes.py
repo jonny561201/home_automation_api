@@ -13,7 +13,6 @@ def health_check():
     return "Success"
 
 
-# TODO: Login should return role
 @APP_BLUEPRINT.route('/login', methods=['GET'])
 def app_login():
     basic_token = request.headers.get('Authorization')

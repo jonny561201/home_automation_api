@@ -35,11 +35,13 @@ class TestLoginController:
 
         mock_jw.extract_credentials.assert_called_with(self.AUTH_TOKEN)
 
-    def test_get_login__should_call_create_jwt_token(self, mock_jw, mock_db):
+    def test_get_login__should_call_create_jwt_token_with_database_response(self, mock_jw, mock_db):
+        user_info = {'user_id': 'sdfasdf', 'role_name': 'lighting'}
+        mock_db.return_value.__enter__.return_value.validate_credentials.return_value = user_info
         mock_jw.extract_credentials.return_value = (self.USER, self.PWORD)
         get_login(self.AUTH_TOKEN)
 
-        mock_jw.create_jwt_token.assert_called()
+        mock_jw.create_jwt_token.assert_called_with(user_info)
 
     def test_get_login__should_return_response_from_jwt_service(self, mock_jw, mock_db):
         mock_jw.extract_credentials.return_value = (self.USER, self.PWORD)
