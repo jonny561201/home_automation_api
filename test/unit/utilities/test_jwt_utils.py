@@ -66,9 +66,10 @@ class TestJwt:
         is_jwt_valid(jwt_token)
 
     def test_is_jwt_valid__should_succeed_using_secret_from_settings_to_encode_token(self, mock_settings):
-        mock_settings.get_instance.return_value.get_settings.return_value = {'Development': True}
+        settings_secret = 'TEST_SECRET'
+        mock_settings.get_instance.return_value.get_settings.return_value = {'Development': True, 'DevJwtSecret': settings_secret}
         jwt_body = {'fakeBody': 'valueValue'}
-        jwt_token = 'Bearer ' + jwt.encode(jwt_body, "", algorithm='HS256').decode('UTF-8')
+        jwt_token = 'Bearer ' + jwt.encode(jwt_body, settings_secret, algorithm='HS256').decode('UTF-8')
 
         is_jwt_valid(jwt_token)
 

@@ -36,8 +36,7 @@ def _parse_jwt_token(jwt_token):
     try:
         stripped_token = jwt_token.replace('Bearer ', '')
         settings = Settings.get_instance().get_settings()
-        if settings.get('Development'):
-            return
-        jwt.decode(stripped_token, os.environ['JWT_SECRET'], algorithms=["HS256"])
+        jwt_secret = settings.get('DevJwtSecret') if settings.get('Development') else os.environ['JWT_SECRET']
+        jwt.decode(stripped_token, jwt_secret, algorithms=["HS256"])
     except (InvalidSignatureError, ExpiredSignatureError, DecodeError, KeyError) as er:
         raise Unauthorized

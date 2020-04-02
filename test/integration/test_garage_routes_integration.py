@@ -9,6 +9,7 @@ from requests import Response
 from svc.manager import create_app
 
 
+@patch('svc.utilities.api_utils.requests')
 class TestGarageDoorRoutesIntegration:
     TEST_CLIENT = None
     JWT_SECRET = 'testSecret'
@@ -22,12 +23,11 @@ class TestGarageDoorRoutesIntegration:
     def teardown_method(self):
         os.environ.pop('JWT_SECRET')
 
-    def test_get_garage_door_status__should_return_unauthorized_with_no_header(self):
+    def test_get_garage_door_status__should_return_unauthorized_with_no_header(self, mock_request):
         actual = self.TEST_CLIENT.get('garageDoor/user/%s/status' % self.USER_ID)
 
         assert actual.status_code == 401
 
-    @patch('svc.utilities.api_utils.requests')
     def test_get_garage_door_status__should_return_success_with_valid_jwt(self, mock_request):
         response = Response()
         response._content = json.dumps({'testResponse': 'found it!'}).encode()
@@ -39,7 +39,7 @@ class TestGarageDoorRoutesIntegration:
 
         assert actual.status_code == 200
 
-    def test_update_garage_door_state__should_return_unauthorized_without_jwt(self):
+    def test_update_garage_door_state__should_return_unauthorized_without_jwt(self, mock_request):
         post_body = {}
         headers = {}
 
@@ -47,7 +47,6 @@ class TestGarageDoorRoutesIntegration:
 
         assert actual.status_code == 401
 
-    @patch('svc.utilities.api_utils.requests')
     def test_update_garage_door_state__should_return_success(self, mock_request):
         post_body = {'garageDoorOpen': True}
         response = Response()
@@ -61,7 +60,6 @@ class TestGarageDoorRoutesIntegration:
 
         assert actual.status_code == 200
 
-    @patch('svc.utilities.api_utils.requests')
     def test_update_garage_door_state__should_return_bad_request_when_malformed_json(self, mock_request):
         post_body = {'badKey': 'fakerequest'}
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
@@ -75,7 +73,6 @@ class TestGarageDoorRoutesIntegration:
 
         assert actual.status_code == 400
 
-    @patch('svc.utilities.api_utils.requests')
     def test_toggle_garage_door__should_return_success(self, mock_request):
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         headers = {'Authorization': bearer_token}
@@ -87,7 +84,7 @@ class TestGarageDoorRoutesIntegration:
 
         assert actual.status_code == 200
 
-    def test_toggle_garage_door__should_return_unauthorized_when_invalid_jwt(self):
+    def test_toggle_garage_door__should_return_unauthorized_when_invalid_jwt(self, mock_request):
         bearer_token = jwt.encode({}, 'bad_secret', algorithm='HS256')
         headers = {'Authorization': bearer_token}
 
