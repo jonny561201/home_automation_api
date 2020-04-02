@@ -24,12 +24,14 @@ class TestDbValidateIntegration:
     USER = None
     USER_LOGIN = None
     ROLE = None
+    FIRST = 'Jon'
+    LAST = 'Test'
 
     def setup_method(self):
         os.environ.update({'SQL_USERNAME': self.DB_USER, 'SQL_PASSWORD': self.DB_PASS,
                            'SQL_DBNAME': self.DB_NAME, 'SQL_PORT': self.DB_PORT})
         self.ROLE = Roles(role_name=self.ROLE_NAME, id=self.ROLE_ID, role_desc='doesnt matter')
-        self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
+        self.USER = UserInformation(id=self.USER_ID, first_name=self.FIRST, last_name=self.LAST)
         self.USER_LOGIN = UserCredentials(id=self.CRED_ID, user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
         with UserDatabaseManager() as database:
             database.session.add(self.ROLE)
@@ -58,6 +60,18 @@ class TestDbValidateIntegration:
             actual = database.validate_credentials(self.USER_NAME, self.PASSWORD)
 
             assert actual['role_name'] == self.ROLE_NAME
+
+    def test_validate_credentials__should_return_first_name_when_user_exists(self):
+        with UserDatabaseManager() as database:
+            actual = database.validate_credentials(self.USER_NAME, self.PASSWORD)
+
+            assert actual['first_name'] == self.FIRST
+
+    def test_validate_credentials__should_return_last_name_when_user_exists(self):
+        with UserDatabaseManager() as database:
+            actual = database.validate_credentials(self.USER_NAME, self.PASSWORD)
+
+            assert actual['last_name'] == self.LAST
 
     def test_validate_credentials__should_raise_unauthorized_when_user_does_not_exist(self):
         with UserDatabaseManager() as database:

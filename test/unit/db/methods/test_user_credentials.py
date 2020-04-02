@@ -8,13 +8,15 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.db.methods.user_credentials import UserDatabase
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
-    AverageSumpPumpLevel, Roles
+    AverageSumpPumpLevel, Roles, UserInformation
 
 
 class TestUserDatabase:
     FAKE_USER = 'testName'
     FAKE_PASS = 'testPass'
     ROLE_NAME = 'garage_door'
+    FIRST_NAME = 'John'
+    LAST_NAME = 'Grape'
     SESSION = None
     DATABASE = None
 
@@ -46,7 +48,25 @@ class TestUserDatabase:
 
         actual = self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
 
-        assert actual['role_name'] == user.role.role_name
+        assert actual['role_name'] == self.ROLE_NAME
+
+    def test_validate_credentials__should_return_first_name_if_password_matches_queried_user(self):
+        user = self.__create_database_user()
+        user.user_id = '123455'
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+
+        actual = self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
+
+        assert actual['first_name'] == self.FIRST_NAME
+
+    def test_validate_credentials__should_return_last_name_if_password_matches_queried_user(self):
+        user = self.__create_database_user()
+        user.user_id = '123455'
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+
+        actual = self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
+
+        assert actual['last_name'] == self.LAST_NAME
 
     def test_validate_credentials__should_raise_unauthorized_if_password_does_not_match_queried_user(self):
         user = self.__create_database_user(password='mismatchedPass')
@@ -227,6 +247,7 @@ class TestUserDatabase:
         return preference
 
     @staticmethod
-    def __create_database_user(user=FAKE_USER, password=FAKE_PASS, role=ROLE_NAME):
+    def __create_database_user(user=FAKE_USER, password=FAKE_PASS, role=ROLE_NAME, first=FIRST_NAME, last=LAST_NAME):
         roles = Roles(role_name=role)
-        return UserCredentials(id=uuid.uuid4(), user_name=user, password=password, role=roles)
+        user = UserInformation(first_name=first, last_name=last)
+        return UserCredentials(id=uuid.uuid4(), user_name=user, password=password, role=roles, user=user)
