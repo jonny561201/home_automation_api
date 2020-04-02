@@ -5,7 +5,7 @@ WHITE='\033[0m'
 RED='\033[0;31m'
 
 HOME_AUTO_SERVICE_FILE=homeAutomation.service
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 
 function cloneServiceFiles {
     if [[ -d "/home/pi/home_automation_api" ]]; then
@@ -17,7 +17,6 @@ function cloneServiceFiles {
         cd /home/pi/
         git clone https://github.com/jonny561201/home_automation_api.git /home/pi/home_automation_api
     fi
-
 }
 
 function installDependencies {
