@@ -8,7 +8,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.db.methods.user_credentials import UserDatabase
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
-    AverageSumpPumpLevel, Roles, UserInformation
+    AverageSumpPumpLevel, Roles, UserInformation, UserRoles
 
 
 class TestUserDatabase:
@@ -30,7 +30,7 @@ class TestUserDatabase:
 
         self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
 
-        self.SESSION.query.return_value.filter_by.assert_called_with(user_name=self.FAKE_USER)
+        self.SESSION.query.return_value.filter_by.assert_any_call(user_name=self.FAKE_USER)
 
     def test_validate_credentials__should_return_user_id_if_password_matches_queried_user(self):
         user = self.__create_database_user()
@@ -41,14 +41,16 @@ class TestUserDatabase:
 
         assert actual['user_id'] == user.user_id
 
-    def test_validate_credentials__should_return_role_name_if_password_matches_queried_user(self):
+    def test_validate_credentials__should_return_roles_if_password_matches_queried_user(self):
         user = self.__create_database_user()
         user.user_id = '123455'
+        roles = [UserRoles(role=Roles(role_name=self.ROLE_NAME))]
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+        self.SESSION.query.return_value.filter_by.return_value.all.return_value = roles
 
         actual = self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
 
-        assert actual['role_name'] == self.ROLE_NAME
+        assert actual['roles'] == [self.ROLE_NAME]
 
     def test_validate_credentials__should_return_first_name_if_password_matches_queried_user(self):
         user = self.__create_database_user()
@@ -247,7 +249,6 @@ class TestUserDatabase:
         return preference
 
     @staticmethod
-    def __create_database_user(password=FAKE_PASS, role=ROLE_NAME, first=FIRST_NAME, last=LAST_NAME):
-        roles = Roles(role_name=role)
+    def __create_database_user(password=FAKE_PASS, first=FIRST_NAME, last=LAST_NAME):
         user = UserInformation(first_name=first, last_name=last)
-        return UserCredentials(id=uuid.uuid4(), user_name=user, password=password, role=roles, user=user)
+        return UserCredentials(id=uuid.uuid4(), user_name=user, password=password, user=user)

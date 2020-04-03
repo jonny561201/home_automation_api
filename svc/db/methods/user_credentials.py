@@ -5,7 +5,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.constants.settings_state import Settings
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
-    AverageSumpPumpLevel
+    AverageSumpPumpLevel, UserRoles
 
 
 class UserDatabaseManager:
@@ -39,8 +39,8 @@ class UserDatabase:
         user = self.session.query(UserCredentials).filter_by(user_name=user).first()
         if user is None or user.password != pword:
             raise Unauthorized
-        role_name = user.role.role_name
-        return {'user_id': user.user_id, 'role_name': role_name,
+        roles = self.session.query(UserRoles).filter_by(user_id=user.user_id).all()
+        return {'user_id': user.user_id, 'roles': [role.role.role_name for role in roles],
                 'first_name': user.user.first_name, 'last_name': user.user.last_name}
 
     def get_preferences_by_user(self, user_id):

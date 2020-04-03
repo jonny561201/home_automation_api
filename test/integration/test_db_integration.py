@@ -7,13 +7,12 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, \
-    UserCredentials, Roles, UserPreference
+    UserCredentials, Roles, UserPreference, UserRoles
 
 
 class TestDbValidateIntegration:
     CRED_ID = str(uuid.uuid4())
     USER_ID = str(uuid.uuid4())
-    ROLE_ID = str(uuid.uuid4())
     DB_USER = 'postgres'
     DB_PASS = 'password'
     DB_PORT = '5432'
@@ -24,13 +23,15 @@ class TestDbValidateIntegration:
     USER = None
     USER_LOGIN = None
     ROLE = None
+    USER_ROLE = None
     FIRST = 'Jon'
     LAST = 'Test'
 
     def setup_method(self):
         os.environ.update({'SQL_USERNAME': self.DB_USER, 'SQL_PASSWORD': self.DB_PASS,
                            'SQL_DBNAME': self.DB_NAME, 'SQL_PORT': self.DB_PORT})
-        self.ROLE = Roles(role_name=self.ROLE_NAME, id=self.ROLE_ID, role_desc='doesnt matter')
+        self.ROLE = Roles(role_name=self.ROLE_NAME, id=str(uuid.uuid4()), role_desc='doesnt matter')
+        self.USER_ROLE = UserRoles(id=str(uuid.uuid4()), role_id=self.ROLE.id, user_id=self.USER_ID)
         self.USER = UserInformation(id=self.USER_ID, first_name=self.FIRST, last_name=self.LAST)
         self.USER_LOGIN = UserCredentials(id=self.CRED_ID, user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
         with UserDatabaseManager() as database:
@@ -38,11 +39,13 @@ class TestDbValidateIntegration:
             database.session.add(self.USER)
             self.USER_LOGIN.role_id = database.session.query(Roles).first().id
             database.session.add(self.USER_LOGIN)
+            database.session.add(self.USER_ROLE)
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
             database.session.delete(self.USER)
             database.session.delete(self.USER_LOGIN)
+            database.session.delete(self.USER_ROLE)
             database.session.delete(self.ROLE)
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
@@ -59,7 +62,7 @@ class TestDbValidateIntegration:
         with UserDatabaseManager() as database:
             actual = database.validate_credentials(self.USER_NAME, self.PASSWORD)
 
-            assert actual['role_name'] == self.ROLE_NAME
+            assert actual['roles'] == [self.ROLE_NAME]
 
     def test_validate_credentials__should_return_first_name_when_user_exists(self):
         with UserDatabaseManager() as database:
@@ -83,6 +86,10 @@ class TestDbValidateIntegration:
             user_pass = 'wrongPassword'
             with pytest.raises(Unauthorized):
                 database.validate_credentials(self.USER_NAME, user_pass)
+
+    def __create_user_role(self):
+        self.ROLE = Roles(role_name='garage_door', id=str(uuid.uuid4()), role_desc='doesnt matter')
+        self.USER_ROLE = UserRoles(id=str(uuid.uuid4()), role_id=self.ROLE.id, role=self.ROLE)
 
 
 class TestDbPreferenceIntegration:

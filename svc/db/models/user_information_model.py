@@ -16,11 +16,21 @@ class UserInformation(Base):
 
 
 class Roles(Base):
-    __tablename__ = 'user_roles'
+    __tablename__ = 'roles'
 
     id = Column(UUID, nullable=False, primary_key=True)
     role_desc = Column(String, nullable=False)
     role_name = Column(String, nullable=False)
+
+
+class UserRoles(Base):
+    __tablename__ = 'user_roles'
+
+    id = Column(UUID, nullable=False, primary_key=True)
+    role_id = Column(UUID, ForeignKey(Roles.id))
+    user_id = Column(UUID, ForeignKey(UserInformation.id))
+
+    role = relationship('Roles', foreign_keys='UserRoles.role_id')
 
 
 class UserPreference(Base):
@@ -42,10 +52,8 @@ class UserCredentials(Base):
     user_name = Column(String, nullable=False)
     password = Column(String, nullable=False)
     user_id = Column(UUID, ForeignKey(UserInformation.id))
-    role_id = Column(UUID, ForeignKey(Roles.id))
 
     user = relationship('UserInformation', foreign_keys='UserCredentials.user_id')
-    role = relationship('Roles', foreign_keys='UserCredentials.role_id')
 
 
 class DailySumpPumpLevel(Base):
