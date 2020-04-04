@@ -238,6 +238,14 @@ class TestUserDatabase:
         with pytest.raises(BadRequest):
             self.DATABASE.insert_current_sump_level(user_id, depth_info)
 
+    def test_change_user_password__should_raise_bad_request_if_password_mismatch(self):
+        user = self.__create_database_user(password='mismatched')
+        new_pass = 'newPass'
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+
+        with pytest.raises(Unauthorized):
+            self.DATABASE.change_user_password(self.FAKE_USER,self.FAKE_PASS, new_pass)
+
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()
