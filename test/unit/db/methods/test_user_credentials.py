@@ -246,6 +246,13 @@ class TestUserDatabase:
         with pytest.raises(Unauthorized):
             self.DATABASE.change_user_password(self.FAKE_USER,self.FAKE_PASS, new_pass)
 
+    def test_change_user_password__should_query_user_credentials(self):
+        new_pass = 'new_pass'
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = self.__create_database_user()
+        self.DATABASE.change_user_password(self.FAKE_USER, self.FAKE_PASS, new_pass)
+
+        self.SESSION.query.return_value.filter_by.assert_called_with(user_name=self.FAKE_USER)
+
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()

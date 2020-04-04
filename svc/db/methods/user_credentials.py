@@ -44,7 +44,9 @@ class UserDatabase:
                 'first_name': user.user.first_name, 'last_name': user.user.last_name}
 
     def change_user_password(self, user_name, old_pass, new_pass):
-        raise Unauthorized
+        user = self.session.query(UserCredentials).filter_by(user_name=user_name).first()
+        if user.password != old_pass:
+            raise Unauthorized
 
     def get_preferences_by_user(self, user_id):
         preference = self.session.query(UserPreference).filter_by(user_id=user_id).first()
