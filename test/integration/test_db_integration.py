@@ -302,6 +302,14 @@ class TestDbPasswordIntegration:
             with UserDatabaseManager() as database:
                 database.change_user_password(self.USER_NAME, mismatched_pass, new_pass)
 
+    def test_change_user_password__should_change_user_password_when_matching(self):
+        new_pass = 'I SHOULD HAVE CHANGED!!!'
+        with UserDatabaseManager() as database:
+            database.change_user_password(self.USER_NAME, self.PASSWORD, new_pass)
+
+            user = database.session.query(UserCredentials).filter_by(user_name=self.USER_NAME).first()
+            assert user.password == new_pass
+
     def __create_user_credentials(self):
         user_id = str(uuid.uuid4())
         user_info = UserInformation(first_name='test', last_name='Tester', id=user_id)
