@@ -26,3 +26,6 @@ def save_user_preferences(bearer_token, user_id, request_data):
 
 def change_password(bearer_token, request_data):
     jwt_utils.is_jwt_valid(bearer_token)
+    request = json.loads(request_data.decode('UTF-8'))
+    with UserDatabaseManager() as database:
+        database.change_user_password(request['userName'], None, None)
