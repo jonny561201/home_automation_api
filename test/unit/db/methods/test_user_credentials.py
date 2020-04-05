@@ -253,6 +253,14 @@ class TestUserDatabase:
 
         self.SESSION.query.return_value.filter_by.assert_called_with(user_name=self.FAKE_USER)
 
+    def test_change_user_password__should_make_update_call_when_credentials_match(self):
+        new_pass = 'new_pass'
+        user = self.__create_database_user()
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+        self.DATABASE.change_user_password(self.FAKE_USER, self.FAKE_PASS, new_pass)
+
+        assert user.password == new_pass
+
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()

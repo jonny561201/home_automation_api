@@ -47,6 +47,7 @@ class UserDatabase:
         user = self.session.query(UserCredentials).filter_by(user_name=user_name).first()
         if user.password != old_pass:
             raise Unauthorized
+        user.password = new_pass
 
     def get_preferences_by_user(self, user_id):
         preference = self.session.query(UserPreference).filter_by(user_id=user_id).first()
