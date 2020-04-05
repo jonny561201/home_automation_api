@@ -10,13 +10,15 @@ from svc.db.models.user_information_model import UserInformation, DailySumpPumpL
     UserCredentials, Roles, UserPreference, UserRoles
 
 
+DB_USER = 'postgres'
+DB_PASS = 'password'
+DB_PORT = '5432'
+DB_NAME = 'garage_door'
+
+
 class TestDbValidateIntegration:
     CRED_ID = str(uuid.uuid4())
     USER_ID = str(uuid.uuid4())
-    DB_USER = 'postgres'
-    DB_PASS = 'password'
-    DB_PORT = '5432'
-    DB_NAME = 'garage_door'
     USER_NAME = 'Jonny'
     PASSWORD = 'fakePass'
     ROLE_NAME = 'garage_door'
@@ -28,8 +30,8 @@ class TestDbValidateIntegration:
     LAST = 'Test'
 
     def setup_method(self):
-        os.environ.update({'SQL_USERNAME': self.DB_USER, 'SQL_PASSWORD': self.DB_PASS,
-                           'SQL_DBNAME': self.DB_NAME, 'SQL_PORT': self.DB_PORT})
+        os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
+                           'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
         self.ROLE = Roles(role_name=self.ROLE_NAME, id=str(uuid.uuid4()), role_desc='doesnt matter')
         self.USER_ROLE = UserRoles(id=str(uuid.uuid4()), role_id=self.ROLE.id, user_id=self.USER_ID)
         self.USER = UserInformation(id=self.USER_ID, first_name=self.FIRST, last_name=self.LAST)
@@ -98,14 +100,10 @@ class TestDbPreferenceIntegration:
     UNIT = 'metric'
     USER = None
     USER_PREFERENCES = None
-    DB_USER = 'postgres'
-    DB_PASS = 'password'
-    DB_PORT = '5432'
-    DB_NAME = 'garage_door'
 
     def setup_method(self):
-        os.environ.update({'SQL_USERNAME': self.DB_USER, 'SQL_PASSWORD': self.DB_PASS,
-                           'SQL_DBNAME': self.DB_NAME, 'SQL_PORT': self.DB_PORT})
+        os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
+                           'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
         self.USER_PREFERENCES = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city=self.CITY)
         with UserDatabaseManager() as database:
@@ -185,10 +183,6 @@ class TestDbPreferenceIntegration:
 
 
 class TestDbSumpIntegration:
-    DB_USER = 'postgres'
-    DB_PASS = 'password'
-    DB_PORT = '5432'
-    DB_NAME = 'garage_door'
     DEPTH = 8.0
     FIRST_USER_ID = str(uuid.uuid4())
     SECOND_USER_ID = str(uuid.uuid4())
@@ -203,8 +197,8 @@ class TestDbSumpIntegration:
     SECOND_SUMP_AVG = None
 
     def setup_method(self):
-        os.environ.update({'SQL_USERNAME': self.DB_USER, 'SQL_PASSWORD': self.DB_PASS,
-                           'SQL_DBNAME': self.DB_NAME, 'SQL_PORT': self.DB_PORT})
+        os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
+                           'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
         self.FIRST_USER = UserInformation(id=self.FIRST_USER_ID, first_name='Jon', last_name='Test')
         self.SECOND_USER = UserInformation(id=self.SECOND_USER_ID, first_name='Dylan', last_name='Fake')
         self.FIRST_SUMP_DAILY = DailySumpPumpLevel(id=88, distance=11.0, user_id=self.FIRST_USER_ID, warning_level=2, create_date=self.DATE)
@@ -279,3 +273,36 @@ class TestDbSumpIntegration:
         with pytest.raises(BadRequest):
             with UserDatabaseManager() as database:
                 database.insert_current_sump_level(user_id, depth_info)
+
+
+class TestDbPasswordIntegration:
+    USER = None
+    USER_NAME = 'JonsUser'
+    PASSWORD = 'BESTESTPASSWORDEVA'
+
+    def setup_method(self):
+        os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
+                           'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
+        self.USER = self.__create_user_credentials()
+        with UserDatabaseManager() as database:
+            database.session.add(self.USER)
+
+    def teardown_method(self):
+        with UserDatabaseManager() as database:
+            database.session.delete(self.USER)
+        os.environ.pop('SQL_USERNAME')
+        os.environ.pop('SQL_PASSWORD')
+        os.environ.pop('SQL_DBNAME')
+        os.environ.pop('SQL_PORT')
+
+    def test_change_user_password__should_raise_exception_with_mismatched_password(self):
+        mismatched_pass = 'this wont match'
+        new_pass = 'doesnt matter'
+        with pytest.raises(Unauthorized):
+            with UserDatabaseManager() as database:
+                database.change_user_password(self.USER_NAME, mismatched_pass, new_pass)
+
+    def __create_user_credentials(self):
+        user_id = str(uuid.uuid4())
+        user_info = UserInformation(first_name='test', last_name='Tester', id=user_id)
+        return UserCredentials(id=str(uuid.uuid4()), user_name=self.USER_NAME, password=self.PASSWORD, user_id=user_id, user=user_info)
