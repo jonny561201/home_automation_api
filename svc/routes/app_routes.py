@@ -36,4 +36,4 @@ def update_user_preferences_by_user_id(user_id):
 
 def update_user_password():
     app_controller.change_password(request.data)
-    return Response(status=200)
+    return Response(status=200, headers=DEFAULT_HEADERS)

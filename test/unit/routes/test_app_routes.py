@@ -110,3 +110,8 @@ class TestAppRoutes:
         actual = update_user_password()
 
         assert actual.status_code == 200
+
+    def test_update_user_password__should_return_success_content(self, mock_controller, mock_request):
+        actual = update_user_password()
+
+        assert actual.content_type == 'text/json'
