@@ -35,5 +35,6 @@ def update_user_preferences_by_user_id(user_id):
 
 
 def update_user_password():
-    app_controller.change_password(request.data)
+    bearer_token = request.headers.get('Authorization')
+    app_controller.change_password(bearer_token, request.data)
     return Response(status=200, headers=DEFAULT_HEADERS)

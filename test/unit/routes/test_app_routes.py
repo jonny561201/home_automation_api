@@ -99,12 +99,18 @@ class TestAppRoutes:
 
         assert actual.content_type == 'text/json'
 
-    def test_update_user_password__should_call_change_password_controller(self, mock_controller, mock_request):
+    def test_update_user_password__should_call_change_password_controller_with_bearer_token(self, mock_controller, mock_request):
+        mock_request.headers = {'Authorization': self.FAKE_JWT_TOKEN}
+        update_user_password()
+
+        mock_controller.change_password.assert_called_with(self.FAKE_JWT_TOKEN, ANY)
+
+    def test_update_user_password__should_call_change_password_controller_with_data(self, mock_controller, mock_request):
         request_data = {'fakeData': 'doesnt matter'}
         mock_request.data = request_data
         update_user_password()
 
-        mock_controller.change_password.assert_called_with(request_data)
+        mock_controller.change_password.assert_called_with(ANY, request_data)
 
     def test_update_user_password__should_return_success_status_code(self, mock_controller, mock_request):
         actual = update_user_password()
