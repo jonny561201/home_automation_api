@@ -28,4 +28,4 @@ def change_password(bearer_token, request_data):
     jwt_utils.is_jwt_valid(bearer_token)
     request = json.loads(request_data.decode('UTF-8'))
     with UserDatabaseManager() as database:
-        database.change_user_password(request['userName'], None, None)
+        database.change_user_password(request['userName'], request['oldPassword'], None)

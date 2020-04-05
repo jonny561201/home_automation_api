@@ -105,3 +105,10 @@ class TestLoginController:
         change_password(self.BEARER_TOKEN, json.dumps(request).encode('UTF-8'))
 
         mock_db.return_value.__enter__.return_value.change_user_password.assert_called_with(self.USER, ANY, ANY)
+
+    def test_change_password__should_call_database_change_user_password_with_old_password(self, mock_jwt, mock_db):
+        new_password = 'new password'
+        request = {'userName': self.USER, 'oldPassword': self.PWORD, 'newPassword': new_password}
+        change_password(self.BEARER_TOKEN, json.dumps(request).encode('UTF-8'))
+
+        mock_db.return_value.__enter__.return_value.change_user_password.assert_called_with(ANY, self.PWORD, ANY)
