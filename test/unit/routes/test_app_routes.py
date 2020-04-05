@@ -105,3 +105,8 @@ class TestAppRoutes:
         update_user_password()
 
         mock_controller.change_password.assert_called_with(request_data)
+
+    def test_update_user_password__should_return_success_status_code(self, mock_controller, mock_request):
+        actual = update_user_password()
+
+        assert actual.status_code == 200
