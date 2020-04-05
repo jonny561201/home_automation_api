@@ -3,7 +3,8 @@ import json
 
 from mock import patch, ANY
 
-from svc.routes.app_routes import app_login, get_user_preferences_by_user_id, update_user_preferences_by_user_id
+from svc.routes.app_routes import app_login, get_user_preferences_by_user_id, update_user_preferences_by_user_id, \
+    update_user_password
 
 
 @patch('svc.routes.app_routes.request')
@@ -93,8 +94,14 @@ class TestAppRoutes:
 
         assert actual.status_code == 200
 
-    def test_update_user_preferences_by_user_id__should_return_success_status_code(self, mock_controller, mock_requests):
+    def test_update_user_preferences_by_user_id__should_return_success_content(self, mock_controller, mock_requests):
         actual = update_user_preferences_by_user_id(self.USER_ID)
 
         assert actual.content_type == 'text/json'
 
+    def test_update_user_password__should_call_change_password_controller(self, mock_controller, mock_request):
+        request_data = {'fakeData': 'doesnt matter'}
+        mock_request.data = request_data
+        update_user_password()
+
+        mock_controller.change_password.assert_called_with(request_data)
