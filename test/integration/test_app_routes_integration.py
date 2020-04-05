@@ -6,7 +6,7 @@ import uuid
 import jwt
 
 from svc.db.methods.user_credentials import UserDatabaseManager
-from svc.db.models.user_information_model import UserInformation, UserPreference
+from svc.db.models.user_information_model import UserInformation, UserPreference, UserCredentials
 from svc.manager import create_app
 
 
@@ -17,9 +17,12 @@ class TestAppRoutesIntegration:
     db_name = 'garage_door'
     TEST_CLIENT = None
     JWT_SECRET = 'testSecret'
+    USER_NAME = 'Jon Rocks'
+    PASSWORD = 'SuperSafePassword'
     USER_ID = str(uuid.uuid4())
     CITY = 'Prague'
     USER = None
+    USER_CRED = None
     PREFERENCE = None
 
     def setup_method(self):
@@ -29,16 +32,19 @@ class TestAppRoutesIntegration:
         self.TEST_CLIENT = flask_app.test_client()
         os.environ.update({'JWT_SECRET': self.JWT_SECRET})
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
+        self.USER_CRED = UserCredentials(id= str(uuid.uuid4()),user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID, user=self.USER)
         self.PREFERENCE = UserPreference(user_id=self.USER_ID, city=self.CITY, is_fahrenheit=True, is_imperial=True)
 
         with UserDatabaseManager() as database:
             database.session.add(self.USER)
+            database.session.add(self.USER_CRED)
             database.session.add(self.PREFERENCE)
 
     def teardown_method(self):
         os.environ.pop('JWT_SECRET')
         with UserDatabaseManager() as database:
             database.session.delete(self.PREFERENCE)
+            database.session.delete(self.USER_CRED)
             database.session.delete(self.USER)
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
@@ -131,3 +137,17 @@ class TestAppRoutesIntegration:
         actual = self.TEST_CLIENT.post('userId/' + self.USER_ID + '/updateAccount', data={}, headers=headers)
 
         assert actual.status_code == 401
+
+    def test_update_user_password__should_update_user_password_successfully(self):
+        new_pass = 'not important'
+        post_body = json.dumps({'userName': self.USER_NAME, 'oldPassword': self.PASSWORD, 'newPassword': new_pass})
+        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
+        headers = {'Authorization': bearer_token}
+
+        actual = self.TEST_CLIENT.post('userId/' + self.USER_ID + '/updateAccount', data=post_body, headers=headers)
+
+        assert actual.status_code == 200
+
+        with UserDatabaseManager() as database:
+            creds = database.session.query(UserCredentials).filter_by(user_name=self.USER_NAME).first()
+            assert creds.password == new_pass
