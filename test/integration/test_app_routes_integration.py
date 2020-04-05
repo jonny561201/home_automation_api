@@ -123,3 +123,11 @@ class TestAppRoutesIntegration:
         with UserDatabaseManager() as database:
             preference = database.session.query(UserPreference).filter_by(user_id=self.USER_ID).first()
             assert preference.city == expected_city
+
+    def test_update_user_password__should_return_401_when_unauthorized(self):
+        bearer_token = jwt.encode({}, 'bad secret', algorithm='HS256')
+        headers = {'Authorization': bearer_token}
+
+        actual = self.TEST_CLIENT.post('userId/' + self.USER_ID + '/updateAccount', data={}, headers=headers)
+
+        assert actual.status_code == 401
