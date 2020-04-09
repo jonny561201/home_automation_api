@@ -101,23 +101,29 @@ class TestAppRoutes:
 
     def test_update_user_password__should_call_change_password_controller_with_bearer_token(self, mock_controller, mock_request):
         mock_request.headers = {'Authorization': self.FAKE_JWT_TOKEN}
-        update_user_password()
+        update_user_password(self.USER_ID)
 
-        mock_controller.change_password.assert_called_with(self.FAKE_JWT_TOKEN, ANY)
+        mock_controller.change_password.assert_called_with(self.FAKE_JWT_TOKEN, ANY, ANY)
+
+    def test_update_user_password__should_call_change_password_controller_with_user_id(self, mock_controller, mock_request):
+        mock_request.headers = {'Authorization': self.FAKE_JWT_TOKEN}
+        update_user_password(self.USER_ID)
+
+        mock_controller.change_password.assert_called_with(ANY, self.USER_ID, ANY)
 
     def test_update_user_password__should_call_change_password_controller_with_data(self, mock_controller, mock_request):
         request_data = {'fakeData': 'doesnt matter'}
         mock_request.data = request_data
-        update_user_password()
+        update_user_password(self.USER_ID)
 
-        mock_controller.change_password.assert_called_with(ANY, request_data)
+        mock_controller.change_password.assert_called_with(ANY, ANY, request_data)
 
     def test_update_user_password__should_return_success_status_code(self, mock_controller, mock_request):
-        actual = update_user_password()
+        actual = update_user_password(self.USER_ID)
 
         assert actual.status_code == 200
 
     def test_update_user_password__should_return_success_content(self, mock_controller, mock_request):
-        actual = update_user_password()
+        actual = update_user_password(self.USER_ID)
 
         assert actual.content_type == 'text/json'

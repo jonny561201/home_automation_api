@@ -17,6 +17,7 @@ class TestUserDatabase:
     ROLE_NAME = 'garage_door'
     FIRST_NAME = 'John'
     LAST_NAME = 'Grape'
+    USER_ID = '1234abcd'
     SESSION = None
     DATABASE = None
 
@@ -249,9 +250,9 @@ class TestUserDatabase:
     def test_change_user_password__should_query_user_credentials(self):
         new_pass = 'new_pass'
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = self.__create_database_user()
-        self.DATABASE.change_user_password(self.FAKE_USER, self.FAKE_PASS, new_pass)
+        self.DATABASE.change_user_password(self.USER_ID, self.FAKE_PASS, new_pass)
 
-        self.SESSION.query.return_value.filter_by.assert_called_with(user_name=self.FAKE_USER)
+        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
 
     def test_change_user_password__should_make_update_call_when_credentials_match(self):
         new_pass = 'new_pass'

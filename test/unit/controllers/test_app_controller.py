@@ -95,27 +95,27 @@ class TestLoginController:
 
     def test_change_password__should_validate_jwt_token(self, mock_jwt, mock_db):
         request = json.dumps({'userName': None, 'oldPassword': None, 'newPassword': None}).encode('UTF-8')
-        change_password(self.BEARER_TOKEN, request)
+        change_password(self.BEARER_TOKEN, self.USER_ID, request)
 
         mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
 
-    def test_change_password__should_call_database_change_user_password_with_user_name(self, mock_jwt, mock_db):
+    def test_change_password__should_call_database_change_user_password_with_user_id(self, mock_jwt, mock_db):
         new_password = 'new password'
         request = {'userName': self.USER, 'oldPassword': self.PWORD, 'newPassword': new_password}
-        change_password(self.BEARER_TOKEN, json.dumps(request).encode('UTF-8'))
+        change_password(self.BEARER_TOKEN, self.USER_ID, json.dumps(request).encode('UTF-8'))
 
-        mock_db.return_value.__enter__.return_value.change_user_password.assert_called_with(self.USER, ANY, ANY)
+        mock_db.return_value.__enter__.return_value.change_user_password.assert_called_with(self.USER_ID, ANY, ANY)
 
     def test_change_password__should_call_database_change_user_password_with_old_password(self, mock_jwt, mock_db):
         new_password = 'new password'
         request = {'userName': self.USER, 'oldPassword': self.PWORD, 'newPassword': new_password}
-        change_password(self.BEARER_TOKEN, json.dumps(request).encode('UTF-8'))
+        change_password(self.BEARER_TOKEN, self.USER_ID, json.dumps(request).encode('UTF-8'))
 
         mock_db.return_value.__enter__.return_value.change_user_password.assert_called_with(ANY, self.PWORD, ANY)
 
     def test_change_password__should_call_database_change_user_password_with_new_password(self, mock_jwt, mock_db):
         new_password = 'new password'
         request = {'userName': self.USER, 'oldPassword': self.PWORD, 'newPassword': new_password}
-        change_password(self.BEARER_TOKEN, json.dumps(request).encode('UTF-8'))
+        change_password(self.BEARER_TOKEN, self.USER_ID, json.dumps(request).encode('UTF-8'))
 
         mock_db.return_value.__enter__.return_value.change_user_password.assert_called_with(ANY, ANY, new_password)

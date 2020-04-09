@@ -43,8 +43,8 @@ class UserDatabase:
         return {'user_id': user.user_id, 'roles': [role.role.role_name for role in roles],
                 'first_name': user.user.first_name, 'last_name': user.user.last_name}
 
-    def change_user_password(self, user_name, old_pass, new_pass):
-        user = self.session.query(UserCredentials).filter_by(user_name=user_name).first()
+    def change_user_password(self, user_id, old_pass, new_pass):
+        user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
         if user.password != old_pass:
             raise Unauthorized
         user.password = new_pass
