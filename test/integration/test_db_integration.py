@@ -315,3 +315,40 @@ class TestDbPasswordIntegration:
 
             user = database.session.query(UserCredentials).filter_by(user_name=self.USER_NAME).first()
             assert user.password == new_pass
+
+
+class TestDbRoleIntegration:
+    USER_ID = str(uuid.uuid4())
+    ROLE_ID = str(uuid.uuid4())
+    USER_ROLE = None
+    ROLE = None
+    USER_INFO = None
+
+    def setup_method(self):
+        os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
+                           'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
+        self.USER_INFO = UserInformation(id=self.USER_ID, first_name='steve', last_name='rogers')
+        self.ROLE = Roles(id=self.ROLE_ID, role_desc="lighting", role_name="lighting")
+        self.USER_ROLE = UserRoles(id=str(uuid.uuid4()), user_id=self.USER_ID, role_id=self.ROLE_ID, role=self.ROLE)
+        with UserDatabaseManager() as database:
+            database.session.add(self.ROLE)
+            database.session.add(self.USER_INFO)
+            database.session.add(self.USER_ROLE)
+
+    def teardown_method(self):
+        with UserDatabaseManager() as database:
+            database.session.delete(self.USER_ROLE)
+        with UserDatabaseManager() as database:
+            database.session.delete(self.USER_INFO)
+            database.session.delete(self.ROLE)
+        os.environ.pop('SQL_USERNAME')
+        os.environ.pop('SQL_PASSWORD')
+        os.environ.pop('SQL_DBNAME')
+        os.environ.pop('SQL_PORT')
+
+    def test_add_new_device__should_raise_unauthorized_when_no_role_found(self):
+        role_name = 'garage_door'
+        ip_address = '0.0.0.0'
+        with pytest.raises(Unauthorized):
+            with UserDatabaseManager() as database:
+                database.add_new_role_device(self.USER_ID, role_name, ip_address)
