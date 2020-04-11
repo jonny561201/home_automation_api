@@ -96,6 +96,8 @@ class UserDatabase:
     def add_new_role_device(self, user_id, role_name, ip_address):
         user_roles = self.session.query(UserRoles).filter_by(user_id=user_id).all()
         role = next((user_role for user_role in user_roles if user_role.role.role_name == role_name), None)
+        if role is None:
+            raise Unauthorized
         device = RoleDevices(ip_address=ip_address, max_nodes=2, user_role_id=role.id)
         self.session.add(device)
 

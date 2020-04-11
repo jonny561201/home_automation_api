@@ -279,6 +279,14 @@ class TestUserDatabase:
 
         self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
 
+    def test_add_new_role_device__should_raise_unauthorized_when_no_role_returned(self):
+        ip_address = '0.0.0.0'
+        role_name = 'garage_door'
+        role = UserRoles(user_id=str(uuid.uuid4()), role=Roles(role_name='security'))
+        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [role]
+        with pytest.raises(Unauthorized):
+            self.DATABASE.add_new_role_device(self.USER_ID, role_name, ip_address)
+
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()
