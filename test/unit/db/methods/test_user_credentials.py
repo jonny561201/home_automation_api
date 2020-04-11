@@ -264,6 +264,8 @@ class TestUserDatabase:
     def test_add_new_role_device__should_call_add(self):
         ip_address = '0.0.0.0'
         role_name = 'garage_door'
+        role = UserRoles(user_id=str(uuid.uuid4()), role=Roles(role_name=role_name))
+        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [role]
         self.DATABASE.add_new_role_device(self.USER_ID, role_name, ip_address)
 
         self.SESSION.add.assert_called()
@@ -271,6 +273,8 @@ class TestUserDatabase:
     def test_add_new_role_device__should_query_user_role_id_by_user_id(self):
         ip_address = '0.0.0.0'
         role_name = 'garage_door'
+        role = UserRoles(user_id=str(uuid.uuid4()), role=Roles(role_name=role_name))
+        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [role]
         self.DATABASE.add_new_role_device(self.USER_ID, role_name, ip_address)
 
         self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)

@@ -93,12 +93,11 @@ class UserDatabase:
         except (TypeError, KeyError):
             raise BadRequest
 
-    def add_new_role_device(self, user_id, role, ip_address):
-        self.session.query(UserRoles).filter_by(user_id=user_id).all()
-        # find the user_role_id using user_id and role_name
-        # create a new RoleDevices object and populate values
-        # if any items missing throw badrequest
-        self.session.add(RoleDevices())
+    def add_new_role_device(self, user_id, role_name, ip_address):
+        user_roles = self.session.query(UserRoles).filter_by(user_id=user_id).all()
+        role = next((user_role for user_role in user_roles if user_role.role.role_name == role_name), None)
+        device = RoleDevices(ip_address=ip_address, max_nodes=2, user_role_id=role.id)
+        self.session.add(device)
 
     @staticmethod
     def __create_role(role_devices):
