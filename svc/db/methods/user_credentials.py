@@ -5,7 +5,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.constants.settings_state import Settings
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
-    AverageSumpPumpLevel
+    AverageSumpPumpLevel, RoleDevices
 
 
 class UserDatabaseManager:
@@ -41,13 +41,6 @@ class UserDatabase:
             raise Unauthorized
         return {'user_id': user.user_id, 'roles': [{role.role.role_name: self.__create_role(role.role_devices)} for role in user.user_roles],
                 'first_name': user.user.first_name, 'last_name': user.user.last_name}
-
-    def __create_role(self, role_devices):
-        if role_devices is not None:
-            return {'ip_address': role_devices.ip_address,
-                    'devices': [{'node_device': node.node_device, 'node_name': node.node_name} for node in role_devices.role_device_nodes]}
-        else:
-            return {}
 
     def change_user_password(self, user_id, old_pass, new_pass):
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
@@ -99,3 +92,14 @@ class UserDatabase:
             self.session.add(current_depth)
         except (TypeError, KeyError):
             raise BadRequest
+
+    def add_new_role_device(self, user_id, role, ip_address):
+        self.session.add(RoleDevices())
+
+    @staticmethod
+    def __create_role(role_devices):
+        if role_devices is not None:
+            return {'ip_address': role_devices.ip_address,
+                    'devices': [{'node_device': node.node_device, 'node_name': node.node_name} for node in role_devices.role_device_nodes]}
+        else:
+            return {}

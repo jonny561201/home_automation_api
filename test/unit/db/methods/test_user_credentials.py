@@ -261,6 +261,13 @@ class TestUserDatabase:
 
         assert user.password == new_pass
 
+    def test_add_new_role_device__should_call_add(self):
+        ip_address = '0.0.0.0'
+        role_name = 'garage_door'
+        self.DATABASE.add_new_role_device(self.USER_ID, role_name, ip_address)
+
+        self.SESSION.add.assert_called()
+
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()
