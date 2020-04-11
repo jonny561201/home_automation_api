@@ -45,10 +45,11 @@ class TestDbValidateIntegration:
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
-            database.session.delete(self.USER)
             database.session.delete(self.USER_LOGIN)
             database.session.delete(self.USER_ROLE)
+        with UserDatabaseManager() as database:
             database.session.delete(self.ROLE)
+            database.session.delete(self.USER)
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
         os.environ.pop('SQL_DBNAME')
@@ -64,7 +65,7 @@ class TestDbValidateIntegration:
         with UserDatabaseManager() as database:
             actual = database.validate_credentials(self.USER_NAME, self.PASSWORD)
 
-            assert actual['roles'] == [self.ROLE_NAME]
+            assert actual['roles'] == [{self.ROLE_NAME: {}}]
 
     def test_validate_credentials__should_return_first_name_when_user_exists(self):
         with UserDatabaseManager() as database:
@@ -277,18 +278,23 @@ class TestDbSumpIntegration:
 
 class TestDbPasswordIntegration:
     USER = None
+    USER_INFO = None
     USER_NAME = 'JonsUser'
     PASSWORD = 'BESTESTPASSWORDEVA'
+    USER_ID = str(uuid.uuid4())
 
     def setup_method(self):
         os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
                            'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
-        self.USER = self.__create_user_credentials()
+        self.USER_INFO = UserInformation(first_name='test', last_name='Tester', id=self.USER_ID)
+        self.USER = UserCredentials(id=str(uuid.uuid4()), user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
         with UserDatabaseManager() as database:
+            database.session.add(self.USER_INFO)
             database.session.add(self.USER)
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
+            database.session.delete(self.USER_INFO)
             database.session.delete(self.USER)
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
@@ -300,17 +306,12 @@ class TestDbPasswordIntegration:
         new_pass = 'doesnt matter'
         with pytest.raises(Unauthorized):
             with UserDatabaseManager() as database:
-                database.change_user_password(self.USER_NAME, mismatched_pass, new_pass)
+                database.change_user_password(self.USER_ID, mismatched_pass, new_pass)
 
     def test_change_user_password__should_change_user_password_when_matching(self):
         new_pass = 'I SHOULD HAVE CHANGED!!!'
         with UserDatabaseManager() as database:
-            database.change_user_password(self.USER_NAME, self.PASSWORD, new_pass)
+            database.change_user_password(self.USER_ID, self.PASSWORD, new_pass)
 
             user = database.session.query(UserCredentials).filter_by(user_name=self.USER_NAME).first()
             assert user.password == new_pass
-
-    def __create_user_credentials(self):
-        user_id = str(uuid.uuid4())
-        user_info = UserInformation(first_name='test', last_name='Tester', id=user_id)
-        return UserCredentials(id=str(uuid.uuid4()), user_name=self.USER_NAME, password=self.PASSWORD, user_id=user_id, user=user_info)

@@ -77,7 +77,7 @@ class UserCredentials(Base):
     user_id = Column(UUID, ForeignKey(UserInformation.id))
 
     user = relationship('UserInformation', foreign_keys='UserCredentials.user_id')
-    user_roles = relationship("UserRoles", secondaryjoin="and_(UserRoles.user_id == UserInformation.id)", secondary='user_information')
+    user_roles = relationship("UserRoles", secondaryjoin="and_(UserRoles.user_id == UserInformation.id)", secondary='user_information', viewonly=True)
 
 
 class DailySumpPumpLevel(Base):

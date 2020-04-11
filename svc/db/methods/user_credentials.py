@@ -5,7 +5,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.constants.settings_state import Settings
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
-    AverageSumpPumpLevel, UserRoles
+    AverageSumpPumpLevel
 
 
 class UserDatabaseManager:
@@ -35,13 +35,19 @@ class UserDatabase:
     def __init__(self, session):
         self.session = session
 
-    def validate_credentials(self, user, pword):
-        user = self.session.query(UserCredentials).filter_by(user_name=user).first()
+    def validate_credentials(self, user_name, pword):
+        user = self.session.query(UserCredentials).filter_by(user_name=user_name).first()
         if user is None or user.password != pword:
             raise Unauthorized
-        roles = self.session.query(UserRoles).filter_by(user_id=user.user_id).all()
-        return {'user_id': user.user_id, 'roles': [role.role.role_name for role in roles],
+        return {'user_id': user.user_id, 'roles': [{role.role.role_name: self.__create_role(role.role_devices)} for role in user.user_roles],
                 'first_name': user.user.first_name, 'last_name': user.user.last_name}
+
+    def __create_role(self, role_devices):
+        if role_devices is not None:
+            return {'ip_address': role_devices.ip_address,
+                    'devices': [{'node_device': node.node_device, 'node_name': node.node_name} for node in role_devices.role_device_nodes]}
+        else:
+            return {}
 
     def change_user_password(self, user_id, old_pass, new_pass):
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()

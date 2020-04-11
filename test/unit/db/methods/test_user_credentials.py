@@ -45,13 +45,12 @@ class TestUserDatabase:
     def test_validate_credentials__should_return_roles_if_password_matches_queried_user(self):
         user = self.__create_database_user()
         user.user_id = '123455'
-        roles = [UserRoles(role=Roles(role_name=self.ROLE_NAME))]
+        user.user_roles = [UserRoles(role=Roles(role_name=self.ROLE_NAME))]
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = roles
 
         actual = self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
 
-        assert actual['roles'] == [self.ROLE_NAME]
+        assert actual['roles'] == [{self.ROLE_NAME: {} }]
 
     def test_validate_credentials__should_return_first_name_if_password_matches_queried_user(self):
         user = self.__create_database_user()
