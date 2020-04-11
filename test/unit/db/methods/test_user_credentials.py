@@ -268,6 +268,13 @@ class TestUserDatabase:
 
         self.SESSION.add.assert_called()
 
+    def test_add_new_role_device__should_query_user_role_id_by_user_id(self):
+        ip_address = '0.0.0.0'
+        role_name = 'garage_door'
+        self.DATABASE.add_new_role_device(self.USER_ID, role_name, ip_address)
+
+        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
+
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()

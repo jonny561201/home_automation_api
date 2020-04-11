@@ -5,7 +5,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.constants.settings_state import Settings
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
-    AverageSumpPumpLevel, RoleDevices
+    AverageSumpPumpLevel, RoleDevices, UserRoles
 
 
 class UserDatabaseManager:
@@ -94,6 +94,10 @@ class UserDatabase:
             raise BadRequest
 
     def add_new_role_device(self, user_id, role, ip_address):
+        self.session.query(UserRoles).filter_by(user_id=user_id).all()
+        # find the user_role_id using user_id and role_name
+        # create a new RoleDevices object and populate values
+        # if any items missing throw badrequest
         self.session.add(RoleDevices())
 
     @staticmethod
