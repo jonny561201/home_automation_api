@@ -1,4 +1,4 @@
-from mock import patch
+from mock import patch, ANY
 
 from svc.routes.device_routes import add_device_by_user_id
 
@@ -12,4 +12,9 @@ class TestDeviceRoutes:
     def test_add_device_by_user__should_pass_bearer_token_to_controller(self, mock_request, mock_controller):
         mock_request.headers = {'Authorization': self.BEARER_TOKEN}
         add_device_by_user_id(self.USER_ID)
-        mock_controller.assert_called_with(self.BEARER_TOKEN, None, None)
+        mock_controller.assert_called_with(self.BEARER_TOKEN, ANY, ANY)
+
+    def test_add_device_by_user__should_pass_user_id_to_controller(self, mock_request, mock_controller):
+        mock_request.headers = {'Authorization': None}
+        add_device_by_user_id(self.USER_ID)
+        mock_controller.assert_called_with(ANY, self.USER_ID, ANY)
