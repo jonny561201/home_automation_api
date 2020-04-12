@@ -28,3 +28,10 @@ class TestDeviceRoutes:
         mock_request.data = json.dumps(request_data).encode('UTF-8')
         add_device_by_user_id(self.USER_ID)
         mock_controller.assert_called_with(ANY, ANY, request_data)
+
+    def test_add_device_by_user__should_return_status_code_200(self, mock_request, mock_controller):
+        mock_request.headers = {'Authorization': None}
+        mock_request.data = json.dumps({}).encode('UTF-8')
+        actual = add_device_by_user_id(self.USER_ID)
+
+        assert actual.status_code == 200
