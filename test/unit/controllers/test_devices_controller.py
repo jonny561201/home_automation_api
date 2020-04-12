@@ -1,4 +1,6 @@
+import pytest
 from mock import patch, ANY
+from werkzeug.exceptions import BadRequest
 
 from svc.controllers.devices_controller import add_device_to_role
 
@@ -30,3 +32,8 @@ class TestDeviceController:
         request_data = {'userId': None, 'roleName': None, 'ipAddress': self.IP_ADDRESS}
         add_device_to_role(self.BEARER_TOKEN, request_data)
         mock_db.return_value.__enter__.return_value.add_new_role_device.assert_called_with(ANY, ANY, self.IP_ADDRESS)
+
+    def test_add_device_to_role__should_raise_bad_request_exception_if_key_missing(self, mock_jwt, mock_db):
+        request_data = {}
+        with pytest.raises(BadRequest):
+            add_device_to_role(self.BEARER_TOKEN, request_data)
