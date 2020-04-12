@@ -7,8 +7,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, \
-    UserCredentials, Roles, UserPreference, UserRoles
-
+    UserCredentials, Roles, UserPreference, UserRoles, RoleDevices
 
 DB_USER = 'postgres'
 DB_PASS = 'password'
@@ -33,11 +32,10 @@ class TestDbValidateIntegration:
         os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
                            'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
         self.ROLE = Roles(role_name=self.ROLE_NAME, id=str(uuid.uuid4()), role_desc='doesnt matter')
-        self.USER_ROLE = UserRoles(id=str(uuid.uuid4()), role_id=self.ROLE.id, user_id=self.USER_ID)
+        self.USER_ROLE = UserRoles(id=str(uuid.uuid4()), role_id=self.ROLE.id, user_id=self.USER_ID, role=self.ROLE)
         self.USER = UserInformation(id=self.USER_ID, first_name=self.FIRST, last_name=self.LAST)
         self.USER_LOGIN = UserCredentials(id=self.CRED_ID, user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
         with UserDatabaseManager() as database:
-            database.session.add(self.ROLE)
             database.session.add(self.USER)
             self.USER_LOGIN.role_id = database.session.query(Roles).first().id
             database.session.add(self.USER_LOGIN)
@@ -46,10 +44,8 @@ class TestDbValidateIntegration:
     def teardown_method(self):
         with UserDatabaseManager() as database:
             database.session.delete(self.USER_LOGIN)
-            database.session.delete(self.USER_ROLE)
         with UserDatabaseManager() as database:
             database.session.delete(self.ROLE)
-            database.session.delete(self.USER)
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
         os.environ.pop('SQL_DBNAME')
@@ -277,7 +273,7 @@ class TestDbSumpIntegration:
 
 
 class TestDbPasswordIntegration:
-    USER = None
+    USER_CREDS = None
     USER_INFO = None
     USER_NAME = 'JonsUser'
     PASSWORD = 'BESTESTPASSWORDEVA'
@@ -287,15 +283,14 @@ class TestDbPasswordIntegration:
         os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
                            'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
         self.USER_INFO = UserInformation(first_name='test', last_name='Tester', id=self.USER_ID)
-        self.USER = UserCredentials(id=str(uuid.uuid4()), user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
+        self.USER_CREDS = UserCredentials(id=str(uuid.uuid4()), user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
         with UserDatabaseManager() as database:
             database.session.add(self.USER_INFO)
-            database.session.add(self.USER)
+            database.session.add(self.USER_CREDS)
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
-            database.session.delete(self.USER_INFO)
-            database.session.delete(self.USER)
+            database.session.delete(self.USER_CREDS)
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
         os.environ.pop('SQL_DBNAME')
@@ -320,6 +315,8 @@ class TestDbPasswordIntegration:
 class TestDbRoleIntegration:
     USER_ID = str(uuid.uuid4())
     ROLE_ID = str(uuid.uuid4())
+    USER_ROLE_ID = str(uuid.uuid4())
+    ROLE_NAME = "lighting"
     USER_ROLE = None
     ROLE = None
     USER_INFO = None
@@ -328,8 +325,8 @@ class TestDbRoleIntegration:
         os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
                            'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='steve', last_name='rogers')
-        self.ROLE = Roles(id=self.ROLE_ID, role_desc="lighting", role_name="lighting")
-        self.USER_ROLE = UserRoles(id=str(uuid.uuid4()), user_id=self.USER_ID, role_id=self.ROLE_ID, role=self.ROLE)
+        self.ROLE = Roles(id=self.ROLE_ID, role_desc="lighting", role_name=self.ROLE_NAME)
+        self.USER_ROLE = UserRoles(id=self.USER_ROLE_ID, user_id=self.USER_ID, role_id=self.ROLE_ID, role=self.ROLE)
         with UserDatabaseManager() as database:
             database.session.add(self.ROLE)
             database.session.add(self.USER_INFO)
@@ -352,3 +349,12 @@ class TestDbRoleIntegration:
         with pytest.raises(Unauthorized):
             with UserDatabaseManager() as database:
                 database.add_new_role_device(self.USER_ID, role_name, ip_address)
+
+    def test_add_new_device__should_insert_a_new_device_into_table(self):
+        ip_address = '192.168.1.145'
+        with UserDatabaseManager() as database:
+            database.add_new_role_device(self.USER_ID, self.ROLE_NAME, ip_address)
+
+        with UserDatabaseManager() as database:
+            actual = database.session.query(RoleDevices).filter_by(user_role_id=self.USER_ROLE_ID).first()
+            assert actual.ip_address == ip_address

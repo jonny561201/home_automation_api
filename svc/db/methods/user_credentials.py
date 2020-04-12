@@ -1,4 +1,5 @@
 import os
+import uuid
 
 from sqlalchemy import orm, create_engine
 from werkzeug.exceptions import BadRequest, Unauthorized
@@ -98,7 +99,7 @@ class UserDatabase:
         role = next((user_role for user_role in user_roles if user_role.role.role_name == role_name), None)
         if role is None:
             raise Unauthorized
-        device = RoleDevices(ip_address=ip_address, max_nodes=2, user_role_id=role.id)
+        device = RoleDevices(id=str(uuid.uuid4()), ip_address=ip_address, max_nodes=2, user_role_id=role.id)
         self.session.add(device)
 
     @staticmethod

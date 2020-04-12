@@ -32,7 +32,7 @@ class TestAppRoutesIntegration:
         self.TEST_CLIENT = flask_app.test_client()
         os.environ.update({'JWT_SECRET': self.JWT_SECRET})
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
-        self.USER_CRED = UserCredentials(id= str(uuid.uuid4()),user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID, user=self.USER)
+        self.USER_CRED = UserCredentials(id=str(uuid.uuid4()), user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
         self.PREFERENCE = UserPreference(user_id=self.USER_ID, city=self.CITY, is_fahrenheit=True, is_imperial=True)
 
         with UserDatabaseManager() as database:
@@ -41,11 +41,11 @@ class TestAppRoutesIntegration:
             database.session.add(self.PREFERENCE)
 
     def teardown_method(self):
-        os.environ.pop('JWT_SECRET')
         with UserDatabaseManager() as database:
             database.session.delete(self.PREFERENCE)
             database.session.delete(self.USER_CRED)
-            database.session.delete(self.USER)
+            # database.session.delete(self.USER)
+        os.environ.pop('JWT_SECRET')
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
         os.environ.pop('SQL_DBNAME')

@@ -31,7 +31,7 @@ class UserRoles(Base):
     user_id = Column(UUID, ForeignKey(UserInformation.id))
 
     role = relationship('Roles', foreign_keys='UserRoles.role_id')
-    role_devices = relationship("RoleDevices", backref="parent", uselist=False, lazy='joined')
+    role_devices = relationship("RoleDevices", cascade='delete', backref="parent", uselist=False, lazy='joined')
 
 
 class RoleDevices(Base):
@@ -53,7 +53,7 @@ class RoleDeviceNodes(Base):
     node_device = Column(SMALLINT, nullable=True)
     role_device_id = Column(UUID, ForeignKey(RoleDevices.id))
 
-    role_device = relationship('RoleDevices', foreign_keys='RoleDeviceNodes.role_device_id')
+    role_device = relationship('RoleDevices', cascade='delete', foreign_keys='RoleDeviceNodes.role_device_id')
 
 
 class UserPreference(Base):
@@ -76,8 +76,8 @@ class UserCredentials(Base):
     password = Column(String, nullable=False)
     user_id = Column(UUID, ForeignKey(UserInformation.id))
 
-    user = relationship('UserInformation', foreign_keys='UserCredentials.user_id')
-    user_roles = relationship("UserRoles", secondaryjoin="and_(UserRoles.user_id == UserInformation.id)", secondary='user_information', viewonly=True)
+    user = relationship('UserInformation', cascade='delete', foreign_keys='UserCredentials.user_id')
+    user_roles = relationship("UserRoles", cascade='delete', secondaryjoin="and_(UserRoles.user_id == UserInformation.id)", secondary='user_information', viewonly=True)
 
 
 class DailySumpPumpLevel(Base):
