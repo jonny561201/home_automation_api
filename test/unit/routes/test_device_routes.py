@@ -35,3 +35,10 @@ class TestDeviceRoutes:
         actual = add_device_by_user_id(self.USER_ID)
 
         assert actual.status_code == 200
+
+    def test_add_device_by_user__should_return_default_headers(self, mock_request, mock_controller):
+        mock_request.headers = {'Authorization': None}
+        mock_request.data = json.dumps({}).encode('UTF-8')
+        actual = add_device_by_user_id(self.USER_ID)
+
+        assert actual.content_type == 'text/json'
