@@ -287,6 +287,11 @@ class TestUserDatabase:
         with pytest.raises(Unauthorized):
             self.DATABASE.add_new_role_device(self.USER_ID, role_name, ip_address)
 
+    def test_add_new_device_node__should_call_add(self):
+        self.DATABASE.add_new_device_node()
+
+        self.SESSION.add.assert_called()
+
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()

@@ -102,6 +102,9 @@ class UserDatabase:
         device = RoleDevices(id=str(uuid.uuid4()), ip_address=ip_address, max_nodes=2, user_role_id=role.id)
         self.session.add(device)
 
+    def add_new_device_node(self):
+        self.session.add()
+
     @staticmethod
     def __create_role(role_devices):
         if role_devices is not None:
