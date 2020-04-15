@@ -102,12 +102,15 @@ class UserDatabase:
         device = RoleDevices(id=str(uuid.uuid4()), ip_address=ip_address, max_nodes=2, user_role_id=role.id)
         self.session.add(device)
 
-    def add_new_device_node(self, user_id):
-        self.session.query(UserRoles).filter_by(user_id=user_id)
+    def add_new_device_node(self, role_id):
+        device = self.session.query(RoleDevices).filter_by(id=role_id).first()
+        if device is None:
+            raise Unauthorized
         self.session.add()
 
     @staticmethod
     def __create_role(role_devices):
+        # TODO return the role id here!!!
         if role_devices is not None:
             return {'ip_address': role_devices.ip_address,
                     'devices': [{'node_device': node.node_device, 'node_name': node.node_name} for node in role_devices.role_device_nodes]}
