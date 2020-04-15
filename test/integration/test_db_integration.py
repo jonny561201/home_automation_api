@@ -358,3 +358,14 @@ class TestDbRoleIntegration:
         with UserDatabaseManager() as database:
             actual = database.session.query(RoleDevices).filter_by(user_role_id=self.USER_ROLE_ID).first()
             assert actual.ip_address == ip_address
+
+    def test_add_new_device_node__should_raise_unauthorized_when_no_device_found(self):
+        ip_address = '1.1.1.1'
+        device_id = str(uuid.uuid4())
+        with UserDatabaseManager() as database:
+            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
+            database.session.add(device)
+
+        with pytest.raises(Unauthorized):
+            with UserDatabaseManager() as database:
+                database.add_new_device_node(str(uuid.uuid4()))
