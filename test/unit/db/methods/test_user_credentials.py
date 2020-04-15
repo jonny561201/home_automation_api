@@ -288,9 +288,14 @@ class TestUserDatabase:
             self.DATABASE.add_new_role_device(self.USER_ID, role_name, ip_address)
 
     def test_add_new_device_node__should_call_add(self):
-        self.DATABASE.add_new_device_node()
+        self.DATABASE.add_new_device_node(self.USER_ID)
 
         self.SESSION.add.assert_called()
+
+    def test_add_new_device_node__should_query_the_user_role_by_user_id(self):
+        self.DATABASE.add_new_device_node(self.USER_ID)
+
+        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
 
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):

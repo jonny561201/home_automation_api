@@ -102,7 +102,8 @@ class UserDatabase:
         device = RoleDevices(id=str(uuid.uuid4()), ip_address=ip_address, max_nodes=2, user_role_id=role.id)
         self.session.add(device)
 
-    def add_new_device_node(self):
+    def add_new_device_node(self, user_id):
+        self.session.query(UserRoles).filter_by(user_id=user_id)
         self.session.add()
 
     @staticmethod
