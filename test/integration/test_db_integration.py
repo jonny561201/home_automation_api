@@ -18,6 +18,7 @@ DB_NAME = 'garage_door'
 class TestDbValidateIntegration:
     CRED_ID = str(uuid.uuid4())
     USER_ID = str(uuid.uuid4())
+    USER_ROLE_ID = str(uuid.uuid4())
     USER_NAME = 'Jonny'
     PASSWORD = 'fakePass'
     ROLE_NAME = 'garage_door'
@@ -32,7 +33,7 @@ class TestDbValidateIntegration:
         os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
                            'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
         self.ROLE = Roles(role_name=self.ROLE_NAME, id=str(uuid.uuid4()), role_desc='doesnt matter')
-        self.USER_ROLE = UserRoles(id=str(uuid.uuid4()), role_id=self.ROLE.id, user_id=self.USER_ID, role=self.ROLE)
+        self.USER_ROLE = UserRoles(id=self.USER_ROLE_ID, role_id=self.ROLE.id, user_id=self.USER_ID, role=self.ROLE)
         self.USER = UserInformation(id=self.USER_ID, first_name=self.FIRST, last_name=self.LAST)
         self.USER_LOGIN = UserCredentials(id=self.CRED_ID, user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
         with UserDatabaseManager() as database:
@@ -43,6 +44,8 @@ class TestDbValidateIntegration:
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
+            database.session.query(RoleDeviceNodes).delete()
+            database.session.query(RoleDevices).delete()
             database.session.delete(self.USER_LOGIN)
         with UserDatabaseManager() as database:
             database.session.delete(self.ROLE)
@@ -57,12 +60,6 @@ class TestDbValidateIntegration:
 
             assert actual['user_id'] == self.USER_ID
 
-    def test_validate_credentials__should_return_role_name_when_user_exists(self):
-        with UserDatabaseManager() as database:
-            actual = database.validate_credentials(self.USER_NAME, self.PASSWORD)
-
-            assert actual['roles'] == [{self.ROLE_NAME: {}}]
-
     def test_validate_credentials__should_return_first_name_when_user_exists(self):
         with UserDatabaseManager() as database:
             actual = database.validate_credentials(self.USER_NAME, self.PASSWORD)
@@ -75,6 +72,21 @@ class TestDbValidateIntegration:
 
             assert actual['last_name'] == self.LAST
 
+    def test_validate_credentials__should_return_role_device_data(self):
+        ip_address = '0.1.2.3'
+        node_name = 'test_node'
+        device_id = str(uuid.uuid4())
+        with UserDatabaseManager() as database:
+            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=1, ip_address=ip_address)
+            node = RoleDeviceNodes(role_device_id=device_id, node_name=node_name, node_device=1)
+            database.session.add(device)
+            database.session.add(node)
+        with UserDatabaseManager() as database:
+            actual = database.validate_credentials(self.USER_NAME, self.PASSWORD)
+
+            assert actual['roles'] == [{'ip_address': ip_address, 'role_name': self.ROLE_NAME, 'device_id': device_id,
+                                        'devices': [{'node_device': 1, 'node_name': node_name}]}]
+
     def test_validate_credentials__should_raise_unauthorized_when_user_does_not_exist(self):
         with UserDatabaseManager() as database:
             with pytest.raises(Unauthorized):
@@ -85,10 +97,6 @@ class TestDbValidateIntegration:
             user_pass = 'wrongPassword'
             with pytest.raises(Unauthorized):
                 database.validate_credentials(self.USER_NAME, user_pass)
-
-    def __create_user_role(self):
-        self.ROLE = Roles(role_name='garage_door', id=str(uuid.uuid4()), role_desc='doesnt matter')
-        self.USER_ROLE = UserRoles(id=str(uuid.uuid4()), role_id=self.ROLE.id, role=self.ROLE)
 
 
 class TestDbPreferenceIntegration:

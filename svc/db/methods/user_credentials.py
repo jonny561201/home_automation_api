@@ -1,5 +1,4 @@
 import os
-import uuid
 
 from sqlalchemy import orm, create_engine
 from werkzeug.exceptions import BadRequest, Unauthorized
@@ -40,7 +39,7 @@ class UserDatabase:
         user = self.session.query(UserCredentials).filter_by(user_name=user_name).first()
         if user is None or user.password != pword:
             raise Unauthorized
-        return {'user_id': user.user_id, 'roles': [{role.role.role_name: self.__create_role(role.role_devices)} for role in user.user_roles],
+        return {'user_id': user.user_id, 'roles': [self.__create_role(role.role_devices, role.role.role_name) for role in user.user_roles],
                 'first_name': user.user.first_name, 'last_name': user.user.last_name}
 
     def change_user_password(self, user_id, old_pass, new_pass):
@@ -102,21 +101,20 @@ class UserDatabase:
         device = RoleDevices(ip_address=ip_address, max_nodes=2, user_role_id=role.id)
         self.session.add(device)
 
-    def add_new_device_node(self, role_id, node_name):
-        device = self.session.query(RoleDevices).filter_by(id=role_id).first()
+    def add_new_device_node(self, device_id, node_name):
+        device = self.session.query(RoleDevices).filter_by(id=device_id).first()
         if device is None:
             raise Unauthorized
         node_size = len(device.role_device_nodes)
         if node_size >= device.max_nodes:
             raise BadRequest
-        node = RoleDeviceNodes(node_name=node_name, role_device_id=role_id, node_device=node_size + 1)
+        node = RoleDeviceNodes(node_name=node_name, role_device_id=device_id, node_device=node_size + 1)
         self.session.add(node)
 
     @staticmethod
-    def __create_role(role_devices):
-        # TODO return the role id here!!!
+    def __create_role(role_devices, role_name):
         if role_devices is not None:
-            return {'ip_address': role_devices.ip_address,
+            return {'ip_address': role_devices.ip_address, 'role_name': role_name, 'device_id': role_devices.id,
                     'devices': [{'node_device': node.node_device, 'node_name': node.node_name} for node in role_devices.role_device_nodes]}
         else:
-            return {}
+            return {'role_name': role_name}

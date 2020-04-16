@@ -8,7 +8,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.db.methods.user_credentials import UserDatabase
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
-    AverageSumpPumpLevel, Roles, UserInformation, UserRoles
+    AverageSumpPumpLevel, Roles, UserInformation, UserRoles, RoleDevices, RoleDeviceNodes
 
 
 class TestUserDatabase:
@@ -51,7 +51,7 @@ class TestUserDatabase:
 
         actual = self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
 
-        assert actual['roles'] == [{self.ROLE_NAME: {} }]
+        assert actual['roles'] == [{'role_name': self.ROLE_NAME }]
 
     def test_validate_credentials__should_return_first_name_if_password_matches_queried_user(self):
         user = self.__create_database_user()
@@ -290,12 +290,16 @@ class TestUserDatabase:
 
     def test_add_new_device_node__should_call_add(self):
         node_name = 'test name'
+        devices = RoleDevices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = devices
         self.DATABASE.add_new_device_node(self.ROLE_ID, node_name)
 
         self.SESSION.add.assert_called()
 
     def test_add_new_device_node__should_query_the_role_devices_by_role_id(self):
         node_name = 'test name'
+        devices = RoleDevices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = devices
         self.DATABASE.add_new_device_node(self.ROLE_ID, node_name)
 
         self.SESSION.query.return_value.filter_by.assert_called_with(id=self.ROLE_ID)
