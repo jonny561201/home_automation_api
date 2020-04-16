@@ -11,3 +11,7 @@ def add_device_to_role(bearer_token, user_id, request_data):
             database.add_new_role_device(user_id, request_data['roleName'], request_data['ipAddress'])
         except KeyError:
             raise BadRequest
+
+
+def add_node_to_device(bearer_token):
+    is_jwt_valid(bearer_token)

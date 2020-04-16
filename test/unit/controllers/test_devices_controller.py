@@ -2,7 +2,7 @@ import pytest
 from mock import patch, ANY
 from werkzeug.exceptions import BadRequest
 
-from svc.controllers.devices_controller import add_device_to_role
+from svc.controllers.devices_controller import add_device_to_role, add_node_to_device
 
 
 @patch('svc.controllers.devices_controller.UserDatabaseManager')
@@ -37,3 +37,8 @@ class TestDeviceController:
         request_data = {}
         with pytest.raises(BadRequest):
             add_device_to_role(self.BEARER_TOKEN, self.USER_ID, request_data)
+
+    def test_add_node_to_device__should_call_is_jwt_valid(self, mock_jwt, mock_db):
+        add_node_to_device(self.BEARER_TOKEN)
+
+        mock_jwt.assert_called_with(self.BEARER_TOKEN)
