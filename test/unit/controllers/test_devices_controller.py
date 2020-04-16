@@ -44,10 +44,18 @@ class TestDeviceController:
 
         mock_jwt.assert_called_with(self.BEARER_TOKEN)
 
-    def test_add_node_to_device__should_call_database_to_add_new_node(self, mock_jwt, mock_db):
+    def test_add_node_to_device__should_call_database_to_add_new_node_name(self, mock_jwt, mock_db):
         device_id = '657asdf'
         node_name = 'im a node name'
         request_data = {'deviceId': device_id, 'nodeName': node_name}
         add_node_to_device(self.BEARER_TOKEN, request_data)
 
-        mock_db.return_value.__enter__.return_value.add_new_device_node.assert_called_with(device_id, node_name)
+        mock_db.return_value.__enter__.return_value.add_new_device_node.assert_called_with(ANY, node_name)
+
+    def test_add_node_to_device__should_call_database_to_add_device_id(self, mock_jwt, mock_db):
+        device_id = '657asdf'
+        node_name = 'im a node name'
+        request_data = {'deviceId': device_id, 'nodeName': node_name}
+        add_node_to_device(self.BEARER_TOKEN, request_data)
+
+        mock_db.return_value.__enter__.return_value.add_new_device_node.assert_called_with(device_id, ANY)
