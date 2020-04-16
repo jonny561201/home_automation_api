@@ -10,6 +10,7 @@ from svc.routes.device_routes import add_device_by_user_id, add_device_node_by_u
 class TestDeviceRoutes:
     USER_ID = '1234abcd'
     BEARER_TOKEN = 'IMAFAKEBEARERTOKEN'
+    DEVICE_ID = '890xyz'
 
     def test_add_device_by_user_id__should_pass_bearer_token_to_controller(self, mock_request, mock_controller):
         mock_request.headers = {'Authorization': self.BEARER_TOKEN}
@@ -46,25 +47,32 @@ class TestDeviceRoutes:
     def test_add_device_node_by_user_id__should_pass_bearer_token_to_controller(self, mock_request, mock_controller):
         mock_request.headers = {'Authorization': self.BEARER_TOKEN}
         mock_request.data = json.dumps({}).encode()
-        add_device_node_by_user_id(self.USER_ID)
+        add_device_node_by_user_id(self.USER_ID, self.DEVICE_ID)
 
-        mock_controller.add_node_to_device.assert_called_with(self.BEARER_TOKEN, ANY)
+        mock_controller.add_node_to_device.assert_called_with(self.BEARER_TOKEN, ANY, ANY)
 
     def test_add_device_node_by_user_id__should_pass_the_decoded_body_to_the_controller(self, mock_request, mock_controller):
         request_data = {'test': 'test'}
         mock_request.data = json.dumps(request_data).encode('UTF-8')
-        add_device_node_by_user_id(self.USER_ID)
+        add_device_node_by_user_id(self.USER_ID, self.DEVICE_ID)
 
-        mock_controller.add_node_to_device.assert_called_with(ANY, request_data)
+        mock_controller.add_node_to_device.assert_called_with(ANY, ANY, request_data)
+
+    def test_add_device_node_by_user_id__should_pass_the_device_id_to_the_controller(self, mock_request, mock_controller):
+        request_data = {'test': 'test'}
+        mock_request.data = json.dumps(request_data).encode('UTF-8')
+        add_device_node_by_user_id(self.USER_ID, self.DEVICE_ID)
+
+        mock_controller.add_node_to_device.assert_called_with(ANY, self.DEVICE_ID, ANY)
 
     def test_add_device_node_by_user_id__should_return_success_status_code(self, mock_request, mock_controller):
         mock_request.data = json.dumps({}).encode()
-        actual = add_device_node_by_user_id(self.USER_ID)
+        actual = add_device_node_by_user_id(self.USER_ID, self.DEVICE_ID)
 
         assert actual.status_code == 200
 
     def test_add_device_node_by_user_id__should_return_default_headers(self, mock_request, mock_controller):
         mock_request.data = json.dumps({}).encode()
-        actual = add_device_node_by_user_id(self.USER_ID)
+        actual = add_device_node_by_user_id(self.USER_ID, self.DEVICE_ID)
 
         assert actual.content_type == 'text/json'

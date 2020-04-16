@@ -13,10 +13,10 @@ def add_device_to_role(bearer_token, user_id, request_data):
             raise BadRequest
 
 
-def add_node_to_device(bearer_token, request_data):
+def add_node_to_device(bearer_token, device_id, request_data):
     is_jwt_valid(bearer_token)
     with UserDatabaseManager() as database:
         try:
-            database.add_new_device_node(request_data['deviceId'], request_data['nodeName'])
+            database.add_new_device_node(device_id, request_data['nodeName'])
         except KeyError:
             raise BadRequest

@@ -12,6 +12,7 @@ class TestDeviceController:
     USER_ID = '78890abvc'
     ROLE_NAME = 'test_role'
     IP_ADDRESS = '192.168.0.55'
+    DEVICE_ID = 'jkasdf7698'
 
     def test_add_device_to_role__should_validate_jwt(self, mock_jwt, mock_db):
         request_data = {'roleName': None, 'ipAddress': None}
@@ -40,7 +41,7 @@ class TestDeviceController:
 
     def test_add_node_to_device__should_call_is_jwt_valid(self, mock_jwt, mock_db):
         request_data = {'deviceId': 'fake', 'nodeName': 'fake'}
-        add_node_to_device(self.BEARER_TOKEN, request_data)
+        add_node_to_device(self.BEARER_TOKEN, self.DEVICE_ID, request_data)
 
         mock_jwt.assert_called_with(self.BEARER_TOKEN)
 
@@ -48,18 +49,17 @@ class TestDeviceController:
         device_id = '657asdf'
         node_name = 'im a node name'
         request_data = {'deviceId': device_id, 'nodeName': node_name}
-        add_node_to_device(self.BEARER_TOKEN, request_data)
+        add_node_to_device(self.BEARER_TOKEN, self.DEVICE_ID, request_data)
 
         mock_db.return_value.__enter__.return_value.add_new_device_node.assert_called_with(ANY, node_name)
 
     def test_add_node_to_device__should_call_database_to_add_device_id(self, mock_jwt, mock_db):
-        device_id = '657asdf'
         node_name = 'im a node name'
-        request_data = {'deviceId': device_id, 'nodeName': node_name}
-        add_node_to_device(self.BEARER_TOKEN, request_data)
+        request_data = {'nodeName': node_name}
+        add_node_to_device(self.BEARER_TOKEN, self.DEVICE_ID, request_data)
 
-        mock_db.return_value.__enter__.return_value.add_new_device_node.assert_called_with(device_id, ANY)
+        mock_db.return_value.__enter__.return_value.add_new_device_node.assert_called_with(self.DEVICE_ID, ANY)
 
     def test_add_node_to_device__should_raise_a_bad_request_when_request_missing_items(self, mock_jwt, mock_db):
         with pytest.raises(BadRequest):
-            add_node_to_device(self.BEARER_TOKEN, {})
+            add_node_to_device(self.BEARER_TOKEN, self.DEVICE_ID, {})
