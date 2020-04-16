@@ -13,5 +13,7 @@ def add_device_to_role(bearer_token, user_id, request_data):
             raise BadRequest
 
 
-def add_node_to_device(bearer_token):
+def add_node_to_device(bearer_token, request_data):
     is_jwt_valid(bearer_token)
+    with UserDatabaseManager() as database:
+        database.add_new_device_node(request_data['deviceId'], request_data['nodeName'])
