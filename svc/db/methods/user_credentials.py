@@ -6,7 +6,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.constants.settings_state import Settings
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
-    AverageSumpPumpLevel, RoleDevices, UserRoles
+    AverageSumpPumpLevel, RoleDevices, UserRoles, RoleDeviceNodes
 
 
 class UserDatabaseManager:
@@ -99,14 +99,15 @@ class UserDatabase:
         role = next((user_role for user_role in user_roles if user_role.role.role_name == role_name), None)
         if role is None:
             raise Unauthorized
-        device = RoleDevices(id=str(uuid.uuid4()), ip_address=ip_address, max_nodes=2, user_role_id=role.id)
+        device = RoleDevices(ip_address=ip_address, max_nodes=2, user_role_id=role.id)
         self.session.add(device)
 
-    def add_new_device_node(self, role_id):
+    def add_new_device_node(self, role_id, node_name):
         device = self.session.query(RoleDevices).filter_by(id=role_id).first()
         if device is None:
             raise Unauthorized
-        self.session.add()
+        node = RoleDeviceNodes(node_name=node_name, node_device=1, role_device_id=role_id)
+        self.session.add(node)
 
     @staticmethod
     def __create_role(role_devices):

@@ -7,7 +7,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, \
-    UserCredentials, Roles, UserPreference, UserRoles, RoleDevices
+    UserCredentials, Roles, UserPreference, UserRoles, RoleDevices, RoleDeviceNodes
 
 DB_USER = 'postgres'
 DB_PASS = 'password'
@@ -362,10 +362,26 @@ class TestDbRoleIntegration:
     def test_add_new_device_node__should_raise_unauthorized_when_no_device_found(self):
         ip_address = '1.1.1.1'
         device_id = str(uuid.uuid4())
+        node_name = 'test node'
         with UserDatabaseManager() as database:
             device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
             database.session.add(device)
 
         with pytest.raises(Unauthorized):
             with UserDatabaseManager() as database:
-                database.add_new_device_node(str(uuid.uuid4()))
+                database.add_new_device_node(str(uuid.uuid4()), node_name)
+
+    def test_add_new_device_node__should_insert_a_new_node_into_table(self):
+        ip_address = '192.175.7.9'
+        device_id = str(uuid.uuid4())
+        node_name = 'first garage door'
+        with UserDatabaseManager() as database:
+            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
+            database.session.add(device)
+
+        with UserDatabaseManager() as database:
+            database.add_new_device_node(device_id, node_name)
+
+        with UserDatabaseManager() as database:
+            actual = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).first()
+            assert actual.node_name == node_name

@@ -289,19 +289,22 @@ class TestUserDatabase:
             self.DATABASE.add_new_role_device(self.USER_ID, role_name, ip_address)
 
     def test_add_new_device_node__should_call_add(self):
-        self.DATABASE.add_new_device_node(self.ROLE_ID)
+        node_name = 'test name'
+        self.DATABASE.add_new_device_node(self.ROLE_ID, node_name)
 
         self.SESSION.add.assert_called()
 
     def test_add_new_device_node__should_query_the_role_devices_by_role_id(self):
-        self.DATABASE.add_new_device_node(self.ROLE_ID)
+        node_name = 'test name'
+        self.DATABASE.add_new_device_node(self.ROLE_ID, node_name)
 
         self.SESSION.query.return_value.filter_by.assert_called_with(id=self.ROLE_ID)
 
     def test_add_new_device_node__should_raise_unauthorized_when_user_id_not_match(self):
+        node_name = 'test name'
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
         with pytest.raises(Unauthorized):
-            self.DATABASE.add_new_device_node(self.USER_ID)
+            self.DATABASE.add_new_device_node(self.USER_ID, node_name)
 
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
