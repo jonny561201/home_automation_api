@@ -1,3 +1,4 @@
+import sqlalchemy
 from sqlalchemy import Column, String, Boolean, Integer, ForeignKey, DECIMAL, TIMESTAMP, DATE
 from sqlalchemy.dialects.postgresql import UUID, INET, SMALLINT
 from sqlalchemy.ext import declarative
@@ -37,23 +38,23 @@ class UserRoles(Base):
 class RoleDevices(Base):
     __tablename__ = 'role_devices'
 
-    id = Column(UUID, nullable=False, primary_key=True)
+    id = Column(UUID, nullable=False, primary_key=True, server_default=sqlalchemy.text("gen_random_uuid()"))
     ip_address = Column(INET, nullable=False)
     max_nodes = Column(SMALLINT, nullable=False)
     user_role_id = Column(UUID, ForeignKey(UserRoles.id))
 
-    role_device_nodes = relationship("RoleDeviceNodes", backref="parent", lazy='joined')
+    role_device_nodes = relationship("RoleDeviceNodes", cascade='delete', backref="parent", lazy='joined')
 
 
 class RoleDeviceNodes(Base):
     __tablename__ = 'role_device_nodes'
 
-    id = Column(UUID, nullable=False, primary_key=True)
+    id = Column(UUID, nullable=False, primary_key=True, server_default=sqlalchemy.text("gen_random_uuid()"))
     node_name = Column(String, nullable=False)
     node_device = Column(SMALLINT, nullable=True)
     role_device_id = Column(UUID, ForeignKey(RoleDevices.id))
 
-    role_device = relationship('RoleDevices', cascade='delete', foreign_keys='RoleDeviceNodes.role_device_id')
+    # role_device = relationship('RoleDevices', cascade='delete', foreign_keys='RoleDeviceNodes.role_device_id')
 
 
 class UserPreference(Base):
