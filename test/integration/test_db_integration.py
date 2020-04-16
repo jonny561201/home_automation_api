@@ -7,8 +7,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, \
-    UserCredentials, Roles, UserPreference, UserRoles
-
+    UserCredentials, Roles, UserPreference, UserRoles, RoleDevices, RoleDeviceNodes
 
 DB_USER = 'postgres'
 DB_PASS = 'password'
@@ -19,6 +18,7 @@ DB_NAME = 'garage_door'
 class TestDbValidateIntegration:
     CRED_ID = str(uuid.uuid4())
     USER_ID = str(uuid.uuid4())
+    USER_ROLE_ID = str(uuid.uuid4())
     USER_NAME = 'Jonny'
     PASSWORD = 'fakePass'
     ROLE_NAME = 'garage_door'
@@ -33,11 +33,10 @@ class TestDbValidateIntegration:
         os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
                            'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
         self.ROLE = Roles(role_name=self.ROLE_NAME, id=str(uuid.uuid4()), role_desc='doesnt matter')
-        self.USER_ROLE = UserRoles(id=str(uuid.uuid4()), role_id=self.ROLE.id, user_id=self.USER_ID)
+        self.USER_ROLE = UserRoles(id=self.USER_ROLE_ID, role_id=self.ROLE.id, user_id=self.USER_ID, role=self.ROLE)
         self.USER = UserInformation(id=self.USER_ID, first_name=self.FIRST, last_name=self.LAST)
         self.USER_LOGIN = UserCredentials(id=self.CRED_ID, user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
         with UserDatabaseManager() as database:
-            database.session.add(self.ROLE)
             database.session.add(self.USER)
             self.USER_LOGIN.role_id = database.session.query(Roles).first().id
             database.session.add(self.USER_LOGIN)
@@ -45,9 +44,10 @@ class TestDbValidateIntegration:
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
-            database.session.delete(self.USER)
+            database.session.query(RoleDeviceNodes).delete()
+            database.session.query(RoleDevices).delete()
             database.session.delete(self.USER_LOGIN)
-            database.session.delete(self.USER_ROLE)
+        with UserDatabaseManager() as database:
             database.session.delete(self.ROLE)
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
@@ -59,12 +59,6 @@ class TestDbValidateIntegration:
             actual = database.validate_credentials(self.USER_NAME, self.PASSWORD)
 
             assert actual['user_id'] == self.USER_ID
-
-    def test_validate_credentials__should_return_role_name_when_user_exists(self):
-        with UserDatabaseManager() as database:
-            actual = database.validate_credentials(self.USER_NAME, self.PASSWORD)
-
-            assert actual['roles'] == [self.ROLE_NAME]
 
     def test_validate_credentials__should_return_first_name_when_user_exists(self):
         with UserDatabaseManager() as database:
@@ -78,6 +72,21 @@ class TestDbValidateIntegration:
 
             assert actual['last_name'] == self.LAST
 
+    def test_validate_credentials__should_return_role_device_data(self):
+        ip_address = '0.1.2.3'
+        node_name = 'test_node'
+        device_id = str(uuid.uuid4())
+        with UserDatabaseManager() as database:
+            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=1, ip_address=ip_address)
+            node = RoleDeviceNodes(role_device_id=device_id, node_name=node_name, node_device=1)
+            database.session.add(device)
+            database.session.add(node)
+        with UserDatabaseManager() as database:
+            actual = database.validate_credentials(self.USER_NAME, self.PASSWORD)
+
+            assert actual['roles'] == [{'ip_address': ip_address, 'role_name': self.ROLE_NAME, 'device_id': device_id,
+                                        'devices': [{'node_device': 1, 'node_name': node_name}]}]
+
     def test_validate_credentials__should_raise_unauthorized_when_user_does_not_exist(self):
         with UserDatabaseManager() as database:
             with pytest.raises(Unauthorized):
@@ -88,10 +97,6 @@ class TestDbValidateIntegration:
             user_pass = 'wrongPassword'
             with pytest.raises(Unauthorized):
                 database.validate_credentials(self.USER_NAME, user_pass)
-
-    def __create_user_role(self):
-        self.ROLE = Roles(role_name='garage_door', id=str(uuid.uuid4()), role_desc='doesnt matter')
-        self.USER_ROLE = UserRoles(id=str(uuid.uuid4()), role_id=self.ROLE.id, role=self.ROLE)
 
 
 class TestDbPreferenceIntegration:
@@ -276,20 +281,24 @@ class TestDbSumpIntegration:
 
 
 class TestDbPasswordIntegration:
-    USER = None
+    USER_CREDS = None
+    USER_INFO = None
     USER_NAME = 'JonsUser'
     PASSWORD = 'BESTESTPASSWORDEVA'
+    USER_ID = str(uuid.uuid4())
 
     def setup_method(self):
         os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
                            'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
-        self.USER = self.__create_user_credentials()
+        self.USER_INFO = UserInformation(first_name='test', last_name='Tester', id=self.USER_ID)
+        self.USER_CREDS = UserCredentials(id=str(uuid.uuid4()), user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
         with UserDatabaseManager() as database:
-            database.session.add(self.USER)
+            database.session.add(self.USER_INFO)
+            database.session.add(self.USER_CREDS)
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
-            database.session.delete(self.USER)
+            database.session.delete(self.USER_CREDS)
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
         os.environ.pop('SQL_DBNAME')
@@ -300,17 +309,158 @@ class TestDbPasswordIntegration:
         new_pass = 'doesnt matter'
         with pytest.raises(Unauthorized):
             with UserDatabaseManager() as database:
-                database.change_user_password(self.USER_NAME, mismatched_pass, new_pass)
+                database.change_user_password(self.USER_ID, mismatched_pass, new_pass)
 
     def test_change_user_password__should_change_user_password_when_matching(self):
         new_pass = 'I SHOULD HAVE CHANGED!!!'
         with UserDatabaseManager() as database:
-            database.change_user_password(self.USER_NAME, self.PASSWORD, new_pass)
+            database.change_user_password(self.USER_ID, self.PASSWORD, new_pass)
 
             user = database.session.query(UserCredentials).filter_by(user_name=self.USER_NAME).first()
             assert user.password == new_pass
 
-    def __create_user_credentials(self):
-        user_id = str(uuid.uuid4())
-        user_info = UserInformation(first_name='test', last_name='Tester', id=user_id)
-        return UserCredentials(id=str(uuid.uuid4()), user_name=self.USER_NAME, password=self.PASSWORD, user_id=user_id, user=user_info)
+
+class TestDbRoleIntegration:
+    USER_ID = str(uuid.uuid4())
+    ROLE_ID = str(uuid.uuid4())
+    USER_ROLE_ID = str(uuid.uuid4())
+    ROLE_NAME = "lighting"
+    USER_ROLE = None
+    ROLE = None
+    USER_INFO = None
+
+    def setup_method(self):
+        os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
+                           'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
+        self.USER_INFO = UserInformation(id=self.USER_ID, first_name='steve', last_name='rogers')
+        self.ROLE = Roles(id=self.ROLE_ID, role_desc="lighting", role_name=self.ROLE_NAME)
+        self.USER_ROLE = UserRoles(id=self.USER_ROLE_ID, user_id=self.USER_ID, role_id=self.ROLE_ID, role=self.ROLE)
+        with UserDatabaseManager() as database:
+            database.session.add(self.ROLE)
+            database.session.add(self.USER_INFO)
+            database.session.add(self.USER_ROLE)
+
+    def teardown_method(self):
+        with UserDatabaseManager() as database:
+            database.session.delete(self.USER_ROLE)
+        with UserDatabaseManager() as database:
+            database.session.delete(self.USER_INFO)
+            database.session.delete(self.ROLE)
+            database.session.query(RoleDeviceNodes).delete()
+        os.environ.pop('SQL_USERNAME')
+        os.environ.pop('SQL_PASSWORD')
+        os.environ.pop('SQL_DBNAME')
+        os.environ.pop('SQL_PORT')
+
+    def test_add_new_device__should_raise_unauthorized_when_no_role_found(self):
+        role_name = 'garage_door'
+        ip_address = '0.0.0.0'
+        with pytest.raises(Unauthorized):
+            with UserDatabaseManager() as database:
+                database.add_new_role_device(self.USER_ID, role_name, ip_address)
+
+    def test_add_new_device__should_insert_a_new_device_into_table(self):
+        ip_address = '192.168.1.145'
+        with UserDatabaseManager() as database:
+            database.add_new_role_device(self.USER_ID, self.ROLE_NAME, ip_address)
+
+        with UserDatabaseManager() as database:
+            actual = database.session.query(RoleDevices).filter_by(user_role_id=self.USER_ROLE_ID).first()
+            assert actual.ip_address == ip_address
+
+    def test_add_new_device_node__should_raise_unauthorized_when_no_device_found(self):
+        ip_address = '1.1.1.1'
+        device_id = str(uuid.uuid4())
+        node_name = 'test node'
+        with UserDatabaseManager() as database:
+            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
+            database.session.add(device)
+
+        with pytest.raises(Unauthorized):
+            with UserDatabaseManager() as database:
+                database.add_new_device_node(str(uuid.uuid4()), node_name)
+
+    def test_add_new_device_node__should_insert_a_new_node_into_table(self):
+        ip_address = '192.175.7.9'
+        device_id = str(uuid.uuid4())
+        node_name = 'first garage door'
+        with UserDatabaseManager() as database:
+            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
+            database.session.add(device)
+
+        with UserDatabaseManager() as database:
+            database.add_new_device_node(device_id, node_name)
+
+        with UserDatabaseManager() as database:
+            actual = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).first()
+            assert actual.node_name == node_name
+            database.session.delete(actual)
+
+    def test_add_new_device_node__should_set_node_device_to_one_when_first_node(self):
+        ip_address = '192.175.7.9'
+        device_id = str(uuid.uuid4())
+        node_name = 'first garage door'
+        with UserDatabaseManager() as database:
+            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
+            database.session.add(device)
+
+        with UserDatabaseManager() as database:
+            database.add_new_device_node(device_id, node_name)
+
+        with UserDatabaseManager() as database:
+            actual = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).first()
+            assert actual.node_device == 1
+
+    def test_add_new_device_node__should_set_node_device_to_two_when_second_node(self):
+        ip_address = '192.175.7.9'
+        device_id = str(uuid.uuid4())
+        node_name = 'second garage door'
+        with UserDatabaseManager() as database:
+            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
+            node = RoleDeviceNodes(node_name='test', node_device=1, role_device_id=device_id)
+            database.session.add(device)
+            database.session.add(node)
+
+        with UserDatabaseManager() as database:
+            database.add_new_device_node(device_id, node_name)
+
+        with UserDatabaseManager() as database:
+            actuals = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).all()
+            assert len(actuals) == 2
+            assert [actual.node_device for actual in actuals] == [1,2]
+
+    def test_add_new_device_node__should_set_node_device_to_three_when_third_node(self):
+        ip_address = '192.175.7.9'
+        device_id = str(uuid.uuid4())
+        node_name = 'third garage door'
+        with UserDatabaseManager() as database:
+            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=3, ip_address=ip_address)
+            node_one = RoleDeviceNodes(node_name='test 1', node_device=1, role_device_id=device_id)
+            node_two = RoleDeviceNodes(node_name='test 2', node_device=2, role_device_id=device_id)
+            database.session.add(device)
+            database.session.add(node_one)
+            database.session.add(node_two)
+
+        with UserDatabaseManager() as database:
+            database.add_new_device_node(device_id, node_name)
+
+        with UserDatabaseManager() as database:
+            actuals = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).all()
+            assert len(actuals) == 3
+            assert [actual.node_device for actual in actuals] == [1,2,3]
+
+    def test_add_new_device_node__should_raise_bad_request_when_exceeding_max_nodes(self):
+        ip_address = '192.175.7.9'
+        device_id = str(uuid.uuid4())
+        node_name = 'third garage door'
+        with UserDatabaseManager() as database:
+            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
+            node_one = RoleDeviceNodes(node_name='test 1', node_device=1, role_device_id=device_id)
+            node_two = RoleDeviceNodes(node_name='test 2', node_device=2, role_device_id=device_id)
+            database.session.add(device)
+            database.session.add(node_one)
+            database.session.add(node_two)
+
+        with UserDatabaseManager() as database:
+            with pytest.raises(BadRequest):
+                database.add_new_device_node(device_id, node_name)

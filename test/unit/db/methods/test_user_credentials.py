@@ -8,7 +8,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.db.methods.user_credentials import UserDatabase
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
-    AverageSumpPumpLevel, Roles, UserInformation, UserRoles
+    AverageSumpPumpLevel, Roles, UserInformation, UserRoles, RoleDevices, RoleDeviceNodes
 
 
 class TestUserDatabase:
@@ -18,6 +18,7 @@ class TestUserDatabase:
     FIRST_NAME = 'John'
     LAST_NAME = 'Grape'
     USER_ID = '1234abcd'
+    ROLE_ID = 'dcba4321'
     SESSION = None
     DATABASE = None
 
@@ -45,13 +46,12 @@ class TestUserDatabase:
     def test_validate_credentials__should_return_roles_if_password_matches_queried_user(self):
         user = self.__create_database_user()
         user.user_id = '123455'
-        roles = [UserRoles(role=Roles(role_name=self.ROLE_NAME))]
+        user.user_roles = [UserRoles(role=Roles(role_name=self.ROLE_NAME))]
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = roles
 
         actual = self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
 
-        assert actual['roles'] == [self.ROLE_NAME]
+        assert actual['roles'] == [{'role_name': self.ROLE_NAME }]
 
     def test_validate_credentials__should_return_first_name_if_password_matches_queried_user(self):
         user = self.__create_database_user()
@@ -261,6 +261,54 @@ class TestUserDatabase:
         self.DATABASE.change_user_password(self.FAKE_USER, self.FAKE_PASS, new_pass)
 
         assert user.password == new_pass
+
+    def test_add_new_role_device__should_call_add(self):
+        ip_address = '0.0.0.0'
+        role_name = 'garage_door'
+        role = UserRoles(user_id=str(uuid.uuid4()), role=Roles(role_name=role_name))
+        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [role]
+        self.DATABASE.add_new_role_device(self.USER_ID, role_name, ip_address)
+
+        self.SESSION.add.assert_called()
+
+    def test_add_new_role_device__should_query_user_role_id_by_user_id(self):
+        ip_address = '0.0.0.0'
+        role_name = 'garage_door'
+        role = UserRoles(user_id=str(uuid.uuid4()), role=Roles(role_name=role_name))
+        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [role]
+        self.DATABASE.add_new_role_device(self.USER_ID, role_name, ip_address)
+
+        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
+
+    def test_add_new_role_device__should_raise_unauthorized_when_no_role_returned(self):
+        ip_address = '0.0.0.0'
+        role_name = 'garage_door'
+        role = UserRoles(user_id=str(uuid.uuid4()), role=Roles(role_name='security'))
+        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [role]
+        with pytest.raises(Unauthorized):
+            self.DATABASE.add_new_role_device(self.USER_ID, role_name, ip_address)
+
+    def test_add_new_device_node__should_call_add(self):
+        node_name = 'test name'
+        devices = RoleDevices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = devices
+        self.DATABASE.add_new_device_node(self.ROLE_ID, node_name)
+
+        self.SESSION.add.assert_called()
+
+    def test_add_new_device_node__should_query_the_role_devices_by_role_id(self):
+        node_name = 'test name'
+        devices = RoleDevices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = devices
+        self.DATABASE.add_new_device_node(self.ROLE_ID, node_name)
+
+        self.SESSION.query.return_value.filter_by.assert_called_with(id=self.ROLE_ID)
+
+    def test_add_new_device_node__should_raise_unauthorized_when_user_id_not_match(self):
+        node_name = 'test name'
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
+        with pytest.raises(Unauthorized):
+            self.DATABASE.add_new_device_node(self.USER_ID, node_name)
 
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):

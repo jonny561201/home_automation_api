@@ -5,7 +5,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.constants.settings_state import Settings
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
-    AverageSumpPumpLevel, UserRoles
+    AverageSumpPumpLevel, RoleDevices, UserRoles, RoleDeviceNodes
 
 
 class UserDatabaseManager:
@@ -31,16 +31,16 @@ class UserDatabaseManager:
         self.db_session.remove()
 
 
+# TODO: all methods should be handed a user_id and validated if it matches else 401
 class UserDatabase:
     def __init__(self, session):
         self.session = session
 
-    def validate_credentials(self, user, pword):
-        user = self.session.query(UserCredentials).filter_by(user_name=user).first()
+    def validate_credentials(self, user_name, pword):
+        user = self.session.query(UserCredentials).filter_by(user_name=user_name).first()
         if user is None or user.password != pword:
             raise Unauthorized
-        roles = self.session.query(UserRoles).filter_by(user_id=user.user_id).all()
-        return {'user_id': user.user_id, 'roles': [role.role.role_name for role in roles],
+        return {'user_id': user.user_id, 'roles': [self.__create_role(role.role_devices, role.role.role_name) for role in user.user_roles],
                 'first_name': user.user.first_name, 'last_name': user.user.last_name}
 
     def change_user_password(self, user_id, old_pass, new_pass):
@@ -93,3 +93,29 @@ class UserDatabase:
             self.session.add(current_depth)
         except (TypeError, KeyError):
             raise BadRequest
+
+    def add_new_role_device(self, user_id, role_name, ip_address):
+        user_roles = self.session.query(UserRoles).filter_by(user_id=user_id).all()
+        role = next((user_role for user_role in user_roles if user_role.role.role_name == role_name), None)
+        if role is None:
+            raise Unauthorized
+        device = RoleDevices(ip_address=ip_address, max_nodes=2, user_role_id=role.id)
+        self.session.add(device)
+
+    def add_new_device_node(self, device_id, node_name):
+        device = self.session.query(RoleDevices).filter_by(id=device_id).first()
+        if device is None:
+            raise Unauthorized
+        node_size = len(device.role_device_nodes)
+        if node_size >= device.max_nodes:
+            raise BadRequest
+        node = RoleDeviceNodes(node_name=node_name, role_device_id=device_id, node_device=node_size + 1)
+        self.session.add(node)
+
+    @staticmethod
+    def __create_role(role_devices, role_name):
+        if role_devices is not None:
+            return {'ip_address': role_devices.ip_address, 'role_name': role_name, 'device_id': role_devices.id,
+                    'devices': [{'node_device': node.node_device, 'node_name': node.node_name} for node in role_devices.role_device_nodes]}
+        else:
+            return {'role_name': role_name}
