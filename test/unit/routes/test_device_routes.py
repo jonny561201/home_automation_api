@@ -45,6 +45,14 @@ class TestDeviceRoutes:
 
     def test_add_device_node_by_user__should_pass_bearer_token_to_controller(self, mock_request, mock_controller):
         mock_request.headers = {'Authorization': self.BEARER_TOKEN}
+        mock_request.data = json.dumps({}).encode()
         add_device_node_by_user(self.USER_ID)
 
-        mock_controller.add_node_to_device.assert_called_with(self.BEARER_TOKEN)
+        mock_controller.add_node_to_device.assert_called_with(self.BEARER_TOKEN, ANY)
+
+    def test_add_device_node_by_user__should_pass_the_decoded_body_to_the_controller(self, mock_request, mock_controller):
+        request_data = {'test': 'test'}
+        mock_request.data = json.dumps(request_data).encode('UTF-8')
+        add_device_node_by_user(self.USER_ID)
+
+        mock_controller.add_node_to_device.assert_called_with(ANY, request_data)

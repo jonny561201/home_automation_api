@@ -18,4 +18,5 @@ def add_device_by_user_id(user_id):
 
 def add_device_node_by_user(user_id):
     bearer_token = request.headers.get('Authorization')
-    devices_controller.add_node_to_device(bearer_token)
+    request_data = json.loads(request.data.decode('UTF-8'))
+    devices_controller.add_node_to_device(bearer_token, request_data)
