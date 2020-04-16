@@ -54,8 +54,6 @@ class RoleDeviceNodes(Base):
     node_device = Column(SMALLINT, nullable=True)
     role_device_id = Column(UUID, ForeignKey(RoleDevices.id))
 
-    # role_device = relationship('RoleDevices', cascade='delete', foreign_keys='RoleDeviceNodes.role_device_id')
-
 
 class UserPreference(Base):
     __tablename__ = 'user_preferences'
@@ -69,6 +67,7 @@ class UserPreference(Base):
     user = relationship('UserInformation', foreign_keys='UserPreference.user_id')
 
 
+# TODO: remove cascade delete on user roles
 class UserCredentials(Base):
     __tablename__ = 'user_login'
 
