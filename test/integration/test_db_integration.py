@@ -338,6 +338,7 @@ class TestDbRoleIntegration:
         with UserDatabaseManager() as database:
             database.session.delete(self.USER_INFO)
             database.session.delete(self.ROLE)
+            database.session.query(RoleDeviceNodes).delete()
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
         os.environ.pop('SQL_DBNAME')
@@ -401,4 +402,21 @@ class TestDbRoleIntegration:
         with UserDatabaseManager() as database:
             actual = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).first()
             assert actual.node_device == 1
-            database.session.delete(actual)
+
+    def test_add_new_device_node__should_set_node_device_to_two_when_second_node(self):
+        ip_address = '192.175.7.9'
+        device_id = str(uuid.uuid4())
+        node_name = 'second garage door'
+        with UserDatabaseManager() as database:
+            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
+            node = RoleDeviceNodes(node_name='test', node_device=1, role_device_id=device_id)
+            database.session.add(device)
+            database.session.add(node)
+
+        with UserDatabaseManager() as database:
+            database.add_new_device_node(device_id, node_name)
+
+        with UserDatabaseManager() as database:
+            actuals = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).all()
+            assert len(actuals) == 2
+            assert [actual.node_device for actual in actuals] == [1,2]

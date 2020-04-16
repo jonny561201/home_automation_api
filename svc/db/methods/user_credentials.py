@@ -106,7 +106,8 @@ class UserDatabase:
         device = self.session.query(RoleDevices).filter_by(id=role_id).first()
         if device is None:
             raise Unauthorized
-        node = RoleDeviceNodes(node_name=node_name, node_device=1, role_device_id=role_id)
+        node = RoleDeviceNodes(node_name=node_name, role_device_id=role_id,
+                               node_device=1 if len(device.role_device_nodes) == 0 else 2)
         self.session.add(node)
 
     @staticmethod
