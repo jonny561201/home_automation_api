@@ -13,6 +13,7 @@ class TestDeviceRoutesIntegration:
     TEST_CLIENT = None
     USER_ID = str(uuid.uuid4())
     ROLE_ID = str(uuid.uuid4())
+    DEVICE_ID = str(uuid.uuid4())
     ROLE_NAME = 'made_up_role'
     JWT_SECRET = 'fakeSecret'
     DB_USER = 'postgres'
@@ -65,3 +66,8 @@ class TestDeviceRoutesIntegration:
         with UserDatabaseManager() as database:
             record = database.session.query(RoleDevices).filter_by(ip_address=ip_address).first()
             assert record.ip_address == ip_address
+
+    def test_add_device_node_by_user_id__should_return_unauthorized(self):
+        post_body = '{}'
+        actual = self.TEST_CLIENT.post('userId/' + self.USER_ID + '/devices/' + self.DEVICE_ID + '/node', headers={}, data=post_body)
+        assert actual.status_code == 401

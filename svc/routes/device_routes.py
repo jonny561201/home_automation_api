@@ -16,6 +16,7 @@ def add_device_by_user_id(user_id):
     return Response(status=200, headers=DEFAULT_HEADERS)
 
 
+@DEVICES_BLUEPRINT.route('/userId/<user_id>/devices/<device_id>/node', methods=['POST'])
 def add_device_node_by_user_id(user_id, device_id):
     bearer_token = request.headers.get('Authorization')
     request_data = json.loads(request.data.decode('UTF-8'))
