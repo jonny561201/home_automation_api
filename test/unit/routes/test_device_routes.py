@@ -56,3 +56,9 @@ class TestDeviceRoutes:
         add_device_node_by_user(self.USER_ID)
 
         mock_controller.add_node_to_device.assert_called_with(ANY, request_data)
+
+    def test_add_device_node_by_user__should_return_success_status_code(self, mock_request, mock_controller):
+        mock_request.data = json.dumps({}).encode()
+        actual = add_device_node_by_user(self.USER_ID)
+
+        assert actual.status_code == 200
