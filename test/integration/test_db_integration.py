@@ -385,3 +385,20 @@ class TestDbRoleIntegration:
         with UserDatabaseManager() as database:
             actual = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).first()
             assert actual.node_name == node_name
+            database.session.delete(actual)
+
+    def test_add_new_device_node__should_set_node_device_to_one_when_first_node(self):
+        ip_address = '192.175.7.9'
+        device_id = str(uuid.uuid4())
+        node_name = 'first garage door'
+        with UserDatabaseManager() as database:
+            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
+            database.session.add(device)
+
+        with UserDatabaseManager() as database:
+            database.add_new_device_node(device_id, node_name)
+
+        with UserDatabaseManager() as database:
+            actual = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).first()
+            assert actual.node_device == 1
+            database.session.delete(actual)
