@@ -426,7 +426,7 @@ class TestDbRoleIntegration:
         device_id = str(uuid.uuid4())
         node_name = 'third garage door'
         with UserDatabaseManager() as database:
-            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
+            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=3, ip_address=ip_address)
             node_one = RoleDeviceNodes(node_name='test 1', node_device=1, role_device_id=device_id)
             node_two = RoleDeviceNodes(node_name='test 2', node_device=2, role_device_id=device_id)
             database.session.add(device)
@@ -440,3 +440,19 @@ class TestDbRoleIntegration:
             actuals = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).all()
             assert len(actuals) == 3
             assert [actual.node_device for actual in actuals] == [1,2,3]
+
+    def test_add_new_device_node__should_raise_bad_request_when_exceeding_max_nodes(self):
+        ip_address = '192.175.7.9'
+        device_id = str(uuid.uuid4())
+        node_name = 'third garage door'
+        with UserDatabaseManager() as database:
+            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
+            node_one = RoleDeviceNodes(node_name='test 1', node_device=1, role_device_id=device_id)
+            node_two = RoleDeviceNodes(node_name='test 2', node_device=2, role_device_id=device_id)
+            database.session.add(device)
+            database.session.add(node_one)
+            database.session.add(node_two)
+
+        with UserDatabaseManager() as database:
+            with pytest.raises(BadRequest):
+                database.add_new_device_node(device_id, node_name)

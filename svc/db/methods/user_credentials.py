@@ -107,6 +107,8 @@ class UserDatabase:
         if device is None:
             raise Unauthorized
         node_size = len(device.role_device_nodes)
+        if node_size >= device.max_nodes:
+            raise BadRequest
         node = RoleDeviceNodes(node_name=node_name, role_device_id=role_id, node_device=node_size + 1)
         self.session.add(node)
 
