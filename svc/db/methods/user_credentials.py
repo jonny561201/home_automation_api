@@ -1,4 +1,5 @@
 import os
+import uuid
 
 from sqlalchemy import orm, create_engine
 from werkzeug.exceptions import BadRequest, Unauthorized
@@ -99,9 +100,12 @@ class UserDatabase:
         role = next((user_role for user_role in user_roles if user_role.role.role_name == role_name), None)
         if role is None:
             raise Unauthorized
-        device = RoleDevices(ip_address=ip_address, max_nodes=2, user_role_id=role.id)
+        device_id = uuid.uuid4()
+        device = RoleDevices(id=str(device_id), ip_address=ip_address, max_nodes=2, user_role_id=role.id)
         self.session.add(device)
+        return str(device_id)
 
+    # TODO: should be handed a user_id and validated if it matches else 401
     def add_new_device_node(self, device_id, node_name):
         device = self.session.query(RoleDevices).filter_by(id=device_id).first()
         if device is None:

@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 
 import pytest
-from mock import mock
+from mock import mock, patch
 from sqlalchemy import orm
 from werkzeug.exceptions import BadRequest, Unauthorized
 
@@ -279,6 +279,18 @@ class TestUserDatabase:
         self.DATABASE.add_new_role_device(self.USER_ID, role_name, ip_address)
 
         self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
+
+    @patch('svc.db.methods.user_credentials.uuid')
+    def test_add_new_role_device__should_return_device_id_in_response(self, mock_uuid):
+        ip_address = '0.0.0.0'
+        role_name = 'garage_door'
+        device_id = 'fake uuid string'
+        mock_uuid.uuid4.return_value = device_id
+        role = UserRoles(user_id=str(uuid.uuid4()), role=Roles(role_name=role_name))
+        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [role]
+        actual = self.DATABASE.add_new_role_device(self.USER_ID, role_name, ip_address)
+
+        assert actual == device_id
 
     def test_add_new_role_device__should_raise_unauthorized_when_no_role_returned(self):
         ip_address = '0.0.0.0'
