@@ -39,6 +39,14 @@ class TestDeviceController:
         with pytest.raises(BadRequest):
             add_device_to_role(self.BEARER_TOKEN, self.USER_ID, request_data)
 
+    def test_add_device_to_role__should_return_response_from_adding_to_database(self, mock_jwt, mock_db):
+        device_id = 'fakeDeviceId'
+        mock_db.return_value.__enter__.return_value.add_new_role_device.return_value = device_id
+        request_data = {'roleName': 'fakeName', 'ipAddress': '1.1.1.1'}
+        actual = add_device_to_role(self.BEARER_TOKEN, self.USER_ID, request_data)
+
+        assert actual == device_id
+
     def test_add_node_to_device__should_call_is_jwt_valid(self, mock_jwt, mock_db):
         request_data = {'deviceId': 'fake', 'nodeName': 'fake'}
         add_node_to_device(self.BEARER_TOKEN, self.DEVICE_ID, request_data)
