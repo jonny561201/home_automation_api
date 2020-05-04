@@ -32,7 +32,6 @@ class UserDatabaseManager:
         self.db_session.remove()
 
 
-# TODO: all methods should be handed a user_id and validated if it matches else 401
 class UserDatabase:
     def __init__(self, session):
         self.session = session
