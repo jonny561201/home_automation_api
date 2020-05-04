@@ -56,7 +56,7 @@ class TestDeviceRoutes:
         mock_request.data = json.dumps({}).encode('UTF-8')
         actual = add_device_by_user_id(self.USER_ID)
 
-        assert json.loads(actual.data.decode('UTF-8')) == device_id
+        assert json.loads(actual.data.decode('UTF-8'))['deviceId'] == device_id
 
     def test_add_device_node_by_user_id__should_pass_bearer_token_to_controller(self, mock_request, mock_controller):
         mock_request.headers = {'Authorization': self.BEARER_TOKEN}

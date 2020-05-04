@@ -57,6 +57,15 @@ class TestDeviceRoutesIntegration:
         actual = self.TEST_CLIENT.post('userId/' + self.USER_ID + '/devices', headers={}, data=post_body)
         assert actual.status_code == 401
 
+    def test_add_device_by_user_id__should_return_device_id_when_user_with_correct_role(self):
+        ip_address = '1.1.1.1'
+        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
+        post_body = json.dumps({'roleName': self.ROLE_NAME, 'ipAddress': ip_address})
+        header = {'Authorization': bearer_token}
+        actual = self.TEST_CLIENT.post('userId/' + self.USER_ID + '/devices', headers=header, data=post_body)
+
+        assert json.loads(actual.data)['deviceId'] is not None
+
     def test_add_device_by_user_id__should_return_success_when_user_with_correct_role(self):
         ip_address = '1.1.1.1'
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
