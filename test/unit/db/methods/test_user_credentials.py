@@ -322,6 +322,14 @@ class TestUserDatabase:
         with pytest.raises(Unauthorized):
             self.DATABASE.add_new_device_node(self.USER_ID, node_name)
 
+    def test_add_new_device_node__should_return_the_number_of_node_positions_open(self):
+        node_name = 'test name'
+        devices = RoleDevices(max_nodes=2, role_device_nodes=[])
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = devices
+        actual = self.DATABASE.add_new_device_node(self.ROLE_ID, node_name)
+
+        assert actual == {'availableNodes': 1}
+
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()

@@ -114,6 +114,7 @@ class UserDatabase:
             raise BadRequest
         node = RoleDeviceNodes(node_name=node_name, role_device_id=device_id, node_device=node_size + 1)
         self.session.add(node)
+        return {'availableNodes': device.max_nodes - (node_size + 1)}
 
     @staticmethod
     def __create_role(role_devices, role_name):
