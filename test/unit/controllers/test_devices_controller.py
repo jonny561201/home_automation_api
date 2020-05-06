@@ -71,3 +71,11 @@ class TestDeviceController:
     def test_add_node_to_device__should_raise_a_bad_request_when_request_missing_items(self, mock_jwt, mock_db):
         with pytest.raises(BadRequest):
             add_node_to_device(self.BEARER_TOKEN, self.DEVICE_ID, {})
+
+    def test_add_node_to_device__should_return_response_from_database(self, mock_jwt, mock_db):
+        device_id = 'abc123'
+        response = {'response': 1}
+        mock_db.return_value.__enter__.return_value.add_new_device_node.return_value = response
+        actual = add_node_to_device(self.BEARER_TOKEN, device_id, {'nodeName': 'test'})
+
+        assert actual == response
