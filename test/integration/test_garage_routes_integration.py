@@ -46,7 +46,8 @@ class TestGarageDoorRoutesIntegration:
         post_body = {}
         headers = {}
 
-        actual = self.TEST_CLIENT.post('garageDoor/user/%s/state' % self.USER_ID, data=post_body, headers=headers)
+        url = 'garageDoor/%s/user/%s/state' % (self.GARAGE_ID, self.USER_ID)
+        actual = self.TEST_CLIENT.post(url, data=post_body, headers=headers)
 
         assert actual.status_code == 401
 
@@ -59,7 +60,8 @@ class TestGarageDoorRoutesIntegration:
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         headers = {'Authorization': bearer_token}
 
-        actual = self.TEST_CLIENT.post('garageDoor/user/%s/state' % self.USER_ID, data=json.dumps(post_body), headers=headers)
+        url = 'garageDoor/%s/user/%s/state' % (self.GARAGE_ID, self.USER_ID)
+        actual = self.TEST_CLIENT.post(url, data=json.dumps(post_body), headers=headers)
 
         assert actual.status_code == 200
 
@@ -72,7 +74,8 @@ class TestGarageDoorRoutesIntegration:
         response._content = json.dumps({}).encode()
         mock_request.post.return_value = response
 
-        actual = self.TEST_CLIENT.post('garageDoor/user/%s/state' % self.USER_ID, data=json.dumps(post_body), headers=headers)
+        url = 'garageDoor/%s/user/%s/state' % (self.GARAGE_ID, self.USER_ID)
+        actual = self.TEST_CLIENT.post(url, data=json.dumps(post_body), headers=headers)
 
         assert actual.status_code == 400
 
