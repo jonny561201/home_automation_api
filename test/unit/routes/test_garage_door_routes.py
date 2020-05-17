@@ -29,7 +29,7 @@ class TestAppRoutes:
 
         get_garage_door_status(self.USER_ID, self.GARAGE_ID)
 
-        mock_controller.get_status.assert_called_with(self.JWT_TOKEN, self.USER_ID)
+        mock_controller.get_status.assert_called_with(self.JWT_TOKEN, self.USER_ID, self.GARAGE_ID)
 
     def test_garage_door_status__should_return_success_status_code(self, mock_request, mock_controller):
         mock_request.headers = {'Authorization': self.JWT_TOKEN}
@@ -63,7 +63,7 @@ class TestAppRoutes:
         mock_request.data = expected_data
         update_garage_door_state(self.USER_ID, self.GARAGE_ID)
 
-        mock_controller.update_state.assert_called_with(self.JWT_TOKEN, self.USER_ID, expected_data )
+        mock_controller.update_state.assert_called_with(self.JWT_TOKEN, self.USER_ID, self.GARAGE_ID, expected_data )
 
     def test_update_garage_door_state__should_return_success_status_code(self, mock_request, mock_controller):
         mock_request.headers = {'Authorization': self.JWT_TOKEN}
@@ -99,7 +99,7 @@ class TestAppRoutes:
         mock_request.headers = {'Authorization': self.JWT_TOKEN}
         toggle_garage_door(self.USER_ID, self.GARAGE_ID)
 
-        mock_controller.toggle_door.assert_called_with(self.JWT_TOKEN, self.USER_ID)
+        mock_controller.toggle_door.assert_called_with(self.JWT_TOKEN, self.USER_ID, self.GARAGE_ID)
 
     def test_toggle_garage_door__should_return_success_status_code(self, mock_request, mock_controller):
         mock_request.headers = {'Authorization': self.JWT_TOKEN}
