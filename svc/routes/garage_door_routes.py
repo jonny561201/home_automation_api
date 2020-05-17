@@ -22,7 +22,7 @@ def update_garage_door_state(user_id, garage_id):
     return Response(json.dumps(updated_state), status=200, headers=DEFAULT_HEADERS)
 
 
-@GARAGE_BLUEPRINT.route('/garageDoor/user/<user_id>/toggle', methods=['GET'])
+@GARAGE_BLUEPRINT.route('/garageDoor/<garage_id>/user/<user_id>/toggle', methods=['GET'])
 def toggle_garage_door(user_id, garage_id):
     bearer_token = request.headers.get('Authorization')
     garage_door_controller.toggle_door(bearer_token, user_id)
