@@ -16,21 +16,21 @@ def get_weather_by_city(city, unit, app_id):
     return response.status_code, response.content
 
 
-def get_garage_door_status(bearer_token, base_url):
+def get_garage_door_status(bearer_token, base_url, garage_id):
     header = {'Authorization': 'Bearer ' + bearer_token}
     url = '%s/garageDoor/status' % base_url
     response = requests.get(url, headers=header)
     return response.status_code, response.json()
 
 
-def toggle_garage_door_state(bearer_token, base_url):
+def toggle_garage_door_state(bearer_token, base_url, garage_id):
     header = {'Authorization': 'Bearer ' + bearer_token}
     url = '%s/garageDoor/toggle' % base_url
     response = requests.get(url, headers=header)
     return response.status_code
 
 
-def update_garage_door_state(bearer_token, base_url, request):
+def update_garage_door_state(bearer_token, base_url, garage_id, request):
     header = {'Authorization': 'Bearer ' + bearer_token}
     url = '%s/garageDoor/state' % base_url
     response = requests.post(url, headers=header, data=request)
