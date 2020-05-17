@@ -97,19 +97,19 @@ class TestAppRoutes:
 
     def test_toggle_garage_door__should_call_controller_with_bearer_token(self, mock_request, mock_controller):
         mock_request.headers = {'Authorization': self.JWT_TOKEN}
-        toggle_garage_door(self.USER_ID)
+        toggle_garage_door(self.USER_ID, self.GARAGE_ID)
 
         mock_controller.toggle_door.assert_called_with(self.JWT_TOKEN, self.USER_ID)
 
     def test_toggle_garage_door__should_return_success_status_code(self, mock_request, mock_controller):
         mock_request.headers = {'Authorization': self.JWT_TOKEN}
-        actual = toggle_garage_door(self.USER_ID)
+        actual = toggle_garage_door(self.USER_ID, self.GARAGE_ID)
 
         assert actual.status_code == 200
 
     def test_toggle_garage_door__should_return_success_headers(self, mock_request, mock_controller):
         expected_headers = 'text/json'
         mock_request.headers = {'Authorization': self.JWT_TOKEN}
-        actual = toggle_garage_door(self.USER_ID)
+        actual = toggle_garage_door(self.USER_ID, self.GARAGE_ID)
 
         assert actual.content_type == expected_headers
