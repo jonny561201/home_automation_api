@@ -11,6 +11,7 @@ from svc.manager import create_app
 
 @patch('svc.utilities.api_utils.requests')
 class TestGarageDoorRoutesIntegration:
+    GARAGE_ID = 4
     TEST_CLIENT = None
     JWT_SECRET = 'testSecret'
     USER_ID = str(uuid.uuid4())
@@ -24,7 +25,8 @@ class TestGarageDoorRoutesIntegration:
         os.environ.pop('JWT_SECRET')
 
     def test_get_garage_door_status__should_return_unauthorized_with_no_header(self, mock_request):
-        actual = self.TEST_CLIENT.get('garageDoor/user/%s/status' % self.USER_ID)
+        url = 'garageDoor/%s/user/%s/status' % (self.GARAGE_ID, self.USER_ID)
+        actual = self.TEST_CLIENT.get(url)
 
         assert actual.status_code == 401
 
@@ -35,7 +37,8 @@ class TestGarageDoorRoutesIntegration:
         mock_request.get.return_value = response
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         headers = {'Authorization': bearer_token}
-        actual = self.TEST_CLIENT.get('garageDoor/user/%s/status' % self.USER_ID, headers=headers)
+        url = 'garageDoor/%s/user/%s/status' % (self.GARAGE_ID, self.USER_ID)
+        actual = self.TEST_CLIENT.get(url, headers=headers)
 
         assert actual.status_code == 200
 
