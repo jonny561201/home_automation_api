@@ -61,7 +61,7 @@ class TestAppRoutes:
         mock_request.headers = {'Authorization': self.JWT_TOKEN}
         mock_controller.update_state.return_value = {}
         mock_request.data = expected_data
-        update_garage_door_state(self.USER_ID)
+        update_garage_door_state(self.USER_ID, self.GARAGE_ID)
 
         mock_controller.update_state.assert_called_with(self.JWT_TOKEN, self.USER_ID, expected_data )
 
@@ -69,7 +69,7 @@ class TestAppRoutes:
         mock_request.headers = {'Authorization': self.JWT_TOKEN}
         mock_request.data = '{"garageDoorOpen": "False"}'.encode()
         mock_controller.update_state.return_value = {}
-        actual = update_garage_door_state(self.USER_ID)
+        actual = update_garage_door_state(self.USER_ID, self.GARAGE_ID)
 
         assert actual.status_code == 200
 
@@ -79,7 +79,7 @@ class TestAppRoutes:
         mock_controller.update_state.return_value = {}
         expected_headers = 'text/json'
 
-        actual = update_garage_door_state(self.USER_ID)
+        actual = update_garage_door_state(self.USER_ID, self.GARAGE_ID)
 
         assert actual.content_type == expected_headers
 
@@ -90,7 +90,7 @@ class TestAppRoutes:
         expected_response = {'fakeResponse': True}
         mock_controller.update_state.return_value = expected_response
 
-        actual = update_garage_door_state(self.USER_ID)
+        actual = update_garage_door_state(self.USER_ID, self.GARAGE_ID)
         json_actual = json.loads(actual.data)
 
         assert json_actual == expected_response
