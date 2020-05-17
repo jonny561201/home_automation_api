@@ -9,7 +9,7 @@ DEFAULT_HEADERS = {'Content-Type': 'text/json'}
 
 
 @GARAGE_BLUEPRINT.route('/garageDoor/user/<user_id>/status', methods=['GET'])
-def get_garage_door_status(user_id):
+def get_garage_door_status(user_id, garage_id):
     bearer_token = request.headers.get('Authorization')
     status = garage_door_controller.get_status(bearer_token, user_id)
     return Response(json.dumps(status), status=200, headers=DEFAULT_HEADERS)

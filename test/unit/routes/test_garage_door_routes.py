@@ -12,6 +12,7 @@ from svc.routes.garage_door_routes import get_garage_door_status, update_garage_
 @patch('svc.routes.garage_door_routes.garage_door_controller')
 @patch('svc.routes.garage_door_routes.request')
 class TestAppRoutes:
+    GARAGE_ID = 3
     USER_ID = str(uuid.uuid4())
     JWT_SECRET = 'fake_jwt_secret'
     JWT_TOKEN = jwt.encode({}, JWT_SECRET, algorithm='HS256').decode('UTF-8')
@@ -26,14 +27,14 @@ class TestAppRoutes:
         mock_request.headers = {'Authorization': self.JWT_TOKEN}
         mock_controller.get_status.return_value = {}
 
-        get_garage_door_status(self.USER_ID)
+        get_garage_door_status(self.USER_ID, self.GARAGE_ID)
 
         mock_controller.get_status.assert_called_with(self.JWT_TOKEN, self.USER_ID)
 
     def test_garage_door_status__should_return_success_status_code(self, mock_request, mock_controller):
         mock_request.headers = {'Authorization': self.JWT_TOKEN}
         mock_controller.get_status.return_value = {}
-        actual = get_garage_door_status(self.USER_ID)
+        actual = get_garage_door_status(self.USER_ID, self.GARAGE_ID)
 
         assert actual.status_code == 200
 
@@ -42,7 +43,7 @@ class TestAppRoutes:
         mock_controller.get_status.return_value = {}
         expected_headers = 'text/json'
 
-        actual = get_garage_door_status(self.USER_ID)
+        actual = get_garage_door_status(self.USER_ID, self.GARAGE_ID)
 
         assert actual.content_type == expected_headers
 
@@ -51,7 +52,7 @@ class TestAppRoutes:
         expected_body = {"isGarageOpen": True, "statusDuration": datetime.now()}
         mock_controller.get_status.return_value = expected_body
 
-        actual = get_garage_door_status(self.USER_ID)
+        actual = get_garage_door_status(self.USER_ID, self.GARAGE_ID)
 
         assert actual.data.decode('UTF-8') == json.dumps(expected_body)
 
