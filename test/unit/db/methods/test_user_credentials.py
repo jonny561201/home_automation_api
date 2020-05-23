@@ -304,7 +304,7 @@ class TestUserDatabase:
         node_name = 'test name'
         devices = RoleDevices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = devices
-        self.DATABASE.add_new_device_node(self.ROLE_ID, node_name)
+        self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name)
 
         self.SESSION.add.assert_called()
 
@@ -312,23 +312,23 @@ class TestUserDatabase:
         node_name = 'test name'
         devices = RoleDevices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = devices
-        self.DATABASE.add_new_device_node(self.ROLE_ID, node_name)
+        self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name)
 
         self.SESSION.query.return_value.filter_by.assert_called_with(id=self.ROLE_ID)
 
-    def test_add_new_device_node__should_raise_unauthorized_when_user_id_not_match(self):
+    def test_add_new_device_node__should_raise_unauthorized_when_device_id_not_match(self):
         node_name = 'test name'
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
         with pytest.raises(Unauthorized):
-            self.DATABASE.add_new_device_node(self.USER_ID, node_name)
+            self.DATABASE.add_new_device_node(self.USER_ID, self.USER_ID, node_name)
 
     def test_add_new_device_node__should_return_the_number_of_node_positions_open(self):
         node_name = 'test name'
         devices = RoleDevices(max_nodes=2, role_device_nodes=[])
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = devices
-        actual = self.DATABASE.add_new_device_node(self.ROLE_ID, node_name)
+        actual = self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name)
 
-        assert actual == {'availableNodes': 1}
+        assert actual['availableNodes'] == 1
 
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
