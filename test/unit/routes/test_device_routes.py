@@ -64,7 +64,7 @@ class TestDeviceRoutes:
         mock_controller.add_node_to_device.return_value = {}
         add_device_node_by_user_id(self.USER_ID, self.DEVICE_ID)
 
-        mock_controller.add_node_to_device.assert_called_with(self.BEARER_TOKEN, ANY, ANY)
+        mock_controller.add_node_to_device.assert_called_with(self.BEARER_TOKEN, ANY, ANY, ANY)
 
     def test_add_device_node_by_user_id__should_pass_the_decoded_body_to_the_controller(self, mock_request, mock_controller):
         request_data = {'test': 'test'}
@@ -72,7 +72,7 @@ class TestDeviceRoutes:
         mock_request.data = json.dumps(request_data).encode('UTF-8')
         add_device_node_by_user_id(self.USER_ID, self.DEVICE_ID)
 
-        mock_controller.add_node_to_device.assert_called_with(ANY, ANY, request_data)
+        mock_controller.add_node_to_device.assert_called_with(ANY, ANY, ANY, request_data)
 
     def test_add_device_node_by_user_id__should_pass_the_device_id_to_the_controller(self, mock_request, mock_controller):
         request_data = {'test': 'test'}
@@ -80,7 +80,15 @@ class TestDeviceRoutes:
         mock_request.data = json.dumps(request_data).encode('UTF-8')
         add_device_node_by_user_id(self.USER_ID, self.DEVICE_ID)
 
-        mock_controller.add_node_to_device.assert_called_with(ANY, self.DEVICE_ID, ANY)
+        mock_controller.add_node_to_device.assert_called_with(ANY, ANY, self.DEVICE_ID, ANY)
+
+    def test_add_device_node_by_user_id__should_pass_the_user_id_to_the_controller(self, mock_request, mock_controller):
+        request_data = {'test': 'test'}
+        mock_controller.add_node_to_device.return_value = {}
+        mock_request.data = json.dumps(request_data).encode('UTF-8')
+        add_device_node_by_user_id(self.USER_ID, self.DEVICE_ID)
+
+        mock_controller.add_node_to_device.assert_called_with(ANY, self.USER_ID, ANY, ANY)
 
     def test_add_device_node_by_user_id__should_return_success_status_code(self, mock_request, mock_controller):
         mock_request.data = json.dumps({}).encode()
