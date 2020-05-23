@@ -85,6 +85,11 @@ class TestUserDatabase:
         with pytest.raises(Unauthorized):
             self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
 
+    def test_get_roles_by_user__should_query_user_creds_by_user_id(self):
+        self.DATABASE.get_roles_by_user(self.USER_ID)
+
+        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
+
     def test_get_preferences_by_user__should_return_user_temp_preferences(self):
         user = TestUserDatabase.__create_database_user()
         preference = TestUserDatabase.__create_user_preference(user)

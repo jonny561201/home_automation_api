@@ -43,6 +43,9 @@ class UserDatabase:
         return {'user_id': user.user_id, 'roles': [self.__create_role(role.role_devices, role.role.role_name) for role in user.user_roles],
                 'first_name': user.user.first_name, 'last_name': user.user.last_name}
 
+    def get_roles_by_user(self, user_id):
+        self.session.query(UserCredentials).filter_by(user_id=user_id)
+
     def change_user_password(self, user_id, old_pass, new_pass):
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
         if user.password != old_pass:
