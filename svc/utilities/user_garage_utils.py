@@ -7,7 +7,5 @@ def get_garage_url_by_user(user_id):
     if settings.get('Development', False):
         return 'http://localhost:5001'
     with UserDatabaseManager() as database:
-        database.get_user_garage_ip(user_id)
-
-    # TODO: get ip address from the database!!!  if in testing mode use local host
-    # return 'http://192.168.1.175:5001'
+        ip = database.get_user_garage_ip(user_id)
+        return 'http://%s:5001' % ip
