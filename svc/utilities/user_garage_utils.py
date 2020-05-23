@@ -4,7 +4,7 @@ from svc.db.methods.user_credentials import UserDatabaseManager
 
 def get_garage_url_by_user(user_id):
     settings = Settings.get_instance().get_settings()
-    if settings['Development']:
+    if settings.get('Development', False):
         return 'http://localhost:5001'
     with UserDatabaseManager() as database:
         database.get_user_garage_ip(user_id)
