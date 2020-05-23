@@ -378,7 +378,7 @@ class TestDbRoleIntegration:
 
         with pytest.raises(Unauthorized):
             with UserDatabaseManager() as database:
-                database.add_new_device_node(str(uuid.uuid4()), node_name)
+                database.add_new_device_node(self.USER_ID, str(uuid.uuid4()), node_name)
 
     def test_add_new_device_node__should_insert_a_new_node_into_table(self):
         ip_address = '192.175.7.9'
@@ -389,7 +389,7 @@ class TestDbRoleIntegration:
             database.session.add(device)
 
         with UserDatabaseManager() as database:
-            database.add_new_device_node(device_id, node_name)
+            database.add_new_device_node(self.USER_ID, device_id, node_name)
 
         with UserDatabaseManager() as database:
             actual = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).first()
@@ -405,7 +405,7 @@ class TestDbRoleIntegration:
             database.session.add(device)
 
         with UserDatabaseManager() as database:
-            actual = database.add_new_device_node(device_id, node_name)
+            actual = database.add_new_device_node(self.USER_ID, device_id, node_name)
             assert actual['availableNodes'] == 1
 
     def test_add_new_device_node__should_set_node_device_to_one_when_first_node(self):
@@ -417,7 +417,7 @@ class TestDbRoleIntegration:
             database.session.add(device)
 
         with UserDatabaseManager() as database:
-            database.add_new_device_node(device_id, node_name)
+            database.add_new_device_node(self.USER_ID, device_id, node_name)
 
         with UserDatabaseManager() as database:
             actual = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).first()
@@ -434,7 +434,7 @@ class TestDbRoleIntegration:
             database.session.add(node)
 
         with UserDatabaseManager() as database:
-            database.add_new_device_node(device_id, node_name)
+            database.add_new_device_node(self.USER_ID, device_id, node_name)
 
         with UserDatabaseManager() as database:
             actuals = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).all()
@@ -454,7 +454,7 @@ class TestDbRoleIntegration:
             database.session.add(node_two)
 
         with UserDatabaseManager() as database:
-            database.add_new_device_node(device_id, node_name)
+            database.add_new_device_node(self.USER_ID, device_id, node_name)
 
         with UserDatabaseManager() as database:
             actuals = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).all()
@@ -475,4 +475,21 @@ class TestDbRoleIntegration:
 
         with UserDatabaseManager() as database:
             with pytest.raises(BadRequest):
-                database.add_new_device_node(device_id, node_name)
+                database.add_new_device_node(self.USER_ID, device_id, node_name)
+
+    def test_get_user_garage_ip__should_return_garage_ip(self):
+        ip_address = '192.175.7.9'
+        device_id = str(uuid.uuid4())
+        with UserDatabaseManager() as database:
+            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
+            database.session.add(device)
+
+        with UserDatabaseManager() as database:
+            actual = database.get_user_garage_ip(self.USER_ID)
+
+            assert actual == ip_address
+
+    def test_get_user_garage_ip__should_raise_bad_request_when_not_found(self):
+        with UserDatabaseManager() as database:
+            with pytest.raises(BadRequest):
+                database.get_user_garage_ip(str(uuid.uuid4()))
