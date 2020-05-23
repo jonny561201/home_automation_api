@@ -330,6 +330,19 @@ class TestUserDatabase:
 
         assert actual['availableNodes'] == 1
 
+    def test_add_new_device_node__should_return_the_number_of_node_positions_open(self):
+        node_name = 'test name'
+        devices = RoleDevices(max_nodes=2, role_device_nodes=[])
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = devices
+        actual = self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name)
+
+        assert actual['availableNodes'] == 1
+
+    def test_get_user_garage_ip__should_query_device_by_user_id(self):
+        self.DATABASE.get_user_garage_ip(self.USER_ID)
+
+        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
+
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()

@@ -116,6 +116,9 @@ class UserDatabase:
         self.session.add(node)
         return {'availableNodes': device.max_nodes - (node_size + 1)}
 
+    def get_user_garage_ip(self, user_id):
+        device = self.session.query(UserRoles).filter_by(user_id=user_id).first()
+
     @staticmethod
     def __create_role(role_devices, role_name):
         if role_devices is not None:
