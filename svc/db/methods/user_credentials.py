@@ -118,6 +118,8 @@ class UserDatabase:
 
     def get_user_garage_ip(self, user_id):
         user_role = self.session.query(UserRoles).filter_by(user_id=user_id).first()
+        if user_role is None:
+            raise BadRequest
         return user_role.role_devices.ip_address
 
     @staticmethod
