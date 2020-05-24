@@ -6,6 +6,8 @@ from flask import json
 from mock import patch
 from requests import Response
 
+from svc.db.methods.user_credentials import UserDatabaseManager
+from svc.db.models.user_information_model import UserInformation, Roles, UserRoles, RoleDevices
 from svc.manager import create_app
 
 
@@ -14,15 +16,42 @@ class TestGarageDoorRoutesIntegration:
     GARAGE_ID = 4
     TEST_CLIENT = None
     JWT_SECRET = 'testSecret'
+    DB_USER = 'postgres'
+    DB_PASS = 'password'
+    DB_PORT = '5432'
+    DB_NAME = 'garage_door'
     USER_ID = str(uuid.uuid4())
+    ROLE_ID = str(uuid.uuid4())
+    USER_ROLE_ID = str(uuid.uuid4())
+    DEVICE_ID = str(uuid.uuid4())
 
     def setup_method(self):
         flask_app = create_app('__main__')
         self.TEST_CLIENT = flask_app.test_client()
-        os.environ.update({'JWT_SECRET': self.JWT_SECRET})
+        os.environ.update({'JWT_SECRET': self.JWT_SECRET, 'SQL_USERNAME': self.DB_USER, 'SQL_PASSWORD': self.DB_PASS,
+                           'SQL_DBNAME': self.DB_NAME, 'SQL_PORT': self.DB_PORT})
+        self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
+        self.ROLE = Roles(id=self.ROLE_ID, role_desc="fake desc", role_name='garage_door')
+        self.USER_ROLE = UserRoles(id=self.USER_ROLE_ID, user_id=self.USER_ID, role_id=self.ROLE_ID)
+        self.DEVICE = RoleDevices(id=self.DEVICE_ID, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address='1.1.1.1')
+        with UserDatabaseManager() as database:
+            database.session.add(self.ROLE)
+            database.session.add(self.USER_INFO)
+            database.session.add(self.USER_ROLE)
+            database.session.add(self.DEVICE)
 
     def teardown_method(self):
+        with UserDatabaseManager() as database:
+            database.session.delete(self.USER_ROLE)
+        with UserDatabaseManager() as database:
+            database.session.delete(self.ROLE)
+            database.session.delete(self.USER_INFO)
+            database.session.query(RoleDevices).delete()
         os.environ.pop('JWT_SECRET')
+        os.environ.pop('SQL_USERNAME')
+        os.environ.pop('SQL_PASSWORD')
+        os.environ.pop('SQL_DBNAME')
+        os.environ.pop('SQL_PORT')
 
     def test_get_garage_door_status__should_return_unauthorized_with_no_header(self, mock_request):
         url = 'garageDoor/%s/user/%s/status' % (self.GARAGE_ID, self.USER_ID)
