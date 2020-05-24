@@ -156,3 +156,11 @@ class TestAppRoutesIntegration:
         actual = self.TEST_CLIENT.get('userId/%s/roles' % self.USER_ID)
 
         assert actual.status_code == 401
+
+    def test_get_roles_by_user_id__should_return_success_response(self):
+        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
+        headers = {'Authorization': bearer_token}
+        actual = self.TEST_CLIENT.get('userId/%s/roles' % self.USER_ID, headers=headers)
+
+        assert actual.status_code == 200
+        assert json.loads(actual.data) == {'roles': []}
