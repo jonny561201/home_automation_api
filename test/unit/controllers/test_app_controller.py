@@ -125,3 +125,8 @@ class TestLoginController:
         get_roles(self.BEARER_TOKEN, self.USER_ID)
 
         mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
+
+    def test_get_roles__should_make_call_to_get_roles(self, mock_jwt, mock_db):
+        get_roles(self.BEARER_TOKEN, self.USER_ID)
+
+        mock_db.return_value.__enter__.return_value.get_roles_by_user.assert_called_with(self.USER_ID)

@@ -33,4 +33,5 @@ def change_password(bearer_token, user_id, request_data):
 
 def get_roles(bearer_token, user_id):
     jwt_utils.is_jwt_valid(bearer_token)
-    
+    with UserDatabaseManager() as database:
+        database.get_roles_by_user(user_id)
