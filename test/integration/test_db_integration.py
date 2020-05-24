@@ -98,6 +98,25 @@ class TestDbValidateIntegration:
             with pytest.raises(Unauthorized):
                 database.validate_credentials(self.USER_NAME, user_pass)
 
+    def test_get_roles_by_user__should_return_role_device_data(self):
+        ip_address = '0.1.2.3'
+        node_name = 'test_node'
+        device_id = str(uuid.uuid4())
+        with UserDatabaseManager() as database:
+            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=1, ip_address=ip_address)
+            node = RoleDeviceNodes(role_device_id=device_id, node_name=node_name, node_device=1)
+            database.session.add(device)
+            database.session.add(node)
+        with UserDatabaseManager() as database:
+            actual = database.get_roles_by_user(self.USER_ID)
+
+            assert actual['roles'] == [{'ip_address': ip_address, 'role_name': self.ROLE_NAME, 'device_id': device_id,
+                                        'devices': [{'node_device': 1, 'node_name': node_name}]}]
+
+    def test_get_roles_by_user__should_raise_bad_request_when_missing_user(self):
+        with pytest.raises(BadRequest):
+            with UserDatabaseManager() as database:
+                database.get_roles_by_user(str(uuid.uuid4()))
 
 class TestDbPreferenceIntegration:
     USER_ID = str(uuid.uuid4())
