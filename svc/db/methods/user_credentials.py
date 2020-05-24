@@ -45,6 +45,8 @@ class UserDatabase:
 
     def get_roles_by_user(self, user_id):
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
+        if user is None:
+            raise BadRequest
         return {'roles': [self.__create_role(role.role_devices, role.role.role_name) for role in user.user_roles]}
 
     def change_user_password(self, user_id, old_pass, new_pass):

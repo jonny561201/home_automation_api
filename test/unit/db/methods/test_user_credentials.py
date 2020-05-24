@@ -89,7 +89,12 @@ class TestUserDatabase:
         self.DATABASE.get_roles_by_user(self.USER_ID)
 
         self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
-        
+
+    def test_get_roles_by_user__should_raise_bad_request_when_no_user(self):
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
+        with pytest.raises(BadRequest):
+            self.DATABASE.get_roles_by_user(self.USER_ID)
+
     def test_get_roles_by_user__should_return_the_user_roles(self):
         user = self.__create_database_user()
         user.user_id = '123455'
