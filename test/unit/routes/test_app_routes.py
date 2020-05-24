@@ -145,3 +145,9 @@ class TestAppRoutes:
         get_roles_by_user_id(self.USER_ID)
 
         mock_controller.get_roles.assert_called_with(None, ANY)
+
+    def test_get_roles_by_user_id__should_return_success_status_code(self, mock_controller, mock_request):
+        mock_request.headers = {}
+        actual = get_roles_by_user_id(self.USER_ID)
+
+        assert actual.status_code == 200
