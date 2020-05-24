@@ -89,6 +89,16 @@ class TestUserDatabase:
         self.DATABASE.get_roles_by_user(self.USER_ID)
 
         self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
+        
+    def test_get_roles_by_user__should_return_the_user_roles(self):
+        user = self.__create_database_user()
+        user.user_id = '123455'
+        user.user_roles = [UserRoles(role=Roles(role_name=self.ROLE_NAME))]
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+
+        actual = self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
+
+        assert actual['roles'] == [{'role_name': self.ROLE_NAME }]
 
     def test_get_preferences_by_user__should_return_user_temp_preferences(self):
         user = TestUserDatabase.__create_database_user()
