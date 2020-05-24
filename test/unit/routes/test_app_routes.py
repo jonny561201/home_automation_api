@@ -139,3 +139,9 @@ class TestAppRoutes:
         get_roles_by_user_id(self.USER_ID)
 
         mock_controller.get_roles.assert_called_with(ANY, self.USER_ID)
+
+    def test_get_roles_by_user_id__should_not_throw_exception_when_no_header(self, mock_controller, mock_request):
+        mock_request.headers = {}
+        get_roles_by_user_id(self.USER_ID)
+
+        mock_controller.get_roles.assert_called_with(None, ANY)
