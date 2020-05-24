@@ -130,3 +130,11 @@ class TestLoginController:
         get_roles(self.BEARER_TOKEN, self.USER_ID)
 
         mock_db.return_value.__enter__.return_value.get_roles_by_user.assert_called_with(self.USER_ID)
+
+    def test_get_roles__should_return_the_result_from_the_database(self, mock_jwt, mock_db):
+        roles = {'roles': []}
+        mock_db.return_value.__enter__.return_value.get_roles_by_user.return_value = roles
+        actual = get_roles(self.BEARER_TOKEN, self.USER_ID)
+
+        assert actual == roles
+
