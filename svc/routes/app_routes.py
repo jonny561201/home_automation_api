@@ -41,6 +41,7 @@ def update_user_password(user_id):
     return Response(status=200, headers=DEFAULT_HEADERS)
 
 
+@APP_BLUEPRINT.route('/userId/<user_id>/roles', methods=['GET'])
 def get_roles_by_user_id(user_id):
     bearer_token = request.headers.get('Authorization')
     roles = app_controller.get_roles(bearer_token, user_id)

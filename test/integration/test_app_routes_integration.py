@@ -151,3 +151,8 @@ class TestAppRoutesIntegration:
         with UserDatabaseManager() as database:
             creds = database.session.query(UserCredentials).filter_by(user_name=self.USER_NAME).first()
             assert creds.password == new_pass
+
+    def test_get_roles_by_user_id__should_unauthorized_when_bad_jwt(self):
+        actual = self.TEST_CLIENT.get('userId/%s/roles' % self.USER_ID)
+
+        assert actual.status_code == 401
