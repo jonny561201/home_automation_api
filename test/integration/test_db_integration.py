@@ -118,6 +118,7 @@ class TestDbValidateIntegration:
             with UserDatabaseManager() as database:
                 database.get_roles_by_user(str(uuid.uuid4()))
 
+
 class TestDbPreferenceIntegration:
     USER_ID = str(uuid.uuid4())
     CITY = 'Praha'

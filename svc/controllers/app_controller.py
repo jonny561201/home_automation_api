@@ -29,3 +29,8 @@ def change_password(bearer_token, user_id, request_data):
     request = json.loads(request_data.decode('UTF-8'))
     with UserDatabaseManager() as database:
         database.change_user_password(user_id, request['oldPassword'], request['newPassword'])
+
+
+def get_roles(bearer_token, user_id):
+    jwt_utils.is_jwt_valid(bearer_token)
+    

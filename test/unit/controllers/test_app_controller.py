@@ -4,7 +4,8 @@ import os
 import jwt
 from mock import patch, ANY
 
-from svc.controllers.app_controller import get_login, get_user_preferences, save_user_preferences, change_password
+from svc.controllers.app_controller import get_login, get_user_preferences, save_user_preferences, change_password, \
+    get_roles
 
 
 @patch('svc.controllers.app_controller.UserDatabaseManager')
@@ -119,3 +120,8 @@ class TestLoginController:
         change_password(self.BEARER_TOKEN, self.USER_ID, json.dumps(request).encode('UTF-8'))
 
         mock_db.return_value.__enter__.return_value.change_user_password.assert_called_with(ANY, ANY, new_password)
+
+    def test_get_roles__should_make_call_to_validate_jwt(self, mock_jwt, mock_db):
+        get_roles(self.BEARER_TOKEN, self.USER_ID)
+
+        mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
