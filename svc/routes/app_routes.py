@@ -43,4 +43,4 @@ def update_user_password(user_id):
 
 def get_roles_by_user_id(user_id):
     bearer_token = request.headers['Authorization']
-    app_controller.get_roles(bearer_token, None)
+    app_controller.get_roles(bearer_token, user_id)

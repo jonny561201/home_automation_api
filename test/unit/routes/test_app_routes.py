@@ -130,6 +130,12 @@ class TestAppRoutes:
 
     def test_get_roles_by_user_id__should_call_controller_with_bearer_token(self, mock_controller, mock_request):
         mock_request.headers = {'Authorization': self.FAKE_JWT_TOKEN}
-        get_roles_by_user_id(self.USER)
+        get_roles_by_user_id(self.USER_ID)
 
         mock_controller.get_roles.assert_called_with(self.FAKE_JWT_TOKEN, ANY)
+
+    def test_get_roles_by_user_id__should_call_controller_with_user_id(self, mock_controller, mock_request):
+        mock_request.headers = {'Authorization': self.FAKE_JWT_TOKEN}
+        get_roles_by_user_id(self.USER_ID)
+
+        mock_controller.get_roles.assert_called_with(ANY, self.USER_ID)
