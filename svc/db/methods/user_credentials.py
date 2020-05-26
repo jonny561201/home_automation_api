@@ -150,7 +150,7 @@ class UserDatabase:
         # user.password = 'updatedPass'
         user.user_id = updated_user_id
         #
-        # self.session.add(user.user)
+        self.session.add(user.user)
         self.session.add(user)
         # self.session.add(user.user_roles[0])
 
