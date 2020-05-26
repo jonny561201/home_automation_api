@@ -138,13 +138,11 @@ class UserDatabase:
         #     make_transient(role)
         #     role.user_id = updated_user_id
         #     role.id = str(uuid.uuid4())
-        # self.session.expunge(user)
+        self.session.expunge(user)
         # make_transient(user)
         #
         # user.id = str(uuid.uuid4())
         # user.user.id = updated_user_id
-        # user.user.first_name = 'Tony'
-        # user.user.last_name = 'Stark'
         # user.user.email = 'tonyStank@gmail.com'
         # user.user_name = 'tony_stank'
         # user.password = 'updatedPass'
