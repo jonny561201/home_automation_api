@@ -381,13 +381,22 @@ class TestUserDatabase:
 
         self.SESSION.add.assert_called_with(user)
 
-    def test_create_child_account__should_update_the_user_info_and_insert_user(self):
+    def test_create_child_account__should_insert_user_info(self):
         user_info = UserInformation()
         user = UserCredentials(user=user_info)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
         self.DATABASE.create_child_account(self.USER_ID, "", [])
 
         self.SESSION.add.assert_any_call(user_info)
+
+    def test_create_child_account__should_insert_user_role(self):
+        user_info = UserInformation()
+        role = UserRoles()
+        user = UserCredentials(user=user_info, user_roles=[role])
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+        self.DATABASE.create_child_account(self.USER_ID, "", [])
+
+        self.SESSION.add.assert_any_call(role)
 
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):

@@ -149,10 +149,10 @@ class UserDatabase:
         # user.user_name = 'tony_stank'
         # user.password = 'updatedPass'
         user.user_id = updated_user_id
-        #
+
         self.session.add(user.user)
         self.session.add(user)
-        # self.session.add(user.user_roles[0])
+        [self.session.add(role) for role in user.user_roles]
 
     @staticmethod
     def __create_role(role_devices, role_name):
