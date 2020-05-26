@@ -133,8 +133,8 @@ class UserDatabase:
         updated_user_id = str(uuid.uuid4())
         # self.session.expunge(user.user)
         # make_transient(user.user)
-        # for role in user.user_roles:
-        #     self.session.expunge(role)
+        for role in user.user_roles:
+            self.session.expunge(role)
         #     make_transient(role)
         #     role.user_id = updated_user_id
         #     role.id = str(uuid.uuid4())

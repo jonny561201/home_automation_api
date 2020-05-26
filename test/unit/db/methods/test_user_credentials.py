@@ -410,7 +410,7 @@ class TestUserDatabase:
         self.DATABASE.create_child_account(self.USER_ID, "", ['garage_door'])
 
         self.SESSION.add.assert_any_call(garage_user)
-        assert not mock.call(security_user) in self.SESSION.mock_calls
+        assert not mock.call(security_user) in self.SESSION.add.mock_calls
 
     def test_create_child_account__should_expunge_user(self):
         user = UserCredentials()
@@ -418,6 +418,15 @@ class TestUserDatabase:
         self.DATABASE.create_child_account(self.USER_ID, "", [])
 
         self.SESSION.expunge.assert_any_call(user)
+
+    def test_create_child_account__should_expunge_user_role(self):
+        role = Roles()
+        user_role = UserRoles(role=role)
+        user = UserCredentials(user_roles=[user_role])
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+        self.DATABASE.create_child_account(self.USER_ID, "", [])
+
+        self.SESSION.expunge.assert_any_call(user_role)
 
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
