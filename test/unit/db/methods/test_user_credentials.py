@@ -374,6 +374,13 @@ class TestUserDatabase:
 
         self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
 
+    def test_create_child_account__should_update_the_user_id_and_insert_user(self):
+        user = UserCredentials(user_id=str(uuid.uuid4()), user_name="test")
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+        self.DATABASE.create_child_account(self.USER_ID, "", [])
+
+        self.SESSION.add.assert_called_with(user)
+
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()

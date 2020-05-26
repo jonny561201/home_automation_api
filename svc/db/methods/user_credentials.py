@@ -129,8 +129,30 @@ class UserDatabase:
         return user_role.role_devices.ip_address
 
     def create_child_account(self, user_id, email, roles):
-        self.session.query(UserCredentials).filter_by(user_id=user_id).first()
-
+        user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
+        updated_user_id = str(uuid.uuid4())
+        # self.session.expunge(user.user)
+        # make_transient(user.user)
+        # for role in user.user_roles:
+        #     self.session.expunge(role)
+        #     make_transient(role)
+        #     role.user_id = updated_user_id
+        #     role.id = str(uuid.uuid4())
+        # self.session.expunge(user)
+        # make_transient(user)
+        #
+        # user.id = str(uuid.uuid4())
+        # user.user.id = updated_user_id
+        # user.user.first_name = 'Tony'
+        # user.user.last_name = 'Stark'
+        # user.user.email = 'tonyStank@gmail.com'
+        # user.user_name = 'tony_stank'
+        # user.password = 'updatedPass'
+        user.user_id = updated_user_id
+        #
+        # self.session.add(user.user)
+        self.session.add(user)
+        # self.session.add(user.user_roles[0])
 
     @staticmethod
     def __create_role(role_devices, role_name):
