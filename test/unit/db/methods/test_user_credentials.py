@@ -391,12 +391,26 @@ class TestUserDatabase:
 
     def test_create_child_account__should_insert_user_role(self):
         user_info = UserInformation()
-        role = UserRoles()
-        user = UserCredentials(user=user_info, user_roles=[role])
+        role = Roles(role_name='security')
+        user_role = UserRoles(role=role)
+        user = UserCredentials(user=user_info, user_roles=[user_role])
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
-        self.DATABASE.create_child_account(self.USER_ID, "", [])
+        self.DATABASE.create_child_account(self.USER_ID, "", ['security'])
 
-        self.SESSION.add.assert_any_call(role)
+        self.SESSION.add.assert_any_call(user_role)
+
+    def test_create_child_account__should_filter_unwanted_roles_when_inserting(self):
+        user_info = UserInformation()
+        garage_role = Roles(role_name='garage_door')
+        security_role = Roles(role_name='security')
+        garage_user = UserRoles(role=garage_role)
+        security_user = UserRoles(role=security_role)
+        user = UserCredentials(user=user_info, user_roles=[garage_user, security_user])
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+        self.DATABASE.create_child_account(self.USER_ID, "", ['garage_door'])
+
+        self.SESSION.add.assert_any_call(garage_user)
+        assert not mock.call(security_user) in self.SESSION.mock_calls
 
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):

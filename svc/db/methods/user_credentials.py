@@ -152,7 +152,7 @@ class UserDatabase:
 
         self.session.add(user.user)
         self.session.add(user)
-        [self.session.add(role) for role in user.user_roles]
+        [self.session.add(role) for role in user.user_roles if role.role.role_name in roles]
 
     @staticmethod
     def __create_role(role_devices, role_name):
