@@ -428,6 +428,14 @@ class TestUserDatabase:
 
         self.SESSION.expunge.assert_any_call(user_role)
 
+    def test_create_child_account__should_expunge_user_info(self):
+        user_info = UserInformation()
+        user = UserCredentials(user=user_info)
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+        self.DATABASE.create_child_account(self.USER_ID, "", [])
+
+        self.SESSION.expunge.assert_any_call(user_info)
+
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()

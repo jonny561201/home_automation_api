@@ -131,7 +131,7 @@ class UserDatabase:
     def create_child_account(self, user_id, email, roles):
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
         updated_user_id = str(uuid.uuid4())
-        # self.session.expunge(user.user)
+        self.session.expunge(user.user)
         # make_transient(user.user)
         for role in user.user_roles:
             self.session.expunge(role)
