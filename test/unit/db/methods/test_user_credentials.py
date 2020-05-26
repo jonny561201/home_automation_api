@@ -369,6 +369,11 @@ class TestUserDatabase:
 
         assert actual == ip_address
 
+    def test_create_child_account__should_query_user_creds_by_user_id(self):
+        self.DATABASE.create_child_account(self.USER_ID, "", [])
+
+        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
+
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()

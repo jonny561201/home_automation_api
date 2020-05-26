@@ -110,7 +110,7 @@ class UserDatabase:
         self.session.add(device)
         return str(device_id)
 
-    # TODO: should be handed a user_id and validated if it matches else 401
+    # TODO: should validate user_id matches else 401
     def add_new_device_node(self, user_id, device_id, node_name):
         device = self.session.query(RoleDevices).filter_by(id=device_id).first()
         if device is None:
@@ -127,6 +127,10 @@ class UserDatabase:
         if user_role is None:
             raise BadRequest
         return user_role.role_devices.ip_address
+
+    def create_child_account(self, user_id, email, roles):
+        self.session.query(UserCredentials).filter_by(user_id=user_id).first()
+
 
     @staticmethod
     def __create_role(role_devices, role_name):

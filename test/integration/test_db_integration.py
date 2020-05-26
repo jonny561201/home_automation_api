@@ -22,10 +22,6 @@ class TestDbValidateIntegration:
     USER_NAME = 'Jonny'
     PASSWORD = 'fakePass'
     ROLE_NAME = 'garage_door'
-    USER = None
-    USER_LOGIN = None
-    ROLE = None
-    USER_ROLE = None
     FIRST = 'Jon'
     LAST = 'Test'
 
@@ -123,8 +119,6 @@ class TestDbPreferenceIntegration:
     USER_ID = str(uuid.uuid4())
     CITY = 'Praha'
     UNIT = 'metric'
-    USER = None
-    USER_PREFERENCES = None
 
     def setup_method(self):
         os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
@@ -213,13 +207,6 @@ class TestDbSumpIntegration:
     SECOND_USER_ID = str(uuid.uuid4())
     DAY = datetime.date(datetime.now())
     DATE = datetime.now()
-    FIRST_USER = None
-    SECOND_USER = None
-    FIRST_SUMP_DAILY = None
-    SECOND_SUMP_DAILY = None
-    THIRD_SUMP_DAILY = None
-    FIRST_SUMP_AVG = None
-    SECOND_SUMP_AVG = None
 
     def setup_method(self):
         os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
@@ -301,8 +288,6 @@ class TestDbSumpIntegration:
 
 
 class TestDbPasswordIntegration:
-    USER_CREDS = None
-    USER_INFO = None
     USER_NAME = 'JonsUser'
     PASSWORD = 'BESTESTPASSWORDEVA'
     USER_ID = str(uuid.uuid4())
@@ -345,9 +330,6 @@ class TestDbRoleIntegration:
     ROLE_ID = str(uuid.uuid4())
     USER_ROLE_ID = str(uuid.uuid4())
     ROLE_NAME = "lighting"
-    USER_ROLE = None
-    ROLE = None
-    USER_INFO = None
 
     def setup_method(self):
         os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
