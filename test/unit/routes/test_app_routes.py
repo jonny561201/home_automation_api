@@ -172,3 +172,8 @@ class TestAppRoutes:
         mock_request.headers = {'Authorization': self.FAKE_JWT_TOKEN}
         post_child_account_by_user(self.USER_ID)
         mock_controller.create_child_account_by_user.assert_called_with(self.FAKE_JWT_TOKEN, ANY, ANY)
+
+    def test_post_child_account_by_user__not_raise_error_when_no_authorization_header(self, mock_controller, mock_request):
+        mock_request.headers = {}
+        post_child_account_by_user(self.USER_ID)
+        mock_controller.create_child_account_by_user.assert_called_with(None, ANY, ANY)
