@@ -145,3 +145,8 @@ class TestLoginController:
     def test_create_child_account_by_user__should_make_call_to_database_with_user_id(self, mock_jwt, mock_db):
         create_child_account_by_user(self.BEARER_TOKEN, self.USER_ID, '', [])
         mock_db.return_value.__enter__.return_value.create_child_account.assert_called_with(self.USER_ID, ANY, ANY)
+
+    def test_create_child_account_by_user__should_make_call_to_database_with_email(self, mock_jwt, mock_db):
+        email = 'thor_thunder@gmail.com'
+        create_child_account_by_user(self.BEARER_TOKEN, self.USER_ID, email, [])
+        mock_db.return_value.__enter__.return_value.create_child_account.assert_called_with(ANY, email, ANY)
