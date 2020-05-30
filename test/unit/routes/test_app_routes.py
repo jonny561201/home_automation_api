@@ -187,3 +187,7 @@ class TestAppRoutes:
         mock_request.data = request
         post_child_account_by_user(self.USER_ID)
         mock_controller.create_child_account_by_user.assert_called_with(ANY, ANY, request)
+
+    def test_post_child_account_by_user__should_return_success_status_code(self, mock_controller, mock_request):
+        actual = post_child_account_by_user(self.USER_ID)
+        assert actual.status_code == 200
