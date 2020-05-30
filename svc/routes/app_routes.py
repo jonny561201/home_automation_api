@@ -46,3 +46,8 @@ def get_roles_by_user_id(user_id):
     bearer_token = request.headers.get('Authorization')
     roles = app_controller.get_roles(bearer_token, user_id)
     return Response(json.dumps(roles), status=200, headers=DEFAULT_HEADERS)
+
+
+def post_child_account_by_user(user_id):
+    bearer_token = request.headers['Authorization']
+    app_controller.create_child_account_by_user(bearer_token, None, None)
