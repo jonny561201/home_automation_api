@@ -21,7 +21,7 @@ class UserInformation(Base):
 class ChildAccounts(Base):
     __tablename__ = 'child_accounts'
 
-    id = Column(UUID, nullable=False, primary_key=True)
+    id = Column(UUID, nullable=False, primary_key=True, server_default=sqlalchemy.text("gen_random_uuid()"))
     child_user_id = Column(UUID, ForeignKey(UserInformation.id))
     parent_user_id = Column(UUID, ForeignKey(UserInformation.id))
 

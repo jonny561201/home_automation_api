@@ -7,7 +7,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.constants.settings_state import Settings
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
-    AverageSumpPumpLevel, RoleDevices, UserRoles, RoleDeviceNodes
+    AverageSumpPumpLevel, RoleDevices, UserRoles, RoleDeviceNodes, ChildAccounts
 from svc.utilities.string_utils import generate_password
 
 
@@ -144,10 +144,13 @@ class UserDatabase:
         self.__detach_relationship(user)
 
         self.__update_user(updated_user_id, user, email)
+        child = ChildAccounts(parent_user_id=user.user_id, child_user_id=updated_user_id)
 
         self.session.add(user.user)
+        self.session.commit()
         self.session.add(user)
         [self.session.add(role) for role in user.user_roles]
+        self.session.add(child)
 
     def __detach_relationship(self, model):
         self.session.expunge(model)

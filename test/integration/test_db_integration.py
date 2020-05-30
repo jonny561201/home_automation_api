@@ -8,7 +8,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, \
-    UserCredentials, Roles, UserPreference, UserRoles, RoleDevices, RoleDeviceNodes
+    UserCredentials, Roles, UserPreference, UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts
 
 DB_USER = 'postgres'
 DB_PASS = 'password'
@@ -527,6 +527,7 @@ class TestUserDuplication:
             database.session.query(UserRoles).filter_by(user_id=str(self.UPDATED_USER_ID)).delete()
             database.session.query(UserRoles).filter_by(user_id=self.USER_ID).delete()
         with UserDatabaseManager() as database:
+            database.session.query(ChildAccounts).delete()
             database.session.query(UserCredentials).filter_by(user_id=self.USER_ID).delete()
             database.session.query(UserCredentials).filter_by(user_id=str(self.UPDATED_USER_ID)).delete()
             database.session.query(UserInformation).filter_by(id=str(self.UPDATED_USER_ID)).delete()
@@ -571,4 +572,13 @@ class TestUserDuplication:
             with UserDatabaseManager() as database:
                 database.create_child_account(str(uuid.uuid4()), "", [])
 
-# TODO: create test for creating record in child accounts table
+    def test_create_child_account__should_create_child_account_record(self, mock_uuid):
+        mock_uuid.uuid4.side_effect = [self.UPDATED_USER_ID, uuid.uuid4(), uuid.uuid4()]
+        new_email = 'tony_stank@stark.com'
+
+        with UserDatabaseManager() as database:
+            database.create_child_account(self.USER_ID, new_email, [])
+
+        with UserDatabaseManager() as database:
+            actual = database.session.query(ChildAccounts).filter_by(child_user_id=str(self.UPDATED_USER_ID)).first()
+            assert actual.child_user_id == str(self.UPDATED_USER_ID)
