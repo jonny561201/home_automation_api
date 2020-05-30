@@ -37,6 +37,7 @@ def get_roles(bearer_token, user_id):
         return database.get_roles_by_user(user_id)
 
 
+# TODO: send out email notification to user
 def create_child_account_by_user(bearer_token, user_id, request_data):
     jwt_utils.is_jwt_valid(bearer_token)
     request = json.loads(request_data.decode('UTF-8'))
