@@ -152,7 +152,7 @@ class TestAppRoutesIntegration:
             creds = database.session.query(UserCredentials).filter_by(user_name=self.USER_NAME).first()
             assert creds.password == new_pass
 
-    def test_get_roles_by_user_id__should_unauthorized_when_bad_jwt(self):
+    def test_get_roles_by_user_id__should_return_unauthorized_when_bad_jwt(self):
         actual = self.TEST_CLIENT.get('userId/%s/roles' % self.USER_ID)
 
         assert actual.status_code == 401
@@ -164,3 +164,9 @@ class TestAppRoutesIntegration:
 
         assert actual.status_code == 200
         assert json.loads(actual.data) == {'roles': []}
+
+    def test_post_child_account_by_user__should_return_unauthorized_when_bad_jwt(self):
+        actual = self.TEST_CLIENT.post('userId/%s/createChildAccount' % self.USER_ID)
+
+        assert actual.status_code == 401
+

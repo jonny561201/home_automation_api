@@ -48,6 +48,7 @@ def get_roles_by_user_id(user_id):
     return Response(json.dumps(roles), status=200, headers=DEFAULT_HEADERS)
 
 
+@APP_BLUEPRINT.route('/userId/<user_id>/createChildAccount', methods=['POST'])
 def post_child_account_by_user(user_id):
     bearer_token = request.headers.get('Authorization')
     app_controller.create_child_account_by_user(bearer_token, user_id, request.data)
