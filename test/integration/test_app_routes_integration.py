@@ -44,7 +44,6 @@ class TestAppRoutesIntegration:
         with UserDatabaseManager() as database:
             database.session.delete(self.PREFERENCE)
             database.session.delete(self.USER_CRED)
-            # database.session.delete(self.USER)
         os.environ.pop('JWT_SECRET')
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
@@ -169,4 +168,12 @@ class TestAppRoutesIntegration:
         actual = self.TEST_CLIENT.post('userId/%s/createChildAccount' % self.USER_ID)
 
         assert actual.status_code == 401
+
+    def test_post_child_account_by_user__should_return_success_after_creating_child_account(self):
+        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
+        headers = {'Authorization': bearer_token}
+        post_body = json.dumps({'email': 'blackened_widow@gmail.com', 'roles': ['garage_door']})
+        actual = self.TEST_CLIENT.post('userId/%s/createChildAccount' % self.USER_ID, headers=headers, data=post_body)
+
+        assert actual.status_code == 200
 
