@@ -132,6 +132,8 @@ class UserDatabase:
 
     def create_child_account(self, user_id, email, roles):
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
+        if user is None:
+            raise BadRequest
         updated_user_id = str(uuid.uuid4())
         for user_role in user.user_roles:
             self.__detach_relationship(user_role.role)

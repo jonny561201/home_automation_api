@@ -375,7 +375,8 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
 
     def test_create_child_account__should_update_the_user_id_and_insert_user(self):
-        user = UserCredentials(user_id=str(uuid.uuid4()), user_name="test")
+        user_roles = [UserRoles(role=Roles())]
+        user = UserCredentials(user_id=str(uuid.uuid4()), user_name="test", user_roles=user_roles, user=UserInformation())
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
         self.DATABASE.create_child_account(self.USER_ID, "", [])
 
@@ -413,7 +414,8 @@ class TestUserDatabase:
         assert not mock.call(security_user) in self.SESSION.add.mock_calls
 
     def test_create_child_account__should_expunge_user(self):
-        user = UserCredentials()
+        user_roles = [UserRoles(role=Roles())]
+        user = UserCredentials(user_roles=user_roles, user=UserInformation())
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
         self.DATABASE.create_child_account(self.USER_ID, "", [])
 
@@ -422,7 +424,7 @@ class TestUserDatabase:
     def test_create_child_account__should_expunge_user_role(self):
         role = Roles()
         user_role = UserRoles(role=role)
-        user = UserCredentials(user_roles=[user_role])
+        user = UserCredentials(user_roles=[user_role], user=UserInformation())
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
         self.DATABASE.create_child_account(self.USER_ID, "", [])
 
@@ -435,6 +437,11 @@ class TestUserDatabase:
         self.DATABASE.create_child_account(self.USER_ID, "", [])
 
         self.SESSION.expunge.assert_any_call(user_info)
+
+    def test_create_child_account__should_throw_bad_request_when_no_user(self):
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
+        with pytest.raises(BadRequest):
+            self.DATABASE.create_child_account(self.USER_ID, "", [])
 
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
