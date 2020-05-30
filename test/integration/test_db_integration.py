@@ -517,18 +517,21 @@ class TestUserDuplication:
         self.USER_ROLE = UserRoles(id=self.USER_ROLE_ID, user_id=self.USER_ID, role_id=self.ROLE_ID, role=self.ROLE)
         self.USER_LOGIN = UserCredentials(id=self.CRED_ID, user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
         with UserDatabaseManager() as database:
-                database.session.add(self.ROLE)
-                database.session.add(self.USER_INFO)
-                database.session.add(self.USER_LOGIN)
-                database.session.add(self.USER_ROLE)
+            database.session.add(self.ROLE)
+            database.session.add(self.USER_INFO)
+            database.session.add(self.USER_LOGIN)
+            database.session.add(self.USER_ROLE)
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
             database.session.query(UserRoles).filter_by(user_id=str(self.UPDATED_USER_ID)).delete()
+            database.session.query(UserRoles).filter_by(user_id=self.USER_ID).delete()
         with UserDatabaseManager() as database:
+            database.session.query(UserCredentials).filter_by(user_id=self.USER_ID).delete()
             database.session.query(UserCredentials).filter_by(user_id=str(self.UPDATED_USER_ID)).delete()
             database.session.query(UserInformation).filter_by(id=str(self.UPDATED_USER_ID)).delete()
-            database.session.query(Roles).filter_by(id=self.ROLE_ID)
+            database.session.query(UserInformation).filter_by(id=self.USER_ID).delete()
+            database.session.query(Roles).filter_by(id=self.ROLE_ID).delete()
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
         os.environ.pop('SQL_DBNAME')
@@ -546,7 +549,10 @@ class TestUserDuplication:
             assert actual.email == new_email
             assert actual.id == str(self.UPDATED_USER_ID)
 
+    def test_create_child_account__should_throw_bad_request_when_no_user_exists(self, mock_uuid):
+        with pytest.raises(BadRequest):
+            with UserDatabaseManager() as database:
+                database.create_child_account(str(uuid.uuid4()), "", [])
 
 # TODO: create test for creating record in child accounts table
-# TODO: create test for throwing bad request when no user exists
 # TODO: create test that proves roles are limited
