@@ -15,6 +15,16 @@ class UserInformation(Base):
     last_name = Column(String, nullable=False)
     email = Column(String, nullable=True)
 
+    child_accounts = relationship("ChildAccounts", cascade='delete', primaryjoin="and_(ChildAccounts.parent_user_id == UserInformation.id)", viewonly=True)
+
+
+class ChildAccounts(Base):
+    __tablename__ = 'child_accounts'
+
+    id = Column(UUID, nullable=False, primary_key=True)
+    child_user_id = Column(UUID, ForeignKey(UserInformation.id))
+    parent_user_id = Column(UUID, ForeignKey(UserInformation.id))
+
 
 class Roles(Base):
     __tablename__ = 'roles'
