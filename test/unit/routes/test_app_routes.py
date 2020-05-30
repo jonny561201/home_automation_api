@@ -191,3 +191,7 @@ class TestAppRoutes:
     def test_post_child_account_by_user__should_return_success_status_code(self, mock_controller, mock_request):
         actual = post_child_account_by_user(self.USER_ID)
         assert actual.status_code == 200
+
+    def test_post_child_account_by_user__should_return_success_headers(self, mock_controller, mock_request):
+        actual = post_child_account_by_user(self.USER_ID)
+        assert actual.content_type == 'text/json'
