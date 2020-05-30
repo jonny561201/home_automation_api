@@ -8,7 +8,6 @@ SUMP_BLUEPRINT = Blueprint('sump_pump_blueprint', __name__)
 DEFAULT_HEADERS = {'Content-Type': 'text/json'}
 
 
-# TODO: add warning or error levels to response object can do separate push notifications
 @SUMP_BLUEPRINT.route('/sumpPump/user/<user_id>/depth', methods=['GET'])
 def get_current_sump_level(user_id):
     bearer_token = request.headers.get('Authorization')
