@@ -2,11 +2,13 @@ import os
 import uuid
 
 from sqlalchemy import orm, create_engine
+from sqlalchemy.orm import make_transient
 from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.constants.settings_state import Settings
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
     AverageSumpPumpLevel, RoleDevices, UserRoles, RoleDeviceNodes
+from svc.utilities.string_utils import generate_password
 
 
 class UserDatabaseManager:
@@ -131,26 +133,31 @@ class UserDatabase:
     def create_child_account(self, user_id, email, roles):
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
         updated_user_id = str(uuid.uuid4())
-        self.session.expunge(user.user)
-        # make_transient(user.user)
-        for role in user.user_roles:
-            self.session.expunge(role)
-        #     make_transient(role)
-        #     role.user_id = updated_user_id
-        #     role.id = str(uuid.uuid4())
-        self.session.expunge(user)
-        # make_transient(user)
-        #
-        # user.id = str(uuid.uuid4())
-        # user.user.id = updated_user_id
-        # user.user.email = 'tonyStank@gmail.com'
-        # user.user_name = 'tony_stank'
-        # user.password = 'updatedPass'
-        user.user_id = updated_user_id
+        for user_role in user.user_roles:
+            self.__detach_relationship(user_role.role)
+            self.__detach_relationship(user_role)
+            user_role.user_id = updated_user_id
+            user_role.id = str(uuid.uuid4())
+        self.__detach_relationship(user.user)
+        self.__detach_relationship(user)
+
+        self.__update_user(updated_user_id, user, email)
 
         self.session.add(user.user)
         self.session.add(user)
         [self.session.add(role) for role in user.user_roles if role.role.role_name in roles]
+
+    def __detach_relationship(self, model):
+        self.session.expunge(model)
+        make_transient(model)
+
+    @staticmethod
+    def __update_user(updated_user_id, user, email):
+        user.user_id = updated_user_id
+        user.id = str(uuid.uuid4())
+        user.user.id = updated_user_id
+        user.user.email = email
+        user.password = generate_password(10)
 
     @staticmethod
     def __create_role(role_devices, role_name):

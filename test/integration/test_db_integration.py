@@ -3,6 +3,7 @@ import uuid
 from datetime import datetime
 
 import pytest
+from mock import patch
 from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.db.methods.user_credentials import UserDatabaseManager
@@ -495,3 +496,57 @@ class TestDbRoleIntegration:
         with UserDatabaseManager() as database:
             with pytest.raises(BadRequest):
                 database.get_user_garage_ip(str(uuid.uuid4()))
+
+
+@patch('svc.db.methods.user_credentials.uuid')
+class TestUserDuplication:
+    PASSWORD = "Test"
+    USER_NAME = "tony_stank  "
+    ROLE_NAME = "lighting"
+    USER_ID = str(uuid.uuid4())
+    CRED_ID = str(uuid.uuid4())
+    ROLE_ID = str(uuid.uuid4())
+    UPDATED_USER_ID = uuid.uuid4()
+    USER_ROLE_ID = str(uuid.uuid4())
+
+    def setup_method(self):
+        os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
+                           'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
+        self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
+        self.ROLE = Roles(id=self.ROLE_ID, role_desc="lighting", role_name=self.ROLE_NAME)
+        self.USER_ROLE = UserRoles(id=self.USER_ROLE_ID, user_id=self.USER_ID, role_id=self.ROLE_ID, role=self.ROLE)
+        self.USER_LOGIN = UserCredentials(id=self.CRED_ID, user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
+        with UserDatabaseManager() as database:
+                database.session.add(self.ROLE)
+                database.session.add(self.USER_INFO)
+                database.session.add(self.USER_LOGIN)
+                database.session.add(self.USER_ROLE)
+
+    def teardown_method(self):
+        with UserDatabaseManager() as database:
+            database.session.query(UserRoles).filter_by(user_id=str(self.UPDATED_USER_ID)).delete()
+        with UserDatabaseManager() as database:
+            database.session.query(UserCredentials).filter_by(user_id=str(self.UPDATED_USER_ID)).delete()
+            database.session.query(UserInformation).filter_by(id=str(self.UPDATED_USER_ID)).delete()
+            database.session.query(Roles).filter_by(id=self.ROLE_ID)
+        os.environ.pop('SQL_USERNAME')
+        os.environ.pop('SQL_PASSWORD')
+        os.environ.pop('SQL_DBNAME')
+        os.environ.pop('SQL_PORT')
+
+    def test_create_child_account__should_duplicate_existing_record(self, mock_uuid):
+        mock_uuid.uuid4.side_effect = [self.UPDATED_USER_ID, uuid.uuid4(), uuid.uuid4()]
+        new_email = 'tony_stank@stark.com'
+
+        with UserDatabaseManager() as database:
+            database.create_child_account(self.USER_ID, new_email, [])
+
+        with UserDatabaseManager() as database:
+            actual = database.session.query(UserInformation).filter_by(id=str(self.UPDATED_USER_ID)).first()
+            assert actual.email == new_email
+            assert actual.id == str(self.UPDATED_USER_ID)
+
+
+# TODO: create test for creating record in child accounts table
+# TODO: create test for throwing bad request when no user exists
+# TODO: create test that proves roles are limited
