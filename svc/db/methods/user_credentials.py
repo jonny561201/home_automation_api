@@ -136,10 +136,10 @@ class UserDatabase:
             raise BadRequest
         updated_user_id = str(uuid.uuid4())
         for user_role in user.user_roles:
-            self.__detach_relationship(user_role.role)
-            self.__detach_relationship(user_role)
-            user_role.user_id = updated_user_id
-            user_role.id = str(uuid.uuid4())
+            if user_role.role.role_name in roles:
+                self.__detach_relationship(user_role)
+                user_role.user_id = updated_user_id
+                user_role.id = str(uuid.uuid4())
         self.__detach_relationship(user.user)
         self.__detach_relationship(user)
 
@@ -147,7 +147,7 @@ class UserDatabase:
 
         self.session.add(user.user)
         self.session.add(user)
-        [self.session.add(role) for role in user.user_roles if role.role.role_name in roles]
+        [self.session.add(role) for role in user.user_roles]
 
     def __detach_relationship(self, model):
         self.session.expunge(model)

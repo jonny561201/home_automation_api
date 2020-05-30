@@ -549,10 +549,26 @@ class TestUserDuplication:
             assert actual.email == new_email
             assert actual.id == str(self.UPDATED_USER_ID)
 
+    def test_create_child_account__should_reduce_roles(self, mock_uuid):
+        mock_uuid.uuid4.side_effect = [self.UPDATED_USER_ID, uuid.uuid4(), uuid.uuid4(), uuid.uuid4()]
+        new_email = 'tony_stank@stark.com'
+        role_name = "security"
+        role = Roles(id=str(uuid.uuid4()), role_desc=role_name, role_name=role_name)
+        second_role = UserRoles(id=str(uuid.uuid4()), user_id=self.USER_ID, role_id=self.ROLE_ID, role=role)
+        with UserDatabaseManager() as database:
+            database.session.add(second_role)
+
+        with UserDatabaseManager() as database:
+            database.create_child_account(self.USER_ID, new_email, [role_name])
+
+        with UserDatabaseManager() as database:
+            actual = database.session.query(UserRoles).filter_by(user_id=str(self.UPDATED_USER_ID)).all()
+            assert len(actual) == 1
+            assert actual[0].role.role_name == role_name
+
     def test_create_child_account__should_throw_bad_request_when_no_user_exists(self, mock_uuid):
         with pytest.raises(BadRequest):
             with UserDatabaseManager() as database:
                 database.create_child_account(str(uuid.uuid4()), "", [])
 
 # TODO: create test for creating record in child accounts table
-# TODO: create test that proves roles are limited
