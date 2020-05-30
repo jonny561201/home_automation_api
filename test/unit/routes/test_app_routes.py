@@ -181,3 +181,9 @@ class TestAppRoutes:
     def test_post_child_account_by_user__should_call_controller_with_user_id(self, mock_controller, mock_request):
         post_child_account_by_user(self.USER_ID)
         mock_controller.create_child_account_by_user.assert_called_with(ANY, self.USER_ID, ANY)
+
+    def test_post_child_account_by_user__should_call_controller_with_post_body(self, mock_controller, mock_request):
+        request = {'fake': 'request'}
+        mock_request.data = request
+        post_child_account_by_user(self.USER_ID)
+        mock_controller.create_child_account_by_user.assert_called_with(ANY, ANY, request)
