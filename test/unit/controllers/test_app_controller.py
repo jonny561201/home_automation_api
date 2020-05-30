@@ -150,3 +150,8 @@ class TestLoginController:
         email = 'thor_thunder@gmail.com'
         create_child_account_by_user(self.BEARER_TOKEN, self.USER_ID, email, [])
         mock_db.return_value.__enter__.return_value.create_child_account.assert_called_with(ANY, email, ANY)
+
+    def test_create_child_account_by_user__should_make_call_to_database_with_roles(self, mock_jwt, mock_db):
+        roles = ['Im a role!!!']
+        create_child_account_by_user(self.BEARER_TOKEN, self.USER_ID, '', roles)
+        mock_db.return_value.__enter__.return_value.create_child_account.assert_called_with(ANY, ANY, roles)
