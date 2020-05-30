@@ -5,7 +5,7 @@ import jwt
 from mock import patch, ANY
 
 from svc.controllers.app_controller import get_login, get_user_preferences, save_user_preferences, change_password, \
-    get_roles
+    get_roles, create_child_account
 
 
 @patch('svc.controllers.app_controller.UserDatabaseManager')
@@ -138,3 +138,6 @@ class TestLoginController:
 
         assert actual == roles
 
+    def test_create_child_account__should_validate_bearer_token(self, mock_jwt, mock_db):
+        create_child_account(self.BEARER_TOKEN, self.USER_ID, None, [])
+        mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)

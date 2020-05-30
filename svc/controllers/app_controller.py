@@ -35,3 +35,7 @@ def get_roles(bearer_token, user_id):
     jwt_utils.is_jwt_valid(bearer_token)
     with UserDatabaseManager() as database:
         return database.get_roles_by_user(user_id)
+
+
+def create_child_account(bearer_token, user_id, email, roles):
+    jwt_utils.is_jwt_valid(bearer_token)
