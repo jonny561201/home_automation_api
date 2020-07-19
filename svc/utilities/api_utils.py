@@ -7,6 +7,7 @@ from svc.constants.home_automation import Automation
 from svc.constants.lights_state import LightState
 
 LIGHT_BASE_URL = 'http://192.168.1.142:80/api'
+SMTP_URL = 'https://api.sendinblue.com/v3/smtp/email'
 WEATHER_URL = 'https://api.openweathermap.org/data/2.5/weather'
 
 
@@ -100,3 +101,15 @@ def set_light_state(api_key, light_id, state, brightness):
 def get_full_state(api_key):
     url = LIGHT_BASE_URL + '/%s' % api_key
     return requests.get(url).json()
+
+
+def send_new_account_email(email, password, api_key):
+    headers = {'api-key': api_key,
+               'content-type': 'application/json'}
+    request = {
+        "sender": {"name": "My Name", "email": "fake@gmail.com"},
+        "to": [{"email": "fake@gmail.com", "name": "My Name"}],
+        "subject": "Home Automation: New Account Registration",
+        "htmlContent": "<html><head></head><body><p>Hello,</p>This is my first transactional email sent from Sendinblue.</p></body></html>"
+    }
+    requests.post(SMTP_URL, data=json.dumps(request), headers=headers)
