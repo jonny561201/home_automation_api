@@ -543,7 +543,7 @@ class TestUserDuplication:
         new_email = 'tony_stank@stark.com'
 
         with UserDatabaseManager() as database:
-            database.create_child_account(self.USER_ID, new_email, [])
+            database.create_child_account(self.USER_ID, new_email, [], self.PASSWORD)
 
         with UserDatabaseManager() as database:
             actual = database.session.query(UserInformation).filter_by(id=str(self.UPDATED_USER_ID)).first()
@@ -560,7 +560,7 @@ class TestUserDuplication:
             database.session.add(second_role)
 
         with UserDatabaseManager() as database:
-            database.create_child_account(self.USER_ID, new_email, [role_name])
+            database.create_child_account(self.USER_ID, new_email, [role_name], self.PASSWORD)
 
         with UserDatabaseManager() as database:
             actual = database.session.query(UserRoles).filter_by(user_id=str(self.UPDATED_USER_ID)).all()
@@ -570,14 +570,14 @@ class TestUserDuplication:
     def test_create_child_account__should_throw_bad_request_when_no_user_exists(self, mock_uuid):
         with pytest.raises(BadRequest):
             with UserDatabaseManager() as database:
-                database.create_child_account(str(uuid.uuid4()), "", [])
+                database.create_child_account(str(uuid.uuid4()), "", [], self.PASSWORD)
 
     def test_create_child_account__should_create_child_account_record(self, mock_uuid):
         mock_uuid.uuid4.side_effect = [self.UPDATED_USER_ID, uuid.uuid4(), uuid.uuid4()]
         new_email = 'tony_stank@stark.com'
 
         with UserDatabaseManager() as database:
-            database.create_child_account(self.USER_ID, new_email, [])
+            database.create_child_account(self.USER_ID, new_email, [], self.PASSWORD)
 
         with UserDatabaseManager() as database:
             actual = database.session.query(ChildAccounts).filter_by(child_user_id=str(self.UPDATED_USER_ID)).first()

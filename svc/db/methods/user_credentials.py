@@ -8,7 +8,6 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 from svc.constants.settings_state import Settings
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
     AverageSumpPumpLevel, RoleDevices, UserRoles, RoleDeviceNodes, ChildAccounts
-from svc.utilities.string_utils import generate_password
 
 
 class UserDatabaseManager:
@@ -130,21 +129,22 @@ class UserDatabase:
             raise BadRequest
         return user_role.role_devices.ip_address
 
-    def create_child_account(self, user_id, email, roles):
+    #TODO: just create a new account if the parent user exists
+    def create_child_account(self, user_id, email, roles, new_pass):
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
         if user is None:
             raise BadRequest
-        updated_user_id = str(uuid.uuid4())
+
+        new_user_id = str(uuid.uuid4())
         for user_role in user.user_roles:
             if user_role.role.role_name in roles:
                 self.__detach_relationship(user_role)
-                user_role.user_id = updated_user_id
+                user_role.user_id = new_user_id
                 user_role.id = str(uuid.uuid4())
         self.__detach_relationship(user.user)
         self.__detach_relationship(user)
-
-        self.__update_user(updated_user_id, user, email)
-        child = ChildAccounts(parent_user_id=user.user_id, child_user_id=updated_user_id)
+        self.__update_user(new_user_id, user, email, new_pass)
+        child = ChildAccounts(parent_user_id=user.user_id, child_user_id=new_user_id)
 
         self.session.add(user.user)
         self.session.commit()
@@ -157,12 +157,12 @@ class UserDatabase:
         make_transient(model)
 
     @staticmethod
-    def __update_user(updated_user_id, user, email):
+    def __update_user(updated_user_id, user, email, new_pass):
         user.user_id = updated_user_id
         user.id = str(uuid.uuid4())
         user.user.id = updated_user_id
         user.user.email = email
-        user.password = generate_password(10)
+        user.password = new_pass
 
     @staticmethod
     def __create_role(role_devices, role_name):
