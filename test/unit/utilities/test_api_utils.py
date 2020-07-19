@@ -378,3 +378,14 @@ class TestEmailApiRequests:
         send_new_account_email(self.EMAIL, self.PASSWORD, self.API_KEY)
 
         mock_request.post.assert_called_with(expected_url, data=ANY, headers=ANY)
+
+    def test_send_new_account_email__should_make_call_to_post_request_with_correct_body(self, mock_request):
+        expected_data = {
+            "sender": {"name": "My Name", "email": self.EMAIL},
+            "to": [{"email": self.EMAIL, "name": "My Name"}],
+            "subject": "Home Automation: New Account Registration",
+            "htmlContent": "<html><head></head><body><p>Hello,</p><p>A new Home Automation account has been setup for you.</p><p>Password: %s</p></body></html>" % self.PASSWORD
+        }
+        send_new_account_email(self.EMAIL, self.PASSWORD, self.API_KEY)
+
+        mock_request.post.assert_called_with(ANY, data=json.dumps(expected_data), headers=ANY)

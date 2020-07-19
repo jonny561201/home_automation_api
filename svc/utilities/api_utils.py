@@ -107,9 +107,9 @@ def send_new_account_email(email, password, api_key):
     headers = {'api-key': api_key,
                'content-type': 'application/json'}
     request = {
-        "sender": {"name": "My Name", "email": "fake@gmail.com"},
-        "to": [{"email": "fake@gmail.com", "name": "My Name"}],
+        "sender": {"name": "My Name", "email": email},
+        "to": [{"email": email, "name": "My Name"}],
         "subject": "Home Automation: New Account Registration",
-        "htmlContent": "<html><head></head><body><p>Hello,</p>This is my first transactional email sent from Sendinblue.</p></body></html>"
+        "htmlContent": "<html><head></head><body><p>Hello,</p><p>A new Home Automation account has been setup for you.</p><p>Password: %s</p></body></html>" % password
     }
     requests.post(SMTP_URL, data=json.dumps(request), headers=headers)
