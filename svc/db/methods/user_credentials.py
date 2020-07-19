@@ -162,6 +162,7 @@ class UserDatabase:
         user.id = str(uuid.uuid4())
         user.user.id = updated_user_id
         user.user.email = email
+        user.user_name = email
         user.password = new_pass
 
     @staticmethod

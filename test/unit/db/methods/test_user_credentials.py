@@ -380,7 +380,7 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
         self.DATABASE.create_child_account(self.USER_ID, "", [], self.FAKE_PASS)
 
-        self.SESSION.add.assert_called_with(user)
+        self.SESSION.add.assert_any_call(user)
 
     def test_create_child_account__should_insert_user_info(self):
         user_info = UserInformation()
@@ -422,11 +422,12 @@ class TestUserDatabase:
         self.SESSION.expunge.assert_any_call(user)
 
     def test_create_child_account__should_expunge_user_role(self):
-        role = Roles()
+        role_name = 'GarageDoor'
+        role = Roles(role_name=role_name)
         user_role = UserRoles(role=role)
         user = UserCredentials(user_roles=[user_role], user=UserInformation())
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
-        self.DATABASE.create_child_account(self.USER_ID, "", [], self.FAKE_PASS)
+        self.DATABASE.create_child_account(self.USER_ID, "", [role_name], self.FAKE_PASS)
 
         self.SESSION.expunge.assert_any_call(user_role)
 
