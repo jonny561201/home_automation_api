@@ -1,5 +1,6 @@
 import base64
 import json
+import os
 
 import requests
 
@@ -103,7 +104,8 @@ def get_full_state(api_key):
     return requests.get(url).json()
 
 
-def send_new_account_email(email, password, api_key):
+def send_new_account_email(email, password):
+    api_key = os.environ['EMAIL_APP_ID']
     headers = {'api-key': api_key,
                'content-type': 'application/json'}
     request = {

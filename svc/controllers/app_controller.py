@@ -46,4 +46,4 @@ def create_child_account_by_user(bearer_token, user_id, request_data):
     new_pass = generate_password(10)
     with UserDatabaseManager() as database:
         database.create_child_account(user_id, request['email'], request['roles'], new_pass)
-    send_new_account_email(request['email'], new_pass, 'fake api key')
+    send_new_account_email(request['email'], new_pass)
