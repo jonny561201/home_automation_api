@@ -372,3 +372,9 @@ class TestEmailApiRequests:
         send_new_account_email(self.EMAIL, self.PASSWORD, self.API_KEY)
 
         mock_request.post.assert_called_with(ANY, data=ANY, headers=expected_header)
+
+    def test_send_new_account_email__should_call_url_in_post_method(self, mock_request):
+        expected_url = 'https://api.sendinblue.com/v3/smtp/email'
+        send_new_account_email(self.EMAIL, self.PASSWORD, self.API_KEY)
+
+        mock_request.post.assert_called_with(expected_url, data=ANY, headers=ANY)
