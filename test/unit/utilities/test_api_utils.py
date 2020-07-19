@@ -380,6 +380,15 @@ class TestEmailApiRequests:
 
         mock_request.post.assert_called_with(ANY, data=ANY, headers=expected_header)
 
+    @patch('svc.utilities.api_utils.Settings')
+    def test_send_new_account_email__should_get_api_key_from_settings_when_dev_mode(self, mock_settings, mock_request):
+        dev_api_key = 'otherApiKeyForDevMode'
+        mock_settings.get_instance.return_value.get_settings.return_value = {'DevEmailAppId': dev_api_key, 'Development': True}
+        expected_header = {'api-key': dev_api_key, 'content-type': 'application/json'}
+        send_new_account_email(self.EMAIL, self.PASSWORD)
+
+        mock_request.post.assert_called_with(ANY, data=ANY, headers=expected_header)
+
     def test_send_new_account_email__should_call_url_in_post_method(self, mock_request):
         expected_url = 'https://api.sendinblue.com/v3/smtp/email'
         send_new_account_email(self.EMAIL, self.PASSWORD)
