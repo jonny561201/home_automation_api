@@ -168,3 +168,14 @@ class TestLoginController:
         request = json.dumps({'email': '', 'roles': roles}).encode('UTF-8')
         create_child_account_by_user(self.BEARER_TOKEN, self.USER_ID, request)
         mock_db.return_value.__enter__.return_value.create_child_account.assert_called_with(ANY, ANY, ANY, password)
+
+    @patch('svc.controllers.app_controller.generate_password')
+    @patch('svc.controllers.app_controller.send_new_account_email')
+    def test_create_child_account_by_user__should_make_call_to_send_new_account_email(self, mock_api, mock_pass, mock_jwt, mock_db):
+        email = 'test@test.com'
+        password = 'brandNewPassword'
+        mock_pass.return_value = password
+        request = json.dumps({'email': email, 'roles': []}).encode('UTF-8')
+        create_child_account_by_user(self.BEARER_TOKEN, self.USER_ID, request)
+
+        mock_api.assert_called_with(email, password)
