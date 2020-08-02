@@ -24,10 +24,11 @@ class TestAppRoutesIntegration:
     USER = None
     USER_CRED = None
     PREFERENCE = None
+    EMAIL_APP_ID = 'as;kljdfski;hasdf'
 
     def setup_method(self):
         os.environ.update({'SQL_USERNAME': self.db_user, 'SQL_PASSWORD': self.db_pass,
-                           'SQL_DBNAME': self.db_name, 'SQL_PORT': self.db_port})
+                           'SQL_DBNAME': self.db_name, 'SQL_PORT': self.db_port, 'EMAIL_APP_ID': self.EMAIL_APP_ID})
         flask_app = create_app('__main__')
         self.TEST_CLIENT = flask_app.test_client()
         os.environ.update({'JWT_SECRET': self.JWT_SECRET})
@@ -49,6 +50,7 @@ class TestAppRoutesIntegration:
         os.environ.pop('SQL_PASSWORD')
         os.environ.pop('SQL_DBNAME')
         os.environ.pop('SQL_PORT')
+        os.environ.pop('EMAIL_APP_ID')
 
     def test_health_check__should_return_success(self):
         actual = self.TEST_CLIENT.get('healthCheck')
