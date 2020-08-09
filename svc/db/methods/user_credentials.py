@@ -129,6 +129,11 @@ class UserDatabase:
             raise BadRequest
         return user_role.role_devices.ip_address
 
+    def get_user_child_accounts(self, user_id):
+        children = self.session.query(ChildAccounts).filter_by(parent_user_id=user_id).all()
+        children_ids = [child.child_user_id for child in children]
+        return [self.__get_user_info(child_id) for child_id in children_ids]
+
     #TODO: just create a new account if the parent user exists
     def create_child_account(self, user_id, email, roles, new_pass):
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
@@ -155,6 +160,10 @@ class UserDatabase:
     def __detach_relationship(self, model):
         self.session.expunge(model)
         make_transient(model)
+
+    def __get_user_info(self, user_id):
+        user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
+        return {'user_name': user.user_name, 'roles': [role.role.role_name for role in user.user_roles]}
 
     @staticmethod
     def __update_user(updated_user_id, user, email, new_pass):
