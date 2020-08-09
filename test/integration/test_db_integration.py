@@ -504,6 +504,7 @@ class TestUserDuplication:
     USER_NAME = "tony_stank  "
     ROLE_NAME = "lighting"
     USER_ID = str(uuid.uuid4())
+    CHILD_USER_ID = str(uuid.uuid4())
     CRED_ID = str(uuid.uuid4())
     ROLE_ID = str(uuid.uuid4())
     UPDATED_USER_ID = uuid.uuid4()
@@ -516,6 +517,9 @@ class TestUserDuplication:
         self.ROLE = Roles(id=self.ROLE_ID, role_desc="lighting", role_name=self.ROLE_NAME)
         self.USER_ROLE = UserRoles(id=self.USER_ROLE_ID, user_id=self.USER_ID, role_id=self.ROLE_ID, role=self.ROLE)
         self.USER_LOGIN = UserCredentials(id=self.CRED_ID, user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
+        self.CHILD_USER = UserCredentials(id=str(uuid.uuid4()), user_name='Steve Rogers', password='', user_id=self.CHILD_USER_ID)
+        self.CHILD_ACCOUNT = ChildAccounts(parent_user_id=self.USER_ID, child_user_id=self.CHILD_USER_ID)
+
         with UserDatabaseManager() as database:
             database.session.add(self.ROLE)
             database.session.add(self.USER_INFO)
@@ -529,6 +533,7 @@ class TestUserDuplication:
         with UserDatabaseManager() as database:
             database.session.query(ChildAccounts).delete()
             database.session.query(UserCredentials).filter_by(user_id=self.USER_ID).delete()
+            database.session.query(UserCredentials).filter_by(user_id=self.CHILD_USER_ID).delete()
             database.session.query(UserCredentials).filter_by(user_id=str(self.UPDATED_USER_ID)).delete()
             database.session.query(UserInformation).filter_by(id=str(self.UPDATED_USER_ID)).delete()
             database.session.query(UserInformation).filter_by(id=self.USER_ID).delete()
@@ -582,3 +587,15 @@ class TestUserDuplication:
         with UserDatabaseManager() as database:
             actual = database.session.query(ChildAccounts).filter_by(child_user_id=str(self.UPDATED_USER_ID)).first()
             assert actual.child_user_id == str(self.UPDATED_USER_ID)
+
+    def test_get_user_child_accounts__should_return_children_accounts(self, mock_uuid):
+        user = UserInformation(id=self.CHILD_USER_ID, first_name='Steve', last_name='Rogers')
+        with UserDatabaseManager() as database:
+            database.session.add(user)
+            database.session.add(self.CHILD_USER)
+            database.session.add(self.CHILD_ACCOUNT)
+
+        with UserDatabaseManager() as database:
+            actual = database.get_user_child_accounts(self.USER_ID)
+
+            assert actual == [{'user_name': 'Steve Rogers', 'roles': []}]
