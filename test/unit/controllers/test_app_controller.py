@@ -5,7 +5,7 @@ import jwt
 from mock import patch, ANY
 
 from svc.controllers.app_controller import get_login, get_user_preferences, save_user_preferences, change_password, \
-    get_roles, create_child_account_by_user
+    get_roles, create_child_account_by_user, get_child_accounts_by_user
 
 
 @patch('svc.controllers.app_controller.send_new_account_email')
@@ -179,3 +179,8 @@ class TestLoginController:
         create_child_account_by_user(self.BEARER_TOKEN, self.USER_ID, request)
 
         mock_email.assert_called_with(email, password)
+
+    def test_get_child_accounts_by_user__should_validate_bearer_token(self, mock_jwt, mock_db, mock_email):
+        get_child_accounts_by_user(self.BEARER_TOKEN, self.USER_ID)
+
+        mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
