@@ -459,6 +459,20 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.assert_any_call(user_id=user_id_one)
         self.SESSION.query.return_value.filter_by.assert_any_call(user_id=user_id_two)
 
+    def test_get_user_child_accounts__should_return_user_name_and_roles_per_user(self):
+        user_id = uuid.uuid4()
+        role_name = 'test_role'
+        user_name = 'im_a_test_user'
+        account = ChildAccounts(child_user_id=user_id)
+        role = Roles(role_name=role_name)
+        user_roles = UserRoles(role=role)
+        creds = UserCredentials(user_roles=[user_roles], user_name=user_name)
+        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [account]
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = creds
+        actual = self.DATABASE.get_user_child_accounts(self.USER_ID)
+
+        assert actual == [{'user_name': user_name, 'roles': [role_name]}]
+
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()
