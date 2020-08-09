@@ -8,7 +8,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.db.methods.user_credentials import UserDatabase
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
-    AverageSumpPumpLevel, Roles, UserInformation, UserRoles, RoleDevices, RoleDeviceNodes
+    AverageSumpPumpLevel, Roles, UserInformation, UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts
 
 
 class TestUserDatabase:
@@ -443,6 +443,10 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
         with pytest.raises(BadRequest):
             self.DATABASE.create_child_account(self.USER_ID, "", [], self.FAKE_PASS)
+
+    def test_get_user_child_accounts__should_query_children_accounts(self):
+        self.DATABASE.get_user_child_accounts(self.USER_ID)
+        self.SESSION.query.return_value.filter_by.assert_called_with(parent_user_id=self.USER_ID)
 
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
