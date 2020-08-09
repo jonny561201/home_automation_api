@@ -448,6 +448,17 @@ class TestUserDatabase:
         self.DATABASE.get_user_child_accounts(self.USER_ID)
         self.SESSION.query.return_value.filter_by.assert_called_with(parent_user_id=self.USER_ID)
 
+    def test_get_user_child_accounts__should_query_credentials_by_each_user_id(self):
+        user_id_one = uuid.uuid4()
+        user_id_two = uuid.uuid4()
+        account_one = ChildAccounts(child_user_id=user_id_one)
+        account_two = ChildAccounts(child_user_id=user_id_two)
+        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [account_one, account_two]
+        self.DATABASE.get_user_child_accounts(self.USER_ID)
+
+        self.SESSION.query.return_value.filter_by.assert_any_call(user_id=user_id_one)
+        self.SESSION.query.return_value.filter_by.assert_any_call(user_id=user_id_two)
+
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()
