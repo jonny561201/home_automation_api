@@ -131,6 +131,8 @@ class UserDatabase:
 
     def get_user_child_accounts(self, user_id):
         children = self.session.query(ChildAccounts).filter_by(parent_user_id=user_id).all()
+        if children is None:
+            return []
         children_ids = [child.child_user_id for child in children]
         return [self.__get_user_info(child_id) for child_id in children_ids]
 
