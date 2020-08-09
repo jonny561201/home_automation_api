@@ -184,3 +184,8 @@ class TestLoginController:
         get_child_accounts_by_user(self.BEARER_TOKEN, self.USER_ID)
 
         mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
+
+    def test_get_child_accounts_by_user__should_call_database_with_user_id(self, mock_jwt, mock_db, mock_email):
+        get_child_accounts_by_user(self.BEARER_TOKEN, self.USER_ID)
+
+        mock_db.return_value.__enter__.return_value.get_user_child_accounts.assert_called_with(self.USER_ID)

@@ -50,3 +50,5 @@ def create_child_account_by_user(bearer_token, user_id, request_data):
 
 def get_child_accounts_by_user(bearer_token, user_id):
     jwt_utils.is_jwt_valid(bearer_token)
+    with UserDatabaseManager() as database:
+        database.get_user_child_accounts(user_id)
