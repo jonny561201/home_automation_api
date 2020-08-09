@@ -53,3 +53,8 @@ def post_child_account_by_user(user_id):
     bearer_token = request.headers.get('Authorization')
     app_controller.create_child_account_by_user(bearer_token, user_id, request.data)
     return Response(status=200, headers=DEFAULT_HEADERS)
+
+
+def get_child_accounts_by_user_id(user_id):
+    bearer_token = request.headers['Authorization']
+    app_controller.get_child_accounts_by_user(bearer_token, None)
