@@ -186,3 +186,8 @@ class TestAppRoutesIntegration:
 
         assert actual.status_code == 200
 
+    def test_get_child_accounts_by_user_id__should_return_unauthorized_when_bad_jwt(self):
+        actual = self.TEST_CLIENT.get('userId/%s/childAccounts' % self.USER_ID)
+
+        assert actual.status_code == 401
+
