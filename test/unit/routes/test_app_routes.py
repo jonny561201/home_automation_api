@@ -205,3 +205,7 @@ class TestAppRoutes:
         mock_request.headers = {'Authorization': self.FAKE_JWT_TOKEN}
         get_child_accounts_by_user_id(self.USER_ID)
         mock_controller.get_child_accounts_by_user.assert_called_with(ANY, self.USER_ID)
+
+    def test_get_child_accounts_by_user_id__should_return_success_status_code(self, mock_controller, mock_request):
+        actual = get_child_accounts_by_user_id(self.USER_ID)
+        assert actual.status_code == 200
