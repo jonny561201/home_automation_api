@@ -1,7 +1,9 @@
 import base64
 import json
 
+import pytest
 from mock import patch, ANY
+from werkzeug.exceptions import Unauthorized
 
 from svc.routes.app_routes import app_login, get_user_preferences_by_user_id, update_user_preferences_by_user_id, \
     update_user_password, get_roles_by_user_id, post_child_account_by_user, get_child_accounts_by_user_id
@@ -224,3 +226,8 @@ class TestAppRoutes:
         actual = get_child_accounts_by_user_id(self.USER_ID)
 
         assert json.loads(actual.data) == response
+
+    def test_get_child_accounts_by_user_id__should_not_throw_exception_when_no_bearer_token(self, mock_controller, mock_request):
+        mock_controller.get_child_accounts_by_user.side_effect = Unauthorized()
+        with pytest.raises(Unauthorized):
+            get_child_accounts_by_user_id(self.USER_ID)
