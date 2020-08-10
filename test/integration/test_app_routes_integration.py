@@ -179,3 +179,10 @@ class TestAppRoutesIntegration:
 
         assert actual.status_code == 200
 
+    def test_get_child_accounts_by_user_id__should_return_success_response(self):
+        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
+        headers = {'Authorization': bearer_token}
+        actual = self.TEST_CLIENT.get('userId/%s/childAccounts' % self.USER_ID, headers=headers)
+
+        assert actual.status_code == 200
+
