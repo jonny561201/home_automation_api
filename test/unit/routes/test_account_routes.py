@@ -9,7 +9,7 @@ from svc.routes.account_routes import update_user_password, post_child_account_b
 
 
 @patch('svc.routes.account_routes.request')
-@patch('svc.routes.account_routes.app_controller')
+@patch('svc.routes.account_routes.account_controller')
 class TestAppRoutes:
     USER_ID = '123bac34'
     FAKE_JWT_TOKEN = 'fakeJwtToken'.encode('UTF-8')
