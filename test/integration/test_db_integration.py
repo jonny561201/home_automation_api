@@ -593,6 +593,7 @@ class TestUserDuplication:
         with UserDatabaseManager() as database:
             database.session.add(user)
             database.session.add(self.CHILD_USER)
+            database.session.commit()
             database.session.add(self.CHILD_ACCOUNT)
 
         with UserDatabaseManager() as database:
