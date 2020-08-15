@@ -44,7 +44,7 @@ class TestDbValidateIntegration:
             database.session.query(RoleDeviceNodes).delete()
             database.session.query(RoleDevices).delete()
             database.session.delete(self.USER_LOGIN)
-        with UserDatabaseManager() as database:
+            database.session.commit()
             database.session.delete(self.ROLE)
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
@@ -78,7 +78,6 @@ class TestDbValidateIntegration:
             node = RoleDeviceNodes(role_device_id=device_id, node_name=node_name, node_device=1)
             database.session.add(device)
             database.session.add(node)
-        with UserDatabaseManager() as database:
             actual = database.validate_credentials(self.USER_NAME, self.PASSWORD)
 
             assert actual['roles'] == [{'ip_address': ip_address, 'role_name': self.ROLE_NAME, 'device_id': device_id,
@@ -104,7 +103,6 @@ class TestDbValidateIntegration:
             node = RoleDeviceNodes(role_device_id=device_id, node_name=node_name, node_device=1)
             database.session.add(device)
             database.session.add(node)
-        with UserDatabaseManager() as database:
             actual = database.get_roles_by_user(self.USER_ID)
 
             assert actual['roles'] == [{'ip_address': ip_address, 'role_name': self.ROLE_NAME, 'device_id': device_id,
