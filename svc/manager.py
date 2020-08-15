@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 
+from svc.routes.account_routes import ACCOUNT_BLUEPRINT
 from svc.routes.app_routes import APP_BLUEPRINT
 from svc.routes.device_routes import DEVICES_BLUEPRINT
 from svc.routes.garage_door_routes import GARAGE_BLUEPRINT
@@ -14,6 +15,7 @@ def create_app(app_name):
         app = Flask(app_name)
         CORS(app)
         app.register_blueprint(APP_BLUEPRINT)
+        app.register_blueprint(ACCOUNT_BLUEPRINT)
         app.register_blueprint(SUMP_BLUEPRINT)
         app.register_blueprint(THERMOSTAT_BLUEPRINT)
         app.register_blueprint(GARAGE_BLUEPRINT)
