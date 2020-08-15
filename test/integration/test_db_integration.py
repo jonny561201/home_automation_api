@@ -346,7 +346,7 @@ class TestDbRoleIntegration:
     def teardown_method(self):
         with UserDatabaseManager() as database:
             database.session.delete(self.USER_ROLE)
-        with UserDatabaseManager() as database:
+            database.session.commit()
             database.session.delete(self.USER_INFO)
             database.session.delete(self.ROLE)
             database.session.query(RoleDeviceNodes).delete()
@@ -367,7 +367,6 @@ class TestDbRoleIntegration:
         with UserDatabaseManager() as database:
             database.add_new_role_device(self.USER_ID, self.ROLE_NAME, ip_address)
 
-        with UserDatabaseManager() as database:
             actual = database.session.query(RoleDevices).filter_by(user_role_id=self.USER_ROLE_ID).first()
             assert actual.ip_address == ip_address
 
@@ -379,8 +378,7 @@ class TestDbRoleIntegration:
             device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
             database.session.add(device)
 
-        with pytest.raises(Unauthorized):
-            with UserDatabaseManager() as database:
+            with pytest.raises(Unauthorized):
                 database.add_new_device_node(self.USER_ID, str(uuid.uuid4()), node_name)
 
     def test_add_new_device_node__should_insert_a_new_node_into_table(self):
@@ -390,11 +388,9 @@ class TestDbRoleIntegration:
         with UserDatabaseManager() as database:
             device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
             database.session.add(device)
-
-        with UserDatabaseManager() as database:
+            database.session.commit()
             database.add_new_device_node(self.USER_ID, device_id, node_name)
 
-        with UserDatabaseManager() as database:
             actual = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).first()
             assert actual.node_name == node_name
             database.session.delete(actual)
@@ -407,7 +403,6 @@ class TestDbRoleIntegration:
             device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
             database.session.add(device)
 
-        with UserDatabaseManager() as database:
             actual = database.add_new_device_node(self.USER_ID, device_id, node_name)
             assert actual['availableNodes'] == 1
 
@@ -418,11 +413,9 @@ class TestDbRoleIntegration:
         with UserDatabaseManager() as database:
             device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
             database.session.add(device)
-
-        with UserDatabaseManager() as database:
+            database.session.commit()
             database.add_new_device_node(self.USER_ID, device_id, node_name)
 
-        with UserDatabaseManager() as database:
             actual = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).first()
             assert actual.node_device == 1
 
@@ -435,11 +428,9 @@ class TestDbRoleIntegration:
             node = RoleDeviceNodes(node_name='test', node_device=1, role_device_id=device_id)
             database.session.add(device)
             database.session.add(node)
-
-        with UserDatabaseManager() as database:
+            database.session.commit()
             database.add_new_device_node(self.USER_ID, device_id, node_name)
 
-        with UserDatabaseManager() as database:
             actuals = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).all()
             assert len(actuals) == 2
             assert [actual.node_device for actual in actuals] == [1,2]
@@ -455,11 +446,9 @@ class TestDbRoleIntegration:
             database.session.add(device)
             database.session.add(node_one)
             database.session.add(node_two)
-
-        with UserDatabaseManager() as database:
+            database.session.commit()
             database.add_new_device_node(self.USER_ID, device_id, node_name)
 
-        with UserDatabaseManager() as database:
             actuals = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).all()
             assert len(actuals) == 3
             assert [actual.node_device for actual in actuals] == [1,2,3]
@@ -476,7 +465,6 @@ class TestDbRoleIntegration:
             database.session.add(node_one)
             database.session.add(node_two)
 
-        with UserDatabaseManager() as database:
             with pytest.raises(BadRequest):
                 database.add_new_device_node(self.USER_ID, device_id, node_name)
 
@@ -487,7 +475,6 @@ class TestDbRoleIntegration:
             device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
             database.session.add(device)
 
-        with UserDatabaseManager() as database:
             actual = database.get_user_garage_ip(self.USER_ID)
 
             assert actual == ip_address
@@ -530,7 +517,7 @@ class TestUserDuplication:
         with UserDatabaseManager() as database:
             database.session.query(UserRoles).filter_by(user_id=str(self.UPDATED_USER_ID)).delete()
             database.session.query(UserRoles).filter_by(user_id=self.USER_ID).delete()
-        with UserDatabaseManager() as database:
+            database.session.commit()
             database.session.query(ChildAccounts).delete()
             database.session.query(UserCredentials).filter_by(user_id=self.USER_ID).delete()
             database.session.query(UserCredentials).filter_by(user_id=self.CHILD_USER_ID).delete()
@@ -550,7 +537,6 @@ class TestUserDuplication:
         with UserDatabaseManager() as database:
             database.create_child_account(self.USER_ID, new_email, [], self.PASSWORD)
 
-        with UserDatabaseManager() as database:
             actual = database.session.query(UserInformation).filter_by(id=str(self.UPDATED_USER_ID)).first()
             assert actual.email == new_email
             assert actual.id == str(self.UPDATED_USER_ID)
@@ -563,11 +549,9 @@ class TestUserDuplication:
         second_role = UserRoles(id=str(uuid.uuid4()), user_id=self.USER_ID, role_id=self.ROLE_ID, role=role)
         with UserDatabaseManager() as database:
             database.session.add(second_role)
-
-        with UserDatabaseManager() as database:
+            database.session.commit()
             database.create_child_account(self.USER_ID, new_email, [role_name], self.PASSWORD)
 
-        with UserDatabaseManager() as database:
             actual = database.session.query(UserRoles).filter_by(user_id=str(self.UPDATED_USER_ID)).all()
             assert len(actual) == 1
             assert actual[0].role.role_name == role_name
@@ -584,7 +568,6 @@ class TestUserDuplication:
         with UserDatabaseManager() as database:
             database.create_child_account(self.USER_ID, new_email, [], self.PASSWORD)
 
-        with UserDatabaseManager() as database:
             actual = database.session.query(ChildAccounts).filter_by(child_user_id=str(self.UPDATED_USER_ID)).first()
             assert actual.child_user_id == str(self.UPDATED_USER_ID)
 
@@ -596,7 +579,6 @@ class TestUserDuplication:
             database.session.commit()
             database.session.add(self.CHILD_ACCOUNT)
 
-        with UserDatabaseManager() as database:
             actual = database.get_user_child_accounts(self.USER_ID)
 
             assert actual == [{'user_name': 'Steve Rogers', 'roles': []}]
