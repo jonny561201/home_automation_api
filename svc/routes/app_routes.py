@@ -32,10 +32,3 @@ def update_user_preferences_by_user_id(user_id):
     bearer_token = request.headers.get('Authorization')
     app_controller.save_user_preferences(bearer_token, user_id, request.data)
     return Response(status=200, headers=DEFAULT_HEADERS)
-
-
-@APP_BLUEPRINT.route('/userId/<user_id>/roles', methods=['GET'])
-def get_roles_by_user_id(user_id):
-    bearer_token = request.headers.get('Authorization')
-    roles = app_controller.get_roles(bearer_token, user_id)
-    return Response(json.dumps(roles), status=200, headers=DEFAULT_HEADERS)

@@ -3,8 +3,7 @@ import json
 
 from mock import patch, ANY
 
-from svc.routes.app_routes import app_login, get_user_preferences_by_user_id, \
-    update_user_preferences_by_user_id, get_roles_by_user_id
+from svc.routes.app_routes import app_login, get_user_preferences_by_user_id, update_user_preferences_by_user_id
 
 
 @patch('svc.routes.app_routes.request')
@@ -98,43 +97,3 @@ class TestAppRoutes:
         actual = update_user_preferences_by_user_id(self.USER_ID)
 
         assert actual.content_type == 'text/json'
-
-    def test_get_roles_by_user_id__should_call_controller_with_bearer_token(self, mock_controller, mock_request):
-        mock_request.headers = {'Authorization': self.FAKE_JWT_TOKEN}
-        mock_controller.get_roles.return_value = {}
-        get_roles_by_user_id(self.USER_ID)
-
-        mock_controller.get_roles.assert_called_with(self.FAKE_JWT_TOKEN, ANY)
-
-    def test_get_roles_by_user_id__should_call_controller_with_user_id(self, mock_controller, mock_request):
-        mock_request.headers = {'Authorization': self.FAKE_JWT_TOKEN}
-        mock_controller.get_roles.return_value = {}
-        get_roles_by_user_id(self.USER_ID)
-
-        mock_controller.get_roles.assert_called_with(ANY, self.USER_ID)
-
-    def test_get_roles_by_user_id__should_not_throw_exception_when_no_header(self, mock_controller, mock_request):
-        mock_request.headers = {}
-        mock_controller.get_roles.return_value = {}
-        get_roles_by_user_id(self.USER_ID)
-
-        mock_controller.get_roles.assert_called_with(None, ANY)
-
-    def test_get_roles_by_user_id__should_return_success_status_code(self, mock_controller, mock_request):
-        mock_controller.get_roles.return_value = {}
-        actual = get_roles_by_user_id(self.USER_ID)
-
-        assert actual.status_code == 200
-
-    def test_get_roles_by_user_id__should_return_success_headers(self, mock_controller, mock_request):
-        mock_controller.get_roles.return_value = {}
-        actual = get_roles_by_user_id(self.USER_ID)
-
-        assert actual.content_type == 'text/json'
-
-    def test_get_roles_by_user_id__should_return_data_from_the_controller(self, mock_controller, mock_request):
-        response = {'data': 'doesnt matter'}
-        mock_controller.get_roles.return_value = response
-        actual = get_roles_by_user_id(self.USER_ID)
-
-        assert json.loads(actual.data) == response
