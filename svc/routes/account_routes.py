@@ -4,7 +4,7 @@ from flask import Blueprint, request, Response
 
 from svc.controllers import account_controller
 
-ACCOUNT_BLUEPRINT = Blueprint('account_routes', __name__)
+ACCOUNT_BLUEPRINT = Blueprint('account_routes', __name__, url_prefix='/account')
 DEFAULT_HEADERS = {'Content-Type': 'text/json'}
 
 

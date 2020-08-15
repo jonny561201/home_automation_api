@@ -4,7 +4,7 @@ from flask import Blueprint, request, Response
 
 from svc.controllers.sump_controller import get_sump_level, save_current_level
 
-SUMP_BLUEPRINT = Blueprint('sump_pump_blueprint', __name__, url_prefix="/sumpPump")
+SUMP_BLUEPRINT = Blueprint('sump_pump_blueprint', __name__, url_prefix='/sumpPump')
 DEFAULT_HEADERS = {'Content-Type': 'text/json'}
 
 

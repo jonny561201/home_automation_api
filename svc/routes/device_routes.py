@@ -4,7 +4,7 @@ from flask import request, Response, Blueprint
 from svc.controllers import devices_controller
 
 
-DEVICES_BLUEPRINT = Blueprint('devices_routes', __name__)
+DEVICES_BLUEPRINT = Blueprint('devices_routes', __name__, url_prefix='/devices')
 DEFAULT_HEADERS = {'Content-Type': 'text/json'}
 
 
