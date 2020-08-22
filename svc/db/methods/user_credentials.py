@@ -167,7 +167,7 @@ class UserDatabase:
         if child_account is None:
             raise BadRequest()
         #TODO: need to delete the user still and delete the child user table
-        self.session.query(UserCredentials).filter_by(user_id=child_user_id)
+        self.session.query(UserCredentials).filter_by(user_id=child_user_id).delete()
 
     def __detach_relationship(self, model):
         self.session.expunge(model)
