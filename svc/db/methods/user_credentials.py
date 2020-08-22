@@ -161,8 +161,10 @@ class UserDatabase:
 
     def delete_child_user_account(self, user_id, child_user_id):
         child_users = self.session.query(ChildAccounts).filter_by(parent_user_id=user_id).all()
-        child_account = next(child_user for child_user in child_users if child_user.child_user_id == child_user_id)
-
+        if child_users is None:
+            raise BadRequest()
+        child_account = next((child_user for child_user in child_users if child_user.child_user_id == child_user_id), None)
+        #TODO: need to delete the user still and delete the child user table
         self.session.query(UserCredentials).filter_by(user_id=child_user_id)
 
     def __detach_relationship(self, model):

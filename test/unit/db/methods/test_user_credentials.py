@@ -482,6 +482,13 @@ class TestUserDatabase:
         self.SESSION.query.assert_called_with(UserCredentials)
         self.SESSION.query.return_value.filter_by.assert_called_with(user_id=child_user_id)
 
+    def test_delete_child_user_account__should_raise_bad_request_if_user_children_not_found(self):
+        child_user_id = str(uuid.uuid4())
+        self.SESSION.query.return_value.filter_by.return_value.all.return_value = None
+
+        with pytest.raises(BadRequest):
+            self.DATABASE.delete_child_user_account(self.USER_ID, child_user_id)
+
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()
