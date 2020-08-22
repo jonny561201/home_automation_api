@@ -467,9 +467,20 @@ class TestUserDatabase:
         assert actual == []
 
     def test_delete_child_user_account__should_query_child_accounts_by_user_id(self):
-        self.DATABASE.delete_child_user_account(self.USER_ID)
+        child_user_id = str(uuid.uuid4())
+        self.DATABASE.delete_child_user_account(self.USER_ID, child_user_id)
         self.SESSION.query.assert_called_with(ChildAccounts)
         self.SESSION.query.return_value.filter_by.assert_called_with(parent_user_id=self.USER_ID)
+
+    def test_delete_child_user_account__should_filter_user_account_by_child_user_id(self):
+        child_user_id = str(uuid.uuid4())
+        child_account = ChildAccounts(parent_user_id=self.USER_ID, child_user_id=child_user_id)
+        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [child_account]
+
+        self.DATABASE.delete_child_user_account(self.USER_ID, child_user_id)
+
+        self.SESSION.query.assert_called_with(UserCredentials)
+        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=child_user_id)
 
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
