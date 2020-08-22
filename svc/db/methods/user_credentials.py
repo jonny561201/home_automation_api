@@ -151,7 +151,7 @@ class UserDatabase:
         self.__detach_relationship(user.user)
         self.__detach_relationship(user)
         self.__update_user(new_user_id, user, email, new_pass)
-        child = ChildAccounts(parent_user_id=user.user_id, child_user_id=new_user_id)
+        child = ChildAccounts(parent_user_id=user_id, child_user_id=new_user_id)
 
         self.session.add(user.user)
         self.session.commit()

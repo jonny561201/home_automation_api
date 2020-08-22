@@ -50,7 +50,7 @@ class TestLightRoutesIntegration:
 
     def test_set_light_state__should_return_unauthorized_without_header(self):
         post_body = '{}'
-        actual = self.TEST_CLIENT.post('group/light', headers={}, data=post_body)
+        actual = self.TEST_CLIENT.post('lights/group/light', headers={}, data=post_body)
 
         assert actual.status_code == 401
 
@@ -59,6 +59,6 @@ class TestLightRoutesIntegration:
         post_body = '{"on": "True", "brightness": 1, "lightId": "3"}'
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         header = {'Authorization': bearer_token}
-        actual = self.TEST_CLIENT.post('group/light', headers=header, data=post_body)
+        actual = self.TEST_CLIENT.post('lights/group/light', headers=header, data=post_body)
 
         assert actual.status_code == 200
