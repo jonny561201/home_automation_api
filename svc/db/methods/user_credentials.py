@@ -159,6 +159,9 @@ class UserDatabase:
         [self.session.add(role) for role in user.user_roles]
         self.session.add(child)
 
+    def delete_child_user_account(self, user_id):
+        self.session.query(ChildAccounts).filter_by(parent_user_id=user_id)
+
     def __detach_relationship(self, model):
         self.session.expunge(model)
         make_transient(model)
