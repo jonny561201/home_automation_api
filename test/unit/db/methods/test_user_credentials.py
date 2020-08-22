@@ -489,6 +489,14 @@ class TestUserDatabase:
         with pytest.raises(BadRequest):
             self.DATABASE.delete_child_user_account(self.USER_ID, child_user_id)
 
+    def test_delete_child_user_account__should_raise_bad_request_if_child_user_does_not_match(self):
+        child_user_id = str(uuid.uuid4())
+        child_account = ChildAccounts(parent_user_id=self.USER_ID, child_user_id=child_user_id)
+        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [child_account]
+
+        with pytest.raises(BadRequest):
+            self.DATABASE.delete_child_user_account(self.USER_ID, str(uuid.uuid4()))
+
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()
