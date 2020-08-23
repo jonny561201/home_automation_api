@@ -122,3 +122,8 @@ class TestAccountController:
         child_user_id = '123asdf'
         delete_child_account(self.BEARER_TOKEN, self.USER_ID, child_user_id)
         mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
+
+    def test_delete_child_account__should_call_database_with_user_id(self, mock_jwt, mock_db, mock_email):
+        child_user_id = '123acv'
+        delete_child_account(self.BEARER_TOKEN, self.USER_ID, child_user_id)
+        mock_db.return_value.__enter__.return_value.delete_child_user_account.assert_called_with(self.USER_ID, ANY)

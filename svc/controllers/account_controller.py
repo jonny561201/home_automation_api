@@ -36,3 +36,5 @@ def get_child_accounts_by_user(bearer_token, user_id):
 
 def delete_child_account(bearer_token, user_id, child_user_id):
     jwt_utils.is_jwt_valid(bearer_token)
+    with UserDatabaseManager() as database:
+        database.delete_child_user_account(user_id, None)
