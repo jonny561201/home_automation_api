@@ -165,3 +165,10 @@ class TestAppRoutes:
         delete_child_account_by_user_id(self.USER_ID, child_user_id)
 
         mock_controller.delete_child_account.assert_called_with(ANY, ANY, child_user_id)
+
+    def test_delete_child_account_by_user_id__should_not_raise_error_when_trying_to_get_bearer_token(self, mock_controller, mock_request):
+        child_user_id = '123abc'
+        mock_request.headers = {}
+        delete_child_account_by_user_id(self.USER_ID, child_user_id)
+
+        mock_controller.delete_child_account.assert_called()
