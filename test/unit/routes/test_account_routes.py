@@ -5,7 +5,7 @@ from mock import patch, ANY
 from werkzeug.exceptions import Unauthorized
 
 from svc.routes.account_routes import update_user_password, post_child_account_by_user, get_child_accounts_by_user_id, \
-    get_roles_by_user_id
+    get_roles_by_user_id, delete_child_account_by_user_id
 
 
 @patch('svc.routes.account_routes.request')
@@ -144,3 +144,10 @@ class TestAppRoutes:
         actual = get_roles_by_user_id(self.USER_ID)
 
         assert json.loads(actual.data) == response
+
+    def test_delete_child_account_by_user_id__should_controller_with_bearer_token(self, mock_controller, mock_request):
+        child_user_id = '123abc'
+        mock_request.headers = {'Authorization': self.FAKE_JWT_TOKEN}
+        delete_child_account_by_user_id(self.USER_ID, child_user_id)
+        
+        mock_controller.delete_child_account.assert_called_with(self.FAKE_JWT_TOKEN, ANY, ANY)

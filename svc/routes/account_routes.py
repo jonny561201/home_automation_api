@@ -34,3 +34,8 @@ def get_roles_by_user_id(user_id):
     bearer_token = request.headers.get('Authorization')
     roles = account_controller.get_roles(bearer_token, user_id)
     return Response(json.dumps(roles), status=200, headers=DEFAULT_HEADERS)
+
+
+def delete_child_account_by_user_id(user_id, child_user_id):
+    bearer_token = request.headers['Authorization']
+    account_controller.delete_child_account(bearer_token, None, None)
