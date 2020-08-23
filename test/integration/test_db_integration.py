@@ -580,3 +580,34 @@ class TestUserDuplication:
             actual = database.get_user_child_accounts(self.USER_ID)
 
             assert actual == [{'user_name': 'Steve Rogers', 'roles': []}]
+
+    def test_delete_child_user_account__should_remove_existing_child_account(self, mock_uuid):
+        user = UserInformation(id=self.CHILD_USER_ID, first_name='Steve', last_name='Rogers')
+        with UserDatabaseManager() as database:
+            database.session.add(user)
+            database.session.add(self.CHILD_USER)
+            database.session.commit()
+            database.session.add(self.CHILD_ACCOUNT)
+
+        with UserDatabaseManager() as database:
+            database.delete_child_user_account(self.USER_ID, self.CHILD_USER_ID)
+
+        with UserDatabaseManager() as database:
+            actual_child_account = database.session.query(ChildAccounts).filter_by(child_user_id=self.CHILD_USER_ID).first()
+            assert actual_child_account is None
+            actual_child_user = database.session.query(UserCredentials).filter_by(user_id=self.CHILD_USER_ID).first()
+            assert actual_child_user is None
+
+    def test_delete_child_user_account__should_not_delete_parent_when_no_child(self, mock_uuid):
+        with UserDatabaseManager() as database:
+            database.delete_child_user_account(self.USER_ID, self.CHILD_USER_ID)
+
+        with UserDatabaseManager() as database:
+            actual_child_account = database.session.query(ChildAccounts).filter_by(child_user_id=self.CHILD_USER_ID).first()
+            assert actual_child_account is None
+            actual_child_user = database.session.query(UserCredentials).filter_by(user_id=self.CHILD_USER_ID).first()
+            assert actual_child_user is None
+            actual_parent = database.session.query(UserCredentials).filter_by(user_id=self.USER_ID).first()
+            assert actual_parent is not None
+
+

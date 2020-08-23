@@ -160,11 +160,8 @@ class UserDatabase:
         self.session.add(child)
 
     def delete_child_user_account(self, user_id, child_user_id):
-        child_users = self.session.query(ChildAccounts).filter_by(parent_user_id=user_id, child_user_id=child_user_id).first()
-        if child_users is None:
-            raise BadRequest()
+        self.session.query(ChildAccounts).filter_by(parent_user_id=user_id, child_user_id=child_user_id).delete()
         self.session.query(UserCredentials).filter_by(user_id=child_user_id).delete()
-        child_users.delete()
 
     def __detach_relationship(self, model):
         self.session.expunge(model)
