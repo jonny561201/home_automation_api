@@ -4,7 +4,7 @@ import jwt
 from mock import patch, ANY
 
 from svc.controllers.account_controller import change_password, get_roles, create_child_account_by_user, \
-    get_child_accounts_by_user
+    get_child_accounts_by_user, delete_child_account
 
 
 @patch('svc.controllers.account_controller.send_new_account_email')
@@ -117,3 +117,8 @@ class TestAccountController:
         actual = get_child_accounts_by_user(self.BEARER_TOKEN, self.USER_ID)
 
         assert actual == response
+
+    def test_delete_child_account__should_validate_bearer_token(self, mock_jwt, mock_db, mock_email):
+        child_user_id = '123asdf'
+        delete_child_account(self.BEARER_TOKEN, self.USER_ID, child_user_id)
+        mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
