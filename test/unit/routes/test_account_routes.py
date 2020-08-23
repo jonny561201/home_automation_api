@@ -172,3 +172,10 @@ class TestAppRoutes:
         delete_child_account_by_user_id(self.USER_ID, child_user_id)
 
         mock_controller.delete_child_account.assert_called()
+
+    def test_delete_child_account_by_user_id__should_return_success_status_code(self, mock_controller, mock_request):
+        child_user_id = '123abc'
+        mock_request.headers = {}
+        actual = delete_child_account_by_user_id(self.USER_ID, child_user_id)
+
+        assert actual.status_code == 200
