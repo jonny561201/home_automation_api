@@ -472,7 +472,7 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [child_account]
         self.DATABASE.delete_child_user_account(self.USER_ID, child_user_id)
         self.SESSION.query.assert_any_call(ChildAccounts)
-        self.SESSION.query.return_value.filter_by.assert_any_call(parent_user_id=self.USER_ID)
+        self.SESSION.query.return_value.filter_by.assert_any_call(parent_user_id=self.USER_ID, child_user_id=child_user_id)
 
     def test_delete_child_user_account__should_filter_user_account_by_child_user_id(self):
         child_user_id = str(uuid.uuid4())
@@ -486,18 +486,19 @@ class TestUserDatabase:
 
     def test_delete_child_user_account__should_raise_bad_request_if_user_children_not_found(self):
         child_user_id = str(uuid.uuid4())
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = None
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
 
         with pytest.raises(BadRequest):
             self.DATABASE.delete_child_user_account(self.USER_ID, child_user_id)
 
-    def test_delete_child_user_account__should_raise_bad_request_if_child_user_does_not_match(self):
+    def test_delete_child_user_account__should_delete_child_account_relationship(self):
         child_user_id = str(uuid.uuid4())
         child_account = ChildAccounts(parent_user_id=self.USER_ID, child_user_id=child_user_id)
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [child_account]
 
-        with pytest.raises(BadRequest):
-            self.DATABASE.delete_child_user_account(self.USER_ID, str(uuid.uuid4()))
+        self.DATABASE.delete_child_user_account(self.USER_ID, child_user_id)
+
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value.delete.assert_called()
 
     def test_delete_child_user_account__should_try_to_delete_child_user_account(self):
         child_user_id = str(uuid.uuid4())
