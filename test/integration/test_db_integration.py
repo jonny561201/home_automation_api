@@ -522,6 +522,7 @@ class TestUserDuplication:
             database.session.query(UserCredentials).filter_by(user_id=str(self.UPDATED_USER_ID)).delete()
             database.session.query(UserInformation).filter_by(id=str(self.UPDATED_USER_ID)).delete()
             database.session.query(UserInformation).filter_by(id=self.USER_ID).delete()
+            database.session.query(UserInformation).filter_by(id=self.CHILD_USER_ID).delete()
             database.session.query(Roles).filter_by(id=self.ROLE_ID).delete()
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
@@ -579,7 +580,7 @@ class TestUserDuplication:
 
             actual = database.get_user_child_accounts(self.USER_ID)
 
-            assert actual == [{'user_name': 'Steve Rogers', 'roles': []}]
+            assert actual == [{'user_name': 'Steve Rogers', 'user_id': self.CHILD_USER_ID, 'roles': []}]
 
     def test_delete_child_user_account__should_remove_existing_child_account(self, mock_uuid):
         user = UserInformation(id=self.CHILD_USER_ID, first_name='Steve', last_name='Rogers')

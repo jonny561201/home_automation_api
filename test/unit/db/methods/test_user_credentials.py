@@ -458,7 +458,7 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = creds
         actual = self.DATABASE.get_user_child_accounts(self.USER_ID)
 
-        assert actual == [{'user_name': user_name, 'roles': [role_name]}]
+        assert actual == [{'user_name': user_name, 'user_id': user_id, 'roles': [role_name]}]
 
     def test_get_user_child_accounts__should_return_empty_list_when_no_child_accounts(self):
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = None

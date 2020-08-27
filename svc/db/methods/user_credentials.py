@@ -169,7 +169,7 @@ class UserDatabase:
 
     def __get_user_info(self, user_id):
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
-        return {'user_name': user.user_name, 'roles': [role.role.role_name for role in user.user_roles]}
+        return {'user_name': user.user_name, 'user_id': user_id, 'roles': [role.role.role_name for role in user.user_roles]}
 
     @staticmethod
     def __update_user(updated_user_id, user, email, new_pass):
