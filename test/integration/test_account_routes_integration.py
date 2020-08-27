@@ -118,15 +118,15 @@ class TestAccountRoutesIntegration:
 
         assert actual.status_code == 401
 
+    def test_delete_child_account_by_user_id__should_return_unauthorized_when_bad_jwt(self):
+        actual = self.TEST_CLIENT.delete('account/userId/%s/childUserId/%s' % (self.USER_ID, self.CHILD_USER_ID))
+
+        assert actual.status_code == 401
+
     def test_delete_child_account_by_user_id__should_return_success_response(self):
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         headers = {'Authorization': bearer_token}
         actual = self.TEST_CLIENT.delete('account/userId/%s/childUserId/%s' % (self.USER_ID, self.CHILD_USER_ID), headers=headers)
 
         assert actual.status_code == 200
-
-    def test_delete_child_account_by_user_id__should_return_unauthorized_when_bad_jwt(self):
-        actual = self.TEST_CLIENT.delete('account/userId/%s/childUserId/%s' % (self.USER_ID, self.CHILD_USER_ID))
-
-        assert actual.status_code == 401
 
