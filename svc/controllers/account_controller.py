@@ -24,11 +24,13 @@ def get_roles(bearer_token, user_id):
 def create_child_account_by_user(bearer_token, user_id, request_data):
     jwt_utils.is_jwt_valid(bearer_token)
     request = json.loads(request_data.decode('UTF-8'))
-    if request.get('email') is '':
+    email = request.get('email')
+    roles = request.get('roles')
+    if email is '' or roles == []:
         raise BadRequest()
     new_pass = generate_password(10)
     with UserDatabaseManager() as database:
-        database.create_child_account(user_id, request['email'], request['roles'], new_pass)
+        database.create_child_account(user_id, email, roles, new_pass)
     send_new_account_email(request['email'], new_pass)
 
 

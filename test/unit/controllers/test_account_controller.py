@@ -63,18 +63,18 @@ class TestAccountController:
         assert actual == roles
 
     def test_create_child_account_by_user__should_validate_bearer_token(self, mock_jwt, mock_db, mock_email):
-        request = json.dumps({'email': 'test', 'roles': []}).encode()
+        request = json.dumps({'email': 'test', 'roles': ['stuff']}).encode()
         create_child_account_by_user(self.BEARER_TOKEN, self.USER_ID, request)
         mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
 
     def test_create_child_account_by_user__should_make_call_to_database_with_user_id(self, mock_jwt, mock_db, mock_email):
-        request = json.dumps({'email': 'test', 'roles': []}).encode()
+        request = json.dumps({'email': 'test', 'roles': ['stuff']}).encode()
         create_child_account_by_user(self.BEARER_TOKEN, self.USER_ID, request)
         mock_db.return_value.__enter__.return_value.create_child_account.assert_called_with(self.USER_ID, ANY, ANY, ANY)
 
     def test_create_child_account_by_user__should_make_call_to_database_with_email(self, mock_jwt, mock_db, mock_email):
         email = 'thor_thunder@gmail.com'
-        request = json.dumps({'email': email, 'roles': []}).encode('UTF-8')
+        request = json.dumps({'email': email, 'roles': ['stuff']}).encode('UTF-8')
         create_child_account_by_user(self.BEARER_TOKEN, self.USER_ID, request)
         mock_db.return_value.__enter__.return_value.create_child_account.assert_called_with(ANY, email, ANY, ANY)
 
@@ -86,6 +86,11 @@ class TestAccountController:
 
     def test_create_child_account_by_user__should_raise_bad_request_when_no_email(self, mock_jwt, mock_db, mock_email):
         request = json.dumps({'email': '', 'roles': ['sweet ass role']}).encode('UTF-8')
+        with pytest.raises(BadRequest):
+            create_child_account_by_user(self.BEARER_TOKEN, self.USER_ID, request)
+
+    def test_create_child_account_by_user__should_raise_bad_request_when_no_roles(self, mock_jwt, mock_db, mock_email):
+        request = json.dumps({'email': 'test', 'roles': []}).encode('UTF-8')
         with pytest.raises(BadRequest):
             create_child_account_by_user(self.BEARER_TOKEN, self.USER_ID, request)
 
@@ -103,7 +108,7 @@ class TestAccountController:
         email = 'test@test.com'
         password = 'brandNewPassword'
         mock_pass.return_value = password
-        request = json.dumps({'email': email, 'roles': []}).encode('UTF-8')
+        request = json.dumps({'email': email, 'roles': ['stuff']}).encode('UTF-8')
         create_child_account_by_user(self.BEARER_TOKEN, self.USER_ID, request)
 
         mock_email.assert_called_with(email, password)
