@@ -45,29 +45,35 @@ class TestAppRoutes:
 
     def test_post_child_account_by_user__should_call_controller_with_bearer_token(self, mock_controller, mock_request):
         mock_request.headers = {'Authorization': self.FAKE_JWT_TOKEN}
+        mock_controller.create_child_account_by_user.return_value = {}
         post_child_account_by_user(self.USER_ID)
         mock_controller.create_child_account_by_user.assert_called_with(self.FAKE_JWT_TOKEN, ANY, ANY)
 
     def test_post_child_account_by_user__not_raise_error_when_no_authorization_header(self, mock_controller, mock_request):
         mock_request.headers = {}
+        mock_controller.create_child_account_by_user.return_value = {}
         post_child_account_by_user(self.USER_ID)
         mock_controller.create_child_account_by_user.assert_called_with(None, ANY, ANY)
 
     def test_post_child_account_by_user__should_call_controller_with_user_id(self, mock_controller, mock_request):
+        mock_controller.create_child_account_by_user.return_value = {}
         post_child_account_by_user(self.USER_ID)
         mock_controller.create_child_account_by_user.assert_called_with(ANY, self.USER_ID, ANY)
 
     def test_post_child_account_by_user__should_call_controller_with_post_body(self, mock_controller, mock_request):
         request = {'fake': 'request'}
         mock_request.data = request
+        mock_controller.create_child_account_by_user.return_value = {}
         post_child_account_by_user(self.USER_ID)
         mock_controller.create_child_account_by_user.assert_called_with(ANY, ANY, request)
 
     def test_post_child_account_by_user__should_return_success_status_code(self, mock_controller, mock_request):
+        mock_controller.create_child_account_by_user.return_value = {}
         actual = post_child_account_by_user(self.USER_ID)
         assert actual.status_code == 200
 
     def test_post_child_account_by_user__should_return_success_headers(self, mock_controller, mock_request):
+        mock_controller.create_child_account_by_user.return_value = {}
         actual = post_child_account_by_user(self.USER_ID)
         assert actual.content_type == 'text/json'
 
