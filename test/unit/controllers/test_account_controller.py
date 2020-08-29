@@ -113,6 +113,13 @@ class TestAccountController:
 
         mock_email.assert_called_with(email, password)
 
+    def test_create_child_account_by_user__should_return_response_from_database_method(self, mock_jwt, mock_db, mock_email):
+        request = json.dumps({'email': 'test', 'roles': ['stuff']}).encode('UTF-8')
+        response = {'user_data': 'doesnt matter'}
+        mock_db.return_value.__enter__.return_value.create_child_account.return_value = response
+        actual = create_child_account_by_user(self.BEARER_TOKEN, self.USER_ID, request)
+        assert actual == response
+
     def test_get_child_accounts_by_user__should_validate_bearer_token(self, mock_jwt, mock_db, mock_email):
         get_child_accounts_by_user(self.BEARER_TOKEN, self.USER_ID)
 
