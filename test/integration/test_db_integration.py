@@ -565,10 +565,11 @@ class TestUserDuplication:
         new_email = 'tony_stank@stark.com'
 
         with UserDatabaseManager() as database:
-            database.create_child_account(self.USER_ID, new_email, [], self.PASSWORD)
+            actual = database.create_child_account(self.USER_ID, new_email, [], self.PASSWORD)
 
-            actual = database.session.query(ChildAccounts).filter_by(child_user_id=str(self.UPDATED_USER_ID)).first()
-            assert actual.child_user_id == str(self.UPDATED_USER_ID)
+            assert actual[0].get('user_name') == new_email
+            assert actual[0].get('user_id') == str(self.UPDATED_USER_ID)
+            assert actual[0].get('roles') == []
 
     def test_get_user_child_accounts__should_return_children_accounts(self, mock_uuid):
         user = UserInformation(id=self.CHILD_USER_ID, first_name='Steve', last_name='Rogers')

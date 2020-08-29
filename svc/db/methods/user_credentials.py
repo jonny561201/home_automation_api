@@ -158,6 +158,7 @@ class UserDatabase:
         self.session.add(user)
         [self.session.add(role) for role in user.user_roles]
         self.session.add(child)
+        self.session.commit()
         children = self.session.query(ChildAccounts).filter_by(parent_user_id=user_id).all()
         children_ids = [child.child_user_id for child in children]
         return [self.__get_user_info(child_id) for child_id in children_ids]
