@@ -18,8 +18,8 @@ def update_user_password(user_id):
 @ACCOUNT_BLUEPRINT.route('/userId/<user_id>/createChildAccount', methods=['POST'])
 def post_child_account_by_user(user_id):
     bearer_token = request.headers.get('Authorization')
-    account_controller.create_child_account_by_user(bearer_token, user_id, request.data)
-    return Response(status=200, headers=DEFAULT_HEADERS)
+    child_accounts = account_controller.create_child_account_by_user(bearer_token, user_id, request.data)
+    return Response(json.dumps(child_accounts), status=200, headers=DEFAULT_HEADERS)
 
 
 @ACCOUNT_BLUEPRINT.route('/userId/<user_id>/childAccounts', methods=['GET'])

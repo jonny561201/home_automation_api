@@ -71,6 +71,12 @@ class TestAppRoutes:
         actual = post_child_account_by_user(self.USER_ID)
         assert actual.content_type == 'text/json'
 
+    def test_post_child_account_by_user__should_return_controller_response(self, mock_controller, mock_request):
+        response = {'test': 'fake data'}
+        mock_controller.create_child_account_by_user.return_value = response
+        actual = post_child_account_by_user(self.USER_ID)
+        assert json.loads(actual.data) == response
+
     def test_get_child_accounts_by_user_id__should_call_controller_with_bearer_token(self, mock_controller, mock_request):
         mock_request.headers = {'Authorization': self.FAKE_JWT_TOKEN}
         mock_controller.get_child_accounts_by_user.return_value = {}
