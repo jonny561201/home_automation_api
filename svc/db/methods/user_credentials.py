@@ -158,6 +158,9 @@ class UserDatabase:
         self.session.add(user)
         [self.session.add(role) for role in user.user_roles]
         self.session.add(child)
+        children = self.session.query(ChildAccounts).filter_by(parent_user_id=user_id).all()
+        children_ids = [child.child_user_id for child in children]
+        return [self.__get_user_info(child_id) for child_id in children_ids]
 
     def delete_child_user_account(self, user_id, child_user_id):
         self.session.query(ChildAccounts).filter_by(parent_user_id=user_id, child_user_id=child_user_id).delete()

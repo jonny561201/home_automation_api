@@ -372,7 +372,7 @@ class TestUserDatabase:
     def test_create_child_account__should_query_user_creds_by_user_id(self):
         self.DATABASE.create_child_account(self.USER_ID, "", [], self.FAKE_PASS)
 
-        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
+        self.SESSION.query.return_value.filter_by.assert_any_call(user_id=self.USER_ID)
 
     def test_create_child_account__should_update_the_user_id_and_insert_user(self):
         user_roles = [UserRoles(role=Roles())]
@@ -430,6 +430,21 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
         with pytest.raises(BadRequest):
             self.DATABASE.create_child_account(self.USER_ID, "", [], self.FAKE_PASS)
+
+    def test_create_child_account__should_return_list_of_child_accounts(self):
+        user_id = uuid.uuid4()
+        role_name = 'test_role'
+        user_name = 'im_a_test_user'
+        user_info = UserInformation()
+        role = Roles(role_name=role_name)
+        user_roles = UserRoles(role=role)
+        account = ChildAccounts(child_user_id=user_id)
+        creds = UserCredentials(user_roles=[user_roles], user_name=user_name, user=user_info)
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = creds
+        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [account]
+
+        actual = self.DATABASE.create_child_account(self.USER_ID, user_name, [], self.FAKE_PASS)
+        assert actual == [{'user_name': user_name, 'user_id': user_id, 'roles': [role_name]}]
 
     def test_get_user_child_accounts__should_query_children_accounts(self):
         self.DATABASE.get_user_child_accounts(self.USER_ID)
