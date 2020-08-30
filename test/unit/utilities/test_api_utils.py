@@ -317,6 +317,10 @@ class TestLightApiRequests:
     def test_get_light_state__should_make_api_call_to_url(self, mock_requests):
         light_id = "4"
         expected_url = self.BASE_URL + '/%s/lights/%s' % (self.API_KEY, light_id)
+        response = Response()
+        response.status_code = 200
+        response._content = json.dumps({}).encode('UTF-8')
+        mock_requests.get.return_value = response
         get_light_state(self.API_KEY, light_id)
 
         mock_requests.get.assert_called_with(expected_url)
@@ -324,6 +328,8 @@ class TestLightApiRequests:
     def test_get_light_state__should_return_response_from_api(self, mock_requests):
         light_id = '5'
         response = Response()
+        response.status_code = 200
+        mock_requests.get.return_value = response
         response_date = {'name': 'livingRoomLamp', 'state': {'on': True}}
         response._content = json.dumps(response_date).encode('UTF-8')
         mock_requests.get.return_value = response
@@ -331,6 +337,22 @@ class TestLightApiRequests:
         actual = get_light_state(self.API_KEY, light_id)
 
         assert actual == response_date
+
+    def test_get_light_state__should_raise_failed_dependency_when_node_returns_500(self, mock_requests):
+        light_id = '12'
+        response = Response()
+        response.status_code = 500
+        mock_requests.get.return_value = response
+        with pytest.raises(FailedDependency):
+            get_light_state(self.API_KEY, light_id)
+
+    def test_get_light_state__should_raise_failed_dependency_when_node_returns_400(self, mock_requests):
+        light_id = '12'
+        response = Response()
+        response.status_code = 500
+        mock_requests.get.return_value = response
+        with pytest.raises(FailedDependency):
+            get_light_state(self.API_KEY, light_id)
 
     def test_set_light_state__should_make_call_to_api(self, mock_requests):
         light_id = '7'

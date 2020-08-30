@@ -91,7 +91,10 @@ def get_all_lights(api_key):
 
 def get_light_state(api_key, light_id):
     url = LIGHT_BASE_URL + '/%s/lights/%s' % (api_key, light_id)
-    return requests.get(url).json()
+    response = requests.get(url)
+    if response.status_code > 299:
+        raise FailedDependency()
+    return response.json()
 
 
 def set_light_state(api_key, light_id, state, brightness):
