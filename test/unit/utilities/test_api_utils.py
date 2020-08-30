@@ -182,9 +182,8 @@ class TestLightApiRequests:
         mock_requests.post.assert_called_with(ANY, data=ANY, headers=headers)
 
     def test_get_light_api_key__should_return_api_key_response(self, mock_requests):
-        response = Response()
-        response._content = json.dumps([{'success': {'username': self.API_KEY}}]).encode('UTF-8')
-        mock_requests.post.return_value = response
+        response_data = [{'success': {'username': self.API_KEY}}]
+        mock_requests.post.return_value = self.__create_response(data=response_data)
 
         actual = get_light_api_key(self.USERNAME, self.PASSWORD)
 
@@ -192,9 +191,8 @@ class TestLightApiRequests:
 
     @patch('svc.utilities.api_utils.LightState')
     def test_get_light_api_key__should_cache_key_to_global_state(self, mock_state, mock_requests):
-        response = Response()
-        response._content = json.dumps([{'success': {'username': self.API_KEY}}]).encode('UTF-8')
-        mock_requests.post.return_value = response
+        response_data = [{'success': {'username': self.API_KEY}}]
+        mock_requests.post.return_value = self.__create_response(data = response_data)
         get_light_api_key(self.USERNAME, self.PASSWORD)
 
         assert mock_state.get_instance.return_value.API_KEY == self.API_KEY
@@ -206,7 +204,7 @@ class TestLightApiRequests:
         mock_requests.get.assert_called_with(expected_url)
 
     def test_get_light_groups__should_return_a_list_of_light_groups(self, mock_requests):
-        api_response = {
+        response_data = {
             "1": {
                 "devicemembership": [],
                 "etag": "ab5272cfe11339202929259af22252ae",
@@ -214,9 +212,7 @@ class TestLightApiRequests:
                 "name": "Living Room"
             }
         }
-        mock_response = Response()
-        mock_response._content = json.dumps(api_response).encode('UTF-8')
-        mock_requests.get.return_value = mock_response
+        mock_requests.get.return_value = self.__create_response(data=response_data)
         actual = get_light_groups(self.API_KEY)
 
         assert actual['1']['etag'] == 'ab5272cfe11339202929259af22252ae'
@@ -257,17 +253,15 @@ class TestLightApiRequests:
         get_light_group_state(self.API_KEY, group_id)
 
         mock_requests.get.assert_called_with(url)
-        
+
     def test_get_light_group_state__should_return_group_response(self, mock_requests):
         group_id = '2'
-        response = Response()
-        response_content = {'field': 'DoesntMatter'}
-        response._content = json.dumps(response_content).encode('UTF-8')
-        mock_requests.get.return_value = response
-        
+        response_data = {'field': 'DoesntMatter'}
+        mock_requests.get.return_value = self.__create_response(data=response_data)
+
         actual = get_light_group_state(self.API_KEY, group_id)
-        
-        assert actual == response_content
+
+        assert actual == response_data
 
     def test_create_light_group__should_make_api_call_to_url(self, mock_requests):
         expected_url = self.BASE_URL + '/%s/groups' % self.API_KEY
@@ -283,10 +277,7 @@ class TestLightApiRequests:
         mock_requests.post.assert_called_with(ANY, data=expected_data)
 
     def test_get_all_lights__should_make_api_call_to_url(self, mock_requests):
-        response = Response()
-        response.status_code = 200
-        response._content = json.dumps({}).encode('UTF-8')
-        mock_requests.get.return_value = response
+        mock_requests.get.return_value = self.__create_response()
         expected_url = self.BASE_URL + '/%s/lights' % self.API_KEY
         get_all_lights(self.API_KEY)
 
@@ -294,34 +285,24 @@ class TestLightApiRequests:
 
     def test_get_all_lights__should_return_response_from_api(self, mock_requests):
         response_data = {'light_name': 'DoesntMatter'}
-        response = Response()
-        response.status_code = 200
-        response._content = json.dumps(response_data).encode('UTF-8')
-        mock_requests.get.return_value = response
+        mock_requests.get.return_value = self.__create_response(data=response_data)
         actual = get_all_lights(self.API_KEY)
 
         assert actual == response_data
 
     def test_get_all_lights__should_raise_failed_dependency_when_node_returns_500(self, mock_requests):
-        response = Response()
-        response.status_code = 500
-        mock_requests.get.return_value = response
+        mock_requests.get.return_value = self.__create_response(status=500)
         with pytest.raises(FailedDependency):
             get_all_lights(self.API_KEY)
 
     def test_get_all_lights__should_raise_failed_dependency_when_node_returns_400(self, mock_requests):
-        response = Response()
-        response.status_code = 400
-        mock_requests.get.return_value = response
+        mock_requests.get.return_value = self.__create_response(status=400)
         with pytest.raises(FailedDependency):
             get_all_lights(self.API_KEY)
 
     def test_get_light_group_attributes__should_make_api_call_to_url(self, mock_requests):
         group_id = "4"
-        response = Response()
-        response.status_code = 200
-        response._content = json.dumps({}).encode('UTF-8')
-        mock_requests.get.return_value = response
+        mock_requests.get.return_value = self.__create_response()
         expected_url = self.BASE_URL + '/%s/groups/%s' % (self.API_KEY, group_id)
         get_light_group_attributes(self.API_KEY, group_id)
 
@@ -330,67 +311,49 @@ class TestLightApiRequests:
     def test_get_light_group_attributes__should_return_response_from_api(self, mock_requests):
         group_id = "12"
         response_data = {'lights': ['1', '2']}
-        response = Response()
-        response.status_code = 200
-        response._content = json.dumps(response_data).encode('UTF-8')
-        mock_requests.get.return_value = response
+        mock_requests.get.return_value = self.__create_response(data=response_data)
         actual = get_light_group_attributes(self.API_KEY, group_id)
 
         assert actual == response_data
 
     def test_get_light_group_attributes__should_raise_failed_dependency_when_node_returns_500(self, mock_requests):
         group_id = '11'
-        response = Response()
-        response.status_code = 500
-        mock_requests.get.return_value = response
+        mock_requests.get.return_value = self.__create_response(status=500)
         with pytest.raises(FailedDependency):
             get_light_group_attributes(self.API_KEY, group_id)
 
     def test_get_light_group_attributes__should_raise_failed_dependency_when_node_returns_400(self, mock_requests):
         group_id = '3'
-        response = Response()
-        response.status_code = 400
-        mock_requests.get.return_value = response
+        mock_requests.get.return_value = self.__create_response(status=400)
         with pytest.raises(FailedDependency):
             get_light_group_attributes(self.API_KEY, group_id)
 
     def test_get_light_state__should_make_api_call_to_url(self, mock_requests):
         light_id = "4"
         expected_url = self.BASE_URL + '/%s/lights/%s' % (self.API_KEY, light_id)
-        response = Response()
-        response.status_code = 200
-        response._content = json.dumps({}).encode('UTF-8')
-        mock_requests.get.return_value = response
+        mock_requests.get.return_value = self.__create_response()
         get_light_state(self.API_KEY, light_id)
 
         mock_requests.get.assert_called_with(expected_url)
 
     def test_get_light_state__should_return_response_from_api(self, mock_requests):
         light_id = '5'
-        response = Response()
-        response.status_code = 200
-        mock_requests.get.return_value = response
-        response_date = {'name': 'livingRoomLamp', 'state': {'on': True}}
-        response._content = json.dumps(response_date).encode('UTF-8')
-        mock_requests.get.return_value = response
+        response_data = {'name': 'livingRoomLamp', 'state': {'on': True}}
+        mock_requests.get.return_value = self.__create_response(data=response_data)
 
         actual = get_light_state(self.API_KEY, light_id)
 
-        assert actual == response_date
+        assert actual == response_data
 
     def test_get_light_state__should_raise_failed_dependency_when_node_returns_500(self, mock_requests):
         light_id = '12'
-        response = Response()
-        response.status_code = 500
-        mock_requests.get.return_value = response
+        mock_requests.get.return_value = self.__create_response(status=500)
         with pytest.raises(FailedDependency):
             get_light_state(self.API_KEY, light_id)
 
     def test_get_light_state__should_raise_failed_dependency_when_node_returns_400(self, mock_requests):
         light_id = '12'
-        response = Response()
-        response.status_code = 400
-        mock_requests.get.return_value = response
+        mock_requests.get.return_value = self.__create_response(status=400)
         with pytest.raises(FailedDependency):
             get_light_state(self.API_KEY, light_id)
 
@@ -411,10 +374,7 @@ class TestLightApiRequests:
         mock_requests.put.assert_called_with(ANY, data=expected_data)
 
     def test_get_full_state__should_make_call_to_api(self, mock_requests):
-        response = Response()
-        response.status_code = 200
-        mock_requests.get.return_value = response
-        response._content = json.dumps({}).encode('UTF-8')
+        mock_requests.get.return_value = self.__create_response()
         expected_url = self.BASE_URL + '/%s' % self.API_KEY
         get_full_state(self.API_KEY)
 
@@ -422,27 +382,27 @@ class TestLightApiRequests:
 
     def test_get_full_state__should_return_response_from_api(self, mock_requests):
         response_data = {'fakeResult': 'response'}
-        response = Response()
-        response.status_code = 200
-        response._content = json.dumps(response_data).encode('UTF-8')
-        mock_requests.get.return_value = response
+        mock_requests.get.return_value = self.__create_response(data=response_data)
         actual = get_full_state(self.API_KEY)
 
         assert actual == response_data
 
     def test_get_full_state__should_return_failed_dependency_when_light_node_returns_500(self, mock_requests):
-        response = Response()
-        response.status_code = 500
-        mock_requests.get.return_value = response
+        mock_requests.get.return_value = self.__create_response(status=500)
         with pytest.raises(FailedDependency):
             get_full_state(self.API_KEY)
 
     def test_get_full_state__should_return_failed_dependency_when_light_node_returns_400(self, mock_requests):
-        response = Response()
-        response.status_code = 400
-        mock_requests.get.return_value = response
+        mock_requests.get.return_value = self.__create_response(status=400)
         with pytest.raises(FailedDependency):
             get_full_state(self.API_KEY)
+
+    @staticmethod
+    def __create_response(status=200, data={}):
+        response = Response()
+        response.status_code = status
+        response._content = json.dumps(data).encode('UTF-8')
+        return response
 
 
 @patch('svc.utilities.api_utils.requests')
