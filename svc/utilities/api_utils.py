@@ -86,7 +86,10 @@ def create_light_group(api_key, group_name):
 
 def get_all_lights(api_key):
     url = LIGHT_BASE_URL + '/%s/lights' % api_key
-    return requests.get(url).json()
+    response = requests.get(url)
+    if response.status_code > 299:
+        raise FailedDependency()
+    return response.json()
 
 
 def get_light_state(api_key, light_id):

@@ -283,6 +283,10 @@ class TestLightApiRequests:
         mock_requests.post.assert_called_with(ANY, data=expected_data)
 
     def test_get_all_lights__should_make_api_call_to_url(self, mock_requests):
+        response = Response()
+        response.status_code = 200
+        response._content = json.dumps({}).encode('UTF-8')
+        mock_requests.get.return_value = response
         expected_url = self.BASE_URL + '/%s/lights' % self.API_KEY
         get_all_lights(self.API_KEY)
 
@@ -291,11 +295,26 @@ class TestLightApiRequests:
     def test_get_all_lights__should_return_response_from_api(self, mock_requests):
         response_data = {'light_name': 'DoesntMatter'}
         response = Response()
+        response.status_code = 200
         response._content = json.dumps(response_data).encode('UTF-8')
         mock_requests.get.return_value = response
         actual = get_all_lights(self.API_KEY)
 
         assert actual == response_data
+
+    def test_get_all_lights__should_raise_failed_dependency_when_node_returns_500(self, mock_requests):
+        response = Response()
+        response.status_code = 500
+        mock_requests.get.return_value = response
+        with pytest.raises(FailedDependency):
+            get_all_lights(self.API_KEY)
+
+    def test_get_all_lights__should_raise_failed_dependency_when_node_returns_400(self, mock_requests):
+        response = Response()
+        response.status_code = 400
+        mock_requests.get.return_value = response
+        with pytest.raises(FailedDependency):
+            get_all_lights(self.API_KEY)
 
     def test_get_light_group_attributes__should_make_api_call_to_url(self, mock_requests):
         group_id = "4"
@@ -349,7 +368,7 @@ class TestLightApiRequests:
     def test_get_light_state__should_raise_failed_dependency_when_node_returns_400(self, mock_requests):
         light_id = '12'
         response = Response()
-        response.status_code = 500
+        response.status_code = 400
         mock_requests.get.return_value = response
         with pytest.raises(FailedDependency):
             get_light_state(self.API_KEY, light_id)
