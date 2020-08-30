@@ -189,10 +189,15 @@ class TestLightApiRequests:
 
         assert actual == self.API_KEY
 
+    def test_get_light_api_key__should_return_failed_dependency_when_connection_error(self, mock_requests):
+        mock_requests.post.side_effect = ConnectionError()
+        with pytest.raises(FailedDependency):
+            get_light_api_key(self.USERNAME, self.PASSWORD)
+
     @patch('svc.utilities.api_utils.LightState')
     def test_get_light_api_key__should_cache_key_to_global_state(self, mock_state, mock_requests):
         response_data = [{'success': {'username': self.API_KEY}}]
-        mock_requests.post.return_value = self.__create_response(data = response_data)
+        mock_requests.post.return_value = self.__create_response(data=response_data)
         get_light_api_key(self.USERNAME, self.PASSWORD)
 
         assert mock_state.get_instance.return_value.API_KEY == self.API_KEY
@@ -418,6 +423,11 @@ class TestLightApiRequests:
 
     def test_get_full_state__should_return_failed_dependency_when_light_node_returns_400(self, mock_requests):
         mock_requests.get.return_value = self.__create_response(status=400)
+        with pytest.raises(FailedDependency):
+            get_full_state(self.API_KEY)
+
+    def test_get_full_stat__should_not_fail_when_get_request_throws_connection_exception(self, mock_requests):
+        mock_requests.get.side_effect = ConnectionError()
         with pytest.raises(FailedDependency):
             get_full_state(self.API_KEY)
 
