@@ -70,7 +70,10 @@ def set_light_groups(api_key, group_id, state, brightness=None):
 
 def get_light_group_state(api_key, group_id):
     url = LIGHT_BASE_URL + '/%s/groups/%s' % (api_key, group_id)
-    return requests.get(url).json()
+    response = requests.get(url)
+    if response.status_code > 299:
+        raise FailedDependency()
+    return response.json()
 
 
 def get_light_group_attributes(api_key, group_id):

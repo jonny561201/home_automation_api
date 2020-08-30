@@ -249,6 +249,7 @@ class TestLightApiRequests:
     def test_get_light_group_state__should_call_url(self, mock_requests):
         group_id = '1'
         url = self.BASE_URL + '/%s/groups/%s' % (self.API_KEY, group_id)
+        mock_requests.get.return_value = self.__create_response()
 
         get_light_group_state(self.API_KEY, group_id)
 
@@ -262,6 +263,18 @@ class TestLightApiRequests:
         actual = get_light_group_state(self.API_KEY, group_id)
 
         assert actual == response_data
+
+    def test_get_light_group_state__should_raise_failed_dependency_when_response_500(self, mock_requests):
+        group_id = '1'
+        mock_requests.get.return_value = self.__create_response(status=500)
+        with pytest.raises(FailedDependency):
+            get_light_group_state(self.API_KEY, group_id)
+
+    def test_get_light_group_state__should_raise_failed_dependency_when_response_400(self, mock_requests):
+        group_id = '1'
+        mock_requests.get.return_value = self.__create_response(status=400)
+        with pytest.raises(FailedDependency):
+            get_light_group_state(self.API_KEY, group_id)
 
     def test_create_light_group__should_make_api_call_to_url(self, mock_requests):
         expected_url = self.BASE_URL + '/%s/groups' % self.API_KEY
