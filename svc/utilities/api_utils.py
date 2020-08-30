@@ -3,6 +3,7 @@ import json
 import os
 
 import requests
+from werkzeug.exceptions import FailedDependency
 
 from svc.constants.home_automation import Automation
 from svc.constants.lights_state import LightState
@@ -102,7 +103,10 @@ def set_light_state(api_key, light_id, state, brightness):
 
 def get_full_state(api_key):
     url = LIGHT_BASE_URL + '/%s' % api_key
-    return requests.get(url).json()
+    response = requests.get(url)
+    if response.status_code > 299:
+        raise FailedDependency()
+    return response.json()
 
 
 def send_new_account_email(email, password):
