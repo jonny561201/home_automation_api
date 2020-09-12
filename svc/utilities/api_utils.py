@@ -3,6 +3,7 @@ import json
 import os
 
 import requests
+from requests import ReadTimeout
 from werkzeug.exceptions import FailedDependency
 
 from svc.constants.home_automation import Automation
@@ -46,11 +47,11 @@ def get_light_api_key(username, password):
     auth = base64.b64encode((username + ':' + password).encode('UTF-8')).decode('UTF-8')
     headers = {'Authorization': 'Basic ' + auth}
     try:
-        response = requests.post(LIGHT_BASE_URL, data=json.dumps(body), headers=headers)
+        response = requests.post(LIGHT_BASE_URL, data=json.dumps(body), headers=headers, timeout=10)
         api_key = response.json()[0]['success']['username']
         LightState.get_instance().API_KEY = api_key
         return api_key
-    except (ConnectionError, Exception) as e:
+    except ReadTimeout:
         raise FailedDependency()
 
 
@@ -120,11 +121,11 @@ def set_light_state(api_key, light_id, state, brightness):
 def get_full_state(api_key):
     url = LIGHT_BASE_URL + '/%s' % api_key
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=10)
         if response.status_code > 299:
             raise FailedDependency()
         return response.json()
-    except ConnectionError:
+    except ReadTimeout:
         raise FailedDependency()
 
 

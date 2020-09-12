@@ -3,7 +3,7 @@ import os
 
 import pytest
 from mock import patch, ANY
-from requests import Response
+from requests import Response, ReadTimeout
 from werkzeug.exceptions import FailedDependency
 
 from svc.constants.home_automation import Automation
@@ -167,19 +167,24 @@ class TestLightApiRequests:
     def test_get_light_api_key__should_call_requests_with_url(self, mock_requests):
         get_light_api_key(self.USERNAME, self.PASSWORD)
 
-        mock_requests.post.assert_called_with(self.BASE_URL, data=ANY, headers=ANY)
+        mock_requests.post.assert_called_with(self.BASE_URL, data=ANY, headers=ANY, timeout=ANY)
 
     def test_get_light_api_key__should_call_requests_with_device_type(self, mock_requests):
         get_light_api_key(self.USERNAME, self.PASSWORD)
 
         body = json.dumps({'devicetype': Automation().APP_NAME})
-        mock_requests.post.assert_called_with(ANY, data=body, headers=ANY)
+        mock_requests.post.assert_called_with(ANY, data=body, headers=ANY, timeout=ANY)
 
     def test_get_light_api_key__should_provide_username_and_pass_as_auth_header(self, mock_requests):
         get_light_api_key(self.USERNAME, self.PASSWORD)
 
         headers = {'Authorization': 'Basic ' + 'ZmFrZSB1c2VybmFtZTpmYWtlIHBhc3N3b3Jk'}
-        mock_requests.post.assert_called_with(ANY, data=ANY, headers=headers)
+        mock_requests.post.assert_called_with(ANY, data=ANY, headers=headers, timeout=ANY)
+
+    def test_get_light_api_key__should_call_requests_with_timeout_at_ten(self, mock_requests):
+        get_light_api_key(self.USERNAME, self.PASSWORD)
+
+        mock_requests.post.assert_called_with(ANY, data=ANY, headers=ANY, timeout=10)
 
     def test_get_light_api_key__should_return_api_key_response(self, mock_requests):
         response_data = [{'success': {'username': self.API_KEY}}]
@@ -190,7 +195,7 @@ class TestLightApiRequests:
         assert actual == self.API_KEY
 
     def test_get_light_api_key__should_return_failed_dependency_when_connection_error(self, mock_requests):
-        mock_requests.post.side_effect = ConnectionError()
+        mock_requests.post.side_effect = ReadTimeout()
         with pytest.raises(FailedDependency):
             get_light_api_key(self.USERNAME, self.PASSWORD)
 
@@ -407,7 +412,7 @@ class TestLightApiRequests:
         expected_url = self.BASE_URL + '/%s' % self.API_KEY
         get_full_state(self.API_KEY)
 
-        mock_requests.get.assert_called_with(expected_url)
+        mock_requests.get.assert_called_with(expected_url, timeout=10)
 
     def test_get_full_state__should_return_response_from_api(self, mock_requests):
         response_data = {'fakeResult': 'response'}
@@ -427,7 +432,7 @@ class TestLightApiRequests:
             get_full_state(self.API_KEY)
 
     def test_get_full_stat__should_not_fail_when_get_request_throws_connection_exception(self, mock_requests):
-        mock_requests.get.side_effect = ConnectionError()
+        mock_requests.get.side_effect = ReadTimeout()
         with pytest.raises(FailedDependency):
             get_full_state(self.API_KEY)
 
