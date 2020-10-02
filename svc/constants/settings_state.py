@@ -21,6 +21,10 @@ class Settings:
     def db_pass(self):
         return self.settings.get('DbPass') if self.dev_mode else os.environ.get('SQL_PASSWORD')
 
+    @property
+    def db_port(self):
+        return self.settings.get('DbPort') if self.dev_mode else os.environ.get('SQL_PORT')
+
     @staticmethod
     def get_instance():
         if Settings.__instance is None:

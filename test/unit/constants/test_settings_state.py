@@ -7,20 +7,25 @@ class TestState:
     SETTINGS = None
     DB_USER = 'test_user'
     DB_PASS = 'test_pass'
+    DB_PORT = '5231'
 
     def setup_method(self):
-        os.environ.update({'SQL_USERNAME': self.DB_USER, 'SQL_PASSWORD': self.DB_PASS})
+        os.environ.update({'SQL_USERNAME': self.DB_USER, 'SQL_PASSWORD': self.DB_PASS, 'SQL_PORT': self.DB_PORT})
         self.SETTINGS = Settings.get_instance()
 
     def teardown_method(self):
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
+        os.environ.pop('SQL_PORT')
 
     def test_db_user__should_return_env_var_value(self):
         assert self.SETTINGS.db_user == self.DB_USER
 
     def test_db_pass__should_return_env_var_value(self):
         assert self.SETTINGS.db_pass == self.DB_PASS
+
+    def test_db_port__should_return_env_var_value(self):
+        assert self.SETTINGS.db_port == self.DB_PORT
 
     def test_db_user__should_pull_from_dictionary_if_dev_mode(self):
         db_user = 'other_user'
@@ -33,4 +38,10 @@ class TestState:
         self.SETTINGS.dev_mode = True
         self.SETTINGS.settings = {'DbPass': db_pass}
         assert self.SETTINGS.db_pass == db_pass
+
+    def test_db_port__should_pull_from_dictionary_if_dev_mode(self):
+        db_port = '1234'
+        self.SETTINGS.dev_mode = True
+        self.SETTINGS.settings = {'DbPort': db_port}
+        assert self.SETTINGS.db_port == db_port
 
