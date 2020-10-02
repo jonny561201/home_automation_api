@@ -17,6 +17,10 @@ class Settings:
     def db_user(self):
         return self.settings.get('DbUser') if self.dev_mode else os.environ.get('SQL_USERNAME')
 
+    @property
+    def db_pass(self):
+        return self.settings.get('DbPass') if self.dev_mode else os.environ.get('SQL_PASSWORD')
+
     @staticmethod
     def get_instance():
         if Settings.__instance is None:
