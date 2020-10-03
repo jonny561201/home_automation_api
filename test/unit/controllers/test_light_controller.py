@@ -2,6 +2,7 @@ import os
 
 from mock import patch, ANY
 
+from svc.constants.settings_state import Settings
 from svc.controllers.light_controller import get_assigned_light_groups, set_assigned_light_groups, set_assigned_light
 
 
@@ -19,12 +20,9 @@ class TestLightRequest:
 
     def setup_method(self):
         self.REQUEST = {'on': self.STATE, 'groupId': self.GROUP_ID}
-        os.environ.update({'LIGHT_API_USERNAME': self.LIGHT_USERNAME})
-        os.environ.update({'LIGHT_API_PASSWORD': self.LIGHT_PASSWORD})
-
-    def teardown_method(self):
-        os.environ.pop('LIGHT_API_USERNAME')
-        os.environ.pop('LIGHT_API_PASSWORD')
+        self.SETTINGS = Settings.get_instance()
+        self.SETTINGS.dev_mode = True
+        self.SETTINGS.settings = {'LightApiUser': self.LIGHT_USERNAME, 'LightApiPass': self.LIGHT_PASSWORD}
 
     def test_get_assigned_light_groups__should_call_is_jwt_valid(self, mock_api, mock_jwt, mock_set, mock_light):
         mock_light.get_instance.return_value.API_KEY = None
@@ -34,21 +32,10 @@ class TestLightRequest:
 
     def test_get_assigned_light_groups__should_call_to_get_api_key(self, mock_api, mock_jwt, mock_set, mock_light):
         mock_light.get_instance.return_value.API_KEY = None
-        mock_set.get_instance.return_value.get_settings.return_value = {'Development': False}
+        mock_set.get_instance.return_value = self.SETTINGS
         get_assigned_light_groups(self.BEARER_TOKEN)
 
         mock_api.get_light_api_key.assert_called_with(self.LIGHT_USERNAME, self.LIGHT_PASSWORD)
-
-    def test_get_assigned_light_groups__should_use_settings_light_user_name_pass_when_dev(self, mock_api, mock_jwt, mock_set, mock_light):
-        mock_light.get_instance.return_value.API_KEY = None
-        light_user = 'otherLightUser'
-        light_pass = 'otherLightPass'
-        mock_set.get_instance.return_value.get_settings.return_value = {'Development': True, 'LightApiUser': light_user,
-                                                                        'LightApiPass': light_pass}
-
-        get_assigned_light_groups(self.BEARER_TOKEN)
-
-        mock_api.get_light_api_key.assert_called_with(light_user, light_pass)
 
     def test_get_assigned_light_groups__should_use_cached_api_key(self, mock_api, mock_jwt, mock_set, mock_light):
         new_api_key = 'NewApiKey'
@@ -65,20 +52,10 @@ class TestLightRequest:
 
     def test_set_assigned_light_groups__should_get_api_key(self, mock_api, mock_jwt, mock_set, mock_light):
         mock_light.get_instance.return_value.API_KEY = None
-        mock_set.get_instance.return_value.get_settings.return_value = {'Development': False}
+        mock_set.get_instance.return_value = self.SETTINGS
         set_assigned_light_groups(self.BEARER_TOKEN, self.REQUEST)
 
         mock_api.get_light_api_key.assert_called_with(self.LIGHT_USERNAME, self.LIGHT_PASSWORD)
-
-    def test_set_assigned_light_groups__should_get_lights_with_settings_if_develop(self, mock_api, mock_jwt, mock_set, mock_light):
-        mock_light.get_instance.return_value.API_KEY = None
-        light_user = 'otherLightUser'
-        light_pass = 'otherLightPass'
-        mock_set.get_instance.return_value.get_settings.return_value = {'Development': True, 'LightApiUser': light_user,
-                                                                        'LightApiPass': light_pass}
-        set_assigned_light_groups(self.BEARER_TOKEN, self.REQUEST)
-
-        mock_api.get_light_api_key.assert_called_with(light_user, light_pass)
 
     def test_set_assigned_light_groups__should_make_api_call_to_set_state(self, mock_api, mock_jwt, mock_set, mock_light):
         mock_light.get_instance.return_value.API_KEY = None
@@ -113,28 +90,17 @@ class TestLightRequest:
     def test_set_assigned_light__should_make_api_call_to_get_key(self, mock_api, mock_jwt, mock_set, mock_light):
         request_data = {'lightId': '3', 'on': False, 'brightness': 201}
         mock_light.get_instance.return_value.API_KEY = None
-        mock_set.get_instance.return_value.get_settings.return_value = {'Development': False}
+        mock_set.get_instance.return_value = self.SETTINGS
         set_assigned_light(self.BEARER_TOKEN, request_data)
 
         mock_api.get_light_api_key.assert_called_with(self.LIGHT_USERNAME, self.LIGHT_PASSWORD)
-
-    def test_set_assigned_light__should_use_dev_key_when_in_dev_mode(self, mock_api, mock_jwt, mock_set, mock_light):
-        request_data = {'lightId': '5', 'on': True, 'brightness': 45}
-        light_user = 'newUser'
-        light_pass = 'newPass'
-        mock_light.get_instance.return_value.API_KEY = None
-        mock_set.get_instance.return_value.get_settings.return_value = {'Development': True, 'LightApiUser': light_user,
-                                                                        'LightApiPass': light_pass}
-        set_assigned_light(self.BEARER_TOKEN, request_data)
-
-        mock_api.get_light_api_key.assert_called_with(light_user, light_pass)
 
     def test_set_assigned_light__should_make_call_to_set_light_state(self, mock_api, mock_jwt, mock_set, mock_light):
         light_id = '2'
         brightness = 65
         request_data = {'lightId': light_id, 'on': True, 'brightness': brightness}
         mock_light.get_instance.return_value.API_KEY = None
-        mock_set.get_instance.return_value.get_settings.return_value = {'Development': False}
+        mock_set.get_instance.return_value.__get_settings.return_value = {'Development': False}
         mock_api.get_light_api_key.return_value = self.API_KEY
         set_assigned_light(self.BEARER_TOKEN, request_data)
 

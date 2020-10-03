@@ -7,6 +7,7 @@ from requests import Response, ReadTimeout
 from werkzeug.exceptions import FailedDependency
 
 from svc.constants.home_automation import Automation
+from svc.constants.settings_state import Settings
 from svc.utilities.api_utils import get_weather_by_city, get_light_group_attributes, get_light_state, get_all_lights, \
     create_light_group, get_light_group_state, set_light_groups, get_light_groups, get_light_api_key, set_light_state, \
     get_full_state, get_garage_door_status, toggle_garage_door_state, update_garage_door_state, send_new_account_email
@@ -451,22 +452,12 @@ class TestEmailApiRequests:
     API_KEY = 'asdjfhv323240'
 
     def setup_method(self):
-        os.environ.update({'EMAIL_APP_ID': self.API_KEY})
-
-    def teardown_method(self):
-        os.environ.pop('EMAIL_APP_ID')
+        self.SETTINGS = Settings.get_instance()
+        self.SETTINGS.dev_mode = True
+        self.SETTINGS.settings = {'DevEmailAppId': self.API_KEY}
 
     def test_send_new_account_email__should_pass_api_key_to_header_in_requests(self, mock_request):
         expected_header = {'api-key': self.API_KEY, 'content-type': 'application/json'}
-        send_new_account_email(self.EMAIL, self.PASSWORD)
-
-        mock_request.post.assert_called_with(ANY, data=ANY, headers=expected_header)
-
-    @patch('svc.utilities.api_utils.Settings')
-    def test_send_new_account_email__should_get_api_key_from_settings_when_dev_mode(self, mock_settings, mock_request):
-        dev_api_key = 'otherApiKeyForDevMode'
-        mock_settings.get_instance.return_value.get_settings.return_value = {'DevEmailAppId': dev_api_key, 'Development': True}
-        expected_header = {'api-key': dev_api_key, 'content-type': 'application/json'}
         send_new_account_email(self.EMAIL, self.PASSWORD)
 
         mock_request.post.assert_called_with(ANY, data=ANY, headers=expected_header)
@@ -487,14 +478,3 @@ class TestEmailApiRequests:
         send_new_account_email(self.EMAIL, self.PASSWORD)
 
         mock_request.post.assert_called_with(ANY, data=json.dumps(expected_data), headers=ANY)
-
-
-@patch('svc.utilities.api_utils.requests')
-@patch('svc.utilities.api_utils.Settings')
-def test_send_new_account_email__should_use_settings_environment_variable_when_in_dev_mode(mock_settings, mock_requests):
-    api_id = 'fakeAppId'
-    expected_header = {'api-key': api_id, 'content-type': 'application/json'}
-    mock_settings.get_instance.return_value.get_settings.return_value = {'Development': True, 'DevEmailAppId': api_id}
-    send_new_account_email('', '')
-
-    mock_requests.post.assert_called_with(ANY, data=ANY, headers=expected_header)

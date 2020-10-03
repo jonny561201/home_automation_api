@@ -2,6 +2,7 @@ import os
 
 from mock import patch, ANY
 
+from svc.constants.settings_state import Settings
 from svc.services.temperature import get_external_temp, get_internal_temp
 
 
@@ -16,11 +17,10 @@ class TestTemperatureService:
     APP_ID = 'fake app id'
 
     def setup_method(self):
-        os.environ.update({'WEATHER_APP_ID': self.APP_ID})
+        self.SETTINGS = Settings.get_instance()
+        self.SETTINGS.dev_mode = True
+        self.SETTINGS.settings = {'DevWeatherAppId': self.APP_ID}
         self.PREFERENCES = {'city': self.CITY, 'temp_unit': self.UNIT, 'is_fahrenheit': True}
-
-    def teardown_method(self):
-        os.environ.pop('WEATHER_APP_ID')
 
     def test_get_external_weather__should_call_get_weather_with_city(self, mock_weather, mock_file, mock_temp, mock_settings):
         get_external_temp(self.PREFERENCES)
@@ -39,17 +39,10 @@ class TestTemperatureService:
         mock_weather.assert_called_with(ANY, "imperial", ANY)
 
     def test_get_external_weather__should_call_get_weather_with_api_key(self, mock_weather, mock_file, mock_temp, mock_settings):
-        mock_settings.get_instance.return_value.get_settings.return_value = {}
+        mock_settings.get_instance.return_value = self.SETTINGS
         get_external_temp(self.PREFERENCES)
 
         mock_weather.assert_called_with(ANY, ANY, self.APP_ID)
-
-    def test_get_external_weather__should_call_get_weather_with_settings_api_when_dev_mode(self, mock_weather, mock_file, mock_temp, mock_settings):
-        weather_app_id = 'fake weather app id'
-        mock_settings.get_instance.return_value.get_settings.return_value = {'Development': True, 'DevWeatherAppId': weather_app_id}
-        get_external_temp(self.PREFERENCES)
-
-        mock_weather.assert_called_with(ANY, ANY, weather_app_id)
 
     def test_get_external_weather__should_return_weather_data_from_api_call(self, mock_weather, mock_file, mock_temp, mock_settings):
         response = {'temp': 23.4, 'description': 'Awesome'}

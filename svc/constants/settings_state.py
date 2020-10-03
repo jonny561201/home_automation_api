@@ -12,7 +12,7 @@ class Settings:
             raise Exception
         else:
             Settings.__instance = self
-            Settings.__instance.get_settings()
+            Settings.__instance.__get_settings()
 
     @property
     def db_user(self):
@@ -56,12 +56,12 @@ class Settings:
             Settings.__instance = Settings()
         return Settings.__instance
 
-    def get_settings(self):
+    def __get_settings(self):
         if self.settings is None:
             try:
                 with open("./settings.json", "r") as reader:
                     self.settings = json.loads(reader.read())
-                    self.dev_mode = self.settings["Development"]
+                    self.dev_mode = self.settings.get("Development", False)
             except FileNotFoundError:
                 self.settings = {}
         else:
