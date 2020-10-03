@@ -57,12 +57,9 @@ class Settings:
         return Settings.__instance
 
     def __get_settings(self):
-        if self.settings is None:
-            try:
-                with open("./settings.json", "r") as reader:
-                    self.settings = json.loads(reader.read())
-                    self.dev_mode = self.settings.get("Development", False)
-            except FileNotFoundError:
-                self.settings = {}
-        else:
-            return self.settings
+        try:
+            with open("./settings.json", "r") as reader:
+                self.settings = json.loads(reader.read())
+                self.dev_mode = self.settings.get("Development", False)
+        except FileNotFoundError:
+            self.settings = {}
