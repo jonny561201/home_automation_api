@@ -1,5 +1,4 @@
 import base64
-import os
 from datetime import datetime, timedelta
 
 import jwt
@@ -12,7 +11,6 @@ from svc.constants.settings_state import Settings
 from svc.utilities.jwt_utils import is_jwt_valid, create_jwt_token, extract_credentials
 
 
-@patch('svc.utilities.jwt_utils.Settings')
 class TestJwt:
     JWT_BODY = None
     JWT_SECRET = 'testSecret'
@@ -23,21 +21,18 @@ class TestJwt:
         self.SETTINGS.dev_mode = True
         self.SETTINGS.settings = {'DevJwtSecret': self.JWT_SECRET}
 
-    def test_is_jwt_valid__should_not_fail_if_it_can_be_decrypted(self, mock_settings):
-        mock_settings.get_instance.return_value = self.SETTINGS
+    def test_is_jwt_valid__should_not_fail_if_it_can_be_decrypted(self):
         jwt_token = jwt.encode(self.JWT_BODY, self.JWT_SECRET, algorithm='HS256').decode('UTF-8')
 
         is_jwt_valid(jwt_token)
 
-    def test_is_jwt_valid__should_raise_unauthorized_if_it_cannot_be_decrypted(self, mock_settings):
-        mock_settings.get_instance.return_value = self.SETTINGS
+    def test_is_jwt_valid__should_raise_unauthorized_if_it_cannot_be_decrypted(self):
         jwt_token = jwt.encode(self.JWT_BODY, 'badSecret', algorithm='HS256').decode('UTF-8')
 
         with pytest.raises(Unauthorized):
             is_jwt_valid(jwt_token)
 
-    def test_is_jwt_valid__should_raise_unauthorized_if_token_has_expired(self, mock_settings):
-        mock_settings.get_instance.return_value = self.SETTINGS
+    def test_is_jwt_valid__should_raise_unauthorized_if_token_has_expired(self):
         expired_date = datetime.now() - timedelta(hours=1)
         self.JWT_BODY['exp'] = expired_date
         jwt_token = jwt.encode(self.JWT_BODY, self.JWT_SECRET, algorithm='HS256').decode('UTF-8')
@@ -45,29 +40,27 @@ class TestJwt:
         with pytest.raises(Unauthorized):
             is_jwt_valid(jwt_token)
 
-    def test_is_jwt_valid__should_raise_unauthorized_if_token_is_none(self, mock_settings):
+    def test_is_jwt_valid__should_raise_unauthorized_if_token_is_none(self):
         jwt_token = None
 
         with pytest.raises(Unauthorized):
             is_jwt_valid(jwt_token)
 
-    def test_is_jwt_valid__should_raise_unauthorized_if_token_is_invalid_string(self, mock_settings):
-        mock_settings.get_instance.return_value.__get_settings.return_value = {'Development': False}
+    def test_is_jwt_valid__should_raise_unauthorized_if_token_is_invalid_string(self):
+        self.SETTINGS.dev_mode = False
         jwt_token = 'abc123'
 
         with pytest.raises(Unauthorized):
             is_jwt_valid(jwt_token)
 
-    def test_is_jwt_valid__should_succeed_when_provided_bearer_text_in_token(self, mock_settings):
-        mock_settings.get_instance.return_value = self.SETTINGS
+    def test_is_jwt_valid__should_succeed_when_provided_bearer_text_in_token(self):
         jwt_body = {'fakeBody': 'valueValue'}
         jwt_token = 'Bearer ' + jwt.encode(jwt_body, self.JWT_SECRET, algorithm='HS256').decode('UTF-8')
 
         is_jwt_valid(jwt_token)
 
     @patch('svc.utilities.jwt_utils.datetime')
-    def test_create_jwt_token__should_return_a_valid_token(self, mock_date, mock_settings):
-        mock_settings.get_instance.return_value = self.SETTINGS
+    def test_create_jwt_token__should_return_a_valid_token(self, mock_date):
         now = datetime.now(pytz.timezone('US/Central'))
         mock_date.now.return_value = now
         expected_expiration = now + timedelta(hours=2)
@@ -79,7 +72,7 @@ class TestJwt:
 
         assert jwt.decode(actual, self.JWT_SECRET, algorithms='HS256') == expected_token_body
 
-    def test_extract_credentials__should_return_valid_credentials(self, mock_settings):
+    def test_extract_credentials__should_return_valid_credentials(self):
         user = "user"
         pword = "password"
         creds = "%s:%s" % (user, pword)
@@ -91,7 +84,7 @@ class TestJwt:
         assert actual_pass == pword
         assert actual_user == user
 
-    def test_extract_credentials__should_return_valid_credentials_when_missing_basic(self, mock_settings):
+    def test_extract_credentials__should_return_valid_credentials_when_missing_basic(self):
         user = "user"
         pword = "password"
         creds = "%s:%s" % (user, pword)
@@ -103,21 +96,19 @@ class TestJwt:
         assert actual_pass == pword
         assert actual_user == user
 
-    def test_extract_credentials__should_throw_bad_request_when_no_token(self, mock_settings):
+    def test_extract_credentials__should_throw_bad_request_when_no_token(self):
         with pytest.raises(BadRequest):
             extract_credentials(None)
 
-    def test_extract_credentials__should(self, mock_settings):
+    def test_extract_credentials__should(self):
         with pytest.raises(BadRequest):
             extract_credentials("")
 
+    def test_is_jwt_valid__should_raise_exception_if_secret_is_not_set(self):
+        self.SETTINGS.settings = {'DevJwtSecret': ''}
+        jwt_body = {'fakeBody': 'valueValue'}
+        jwt_secret = 'testSecret'
+        jwt_token = jwt.encode(jwt_body, jwt_secret, algorithm='HS256').decode('UTF-8')
 
-@patch('svc.utilities.jwt_utils.Settings')
-def test_is_jwt_valid__should_raise_exception_if_secret_is_not_set(mock_settings):
-    mock_settings.get_instance.return_value.jwt_secret = ''
-    jwt_body = {'fakeBody': 'valueValue'}
-    jwt_secret = 'testSecret'
-    jwt_token = jwt.encode(jwt_body, jwt_secret, algorithm='HS256').decode('UTF-8')
-
-    with pytest.raises(Unauthorized):
-        is_jwt_valid(jwt_token)
+        with pytest.raises(Unauthorized):
+            is_jwt_valid(jwt_token)
