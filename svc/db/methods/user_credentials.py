@@ -1,4 +1,3 @@
-import os
 import uuid
 
 from sqlalchemy import orm, create_engine
@@ -14,13 +13,8 @@ class UserDatabaseManager:
     db_session = None
 
     def __enter__(self):
-        settings = Settings.get_instance().get_settings()
-        dev_mode = settings.get('Development', False)
-        db_user = settings.get('DbUser') if dev_mode else os.environ.get('SQL_USERNAME')
-        db_pass = settings.get('DbPass') if dev_mode else os.environ.get('SQL_PASSWORD')
-        db_port = settings.get('DbPort') if dev_mode else os.environ.get('SQL_PORT')
-        dbname = settings.get('DbName') if dev_mode else os.environ.get('SQL_DBNAME')
-        connection = 'postgresql://%s:%s@localhost:%s/%s' % (db_user, db_pass, db_port, dbname)
+        settings = Settings.get_instance()
+        connection = 'postgresql://%s:%s@localhost:%s/%s' % (settings.db_user, settings.db_pass, settings.db_port, settings.db_name)
 
         db_engine = create_engine(connection)
         session = orm.sessionmaker(bind=db_engine)

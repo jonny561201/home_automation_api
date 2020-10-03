@@ -130,9 +130,9 @@ def get_full_state(api_key):
 
 
 def send_new_account_email(email, password):
-    settings = Settings.get_instance().get_settings()
+    settings = Settings.get_instance()
     headers = {
-        'api-key': os.environ['EMAIL_APP_ID'] if not settings.get('Development') else settings.get('DevEmailAppId'),
+        'api-key': settings.email_app_id,
         'content-type': 'application/json'}
     request = {
         "sender": {"name": "My Name", "email": email},

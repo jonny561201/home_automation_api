@@ -5,14 +5,16 @@ from svc.constants.settings_state import Settings
 
 class TestState:
     SETTINGS = None
+    DB_PORT = '5231'
     DB_USER = 'test_user'
     DB_PASS = 'test_pass'
     DB_NAME = 'fake_name'
-    DB_PORT = '5231'
+    EMAIL_APP_ID = 'abc123'
+    WEATHER_APP_ID = '345def'
 
     def setup_method(self):
         os.environ.update({'SQL_USERNAME': self.DB_USER, 'SQL_PASSWORD': self.DB_PASS, 'SQL_PORT': self.DB_PORT,
-                           'SQL_DBNAME': self.DB_NAME})
+                           'SQL_DBNAME': self.DB_NAME, 'EMAIL_APP_ID': self.EMAIL_APP_ID, 'WEATHER_APP_ID': self.WEATHER_APP_ID})
         self.SETTINGS = Settings.get_instance()
 
     def teardown_method(self):
@@ -32,6 +34,12 @@ class TestState:
 
     def test_db_name__should_return_env_var_value(self):
         assert self.SETTINGS.db_name == self.DB_NAME
+
+    def test_email_app_id__should_return_env_var_value(self):
+        assert self.SETTINGS.email_app_id == self.EMAIL_APP_ID
+
+    def test_weather_app_id__should_return_env_var_value(self):
+        assert self.SETTINGS.weather_app_id == self.WEATHER_APP_ID
 
     def test_db_user__should_pull_from_dictionary_if_dev_mode(self):
         db_user = 'other_user'
@@ -56,4 +64,16 @@ class TestState:
         self.SETTINGS.dev_mode = True
         self.SETTINGS.settings = {'DbName': db_name}
         assert self.SETTINGS.db_name == db_name
+
+    def test_email_app_id__should_pull_from_dictionary_if_dev_mode(self):
+        email_app_id = '098zyx'
+        self.SETTINGS.dev_mode = True
+        self.SETTINGS.settings = {'DevEmailAppId': email_app_id}
+        assert self.SETTINGS.email_app_id == email_app_id
+
+    def test_weather_app_id__should_pull_from_dictionary_if_dev_mode(self):
+        weather_app_id = '435hadsf'
+        self.SETTINGS.dev_mode = True
+        self.SETTINGS.settings = {'DevWeatherAppId': weather_app_id}
+        assert self.SETTINGS.weather_app_id == weather_app_id
 

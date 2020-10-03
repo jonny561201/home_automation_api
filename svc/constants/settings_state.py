@@ -30,6 +30,14 @@ class Settings:
     def db_name(self):
         return self.settings.get('DbName') if self.dev_mode else os.environ.get('SQL_DBNAME')
 
+    @property
+    def email_app_id(self):
+        return self.settings.get('DevEmailAppId') if self.dev_mode else os.environ.get('EMAIL_APP_ID')
+
+    @property
+    def weather_app_id(self):
+        return self.settings.get('DevWeatherAppId') if self.dev_mode else os.environ.get('WEATHER_APP_ID')
+
     @staticmethod
     def get_instance():
         if Settings.__instance is None:
@@ -41,9 +49,8 @@ class Settings:
             try:
                 with open("./settings.json", "r") as reader:
                     self.settings = json.loads(reader.read())
-                    self.dev_mode = ["Development"]
-                return self.settings
+                    self.dev_mode = self.settings["Development"]
             except FileNotFoundError:
-                return {}
+                self.settings = {}
         else:
             return self.settings
