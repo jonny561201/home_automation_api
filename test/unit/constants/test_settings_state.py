@@ -27,6 +27,11 @@ class TestState:
         os.environ.pop('SQL_PASSWORD')
         os.environ.pop('SQL_PORT')
         os.environ.pop('SQL_DBNAME')
+        os.environ.pop('EMAIL_APP_ID')
+        os.environ.pop('WEATHER_APP_ID')
+        os.environ.pop('JWT_SECRET')
+        os.environ.pop('LIGHT_API_USERNAME')
+        os.environ.pop('LIGHT_API_PASSWORD')
 
     def test_db_user__should_return_env_var_value(self):
         assert self.SETTINGS.db_user == self.DB_USER
