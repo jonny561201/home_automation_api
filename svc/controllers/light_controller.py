@@ -10,9 +10,9 @@ def get_assigned_light_groups(bearer_token):
     is_jwt_valid(bearer_token)
     light_state = LightState.get_instance()
     if light_state.API_KEY is None:
-        settings = Settings.get_instance().get_settings()
+        settings = Settings.get_instance()
         dev_mode = settings.get('Development', False)
-        username = settings.get('LightApiUser') if dev_mode else os.environ['LIGHT_API_USERNAME']
+        username = settings.light_api_user
         password = settings.get('LightApiPass') if dev_mode else os.environ['LIGHT_API_PASSWORD']
         api_key = api_utils.get_light_api_key(username, password)
     else:

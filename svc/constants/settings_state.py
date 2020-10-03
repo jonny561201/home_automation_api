@@ -42,6 +42,10 @@ class Settings:
     def jwt_secret(self):
         return self.settings.get('DevJwtSecret') if self.dev_mode else os.environ.get('JWT_SECRET')
 
+    @property
+    def light_api_user(self):
+        return self.settings.get('LightApiUser') if self.dev_mode else os.environ.get('LIGHT_API_USERNAME')
+
     @staticmethod
     def get_instance():
         if Settings.__instance is None:
