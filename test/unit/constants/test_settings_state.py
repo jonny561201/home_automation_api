@@ -11,10 +11,12 @@ class TestState:
     DB_NAME = 'fake_name'
     EMAIL_APP_ID = 'abc123'
     WEATHER_APP_ID = '345def'
+    JWT_SECRET = 'FakeSecret'
 
     def setup_method(self):
         os.environ.update({'SQL_USERNAME': self.DB_USER, 'SQL_PASSWORD': self.DB_PASS, 'SQL_PORT': self.DB_PORT,
-                           'SQL_DBNAME': self.DB_NAME, 'EMAIL_APP_ID': self.EMAIL_APP_ID, 'WEATHER_APP_ID': self.WEATHER_APP_ID})
+                           'SQL_DBNAME': self.DB_NAME, 'EMAIL_APP_ID': self.EMAIL_APP_ID, 'WEATHER_APP_ID': self.WEATHER_APP_ID,
+                           'JWT_SECRET': self.JWT_SECRET})
         self.SETTINGS = Settings.get_instance()
 
     def teardown_method(self):
@@ -40,6 +42,9 @@ class TestState:
 
     def test_weather_app_id__should_return_env_var_value(self):
         assert self.SETTINGS.weather_app_id == self.WEATHER_APP_ID
+
+    def test_jwt_secret__should_return_env_var_value(self):
+        assert self.SETTINGS.jwt_secret == self.JWT_SECRET
 
     def test_db_user__should_pull_from_dictionary_if_dev_mode(self):
         db_user = 'other_user'
@@ -76,4 +81,10 @@ class TestState:
         self.SETTINGS.dev_mode = True
         self.SETTINGS.settings = {'DevWeatherAppId': weather_app_id}
         assert self.SETTINGS.weather_app_id == weather_app_id
+
+    def test_jwt_secret__should_pull_from_dictionary_if_dev_mode(self):
+        jwt_secret = 'other_secret'
+        self.SETTINGS.dev_mode = True
+        self.SETTINGS.settings = {'DevJwtSecret': jwt_secret}
+        assert self.SETTINGS.jwt_secret == jwt_secret
 

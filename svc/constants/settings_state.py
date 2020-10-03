@@ -38,6 +38,10 @@ class Settings:
     def weather_app_id(self):
         return self.settings.get('DevWeatherAppId') if self.dev_mode else os.environ.get('WEATHER_APP_ID')
 
+    @property
+    def jwt_secret(self):
+        return self.settings.get('DevJwtSecret') if self.dev_mode else os.environ.get('JWT_SECRET')
+
     @staticmethod
     def get_instance():
         if Settings.__instance is None:
