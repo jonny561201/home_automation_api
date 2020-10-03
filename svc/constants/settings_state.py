@@ -12,6 +12,7 @@ class Settings:
             raise Exception
         else:
             Settings.__instance = self
+            Settings.__instance.get_settings()
 
     @property
     def db_user(self):
