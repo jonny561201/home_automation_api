@@ -136,5 +136,5 @@ class TestLightRequest:
         actual = get_assigned_light_groups(self.BEARER_TOKEN)
 
         assert actual == [{'groupId': '2', 'groupName': None, 'brightness': None, 'on': None,
-                           'lights': [{'lightId': '1', 'lightName': 'lamp 1', 'on': True, 'brightness': 233},
-                                      {'lightId': '3', 'lightName': 'lamp 3', 'on': False, 'brightness': 255}]}]
+                           'lights': [{'groupId': '2', 'lightId': '1', 'lightName': 'lamp 1', 'on': True, 'brightness': 233},
+                                      {'groupId': '2', 'lightId': '3', 'lightName': 'lamp 3', 'on': False, 'brightness': 255}]}]

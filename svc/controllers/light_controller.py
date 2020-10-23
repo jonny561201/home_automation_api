@@ -44,10 +44,10 @@ def set_assigned_light(bearer_token, request_data):
 def __group_mapper(k, v, full_state):
     action = v.get('action')
     return {'groupId': k, 'groupName': v.get('name'), 'on': action.get('on'), 'brightness': action.get('bri'),
-            'lights': __light_mapper(v.get('lights'), full_state.get('lights'))}
+            'lights': __light_mapper(k, v.get('lights'), full_state.get('lights'))}
 
 
-def __light_mapper(group_lights, lights):
-    return [{'lightId': k, 'lightName': v.get('name'), 'on': v.get('state').get('on'), 'brightness': v.get('state').get('bri')}
+def __light_mapper(group_id, group_lights, lights):
+    return [{'groupId': group_id, 'lightId': k, 'lightName': v.get('name'), 'on': v.get('state').get('on'), 'brightness': v.get('state').get('bri')}
             for k, v in lights.items() if k in group_lights]
 
