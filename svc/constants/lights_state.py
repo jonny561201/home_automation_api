@@ -1,6 +1,8 @@
 class LightState:
     __instance = None
     API_KEY = None
+    ALARM_TIME = None
+    ALARM_DURATION = 15
 
     def __init__(self):
         if LightState.__instance is not None:
