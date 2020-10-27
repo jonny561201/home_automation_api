@@ -11,5 +11,5 @@ def run_light_program(api_key, group_id):
     # every 17066 milliseconds we need to up the light group by one
     state = LightState.get_instance()
     now = datetime.now()
-    if state.ALARM_TIME > now:
+    if state.ALARM_TIME >= now:
         set_light_groups(api_key, group_id, True, 1)
