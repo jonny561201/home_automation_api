@@ -15,3 +15,5 @@ def run_light_program(api_key, group_id):
     if state.ALARM_START_TIME <= now < state.ALARM_STOP_TIME:
         state.ALARM_CURRENT_STATE += 1
         set_light_groups(api_key, group_id, True, state.ALARM_CURRENT_STATE)
+    else:
+        state.ALARM_CURRENT_STATE = 0

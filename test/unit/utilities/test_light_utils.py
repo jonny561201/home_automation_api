@@ -50,3 +50,11 @@ class TestLightUtils:
         run_light_program(self.API_KEY, self.GROUP_ID)
 
         mock_api.assert_called_with(self.API_KEY, self.GROUP_ID, True, 122)
+
+    def test_run_light_program__should_reset_the_light_state_value_back_to_zero(self, mock_api, mock_date):
+        mock_date.datetime.now.return_value.time.return_value = datetime.time(7, 41, 0)
+        self.LIGHTS.ALARM_CURRENT_STATE = 203
+        run_light_program(self.API_KEY, self.GROUP_ID)
+
+        mock_api.assert_not_called()
+        assert self.LIGHTS.ALARM_CURRENT_STATE == 0
