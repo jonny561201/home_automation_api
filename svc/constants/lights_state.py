@@ -1,8 +1,11 @@
+import datetime
+
+
 class LightState:
     __instance = None
     API_KEY = None
-    ALARM_TIME = None
-    ALARM_DURATION = 15
+    ALARM_START_TIME = datetime.time(7, 30, 0)
+    ALARM_STOP_TIME = datetime.time(7, 50, 0)
 
     def __init__(self):
         if LightState.__instance is not None:
@@ -15,4 +18,3 @@ class LightState:
         if LightState.__instance is None:
             LightState.__instance = LightState()
         return LightState.__instance
-
