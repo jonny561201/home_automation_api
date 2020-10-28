@@ -16,6 +16,7 @@ class TestLightUtils:
 
     def setup_method(self):
         self.LIGHTS = LightState.get_instance()
+        self.LIGHTS.ALARM_CURRENT_STATE = 0
         self.LIGHTS.ALARM_START_TIME = self.START_TIME
         self.LIGHTS.ALARM_STOP_TIME = self.END_TIME
 
@@ -42,3 +43,10 @@ class TestLightUtils:
         run_light_program(self.API_KEY, self.GROUP_ID)
 
         mock_api.assert_not_called()
+
+    def test_run_light_program__should_increment_the_light_brightness(self, mock_api, mock_date):
+        mock_date.datetime.now.return_value.time.return_value = datetime.time(7, 34, 0)
+        self.LIGHTS.ALARM_CURRENT_STATE = 121
+        run_light_program(self.API_KEY, self.GROUP_ID)
+
+        mock_api.assert_called_with(self.API_KEY, self.GROUP_ID, True, 122)
