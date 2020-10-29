@@ -7,6 +7,7 @@ from svc.utilities.event_utils import create_thread
 from svc.utilities.light_utils import run_light_program
 
 
+# TODO: how should I get the devices default user id....would be easier of the database was cloud based...
 def start_light_alarm():
     state = LightState.get_instance()
     if state.ALARM_THREAD is None:

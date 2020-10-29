@@ -50,6 +50,10 @@ class Settings:
     def light_api_password(self):
         return self.settings.get('LightApiPass') if self.dev_mode else os.environ.get('LIGHT_API_PASSWORD')
 
+    @property
+    def user_id(self):
+        return os.environ.get('USER_ID')
+
     @staticmethod
     def get_instance():
         if Settings.__instance is None:
