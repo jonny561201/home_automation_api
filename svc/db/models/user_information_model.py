@@ -1,6 +1,6 @@
 import sqlalchemy
 from sqlalchemy import Column, String, Boolean, Integer, ForeignKey, DECIMAL, TIMESTAMP, DATE
-from sqlalchemy.dialects.postgresql import UUID, INET, SMALLINT
+from sqlalchemy.dialects.postgresql import UUID, INET, SMALLINT, TIME
 from sqlalchemy.ext import declarative
 from sqlalchemy.orm import relationship
 
@@ -74,6 +74,7 @@ class UserPreference(Base):
     is_imperial = Column(Boolean, nullable=False)
     city = Column(String, nullable=True)
     alarm_light_group = Column(String, nullable=True)
+    alarm_time = Column(TIME, nullable=True)
 
     user = relationship('UserInformation', foreign_keys='UserPreference.user_id')
 
