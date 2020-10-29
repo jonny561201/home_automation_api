@@ -120,13 +120,14 @@ class TestDbPreferenceIntegration:
     UNIT = 'metric'
     LIGHT_GROUP = '65'
     LIGHT_TIME = '02:22:22'
+    DAYS = 'MonTueWedThuFri'
 
     def setup_method(self):
         os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
                            'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
         self.USER_PREFERENCES = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city=self.CITY,
-                                               alarm_light_group=self.LIGHT_GROUP, alarm_time=self.LIGHT_TIME)
+                                               alarm_light_group=self.LIGHT_GROUP, alarm_time=self.LIGHT_TIME, alarm_days=self.DAYS)
         with UserDatabaseManager() as database:
             database.session.add(self.USER)
             database.session.add(self.USER_PREFERENCES)
@@ -151,6 +152,7 @@ class TestDbPreferenceIntegration:
             assert response['is_imperial'] is True
             assert response['alarm_light_group'] == self.LIGHT_GROUP
             assert response['alarm_time'] == datetime.time(2, 22, 22)
+            assert response['alarm_days'] == self.DAYS
 
     def test_get_preferences_by_user__should_raise_bad_request_when_no_preferences(self):
         with pytest.raises(BadRequest):

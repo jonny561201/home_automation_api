@@ -60,7 +60,8 @@ class UserDatabase:
                 'is_fahrenheit': preference.is_fahrenheit,
                 'is_imperial': preference.is_imperial,
                 'alarm_light_group': preference.alarm_light_group,
-                'alarm_time': preference.alarm_time}
+                'alarm_time': preference.alarm_time,
+                'alarm_days': preference.alarm_days}
 
     def insert_preferences_by_user(self, user_id, preference_info):
         is_fahrenheit = preference_info.get('isFahrenheit')

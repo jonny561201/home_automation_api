@@ -160,6 +160,15 @@ class TestUserDatabase:
 
         assert actual['alarm_time'] == '01:30:00'
 
+    def test_get_preferences_by_user__should_return_alarm_light_days_preferences(self):
+        user = TestUserDatabase.__create_database_user()
+        preference = TestUserDatabase.__create_user_preference(user)
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = preference
+
+        actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
+
+        assert actual['alarm_days'] == 'MonTueWedThuFri'
+
     def test_get_preferences_by_user__should_return_is_alarm_light_group_preferences(self):
         user = TestUserDatabase.__create_database_user()
         preference = TestUserDatabase.__create_user_preference(user, 'Fake City', True, True)
@@ -537,14 +546,15 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.delete.assert_called()
 
     @staticmethod
-    def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False, light_group='2', time='01:30:00'):
+    def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()
         preference.user = user
         preference.city = city
         preference.is_fahrenheit = is_fahrenheit
         preference.is_imperial = is_imperial
-        preference.alarm_light_group = light_group
-        preference.alarm_time = time
+        preference.alarm_light_group = '2'
+        preference.alarm_time = '01:30:00'
+        preference.alarm_days = 'MonTueWedThuFri'
 
         return preference
 
