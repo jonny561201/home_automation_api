@@ -16,6 +16,7 @@ class Garage:
 
 
 class Time:
+    FIVE_SECONDS = 5
     THIRTY_SECONDS = 30
     ONE_MINUTE = 60
     TEN_MINUTE = 600

@@ -4,9 +4,10 @@ import datetime
 class LightState:
     __instance = None
     API_KEY = None
+    ALARM_THREAD = None
+    ALARM_CURRENT_STATE = 0
     ALARM_START_TIME = datetime.time(7, 30, 0)
     ALARM_STOP_TIME = datetime.time(7, 50, 0)
-    ALARM_CURRENT_STATE = 0
 
     def __init__(self):
         if LightState.__instance is not None:
