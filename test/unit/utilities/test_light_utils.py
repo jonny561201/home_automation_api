@@ -58,3 +58,10 @@ class TestLightUtils:
 
         mock_api.assert_not_called()
         assert self.LIGHTS.ALARM_CURRENT_STATE == 0
+
+    def test_run_light_program__should_stop_incrementing_once_reach_255(self, mock_api, mock_date):
+        mock_date.datetime.now.return_value.time.return_value = datetime.time(7, 34, 0)
+        self.LIGHTS.ALARM_CURRENT_STATE = 255
+        run_light_program(self.API_KEY, self.GROUP_ID)
+
+        mock_api.assert_not_called()
