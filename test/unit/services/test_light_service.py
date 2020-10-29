@@ -12,13 +12,14 @@ from svc.services.light_service import start_light_alarm
 class TestLightService:
     USER_NAME = 'test user'
     PASSWORD = 'test pass'
+    USER_ID = 'def098'
 
     def setup_method(self):
         self.LIGHTS = LightState.get_instance()
         self.LIGHTS.ALARM_THREAD = None
         self.SETTINGS = Settings.get_instance()
         self.SETTINGS.dev_mode = True
-        self.SETTINGS.settings = {"LightApiPass": self.PASSWORD, "LightApiUser": self.USER_NAME}
+        self.SETTINGS.settings = {"LightApiPass": self.PASSWORD, "LightApiUser": self.USER_NAME, 'UserId': self.USER_ID}
 
     def test_start_light_alarm__should_create_thread(self, mock_thread, mock_api, mock_db):
         start_light_alarm()
@@ -40,3 +41,8 @@ class TestLightService:
         start_light_alarm()
 
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.assert_called()
+
+    def test_start_light_alarm__should_make_call_to_get_alarm_light_group_using_user_id_from_settings(self, mock_thread, mock_api, mock_db):
+        start_light_alarm()
+
+        mock_db.return_value.__enter__.return_value.get_preferences_by_user.assert_called_with(self.USER_ID)

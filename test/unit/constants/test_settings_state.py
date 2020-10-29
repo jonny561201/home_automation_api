@@ -124,4 +124,3 @@ class TestState:
         self.SETTINGS.dev_mode = True
         self.SETTINGS.settings = {'UserId': user_id}
         assert self.SETTINGS.user_id == user_id
-
