@@ -27,3 +27,9 @@ class TestLightService:
         start_light_alarm()
 
         mock_api.assert_called_with(self.USER_NAME, self.PASSWORD)
+
+    def test_start_light_alarm__should_not_make_api_call_when_thread_already_created(self, mock_thread, mock_api):
+        self.LIGHTS.ALARM_THREAD = {}
+        start_light_alarm()
+
+        mock_api.assert_not_called()
