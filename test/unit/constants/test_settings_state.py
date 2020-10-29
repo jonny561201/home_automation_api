@@ -119,3 +119,9 @@ class TestState:
         self.SETTINGS.settings = {'LightApiPass': light_api_password}
         assert self.SETTINGS.light_api_password == light_api_password
 
+    def test_user_id__should_pull_from_dictionary_if_dev_mode(self):
+        user_id = 'other_user_id'
+        self.SETTINGS.dev_mode = True
+        self.SETTINGS.settings = {'UserId': user_id}
+        assert self.SETTINGS.user_id == user_id
+

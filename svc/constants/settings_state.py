@@ -52,7 +52,7 @@ class Settings:
 
     @property
     def user_id(self):
-        return os.environ.get('USER_ID')
+        return self.settings.get('UserId') if self.dev_mode else os.environ.get('USER_ID')
 
     @staticmethod
     def get_instance():
