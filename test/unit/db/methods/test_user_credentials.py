@@ -214,6 +214,21 @@ class TestUserDatabase:
         user_id = str(uuid.uuid4())
         self.DATABASE.insert_preferences_by_user(user_id, preference_info)
 
+    def test_insert_preferences_by_user__should_not_throw_when_alarm_time_missing(self):
+        preference_info = {'isFahrenheit': False, 'isImperial': True}
+        user_id = str(uuid.uuid4())
+        self.DATABASE.insert_preferences_by_user(user_id, preference_info)
+
+    def test_insert_preferences_by_user__should_not_throw_when_alarm_days_missing(self):
+        preference_info = {'isFahrenheit': False, 'isImperial': True}
+        user_id = str(uuid.uuid4())
+        self.DATABASE.insert_preferences_by_user(user_id, preference_info)
+
+    def test_insert_preferences_by_user__should_not_throw_when_alarm_light_group_missing(self):
+        preference_info = {'isFahrenheit': False, 'isImperial': True}
+        user_id = str(uuid.uuid4())
+        self.DATABASE.insert_preferences_by_user(user_id, preference_info)
+
     def test_insert_preferences_by_user__should_not_throw_when_is_fahrenheit_missing(self):
         preference_info = {'city': 'London', 'isImperial': False}
         user_id = str(uuid.uuid4())
