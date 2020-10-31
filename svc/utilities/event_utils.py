@@ -20,3 +20,6 @@ def create_thread(state, fn, delay=Automation.TIME.THIRTY_SECONDS):
     state.STOP_EVENT = stop_event
     state.ACTIVE_THREAD = MyThread(stop_event, fn, delay)
     state.ACTIVE_THREAD.start()
+
+    #stop_event.set() will kill the process
+    return stop_event
