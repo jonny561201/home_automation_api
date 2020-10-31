@@ -24,7 +24,7 @@ class TestLightService:
     def test_start_light_alarm__should_create_thread(self, mock_thread, mock_api, mock_db):
         start_light_alarm()
 
-        mock_thread.assert_called_with(self.LIGHTS, ANY, Automation.TIME.FIVE_SECONDS)
+        mock_thread.assert_called_with(self.LIGHTS, ANY, Automation.TIME.TEN_SECONDS)
 
     def test_start_light_alarm__should_make_call_to_get_api_key(self, mock_thread, mock_api, mock_db):
         start_light_alarm()
