@@ -51,3 +51,9 @@ class TestLightService:
         create_start_light_alarm()
 
         mock_alarm.assert_called_with(time, days)
+
+    def test_create_start_light_alarm__should_return_alarm_to_allow_later_cancellation(self, mock_threa, mock_api, mock_db, mock_alarm):
+        mock_alarm.return_value = self.ALARM
+        actual = create_start_light_alarm()
+
+        assert actual == self.ALARM
