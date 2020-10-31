@@ -20,11 +20,11 @@ class LightState:
 
 class LightAlarm:
     ALARM_COUNTER = 0
-    THREAD_EVENT = None
+    ACTIVE_THREAD = None
+    STOP_EVENT = None
     ALARM_START_TIME = None
     ALARM_STOP_TIME = None
 
-    def __init__(self, event, start_time, stop_time):
-        self.THREAD_EVENT = event
-        self.ALARM_START_TIME = datetime.time(12, 2, 0)
-        self.ALARM_STOP_TIME = datetime.time(12, 22, 0)
+    def __init__(self, start_time=datetime.time(12, 2, 0), stop_time=datetime.time(12, 22, 0)):
+        self.ALARM_START_TIME = start_time
+        self.ALARM_STOP_TIME = stop_time
