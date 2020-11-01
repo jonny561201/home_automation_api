@@ -62,7 +62,8 @@ class Settings:
 
     def __get_settings(self):
         try:
-            with open("./settings.json", "r") as reader:
+            file_path = os.path.join(os.path.dirname(__file__), '..', '..', 'settings.json')
+            with open(file_path, "r") as reader:
                 self.settings = json.loads(reader.read())
                 self.dev_mode = self.settings.get("Development", False)
         except FileNotFoundError:
