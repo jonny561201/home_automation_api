@@ -13,7 +13,7 @@ def create_start_light_alarm():
     settings = Settings.get_instance()
     with UserDatabaseManager() as database:
         preference = database.get_preferences_by_user(settings.user_id)
-    if preference['alarm_time'] is not None:
+    if preference['alarm_time'] is not None and preference['alarm_days'] is not None:
         api_key = get_light_api_key(settings.light_api_user, settings.light_api_password)
         alarm = LightAlarm(preference['alarm_time'], preference['alarm_days'])
         create_thread(alarm, lambda: run_light_program(alarm, api_key, preference['alarm_light_group']), Automation.TIME.TEN_SECONDS)
