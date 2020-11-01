@@ -24,7 +24,9 @@ class LightAlarm:
     STOP_EVENT = None
     ALARM_START_TIME = None
     ALARM_STOP_TIME = None
+    ALARM_DAYS = None
 
-    def __init__(self, start_time=datetime.time(12, 2, 0), stop_time=datetime.time(12, 22, 0)):
-        self.ALARM_START_TIME = start_time
-        self.ALARM_STOP_TIME = stop_time
+    def __init__(self, alarm_time, alarm_days):
+        self.ALARM_DAYS = alarm_days
+        self.ALARM_START_TIME = (datetime.datetime.combine(datetime.date.today(), alarm_time) + datetime.timedelta(minutes=-10)).time()
+        self.ALARM_STOP_TIME = (datetime.datetime.combine(datetime.date.today(), alarm_time) + datetime.timedelta(minutes=+10)).time()
