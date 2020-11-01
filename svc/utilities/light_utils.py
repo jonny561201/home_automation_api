@@ -1,14 +1,19 @@
 import datetime
 
-from svc.constants.lights_state import LightState
 from svc.utilities.api_utils import set_light_groups
 
 
-def run_light_program(api_key, group_id):
-    state = LightState.get_instance()
-    now = datetime.datetime.now().time()
-    if state.ALARM_START_TIME <= now < state.ALARM_STOP_TIME and state.ALARM_CURRENT_STATE <= 254:
-        state.ALARM_CURRENT_STATE += 2
-        set_light_groups(api_key, group_id, True, state.ALARM_CURRENT_STATE)
-    elif state.ALARM_CURRENT_STATE != 0:
-        state.ALARM_CURRENT_STATE = 0
+def run_light_program(light_state, api_key, group_id):
+    now = datetime.datetime.now()
+    day_name = now.strftime('%a')
+    if __is_within_alarm(light_state, day_name, now):
+        light_state.ALARM_COUNTER += 2
+        set_light_groups(api_key, group_id, True, light_state.ALARM_COUNTER)
+    elif light_state.ALARM_COUNTER != 0:
+        light_state.ALARM_COUNTER = 0
+
+
+def __is_within_alarm(light_state, day_name, now):
+    return day_name in light_state.ALARM_DAYS \
+           and light_state.ALARM_START_TIME <= now.time() < light_state.ALARM_STOP_TIME \
+           and light_state.ALARM_COUNTER <= 254
