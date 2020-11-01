@@ -158,7 +158,7 @@ class TestUserDatabase:
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
-        assert actual['alarm_time'] == '01:30:00'
+        assert actual['alarm_time'] == preference.alarm_time
 
     def test_get_preferences_by_user__should_return_alarm_light_days_preferences(self):
         user = TestUserDatabase.__create_database_user()
@@ -568,7 +568,7 @@ class TestUserDatabase:
         preference.is_fahrenheit = is_fahrenheit
         preference.is_imperial = is_imperial
         preference.alarm_light_group = '2'
-        preference.alarm_time = '01:30:00'
+        preference.alarm_time = datetime.now().time()
         preference.alarm_days = 'MonTueWedThuFri'
 
         return preference

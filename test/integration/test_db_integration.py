@@ -151,7 +151,7 @@ class TestDbPreferenceIntegration:
             assert response['is_fahrenheit'] is True
             assert response['is_imperial'] is True
             assert response['alarm_light_group'] == self.LIGHT_GROUP
-            assert response['alarm_time'] == self.LIGHT_TIME
+            assert response['alarm_time'] == datetime.time(2,22,22)
             assert response['alarm_days'] == self.DAYS
 
     def test_get_preferences_by_user__should_raise_bad_request_when_no_preferences(self):

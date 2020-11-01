@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 import jwt
 from mock import patch, ANY
@@ -53,12 +54,14 @@ class TestLoginController:
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.assert_called_with(self.USER_ID)
 
     def test_get_user_preferences__should_return_preferences_response(self, mock_jwt, mock_db):
-        expected_preferences = {'unit': 'imperial', 'city': 'Des Moines'}
-        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = expected_preferences
+        alarm_time = datetime.now().time()
+        prefs = {'unit': 'imperial', 'city': 'Des Moines', 'alarm_time': alarm_time}
+        expected_prefs = {'unit': 'imperial', 'city': 'Des Moines', 'alarm_time': str(alarm_time)}
+        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = prefs
 
         actual = get_user_preferences(self.BASIC_AUTH_TOKEN, self.USER_ID)
 
-        assert actual == expected_preferences
+        assert actual == expected_prefs
 
     def test_save_user_preferences__should_validate_bearer_token(self, mock_jwt, mock_db):
         bearer_token = 'fakeBearerToken'

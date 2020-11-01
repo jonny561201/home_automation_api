@@ -14,7 +14,9 @@ def get_login(basic_token):
 def get_user_preferences(bearer_token, user_id):
     jwt_utils.is_jwt_valid(bearer_token)
     with UserDatabaseManager() as database:
-        return database.get_preferences_by_user(user_id)
+        prefs = database.get_preferences_by_user(user_id)
+        prefs['alarm_time'] = str(prefs['alarm_time'])
+        return prefs
 
 
 def save_user_preferences(bearer_token, user_id, request_data):

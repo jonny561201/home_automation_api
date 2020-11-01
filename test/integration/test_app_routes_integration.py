@@ -6,7 +6,7 @@ import uuid
 import jwt
 
 from svc.db.methods.user_credentials import UserDatabaseManager
-from svc.db.models.user_information_model import UserInformation, UserPreference, UserCredentials
+from svc.db.models.user_information_model import UserInformation, UserPreference
 from svc.manager import create_app
 
 
