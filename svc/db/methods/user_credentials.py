@@ -67,9 +67,7 @@ class UserDatabase:
 
     def insert_preferences_by_user(self, user_id, preference_info):
         city = preference_info.get('city')
-        days = preference_info.get('alarmDays')
-        time = preference_info.get('alarmTime')
-        group = preference_info.get('alarmLightGroup')
+        light_alarm = preference_info.get('lightAlarm')
         is_imperial = preference_info.get('isImperial')
         is_fahrenheit = preference_info.get('isFahrenheit')
         if len(preference_info) == 0:
@@ -79,9 +77,10 @@ class UserDatabase:
         record.is_fahrenheit = is_fahrenheit if is_fahrenheit is not None else record.is_fahrenheit
         record.is_imperial = is_imperial if is_imperial is not None else record.is_imperial
         record.city = city if city is not None else record.city
-        record.alarm_days = days if days is not None else record.alarm_days
-        record.alarm_time = time if time is not None else record.alarm_time
-        record.alarm_light_group = group if group is not None else record.alarm_light_group
+        record.alarm_days = light_alarm.get('alarmDays') if light_alarm is not None else record.alarm_days
+        record.alarm_time = light_alarm.get('alarmTime') if light_alarm is not None else record.alarm_time
+        record.alarm_light_group = light_alarm.get('alarmLightGroup') if light_alarm is not None else record.alarm_light_group
+        record.alarm_light_name = light_alarm.get('alarmLightName') if light_alarm is not None else record.alarm_light_name
 
     def get_current_sump_level_by_user(self, user_id):
         sump_level = self.session.query(DailySumpPumpLevel).filter_by(user_id=user_id).order_by(DailySumpPumpLevel.id.desc()).first()

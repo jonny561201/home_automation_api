@@ -212,39 +212,44 @@ class TestUserDatabase:
             self.DATABASE.get_preferences_by_user(uuid.uuid4().hex)
 
     def test_insert_preferences_by_user__should_call_query(self):
-        preference_info = {'isFahrenheit': True, 'isImperial': True, 'city': 'Des Moines'}
+        preference_info = {'isFahrenheit': True, 'isImperial': True, 'city': 'Des Moines', 'lightAlarm': {}}
         user_id = str(uuid.uuid4())
         self.DATABASE.insert_preferences_by_user(user_id, preference_info)
 
         self.SESSION.query.return_value.filter_by.assert_called_with(user_id=user_id)
 
     def test_insert_preferences_by_user__should_not_throw_when_city_missing(self):
-        preference_info = {'isFahrenheit': False, 'isImperial': True}
+        preference_info = {'isFahrenheit': False, 'isImperial': True, 'lightAlarm': {'alarmLightName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon'}}
         user_id = str(uuid.uuid4())
         self.DATABASE.insert_preferences_by_user(user_id, preference_info)
 
     def test_insert_preferences_by_user__should_not_throw_when_alarm_time_missing(self):
-        preference_info = {'isFahrenheit': False, 'isImperial': True}
+        preference_info = {'isFahrenheit': False, 'isImperial': True, 'lightAlarm': {'alarmLightName': 'bedroom', 'alarmLightGroup': '1', 'alarmDays': 'Mon'}}
         user_id = str(uuid.uuid4())
         self.DATABASE.insert_preferences_by_user(user_id, preference_info)
 
     def test_insert_preferences_by_user__should_not_throw_when_alarm_days_missing(self):
-        preference_info = {'isFahrenheit': False, 'isImperial': True}
+        preference_info = {'isFahrenheit': False, 'isImperial': True, 'lightAlarm': {'alarmLightName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00'}}
         user_id = str(uuid.uuid4())
         self.DATABASE.insert_preferences_by_user(user_id, preference_info)
 
     def test_insert_preferences_by_user__should_not_throw_when_alarm_light_group_missing(self):
-        preference_info = {'isFahrenheit': False, 'isImperial': True}
+        preference_info = {'isFahrenheit': False, 'isImperial': True, 'lightAlarm': {'alarmDays': 'mon', 'alarmLightName': 'bedroom', 'alarmTime': '00:01:00'}}
+        user_id = str(uuid.uuid4())
+        self.DATABASE.insert_preferences_by_user(user_id, preference_info)
+
+    def test_insert_preferences_by_user__should_not_throw_when_alarm_light_name_missing(self):
+        preference_info = {'isFahrenheit': False, 'isImperial': True, 'lightAlarm': {'alarmDays': 'mon', 'alarmLightGroup': '1', 'alarmTime': '00:01:00'}}
         user_id = str(uuid.uuid4())
         self.DATABASE.insert_preferences_by_user(user_id, preference_info)
 
     def test_insert_preferences_by_user__should_not_throw_when_is_fahrenheit_missing(self):
-        preference_info = {'city': 'London', 'isImperial': False}
+        preference_info = {'city': 'London', 'isImperial': False, 'lightAlarm': {'alarmLightName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon'}}
         user_id = str(uuid.uuid4())
         self.DATABASE.insert_preferences_by_user(user_id, preference_info)
 
     def test_insert_preferences_by_user__should_not_throw_when_is_imperial_missing(self):
-        preference_info = {'city': 'London', 'isFahrenheit': True}
+        preference_info = {'city': 'London', 'isFahrenheit': True, 'lightAlarm': {'alarmLightName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon'}}
         user_id = str(uuid.uuid4())
         self.DATABASE.insert_preferences_by_user(user_id, preference_info)
 
