@@ -15,10 +15,11 @@ def get_user_preferences(bearer_token, user_id):
     jwt_utils.is_jwt_valid(bearer_token)
     with UserDatabaseManager() as database:
         prefs = database.get_preferences_by_user(user_id)
-        prefs['alarm_time'] = str(prefs['alarm_time'])
+        prefs.get('light_alarm')['alarm_time'] = str(prefs.get('light_alarm')['alarm_time'])
         return prefs
 
 
+# TODO: should create or update the existing lightalarm object
 def save_user_preferences(bearer_token, user_id, request_data):
     jwt_utils.is_jwt_valid(bearer_token)
     user_preferences = json.loads(request_data.decode('UTF-8'))
