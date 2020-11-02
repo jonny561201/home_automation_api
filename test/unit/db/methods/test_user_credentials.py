@@ -149,7 +149,16 @@ class TestUserDatabase:
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
-        assert actual['alarm_light_group'] == '2'
+        assert actual['light_alarm']['alarm_light_group'] == '2'
+
+    def test_get_preferences_by_user__should_return_alarm_light_name_preferences(self):
+        user = TestUserDatabase.__create_database_user()
+        preference = TestUserDatabase.__create_user_preference(user)
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = preference
+
+        actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
+
+        assert actual['light_alarm']['alarm_light_name'] == 'bedroom'
 
     def test_get_preferences_by_user__should_return_alarm_light_time_preferences(self):
         user = TestUserDatabase.__create_database_user()
@@ -158,7 +167,7 @@ class TestUserDatabase:
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
-        assert actual['alarm_time'] == preference.alarm_time
+        assert actual['light_alarm']['alarm_time'] == preference.alarm_time
 
     def test_get_preferences_by_user__should_return_alarm_light_days_preferences(self):
         user = TestUserDatabase.__create_database_user()
@@ -167,7 +176,7 @@ class TestUserDatabase:
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
-        assert actual['alarm_days'] == 'MonTueWedThuFri'
+        assert actual['light_alarm']['alarm_days'] == 'MonTueWedThuFri'
 
     def test_get_preferences_by_user__should_return_is_alarm_light_group_preferences(self):
         user = TestUserDatabase.__create_database_user()
@@ -570,6 +579,7 @@ class TestUserDatabase:
         preference.alarm_light_group = '2'
         preference.alarm_time = datetime.now().time()
         preference.alarm_days = 'MonTueWedThuFri'
+        preference.alarm_light_name = 'bedroom'
 
         return preference
 

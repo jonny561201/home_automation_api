@@ -54,14 +54,16 @@ class UserDatabase:
         preference = self.session.query(UserPreference).filter_by(user_id=user_id).first()
         if preference is None:
             raise BadRequest
+        light_info = {'alarm_light_group': preference.alarm_light_group,
+                      'alarm_time': preference.alarm_time,
+                      'alarm_days': preference.alarm_days,
+                      'alarm_light_name': preference.alarm_light_name}
         return {'temp_unit': 'fahrenheit' if preference.is_fahrenheit else 'celsius',
                 'measure_unit': 'imperial' if preference.is_imperial else 'metric',
                 'city': preference.city,
                 'is_fahrenheit': preference.is_fahrenheit,
                 'is_imperial': preference.is_imperial,
-                'alarm_light_group': preference.alarm_light_group,
-                'alarm_time': preference.alarm_time,
-                'alarm_days': preference.alarm_days}
+                'light_alarm': light_info}
 
     def insert_preferences_by_user(self, user_id, preference_info):
         city = preference_info.get('city')
