@@ -47,7 +47,7 @@ class TestLightService:
     def test_create_start_light_alarm__should_create_light_state_object(self, mock_thread, mock_api, mock_db, mock_alarm):
         time = datetime.time()
         days = 'MonTueWed'
-        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = {'alarm_time': time, 'alarm_days': days}
+        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = {'light_alarm': {'alarm_time': time, 'alarm_days': days}}
         create_start_light_alarm()
 
         mock_alarm.assert_called_with(time, days)
@@ -59,13 +59,13 @@ class TestLightService:
         assert actual == self.ALARM
 
     def test_create_start_light_alarm__should_not_create_thread_when_alarm_time_is_none(self, mock_thread, mock_api, mock_db, mock_alarm):
-        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = {'city': 'Des Moines', 'alarm_time': None, 'alarm_days': 'montue'}
+        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = {'city': 'Des Moines', 'light_alarm': {'alarm_time': None, 'alarm_days': 'montue'}}
         create_start_light_alarm()
 
         mock_thread.assert_not_called()
 
     def test_create_start_light_alarm__should_not_create_thread_when_alarm_is_none(self, mock_thread, mock_api, mock_db, mock_alarm):
-        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = {'city': 'Des Moines', 'alarm_time': datetime.time(), 'alarm_days': None}
+        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = {'city': 'Des Moines', 'light_alarm': {'alarm_time': datetime.time(), 'alarm_days': None}}
         create_start_light_alarm()
 
         mock_thread.assert_not_called()

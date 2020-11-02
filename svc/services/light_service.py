@@ -12,7 +12,7 @@ from svc.utilities.light_utils import run_light_program
 def create_start_light_alarm():
     settings = Settings.get_instance()
     with UserDatabaseManager() as database:
-        preference = database.get_preferences_by_user(settings.user_id)
+        preference = database.get_preferences_by_user(settings.user_id).get('light_alarm')
     if preference['alarm_time'] is not None and preference['alarm_days'] is not None:
         api_key = get_light_api_key(settings.light_api_user, settings.light_api_password)
         alarm = LightAlarm(preference['alarm_time'], preference['alarm_days'])
