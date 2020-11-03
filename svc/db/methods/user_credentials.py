@@ -57,7 +57,7 @@ class UserDatabase:
         light_info = {'alarm_light_group': preference.alarm_light_group,
                       'alarm_time': preference.alarm_time,
                       'alarm_days': preference.alarm_days,
-                      'alarm_light_name': preference.alarm_light_name}
+                      'alarm_group_name': preference.alarm_group_name}
         return {'temp_unit': 'fahrenheit' if preference.is_fahrenheit else 'celsius',
                 'measure_unit': 'imperial' if preference.is_imperial else 'metric',
                 'city': preference.city,
@@ -80,7 +80,7 @@ class UserDatabase:
         record.alarm_days = light_alarm.get('alarmDays') if light_alarm is not None else record.alarm_days
         record.alarm_time = light_alarm.get('alarmTime') if light_alarm is not None else record.alarm_time
         record.alarm_light_group = light_alarm.get('alarmLightGroup') if light_alarm is not None else record.alarm_light_group
-        record.alarm_light_name = light_alarm.get('alarmLightName') if light_alarm is not None else record.alarm_light_name
+        record.alarm_group_name = light_alarm.get('alarmGroupName') if light_alarm is not None else record.alarm_group_name
 
     def get_current_sump_level_by_user(self, user_id):
         sump_level = self.session.query(DailySumpPumpLevel).filter_by(user_id=user_id).order_by(DailySumpPumpLevel.id.desc()).first()

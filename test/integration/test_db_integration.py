@@ -120,14 +120,14 @@ class TestDbPreferenceIntegration:
     UNIT = 'metric'
     LIGHT_GROUP = '65'
     LIGHT_TIME = '02:22:22'
-    LIGHT_NAME = 'bedroom'
+    GROUP_NAME = 'bedroom'
     DAYS = 'MonTueWedThuFri'
 
     def setup_method(self):
         os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
                            'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
-        self.USER_PREFERENCES = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city=self.CITY, alarm_light_name=self.LIGHT_NAME,
+        self.USER_PREFERENCES = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city=self.CITY, alarm_group_name=self.GROUP_NAME,
                                                alarm_light_group=self.LIGHT_GROUP, alarm_time=self.LIGHT_TIME, alarm_days=self.DAYS)
         with UserDatabaseManager() as database:
             database.session.add(self.USER)
@@ -153,7 +153,7 @@ class TestDbPreferenceIntegration:
             assert response['is_imperial'] is True
             assert response.get('light_alarm')['alarm_light_group'] == self.LIGHT_GROUP
             assert response.get('light_alarm')['alarm_time'] == datetime.time(2,22,22)
-            assert response.get('light_alarm')['alarm_light_name'] == self.LIGHT_NAME
+            assert response.get('light_alarm')['alarm_group_name'] == self.GROUP_NAME
             assert response.get('light_alarm')['alarm_days'] == self.DAYS
 
     def test_get_preferences_by_user__should_raise_bad_request_when_no_preferences(self):
@@ -169,7 +169,7 @@ class TestDbPreferenceIntegration:
         light_group = '32'
         light_name = 'basement'
         preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': False, 'lightAlarm': {'alarmLightGroup': light_group,
-                           'alarmTime': time, 'alarmDays': days, 'alarmLightName': light_name}}
+                           'alarmTime': time, 'alarmDays': days, 'alarmGroupName': light_name}}
         with UserDatabaseManager() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
             database.session.commit()
@@ -180,7 +180,7 @@ class TestDbPreferenceIntegration:
             assert actual.alarm_days == days
             assert actual.alarm_time == datetime.time(6, 59, 4)
             assert actual.alarm_light_group == light_group
-            assert actual.alarm_light_name == light_name
+            assert actual.alarm_group_name == light_name
 
     def test_insert_preferences_by_user__should_not_nullify_city_when_missing(self):
         preference_info = {'isFahrenheit': False, 'isImperial': True}
