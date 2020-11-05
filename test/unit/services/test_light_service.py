@@ -1,6 +1,7 @@
 import datetime
 
 from mock import patch, ANY
+from werkzeug.exceptions import FailedDependency
 
 from svc.constants.home_automation import Automation
 from svc.constants.lights_state import LightAlarm
@@ -69,3 +70,9 @@ class TestLightService:
         create_start_light_alarm()
 
         mock_thread.assert_not_called()
+
+    def test_create_start_light_alarm__should_return_none_when_api_key_raises_bad_dependency(self, mock_thread, mock_api, mock_db, mock_alarm):
+        mock_api.side_effect = FailedDependency()
+        actual = create_start_light_alarm()
+
+        assert actual is None
