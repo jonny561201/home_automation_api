@@ -31,6 +31,7 @@ class UserDatabase:
     def __init__(self, session):
         self.session = session
 
+    # good for child account
     def validate_credentials(self, user_name, pword):
         user = self.session.query(UserCredentials).filter_by(user_name=user_name).first()
         if user is None or user.password != pword:
@@ -38,18 +39,21 @@ class UserDatabase:
         return {'user_id': user.user_id, 'roles': [self.__create_role(role.role_devices, role.role.role_name) for role in user.user_roles],
                 'first_name': user.user.first_name, 'last_name': user.user.last_name}
 
+    # good for child account
     def get_roles_by_user(self, user_id):
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
         if user is None:
             raise BadRequest
         return {'roles': [self.__create_role(role.role_devices, role.role.role_name) for role in user.user_roles]}
 
+    # good for child account
     def change_user_password(self, user_id, old_pass, new_pass):
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
         if user.password != old_pass:
             raise Unauthorized
         user.password = new_pass
 
+    # good for child account
     def get_preferences_by_user(self, user_id):
         preference = self.session.query(UserPreference).filter_by(user_id=user_id).first()
         if preference is None:
@@ -65,6 +69,7 @@ class UserDatabase:
                 'is_imperial': preference.is_imperial,
                 'light_alarm': light_info}
 
+    # good for child account
     def insert_preferences_by_user(self, user_id, preference_info):
         city = preference_info.get('city')
         light_alarm = preference_info.get('lightAlarm')
@@ -82,8 +87,11 @@ class UserDatabase:
         record.alarm_light_group = light_alarm.get('alarmLightGroup') if light_alarm is not None else record.alarm_light_group
         record.alarm_group_name = light_alarm.get('alarmGroupName') if light_alarm is not None else record.alarm_group_name
 
+    # good for child account
     def get_current_sump_level_by_user(self, user_id):
-        sump_level = self.session.query(DailySumpPumpLevel).filter_by(user_id=user_id).order_by(DailySumpPumpLevel.id.desc()).first()
+        child_account = self.session.query(ChildAccounts).filter_by(child_user_id=user_id).first()
+        select_user_id = user_id if child_account is None else child_account.parent_user_id
+        sump_level = self.session.query(DailySumpPumpLevel).filter_by(user_id=select_user_id).order_by(DailySumpPumpLevel.id.desc()).first()
         if sump_level is None:
             raise BadRequest
         return {'currentDepth': float(sump_level.distance), 'warningLevel': sump_level.warning_level}

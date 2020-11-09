@@ -222,6 +222,7 @@ class TestDbSumpIntegration:
     DEPTH = 8.0
     FIRST_USER_ID = str(uuid.uuid4())
     SECOND_USER_ID = str(uuid.uuid4())
+    CHILD_USER_ID = str(uuid.uuid4())
     DAY = datetime.datetime.date(datetime.datetime.now())
     DATE = datetime.datetime.now()
 
@@ -230,16 +231,20 @@ class TestDbSumpIntegration:
                            'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
         self.FIRST_USER = UserInformation(id=self.FIRST_USER_ID, first_name='Jon', last_name='Test')
         self.SECOND_USER = UserInformation(id=self.SECOND_USER_ID, first_name='Dylan', last_name='Fake')
+        self.CHILD_USER = UserInformation(id=self.CHILD_USER_ID, first_name='Kalynn', last_name='Dawn')
         self.FIRST_SUMP_DAILY = DailySumpPumpLevel(id=88, distance=11.0, user_id=self.FIRST_USER_ID, warning_level=2, create_date=self.DATE)
         self.SECOND_SUMP_DAILY = DailySumpPumpLevel(id=99, distance=self.DEPTH, user_id=self.SECOND_USER_ID, warning_level=1, create_date=self.DATE)
         self.THIRD_SUMP_DAILY = DailySumpPumpLevel(id=100, distance=12.0, user_id=self.SECOND_USER_ID, warning_level=2, create_date=self.DATE)
         self.FIRST_SUMP_AVG = AverageSumpPumpLevel(id=34, user_id=self.FIRST_USER_ID, distance=12.0, create_day=self.DAY)
         self.SECOND_SUMP_AVG = AverageSumpPumpLevel(id=35, user_id=self.FIRST_USER_ID, distance=self.DEPTH, create_day=self.DAY)
+        self.CHILD_ACCOUNT = ChildAccounts(parent_user_id=self.FIRST_USER_ID, child_user_id=self.CHILD_USER_ID)
 
         with UserDatabaseManager() as database:
-            database.session.add_all([self.FIRST_USER, self.SECOND_USER])
+            database.session.add_all([self.FIRST_USER, self.SECOND_USER, self.CHILD_USER])
             database.session.add_all([self.FIRST_SUMP_AVG, self.SECOND_SUMP_AVG])
             database.session.add_all([self.FIRST_SUMP_DAILY, self.SECOND_SUMP_DAILY, self.THIRD_SUMP_DAILY])
+            database.session.commit()
+            database.session.add(self.CHILD_ACCOUNT)
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
@@ -248,8 +253,10 @@ class TestDbSumpIntegration:
             database.session.delete(self.THIRD_SUMP_DAILY)
             database.session.delete(self.FIRST_SUMP_AVG)
             database.session.delete(self.SECOND_SUMP_AVG)
+            database.session.delete(self.CHILD_ACCOUNT)
             database.session.delete(self.SECOND_USER)
             database.session.delete(self.FIRST_USER)
+            database.session.delete(self.CHILD_USER)
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
         os.environ.pop('SQL_DBNAME')
@@ -265,6 +272,12 @@ class TestDbSumpIntegration:
         with UserDatabaseManager() as database:
             actual = database.get_current_sump_level_by_user(self.SECOND_USER_ID)
             assert actual['currentDepth'] == 12.0
+            assert actual['warningLevel'] == 2
+
+    def test_get_current_sump_level_by_user__should_return_parent_records_for_child(self):
+        with UserDatabaseManager() as database:
+            actual = database.get_current_sump_level_by_user(self.CHILD_USER_ID)
+            assert actual['currentDepth'] == 11.0
             assert actual['warningLevel'] == 2
 
     def test_get_current_sump_level_by_user__should_raise_bad_request_when_user_not_found(self):
