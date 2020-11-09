@@ -506,6 +506,8 @@ class TestUserDuplication:
     PASSWORD = "Test"
     USER_NAME = "tony_stank  "
     ROLE_NAME = "lighting"
+    CITY = 'Des Moines'
+    GROUP_NAME = 'Bed Room'
     USER_ID = str(uuid.uuid4())
     CHILD_USER_ID = str(uuid.uuid4())
     CRED_ID = str(uuid.uuid4())
@@ -516,6 +518,8 @@ class TestUserDuplication:
     def setup_method(self):
         os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
                            'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
+        self.PREFERENCE = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city=self.CITY, alarm_group_name=self.GROUP_NAME,
+                                         alarm_light_group='1', alarm_time='00:00:01', alarm_days='Mon')
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
         self.ROLE = Roles(id=self.ROLE_ID, role_desc="lighting", role_name=self.ROLE_NAME)
         self.USER_ROLE = UserRoles(id=self.USER_ROLE_ID, user_id=self.USER_ID, role_id=self.ROLE_ID, role=self.ROLE)
@@ -528,9 +532,12 @@ class TestUserDuplication:
             database.session.add(self.USER_INFO)
             database.session.add(self.USER_LOGIN)
             database.session.add(self.USER_ROLE)
+            database.session.add(self.PREFERENCE)
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
+            database.session.query(UserPreference).filter_by(user_id=str(self.USER_ID)).delete()
+            database.session.query(UserPreference).filter_by(user_id=str(self.UPDATED_USER_ID)).delete()
             database.session.query(UserRoles).filter_by(user_id=str(self.UPDATED_USER_ID)).delete()
             database.session.query(UserRoles).filter_by(user_id=self.USER_ID).delete()
             database.session.commit()
@@ -577,6 +584,16 @@ class TestUserDuplication:
         with pytest.raises(BadRequest):
             with UserDatabaseManager() as database:
                 database.create_child_account(str(uuid.uuid4()), "", [], self.PASSWORD)
+
+    def test_create_child_account__should_create_preferences(self, mock_uuid):
+        mock_uuid.uuid4.side_effect = [self.UPDATED_USER_ID, uuid.uuid4(), uuid.uuid4(), uuid.uuid4()]
+        with UserDatabaseManager() as database:
+            database.create_child_account(self.USER_ID, self.USER_NAME, [self.ROLE_NAME], self.PASSWORD)
+
+        with UserDatabaseManager() as database:
+            new_user = database.session.query(UserPreference).filter_by(user_id=str(self.UPDATED_USER_ID)).first()
+            assert new_user.city == self.CITY
+            assert new_user.alarm_group_name == self.GROUP_NAME
 
     def test_create_child_account__should_create_child_account_record(self, mock_uuid):
         mock_uuid.uuid4.side_effect = [self.UPDATED_USER_ID, uuid.uuid4(), uuid.uuid4()]

@@ -165,6 +165,7 @@ class UserDatabase:
         self.session.commit()
         children = self.session.query(ChildAccounts).filter_by(parent_user_id=user_id).all()
         children_ids = [child.child_user_id for child in children]
+        self.__create_user_preference(new_user_id, user_id)
         return [self.__get_user_info(child_id) for child_id in children_ids]
 
     def delete_child_user_account(self, user_id, child_user_id):
@@ -177,7 +178,15 @@ class UserDatabase:
 
     def __get_user_info(self, user_id):
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
-        return {'user_name': user.user_name, 'user_id': user_id, 'roles': [role.role.role_name for role in user.user_roles]}
+        return {'user_name': user.user_name, 'user_id': user_id,
+                'roles': [role.role.role_name for role in user.user_roles]}
+
+    def __create_user_preference(self, new_user_id, user_id):
+        pref = self.session.query(UserPreference).filter_by(user_id=user_id).first()
+        new_pref = UserPreference(user_id=new_user_id, is_fahrenheit=pref.is_fahrenheit, is_imperial=pref.is_imperial,
+                                  alarm_group_name=pref.alarm_group_name, alarm_light_group=pref.alarm_light_group,
+                                  alarm_time=pref.alarm_time, alarm_days=pref.alarm_days, city=pref.city)
+        self.session.add(new_pref)
 
     @staticmethod
     def __update_user(updated_user_id, user, email, new_pass):

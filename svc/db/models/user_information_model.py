@@ -68,7 +68,7 @@ class RoleDeviceNodes(Base):
 class UserPreference(Base):
     __tablename__ = 'user_preferences'
 
-    id = Column(Integer, nullable=False, primary_key=True)
+    id = Column(Integer, nullable=False, primary_key=True, autoincrement=True)
     user_id = Column(UUID, ForeignKey(UserInformation.id))
     is_fahrenheit = Column(Boolean, nullable=False)
     is_imperial = Column(Boolean, nullable=False)
