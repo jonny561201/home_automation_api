@@ -96,12 +96,16 @@ class UserDatabase:
             raise BadRequest
         return {'currentDepth': float(sump_level.distance), 'warningLevel': sump_level.warning_level}
 
+    # good for child account
     def get_average_sump_level_by_user(self, user_id):
-        average = self.session.query(AverageSumpPumpLevel).filter_by(user_id=user_id).order_by(AverageSumpPumpLevel.id.desc()).first()
+        child_account = self.session.query(ChildAccounts).filter_by(child_user_id=user_id).first()
+        select_user_id = user_id if child_account is None else child_account.parent_user_id
+        average = self.session.query(AverageSumpPumpLevel).filter_by(user_id=select_user_id).order_by(AverageSumpPumpLevel.id.desc()).first()
         if average is None:
             raise BadRequest
         return {'latestDate': str(average.create_day), 'averageDepth': float(average.distance)}
 
+    # good for child account
     def insert_current_sump_level(self, user_id, depth_info):
         try:
             depth = depth_info['depth']
