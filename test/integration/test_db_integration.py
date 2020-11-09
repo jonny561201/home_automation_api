@@ -603,6 +603,16 @@ class TestUserDuplication:
             with UserDatabaseManager() as database:
                 database.create_child_account(str(uuid.uuid4()), "", [], self.PASSWORD)
 
+    def test_create_child_account__should_throw_bad_request_when_child_account(self, mock_uuid):
+        with pytest.raises(BadRequest):
+            user = UserInformation(id=self.CHILD_USER_ID, first_name='Steve', last_name='Rogers')
+            with UserDatabaseManager() as database:
+                database.session.add(user)
+                database.session.add(self.CHILD_USER)
+                database.session.commit()
+                database.session.add(self.CHILD_ACCOUNT)
+                database.create_child_account(self.CHILD_USER_ID, "test@test.com", ['lighting'], self.PASSWORD)
+
     def test_create_child_account__should_create_preferences(self, mock_uuid):
         mock_uuid.uuid4.side_effect = [self.UPDATED_USER_ID, uuid.uuid4(), uuid.uuid4(), uuid.uuid4()]
         with UserDatabaseManager() as database:
@@ -664,5 +674,3 @@ class TestUserDuplication:
             assert actual_child_user is None
             actual_parent = database.session.query(UserCredentials).filter_by(user_id=self.USER_ID).first()
             assert actual_parent is not None
-
-
