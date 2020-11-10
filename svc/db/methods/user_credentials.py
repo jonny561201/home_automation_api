@@ -1,7 +1,6 @@
 import uuid
 
 from sqlalchemy import orm, create_engine
-from sqlalchemy.orm import make_transient
 from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.constants.settings_state import Settings
@@ -155,6 +154,7 @@ class UserDatabase:
         user_creds = UserCredentials(id=str(uuid.uuid4()), user_name=email, password=new_pass, user_id=new_user_id)
         self.session.add(user_info)
         self.session.add(user_creds)
+
         for user_role in user.user_roles:
             if user_role.role.role_name in roles:
                 role = UserRoles(user_id=new_user_id, role_id=user_role.role_id, id=str(uuid.uuid4()))
