@@ -187,15 +187,6 @@ class UserDatabase:
         self.session.add(new_pref)
 
     @staticmethod
-    def __update_user(updated_user_id, user, email, new_pass):
-        user.user_id = updated_user_id
-        user.id = str(uuid.uuid4())
-        user.user.id = updated_user_id
-        user.user.email = email
-        user.user_name = email
-        user.password = new_pass
-
-    @staticmethod
     def __create_role(role_devices, role_name):
         if role_devices is not None:
             return {'ip_address': role_devices.ip_address, 'role_name': role_name, 'device_id': role_devices.id,
