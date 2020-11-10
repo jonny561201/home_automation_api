@@ -362,6 +362,7 @@ class TestDbPasswordIntegration:
 
 class TestDbRoleIntegration:
     USER_ID = str(uuid.uuid4())
+    CHILD_USER_ID = str(uuid.uuid4())
     ROLE_ID = str(uuid.uuid4())
     USER_ROLE_ID = str(uuid.uuid4())
     ROLE_NAME = "lighting"
@@ -372,16 +373,22 @@ class TestDbRoleIntegration:
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='steve', last_name='rogers')
         self.ROLE = Roles(id=self.ROLE_ID, role_desc="lighting", role_name=self.ROLE_NAME)
         self.USER_ROLE = UserRoles(id=self.USER_ROLE_ID, user_id=self.USER_ID, role_id=self.ROLE_ID, role=self.ROLE)
+        self.CHILD_USER = UserInformation(id=self.CHILD_USER_ID, first_name='Kalynn', last_name='Dawn')
+        self.CHILD_ACCOUNT = ChildAccounts(parent_user_id=self.USER_ID, child_user_id=self.CHILD_USER_ID)
         with UserDatabaseManager() as database:
             database.session.add(self.ROLE)
-            database.session.add(self.USER_INFO)
+            database.session.add_all([self.USER_INFO, self.CHILD_USER])
             database.session.add(self.USER_ROLE)
+            database.session.commit()
+            database.session.add(self.CHILD_ACCOUNT)
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
+            database.session.delete(self.CHILD_ACCOUNT)
             database.session.delete(self.USER_ROLE)
             database.session.commit()
             database.session.delete(self.USER_INFO)
+            database.session.delete(self.CHILD_USER)
             database.session.delete(self.ROLE)
             database.session.query(RoleDeviceNodes).delete()
         os.environ.pop('SQL_USERNAME')
@@ -402,6 +409,15 @@ class TestDbRoleIntegration:
             database.add_new_role_device(self.USER_ID, self.ROLE_NAME, ip_address)
 
             actual = database.session.query(RoleDevices).filter_by(user_role_id=self.USER_ROLE_ID).first()
+            assert actual.ip_address == ip_address
+
+    def test_add_new_device__should_register_new_device_to_parent_from_child(self):
+        ip_address = '192.168.1.145'
+        with UserDatabaseManager() as database:
+            device_id = database.add_new_role_device(self.CHILD_USER_ID, self.ROLE_NAME, ip_address)
+
+            actual = database.session.query(RoleDevices).filter_by(id=device_id).first()
+
             assert actual.ip_address == ip_address
 
     def test_add_new_device_node__should_raise_unauthorized_when_no_device_found(self):
