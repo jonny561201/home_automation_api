@@ -6,7 +6,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.constants.settings_state import Settings
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
-    AverageSumpPumpLevel, RoleDevices, UserRoles, RoleDeviceNodes, ChildAccounts
+    AverageSumpPumpLevel, RoleDevices, UserRoles, RoleDeviceNodes, ChildAccounts, UserInformation
 
 
 class UserDatabaseManager:
@@ -144,7 +144,6 @@ class UserDatabase:
         children_ids = [child.child_user_id for child in children]
         return [self.__get_user_info(child_id) for child_id in children_ids]
 
-    # TODO: just create a new account if the parent user exists
     def create_child_account(self, user_id, email, roles, new_pass):
         child_account = self.session.query(ChildAccounts).filter_by(child_user_id=user_id).first()
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
@@ -152,34 +151,26 @@ class UserDatabase:
             raise BadRequest
 
         new_user_id = str(uuid.uuid4())
+        user_info = UserInformation(id=new_user_id, email=email, first_name=user.user.first_name, last_name=user.user.last_name)
+        user_creds = UserCredentials(id=str(uuid.uuid4()), user_name=email, password=new_pass, user_id=new_user_id)
+        self.session.add(user_info)
+        self.session.add(user_creds)
         for user_role in user.user_roles:
             if user_role.role.role_name in roles:
-                self.__detach_relationship(user_role)
-                user_role.user_id = new_user_id
-                user_role.id = str(uuid.uuid4())
-        self.__detach_relationship(user.user)
-        self.__detach_relationship(user)
-        self.__update_user(new_user_id, user, email, new_pass)
-        child = ChildAccounts(parent_user_id=user_id, child_user_id=new_user_id)
+                role = UserRoles(user_id=new_user_id, role_id=user_role.role_id, id=str(uuid.uuid4()))
+                self.session.add(role)
 
-        self.session.add(user.user)
-        self.session.commit()
-        self.session.add(user)
-        [self.session.add(role) for role in user.user_roles]
+        self.__create_user_preference(new_user_id, user_id)
+        child = ChildAccounts(parent_user_id=user_id, child_user_id=new_user_id)
         self.session.add(child)
         self.session.commit()
         children = self.session.query(ChildAccounts).filter_by(parent_user_id=user_id).all()
         children_ids = [child.child_user_id for child in children]
-        self.__create_user_preference(new_user_id, user_id)
         return [self.__get_user_info(child_id) for child_id in children_ids]
 
     def delete_child_user_account(self, user_id, child_user_id):
         self.session.query(ChildAccounts).filter_by(parent_user_id=user_id, child_user_id=child_user_id).delete()
         self.session.query(UserCredentials).filter_by(user_id=child_user_id).delete()
-
-    def __detach_relationship(self, model):
-        self.session.expunge(model)
-        make_transient(model)
 
     def __get_user_info(self, user_id):
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
