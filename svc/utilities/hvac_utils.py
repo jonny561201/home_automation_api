@@ -10,9 +10,9 @@ def run_temperature_program():
     celsius_temp = get_user_temperature(temp_file, False)
     state = HvacState.get_instance()
 
-    if state.MODE == Automation.MODE.COOLING and celsius_temp > state.DESIRED_TEMP:
+    if state.MODE == Automation.HVAC.MODE.COOLING and celsius_temp > state.DESIRED_TEMP:
         gpio_utils.turn_on_hvac(Automation.HVAC.AIR_CONDITIONING)
-    elif state.MODE == Automation.MODE.HEATING and celsius_temp < state.DESIRED_TEMP:
+    elif state.MODE == Automation.HVAC.MODE.HEATING and celsius_temp < state.DESIRED_TEMP:
         gpio_utils.turn_on_hvac(Automation.HVAC.FURNACE)
     else:
         gpio_utils.turn_off_hvac(Automation.HVAC.AIR_CONDITIONING)

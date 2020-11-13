@@ -16,7 +16,7 @@ class TestHvac:
     def setup_method(self):
         self.HVAC = HvacState.get_instance()
         self.HVAC.DESIRED_TEMP = self.DESIRED_TEMP
-        self.HVAC.MODE = Automation.MODE.COOLING
+        self.HVAC.MODE = Automation.HVAC.MODE.COOLING
 
     def test_run_temperature_program__should_make_call_to_read_temperature_file(self, mock_temp, mock_convert, mock_gpio):
         mock_convert.return_value = self.AC_TEMP
@@ -56,28 +56,28 @@ class TestHvac:
         mock_gpio.turn_on_hvac.assert_called_with(Automation.HVAC.AIR_CONDITIONING)
 
     def test_run_temperature_program__should_turn_on_furnace_when_temp_below_desired_and_mode_heating(self, mock_temp, mock_convert, mock_gpio):
-        self.HVAC.MODE = Automation.MODE.HEATING
+        self.HVAC.MODE = Automation.HVAC.MODE.HEATING
         mock_convert.return_value = self.HEAT_TEMP
 
         run_temperature_program()
         mock_gpio.turn_on_hvac.assert_called_with(Automation.HVAC.FURNACE)
 
     def test_run_temperature_program__should_not_turn_on_furnace_when_temp_above_desired_and_mode_heating(self, mock_temp, mock_convert, mock_gpio):
-        self.HVAC.MODE = Automation.MODE.HEATING
+        self.HVAC.MODE = Automation.HVAC.MODE.HEATING
         mock_convert.return_value = self.AC_TEMP
 
         run_temperature_program()
         mock_gpio.turn_on_hvac.assert_not_called()
 
     def test_run_temperature_program__should_turn_off_furnace_when_temp_above_desired_and_mode_heating(self, mock_temp, mock_convert, mock_gpio):
-        self.HVAC.MODE = Automation.MODE.HEATING
+        self.HVAC.MODE = Automation.HVAC.MODE.HEATING
         mock_convert.return_value = self.AC_TEMP
 
         run_temperature_program()
         mock_gpio.turn_off_hvac.assert_called_with(Automation.HVAC.FURNACE)
 
     def test_run_temperature_program__should_turn_off_furnace_when_temp_equal_desired_and_mode_heating(self, mock_temp, mock_convert, mock_gpio):
-        self.HVAC.MODE = Automation.MODE.HEATING
+        self.HVAC.MODE = Automation.HVAC.MODE.HEATING
         mock_convert.return_value = self.DESIRED_TEMP
 
         run_temperature_program()
