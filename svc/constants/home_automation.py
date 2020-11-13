@@ -25,7 +25,7 @@ class Time:
 
 class Automation:
     APP_NAME = "Soaring Leaf Home Automation"
-    MODE = Mode()
-    HVAC = Hvac()
-    TIME = Time()
-    GARAGE = Garage()
+    MODE = Mode
+    HVAC = Hvac
+    TIME = Time
+    GARAGE = Garage
