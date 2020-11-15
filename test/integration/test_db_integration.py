@@ -548,6 +548,7 @@ class TestUserDuplication:
     ROLE_ID = str(uuid.uuid4())
     UPDATED_USER_ID = uuid.uuid4()
     USER_ROLE_ID = str(uuid.uuid4())
+    UPDATED_DEVICE_ID = str(uuid.uuid4())
 
     def setup_method(self):
         os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
@@ -557,6 +558,7 @@ class TestUserDuplication:
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
         self.ROLE = Roles(id=self.ROLE_ID, role_desc="lighting", role_name=self.ROLE_NAME)
         self.USER_ROLE = UserRoles(id=self.USER_ROLE_ID, user_id=self.USER_ID, role_id=self.ROLE_ID, role=self.ROLE)
+        self.ROLE_DEVICE = RoleDevices(user_role_id=self.USER_ROLE_ID, ip_address='0.0.0.0', max_nodes=1)
         self.USER_LOGIN = UserCredentials(id=self.CRED_ID, user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
         self.CHILD_USER = UserCredentials(id=str(uuid.uuid4()), user_name='Steve Rogers', password='', user_id=self.CHILD_USER_ID)
         self.CHILD_ACCOUNT = ChildAccounts(parent_user_id=self.USER_ID, child_user_id=self.CHILD_USER_ID)
@@ -566,10 +568,13 @@ class TestUserDuplication:
             database.session.add(self.USER_INFO)
             database.session.add(self.USER_LOGIN)
             database.session.add(self.USER_ROLE)
+            database.session.add(self.ROLE_DEVICE)
             database.session.add(self.PREFERENCE)
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
+            database.session.query(RoleDevices).filter_by(user_role_id=self.USER_ROLE_ID).delete()
+            database.session.query(RoleDevices).filter_by(id=self.UPDATED_DEVICE_ID).delete()
             database.session.query(UserPreference).filter_by(user_id=str(self.USER_ID)).delete()
             database.session.query(UserPreference).filter_by(user_id=str(self.UPDATED_USER_ID)).delete()
             database.session.query(UserRoles).filter_by(user_id=str(self.UPDATED_USER_ID)).delete()
@@ -599,8 +604,35 @@ class TestUserDuplication:
             assert actual.email == new_email
             assert actual.id == str(self.UPDATED_USER_ID)
 
+    def test_create_child_account__should_duplicate_existing_records_devices(self, mock_uuid):
+        mock_uuid.uuid4.side_effect = [self.UPDATED_USER_ID, uuid.uuid4(), uuid.uuid4(), self.UPDATED_DEVICE_ID]
+        new_email = 'tony_stank@stark.com'
+
+        with UserDatabaseManager() as database:
+            database.create_child_account(self.USER_ID, new_email, [self.ROLE_NAME], self.PASSWORD)
+            database.session.commit()
+
+            actual = database.session.query(UserRoles).filter_by(user_id=str(self.UPDATED_USER_ID)).all()
+            lighting_role = next(x for x in actual if x.role.role_name == self.ROLE_NAME)
+            assert lighting_role.role_devices.ip_address == '0.0.0.0'
+
+    def test_create_child_account__should_not_duplicate_existing_records_devices_when_none_present(self, mock_uuid):
+        mock_uuid.uuid4.side_effect = [self.UPDATED_USER_ID, uuid.uuid4(), uuid.uuid4(), self.UPDATED_DEVICE_ID]
+        new_email = 'tony_stank@stark.com'
+
+        with UserDatabaseManager() as database:
+            database.session.query(RoleDevices).filter_by(user_role_id=self.USER_ROLE_ID).delete()
+
+        with UserDatabaseManager() as database:
+            database.create_child_account(self.USER_ID, new_email, [self.ROLE_NAME], self.PASSWORD)
+            database.session.commit()
+
+            actual = database.session.query(UserRoles).filter_by(user_id=str(self.UPDATED_USER_ID)).all()
+            lighting_role = next(x for x in actual if x.role.role_name == self.ROLE_NAME)
+            assert lighting_role.role_devices is None
+
     def test_create_child_account__should_reduce_roles(self, mock_uuid):
-        mock_uuid.uuid4.side_effect = [self.UPDATED_USER_ID, uuid.uuid4(), uuid.uuid4(), uuid.uuid4()]
+        mock_uuid.uuid4.side_effect = [self.UPDATED_USER_ID, uuid.uuid4(), uuid.uuid4(), self.UPDATED_DEVICE_ID]
         new_email = 'tony_stank@stark.com'
         role_name = "security"
         role = Roles(id=str(uuid.uuid4()), role_desc=role_name, role_name=role_name)
@@ -630,7 +662,7 @@ class TestUserDuplication:
                 database.create_child_account(self.CHILD_USER_ID, "test@test.com", ['lighting'], self.PASSWORD)
 
     def test_create_child_account__should_create_preferences(self, mock_uuid):
-        mock_uuid.uuid4.side_effect = [self.UPDATED_USER_ID, uuid.uuid4(), uuid.uuid4(), uuid.uuid4()]
+        mock_uuid.uuid4.side_effect = [self.UPDATED_USER_ID, uuid.uuid4(), uuid.uuid4(), self.UPDATED_DEVICE_ID]
         with UserDatabaseManager() as database:
             database.create_child_account(self.USER_ID, self.USER_NAME, [self.ROLE_NAME], self.PASSWORD)
 

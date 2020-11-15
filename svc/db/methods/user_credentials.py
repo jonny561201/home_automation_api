@@ -159,8 +159,7 @@ class UserDatabase:
 
         for user_role in user.user_roles:
             if user_role.role.role_name in roles:
-                role = UserRoles(user_id=new_user_id, role_id=user_role.role_id, id=str(uuid.uuid4()))
-                self.session.add(role)
+                self.__duplicate_roles(new_user_id, user_role)
 
         self.__create_user_preference(new_user_id, user_id)
         child = ChildAccounts(parent_user_id=user_id, child_user_id=new_user_id)
@@ -169,6 +168,20 @@ class UserDatabase:
         children = self.session.query(ChildAccounts).filter_by(parent_user_id=user_id).all()
         children_ids = [child.child_user_id for child in children]
         return [self.__get_user_info(child_id) for child_id in children_ids]
+
+    def __duplicate_roles(self, new_user_id, user_role):
+        role_id = str(uuid.uuid4())
+        new_user_role = UserRoles(user_id=new_user_id, role_id=user_role.role_id, id=role_id)
+        new_user_role.role = user_role.role
+        self.session.add(new_user_role)
+        self.session.commit()
+        if user_role.role_devices is not None:
+            device_id = str(uuid.uuid4())
+            self.session.add(RoleDevices(id=device_id, ip_address=user_role.role_devices.ip_address, max_nodes=user_role.role_devices.max_nodes, user_role_id=role_id))
+            self.session.commit()
+            if user_role.role_devices.role_device_nodes:
+                for node_device in user_role.role_devices.role_device_nodes:
+                    self.session.add(RoleDeviceNodes(role_device_id=device_id, node_name=node_device.node_name, node_device=node_device.node_device))
 
     def delete_child_user_account(self, user_id, child_user_id):
         self.session.query(ChildAccounts).filter_by(parent_user_id=user_id, child_user_id=child_user_id).delete()
