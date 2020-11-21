@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 
 import pytest
-from mock import mock, patch
+from mock import mock, patch, Mock
 from sqlalchemy import orm
 from werkzeug.exceptions import BadRequest, Unauthorized
 
@@ -351,10 +351,23 @@ class TestUserDatabase:
         ip_address = '0.0.0.0'
         role_name = 'garage_door'
         role = UserRoles(user_id=str(uuid.uuid4()), role=Roles(role_name=role_name))
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [role]
         self.DATABASE.add_new_role_device(self.USER_ID, role_name, ip_address)
 
-        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
+        self.SESSION.query.return_value.filter_by.assert_any_call(user_id=self.USER_ID)
+
+    def test_add_new_role_device__should_query_user_role_id_by_child_user_id(self):
+        ip_address = '0.0.0.0'
+        role_name = 'garage_door'
+        parent_user_id = str(uuid.uuid4())
+        role = UserRoles(user_id=str(uuid.uuid4()), role=Roles(role_name=role_name))
+        child_account = ChildAccounts(child_user_id=self.USER_ID, parent_user_id=parent_user_id)
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = child_account
+        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [role]
+        self.DATABASE.add_new_role_device(self.USER_ID, role_name, ip_address)
+
+        self.SESSION.query.return_value.filter_by.assert_any_call(user_id=parent_user_id)
 
     @patch('svc.db.methods.user_credentials.uuid')
     def test_add_new_role_device__should_return_device_id_in_response(self, mock_uuid):
