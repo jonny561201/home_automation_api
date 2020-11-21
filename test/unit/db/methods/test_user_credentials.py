@@ -439,61 +439,40 @@ class TestUserDatabase:
         assert actual == ip_address
 
     def test_create_child_account__should_query_user_creds_by_user_id(self):
+        user_info = UserInformation()
+        self.SESSION.query.return_value.filter_by.return_value.first.side_effect = [None, UserCredentials(user=user_info), UserPreference()]
         self.DATABASE.create_child_account(self.USER_ID, "", [], self.FAKE_PASS)
 
         self.SESSION.query.return_value.filter_by.assert_any_call(user_id=self.USER_ID)
 
-    def test_create_child_account__should_update_the_user_id_and_insert_user(self):
-        user_roles = [UserRoles(role=Roles())]
-        user = UserCredentials(user_id=str(uuid.uuid4()), user_name="test", user_roles=user_roles, user=UserInformation())
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+    @patch('svc.db.methods.user_credentials.UserCredentials')
+    def test_create_child_account__should_update_the_user_id_and_insert_user(self, mock_user):
+        user_info = UserInformation()
+        new_user = UserCredentials()
+        mock_user.return_value = new_user
+        self.SESSION.query.return_value.filter_by.return_value.first.side_effect = [None, UserCredentials(user=user_info), UserPreference(), UserCredentials()]
         self.DATABASE.create_child_account(self.USER_ID, "", [], self.FAKE_PASS)
 
-        self.SESSION.add.assert_any_call(user)
+        self.SESSION.add.assert_any_call(new_user)
 
-    def test_create_child_account__should_insert_user_info(self):
-        user_info = UserInformation()
-        user = UserCredentials(user=user_info)
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+    @patch('svc.db.methods.user_credentials.UserInformation')
+    def test_create_child_account__should_insert_user_info(self, mock_info):
+        new_info = UserInformation()
+        mock_info.return_value = new_info
+        self.SESSION.query.return_value.filter_by.return_value.first.side_effect = [None, UserCredentials(user=UserInformation()), UserPreference()]
         self.DATABASE.create_child_account(self.USER_ID, "", [], self.FAKE_PASS)
 
-        self.SESSION.add.assert_any_call(user_info)
+        self.SESSION.add.assert_any_call(new_info)
 
-    def test_create_child_account__should_insert_user_role(self):
-        user_info = UserInformation()
+    @patch('svc.db.methods.user_credentials.UserRoles')
+    def test_create_child_account__should_insert_user_role(self, mock_roles):
         role = Roles(role_name='security')
         user_role = UserRoles(role=role)
-        user = UserCredentials(user=user_info, user_roles=[user_role])
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+        mock_roles.return_value = user_role
+        self.SESSION.query.return_value.filter_by.return_value.first.side_effect = [None, UserCredentials(user=UserInformation(), user_roles=[user_role]), UserPreference(), UserCredentials()]
         self.DATABASE.create_child_account(self.USER_ID, "", ['security'], self.FAKE_PASS)
 
         self.SESSION.add.assert_any_call(user_role)
-
-    def test_create_child_account__should_expunge_user(self):
-        user_roles = [UserRoles(role=Roles())]
-        user = UserCredentials(user_roles=user_roles, user=UserInformation())
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
-        self.DATABASE.create_child_account(self.USER_ID, "", [], self.FAKE_PASS)
-
-        self.SESSION.expunge.assert_any_call(user)
-
-    def test_create_child_account__should_expunge_user_role(self):
-        role_name = 'GarageDoor'
-        role = Roles(role_name=role_name)
-        user_role = UserRoles(role=role)
-        user = UserCredentials(user_roles=[user_role], user=UserInformation())
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
-        self.DATABASE.create_child_account(self.USER_ID, "", [role_name], self.FAKE_PASS)
-
-        self.SESSION.expunge.assert_any_call(user_role)
-
-    def test_create_child_account__should_expunge_user_info(self):
-        user_info = UserInformation()
-        user = UserCredentials(user=user_info)
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
-        self.DATABASE.create_child_account(self.USER_ID, "", [], self.FAKE_PASS)
-
-        self.SESSION.expunge.assert_any_call(user_info)
 
     def test_create_child_account__should_throw_bad_request_when_no_user(self):
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
@@ -509,7 +488,7 @@ class TestUserDatabase:
         user_roles = UserRoles(role=role)
         account = ChildAccounts(child_user_id=user_id)
         creds = UserCredentials(user_roles=[user_roles], user_name=user_name, user=user_info)
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = creds
+        self.SESSION.query.return_value.filter_by.return_value.first.side_effect = [None, creds, UserPreference(), creds]
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [account]
 
         actual = self.DATABASE.create_child_account(self.USER_ID, user_name, [], self.FAKE_PASS)

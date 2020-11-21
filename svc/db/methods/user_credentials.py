@@ -145,6 +145,10 @@ class UserDatabase:
         children_ids = [child.child_user_id for child in children]
         return [self.__get_user_info(child_id) for child_id in children_ids]
 
+    def delete_child_user_account(self, user_id, child_user_id):
+        self.session.query(ChildAccounts).filter_by(parent_user_id=user_id, child_user_id=child_user_id).delete()
+        self.session.query(UserCredentials).filter_by(user_id=child_user_id).delete()
+
     def create_child_account(self, user_id, email, roles, new_pass):
         child_account = self.session.query(ChildAccounts).filter_by(child_user_id=user_id).first()
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
@@ -182,10 +186,6 @@ class UserDatabase:
             if user_role.role_devices.role_device_nodes:
                 for node_device in user_role.role_devices.role_device_nodes:
                     self.session.add(RoleDeviceNodes(role_device_id=device_id, node_name=node_device.node_name, node_device=node_device.node_device))
-
-    def delete_child_user_account(self, user_id, child_user_id):
-        self.session.query(ChildAccounts).filter_by(parent_user_id=user_id, child_user_id=child_user_id).delete()
-        self.session.query(UserCredentials).filter_by(user_id=child_user_id).delete()
 
     def __get_user_info(self, user_id):
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
