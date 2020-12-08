@@ -19,6 +19,10 @@ class LightState:
         alarm.LIGHT_GROUP_ID = light_group_id
         self.LIGHT_ALARMS.append(alarm)
 
+    def replace_light_alarm(self, light_group_id):
+        alarm = next(x for x in self.LIGHT_ALARMS if x.LIGHT_GROUP_ID == light_group_id)
+        alarm.STOP_EVENT.set()
+
     @staticmethod
     def get_instance():
         if LightState.__instance is None:

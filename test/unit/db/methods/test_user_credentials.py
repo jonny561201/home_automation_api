@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 
 import pytest
-from mock import mock, patch, Mock
+from mock import mock, patch
 from sqlalchemy import orm
 from werkzeug.exceptions import BadRequest, Unauthorized
 
