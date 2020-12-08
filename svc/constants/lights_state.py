@@ -24,6 +24,9 @@ class LightState:
         existing_alarm.STOP_EVENT.set()
         self.LIGHT_ALARMS.append(LightAlarm(alarm_time, alarm_days))
 
+    def get_light_api_key(self):
+        return self.API_KEY
+
     @staticmethod
     def get_instance():
         if LightState.__instance is None:

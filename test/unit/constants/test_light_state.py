@@ -8,8 +8,9 @@ from svc.constants.lights_state import LightState, LightAlarm
 
 class TestLightState:
     GROUP_ID = 4
-    TIME = datetime.time.fromisoformat('00:00:01')
+    API_KEY = 'abc123'
     DAYS = 'MonTueWed'
+    TIME = datetime.time.fromisoformat('00:00:01')
 
     def setup_method(self):
         self.STATE = LightState.get_instance()
@@ -40,3 +41,9 @@ class TestLightState:
 
         assert len(self.STATE.LIGHT_ALARMS) == 1
         assert self.STATE.LIGHT_ALARMS[0] != existing_alarm
+
+    def test_get_light_api_key__should_return_cached_api_key(self):
+        self.STATE.API_KEY = self.API_KEY
+        actual = self.STATE.get_light_api_key()
+
+        assert actual == self.API_KEY
