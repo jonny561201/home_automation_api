@@ -60,3 +60,8 @@ class TestLightState:
         self.STATE.get_light_api_key()
 
         mock_api.assert_called_with(self.SETTINGS.light_api_user, self.SETTINGS.light_api_password)
+
+    def test_get_light_api_key__should_not_create_alarm_when_group_id_is_none(self, mock_api):
+        self.STATE.add_replace_light_alarm(None, self.TIME, self.DAYS)
+
+        assert len(self.STATE.LIGHT_ALARMS) == 0
