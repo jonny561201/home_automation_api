@@ -15,12 +15,7 @@ class LightState:
         else:
             LightState.__instance = self
 
-    def add_light_alarm(self, alarm_time, alarm_days, light_group_id):
-        alarm = LightAlarm(light_group_id, alarm_time, alarm_days)
-        alarm.LIGHT_GROUP_ID = light_group_id
-        self.LIGHT_ALARMS.append(alarm)
-
-    def replace_light_alarm(self, light_group_id, alarm_time, alarm_days):
+    def add_light_alarm(self, light_group_id, alarm_time, alarm_days):
         index = next((i for i, x in enumerate(self.LIGHT_ALARMS) if x.LIGHT_GROUP_ID == light_group_id), None)
         if index is not None:
             existing_alarm = self.LIGHT_ALARMS.pop(index)
