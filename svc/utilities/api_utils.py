@@ -3,7 +3,6 @@ import json
 
 import requests
 from requests import ReadTimeout, ConnectTimeout
-from urllib3.exceptions import ConnectTimeoutError
 from werkzeug.exceptions import FailedDependency
 
 from svc.constants.home_automation import Automation
