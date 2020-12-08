@@ -6,7 +6,6 @@ from requests import ReadTimeout, ConnectTimeout
 from werkzeug.exceptions import FailedDependency
 
 from svc.constants.home_automation import Automation
-from svc.constants.lights_state import LightState
 from svc.constants.settings_state import Settings
 
 LIGHT_BASE_URL = 'http://192.168.1.142:80/api'
@@ -48,7 +47,6 @@ def get_light_api_key(username, password):
     try:
         response = requests.post(LIGHT_BASE_URL, data=json.dumps(body), headers=headers, timeout=5)
         api_key = response.json()[0]['success']['username']
-        LightState.get_instance().API_KEY = api_key
         return api_key
     except (ReadTimeout, ConnectTimeout):
         raise FailedDependency()

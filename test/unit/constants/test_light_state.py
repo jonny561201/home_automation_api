@@ -56,5 +56,3 @@ class TestLightState:
         self.STATE.get_light_api_key()
 
         mock_api.assert_called_with(self.SETTINGS.light_api_user, self.SETTINGS.light_api_password)
-
-
