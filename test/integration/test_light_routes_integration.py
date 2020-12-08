@@ -26,7 +26,8 @@ class TestLightRoutesIntegration:
         assert actual.status_code == 401
 
     @patch('svc.controllers.light_controller.api_utils')
-    def test_get_all_assigned_lights__should_return_success_with_valid_jwt(self, mock_api):
+    @patch('svc.constants.lights_state.get_light_api_key')
+    def test_get_all_assigned_lights__should_return_success_with_valid_jwt(self, mock_api_key, mock_get):
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         header = {'Authorization': bearer_token}
 
@@ -39,7 +40,7 @@ class TestLightRoutesIntegration:
 
         assert actual.status_code == 401
 
-    @patch('svc.controllers.light_controller.api_utils')
+    @patch('svc.constants.lights_state.get_light_api_key')
     def test_set_assigned_light_group__should_return_success_with_valid_jwt(self, mock_api):
         post_body = '{"on": "False", "brightness": 144, "groupId": 1}'
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
@@ -54,7 +55,7 @@ class TestLightRoutesIntegration:
 
         assert actual.status_code == 401
 
-    @patch('svc.controllers.light_controller.api_utils')
+    @patch('svc.constants.lights_state.get_light_api_key')
     def test_set_light_state__should_return_success_with_valid_jwt(self, mock_api):
         post_body = '{"on": "True", "brightness": 1, "lightId": "3"}'
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
