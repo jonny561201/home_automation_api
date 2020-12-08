@@ -1,7 +1,9 @@
 import datetime
 
+from svc.constants.settings_state import Settings
+from svc.utilities.api_utils import get_light_api_key
 
-# TODO: have light state cache the api key and get it for you too
+
 class LightState:
     __instance = None
     API_KEY = None
@@ -25,6 +27,9 @@ class LightState:
         self.LIGHT_ALARMS.append(LightAlarm(alarm_time, alarm_days))
 
     def get_light_api_key(self):
+        if self.API_KEY is None:
+            settings = Settings.get_instance()
+            self.API_KEY = get_light_api_key(settings.light_api_user, settings.light_api_password)
         return self.API_KEY
 
     @staticmethod
