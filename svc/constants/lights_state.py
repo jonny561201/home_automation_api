@@ -20,7 +20,9 @@ class LightState:
         if index is not None:
             existing_alarm = self.LIGHT_ALARMS.pop(index)
             existing_alarm.STOP_EVENT.set()
-        self.LIGHT_ALARMS.append(LightAlarm(light_group_id, alarm_time, alarm_days))
+        alarm = LightAlarm(light_group_id, alarm_time, alarm_days)
+        self.LIGHT_ALARMS.append(alarm)
+        return alarm
 
     def get_light_api_key(self):
         if self.API_KEY is None:

@@ -44,6 +44,11 @@ class TestLightState:
 
         assert len(self.STATE.LIGHT_ALARMS) == 2
 
+    def test_add_replace_light_alarm__should_return_the_created_light_alarm(self, mock_api):
+        actual = self.STATE.add_replace_light_alarm(self.GROUP_ID, self.TIME, self.DAYS)
+
+        assert actual is not None
+
     def test_get_light_api_key__should_return_cached_api_key(self, mock_api):
         self.STATE.API_KEY = self.API_KEY
         actual = self.STATE.get_light_api_key()
