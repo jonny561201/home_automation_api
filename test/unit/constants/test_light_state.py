@@ -26,9 +26,8 @@ class TestLightState:
 
     def test_replace_light_alarm__should_cancel_existing_alarm(self, mock_api):
         test_event = mock.create_autospec(Event)
-        existing_alarm = LightAlarm(self.TIME, self.DAYS)
+        existing_alarm = LightAlarm(self.GROUP_ID, self.TIME, self.DAYS)
         existing_alarm.STOP_EVENT = test_event
-        existing_alarm.LIGHT_GROUP_ID = self.GROUP_ID
         self.STATE.LIGHT_ALARMS.append(existing_alarm)
         self.STATE.replace_light_alarm(self.GROUP_ID, self.TIME, self.DAYS)
 
@@ -36,14 +35,19 @@ class TestLightState:
         test_event.set.assert_called()
 
     def test_replace_light_alarm__should_create_a_new_alarm(self, mock_api):
-        existing_alarm = LightAlarm(self.TIME, self.DAYS)
+        existing_alarm = LightAlarm(self.GROUP_ID, self.TIME, self.DAYS)
         existing_alarm.STOP_EVENT = mock.create_autospec(Event)
-        existing_alarm.LIGHT_GROUP_ID = self.GROUP_ID
         self.STATE.LIGHT_ALARMS.append(existing_alarm)
         self.STATE.replace_light_alarm(self.GROUP_ID, self.TIME, self.DAYS)
 
         assert len(self.STATE.LIGHT_ALARMS) == 1
         assert self.STATE.LIGHT_ALARMS[0] != existing_alarm
+
+    def test_replace_light_alarm__should_create_new_alarm_when_does_not_exist(self, mock_api):
+        self.STATE.LIGHT_ALARMS.append(LightAlarm(55, self.TIME, self.DAYS))
+        self.STATE.replace_light_alarm(self.GROUP_ID, self.TIME, self.DAYS)
+
+        assert len(self.STATE.LIGHT_ALARMS) == 2
 
     def test_get_light_api_key__should_return_cached_api_key(self, mock_api):
         self.STATE.API_KEY = self.API_KEY

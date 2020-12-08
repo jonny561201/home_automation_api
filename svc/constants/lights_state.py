@@ -16,15 +16,16 @@ class LightState:
             LightState.__instance = self
 
     def add_light_alarm(self, alarm_time, alarm_days, light_group_id):
-        alarm = LightAlarm(alarm_time, alarm_days)
+        alarm = LightAlarm(light_group_id, alarm_time, alarm_days)
         alarm.LIGHT_GROUP_ID = light_group_id
         self.LIGHT_ALARMS.append(alarm)
 
     def replace_light_alarm(self, light_group_id, alarm_time, alarm_days):
-        index = next(i for i, x in enumerate(self.LIGHT_ALARMS) if x.LIGHT_GROUP_ID == light_group_id)
-        existing_alarm = self.LIGHT_ALARMS.pop(index)
-        existing_alarm.STOP_EVENT.set()
-        self.LIGHT_ALARMS.append(LightAlarm(alarm_time, alarm_days))
+        index = next((i for i, x in enumerate(self.LIGHT_ALARMS) if x.LIGHT_GROUP_ID == light_group_id), None)
+        if index is not None:
+            existing_alarm = self.LIGHT_ALARMS.pop(index)
+            existing_alarm.STOP_EVENT.set()
+        self.LIGHT_ALARMS.append(LightAlarm(light_group_id, alarm_time, alarm_days))
 
     def get_light_api_key(self):
         if self.API_KEY is None:
@@ -48,7 +49,8 @@ class LightAlarm:
     ALARM_DAYS = None
     LIGHT_GROUP_ID = None
 
-    def __init__(self, alarm_time, alarm_days):
+    def __init__(self, light_group_id, alarm_time, alarm_days):
+        self.LIGHT_GROUP_ID = light_group_id
         self.ALARM_DAYS = alarm_days
         self.ALARM_START_TIME = (datetime.datetime.combine(datetime.date.today(), alarm_time) + datetime.timedelta(minutes=-10)).time()
         self.ALARM_STOP_TIME = (datetime.datetime.combine(datetime.date.today(), alarm_time) + datetime.timedelta(minutes=+10)).time()
