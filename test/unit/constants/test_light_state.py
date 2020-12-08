@@ -65,3 +65,8 @@ class TestLightState:
         self.STATE.add_replace_light_alarm(None, self.TIME, self.DAYS)
 
         assert len(self.STATE.LIGHT_ALARMS) == 0
+
+    def test_get_light_api_key__should_not_create_alarm_when_alarm_time_is_none(self, mock_api):
+        self.STATE.add_replace_light_alarm(self.GROUP_ID, None, self.DAYS)
+
+        assert len(self.STATE.LIGHT_ALARMS) == 0

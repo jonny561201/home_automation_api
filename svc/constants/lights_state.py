@@ -16,7 +16,7 @@ class LightState:
             LightState.__instance = self
 
     def add_replace_light_alarm(self, light_group_id, alarm_time, alarm_days):
-        if light_group_id is None:
+        if light_group_id is None or alarm_time is None:
             return None
         index = next((i for i, x in enumerate(self.LIGHT_ALARMS) if x.LIGHT_GROUP_ID == light_group_id), None)
         if index is not None:
