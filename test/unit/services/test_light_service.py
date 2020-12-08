@@ -67,6 +67,12 @@ class TestLightService:
 
         mock_thread.assert_not_called()
 
+    def test_create_start_light_alarm__should_not_create_thread_when_light_group_id_is_none(self, mock_thread, mock_api, mock_db, mock_light):
+        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = {'city': 'Des Moines', 'light_alarm': {'alarm_time': datetime.time(), 'alarm_days': 'montue', 'alarm_light_group': None}}
+        create_start_light_alarm()
+
+        mock_thread.assert_not_called()
+
     def test_create_start_light_alarm__should_return_none_when_api_key_raises_bad_dependency(self, mock_thread, mock_api, mock_db, mock_light):
         mock_api.side_effect = FailedDependency()
         actual = create_start_light_alarm()
