@@ -66,7 +66,7 @@ class TestLoginController:
 
     def test_save_user_preferences__should_validate_bearer_token(self, mock_jwt, mock_db, mock_light):
         bearer_token = 'fakeBearerToken'
-        request_data = json.dumps({}).encode()
+        request_data = json.dumps({'lightAlarm': {}}).encode()
 
         save_user_preferences(bearer_token, self.USER_ID, request_data)
 
@@ -74,7 +74,7 @@ class TestLoginController:
 
     def test_save_user_preferences__should_call_insert_preferences_by_user_with_user_id(self, mock_jwt, mock_db, mock_light):
         bearer_token = 'fakeBearerToken'
-        request_data = json.dumps({}).encode()
+        request_data = json.dumps({'lightAlarm': {}}).encode()
 
         save_user_preferences(bearer_token, self.USER_ID, request_data)
 
@@ -82,7 +82,7 @@ class TestLoginController:
 
     def test_save_user_preferences__should_call_insert_preferences_by_user_with_user_info(self, mock_jwt, mock_db, mock_light):
         bearer_token = 'fakeBearerToken'
-        user_preferences = {'city': 'Berlin'}
+        user_preferences = {'city': 'Berlin', 'lightAlarm': {}}
         request_data = json.dumps(user_preferences).encode('UTF-8')
 
         save_user_preferences(bearer_token, self.USER_ID, request_data)
@@ -93,7 +93,7 @@ class TestLoginController:
         alarm_time = '00:00:01'
         alarm_days = 'TueThu'
         group_id = 3
-        request_data = json.dumps({'alarmTime': alarm_time, 'alarmDays': alarm_days, 'alarmLightGroup': group_id}).encode()
+        request_data = json.dumps({'lightAlarm': {'alarmTime': alarm_time, 'alarmDays': alarm_days, 'alarmLightGroup': group_id}}).encode()
         save_user_preferences(self.BEARER_TOKEN, self.USER_ID, request_data)
 
         mock_light.get_instance.return_value.add_replace_light_alarm.assert_called_with(group_id, alarm_time, alarm_days)

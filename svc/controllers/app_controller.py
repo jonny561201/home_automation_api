@@ -25,4 +25,5 @@ def save_user_preferences(bearer_token, user_id, request_data):
     user_preferences = json.loads(request_data.decode('UTF-8'))
     with UserDatabaseManager() as database:
         database.insert_preferences_by_user(user_id, user_preferences)
-    LightState.get_instance().add_replace_light_alarm(user_preferences.get('alarmLightGroup'), user_preferences.get('alarmTime'), user_preferences.get('alarmDays'))
+    light_pref = user_preferences.get('lightAlarm')
+    LightState.get_instance().add_replace_light_alarm(light_pref.get('alarmLightGroup'), light_pref.get('alarmTime'), light_pref.get('alarmDays'))
