@@ -3,6 +3,7 @@ import datetime
 from svc.utilities.api_utils import set_light_groups
 
 
+# TODO: check to see if light is currently on before trying to turn on???
 def run_light_program(light_state, api_key, group_id):
     now = datetime.datetime.now()
     day_name = now.strftime('%a')

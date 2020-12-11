@@ -13,9 +13,9 @@ from svc.utilities.light_utils import run_light_program
 def create_start_light_alarm():
     settings = Settings.get_instance()
     with UserDatabaseManager() as database:
-        preference = database.get_preferences_by_user(settings.user_id).get('light_alarm')
-    if preference['alarm_time'] is not None and preference['alarm_days'] is not None and preference['alarm_light_group'] is not None:
-        __create_alarm(settings.light_api_user, settings.light_api_password, preference)
+        light_pref = database.get_preferences_by_user(settings.user_id).get('light_alarm')
+    if light_pref['alarm_time'] is not None and light_pref['alarm_days'] is not None and light_pref['alarm_light_group'] is not None:
+        __create_alarm(settings.light_api_user, settings.light_api_password, light_pref)
 
 
 def __create_alarm(light_user, light_pass, preference):
