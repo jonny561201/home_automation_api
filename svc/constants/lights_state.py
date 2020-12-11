@@ -1,7 +1,10 @@
 import datetime
 
+from svc.constants.home_automation import Automation
 from svc.constants.settings_state import Settings
 from svc.utilities.api_utils import get_light_api_key
+from svc.utilities.event_utils import create_thread
+from svc.utilities.light_utils import run_light_program
 
 
 class LightState:
@@ -23,6 +26,7 @@ class LightState:
             existing_alarm = self.LIGHT_ALARMS.pop(index)
             existing_alarm.STOP_EVENT.set()
         alarm = LightAlarm(light_group_id, alarm_time, alarm_days)
+        create_thread(alarm, lambda: run_light_program(alarm, self.get_light_api_key(), light_group_id), Automation.TIME.TEN_SECONDS)
         self.LIGHT_ALARMS.append(alarm)
         return alarm
 
