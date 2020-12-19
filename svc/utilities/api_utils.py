@@ -55,10 +55,13 @@ def get_light_api_key(username, password):
 
 def get_light_groups(api_key):
     url = LIGHT_BASE_URL + '/%s/groups' % api_key
-    response = requests.get(url)
-    if response.status_code > 299:
+    try:
+        response = requests.get(url)
+        if response.status_code > 299:
+            raise FailedDependency()
+        return response.json()
+    except ConnectionError:
         raise FailedDependency()
-    return response.json()
 
 
 def set_light_groups(api_key, group_id, state, brightness=None):
