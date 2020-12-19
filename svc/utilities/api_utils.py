@@ -123,7 +123,7 @@ def get_full_state(api_key):
         if response.status_code > 299:
             raise FailedDependency()
         return response.json()
-    except ReadTimeout:
+    except Exception:
         raise FailedDependency()
 
 

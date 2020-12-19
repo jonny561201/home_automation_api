@@ -207,12 +207,12 @@ class TestLightApiRequests:
         with pytest.raises(FailedDependency):
             get_light_api_key(self.USERNAME, self.PASSWORD)
 
-    def test_get_light_api_key__should_return_failed_dependency_when_connection_timeout_error(self, mock_requests):
+    def test_get_light_api_key__should_return_failed_dependency_when_connection_error(self, mock_requests):
         mock_requests.post.side_effect = ConnectionError()
         with pytest.raises(FailedDependency):
             get_light_api_key(self.USERNAME, self.PASSWORD)
 
-    def test_get_light_api_key__should_return_failed_dependency_when_connection_timeout_error(self, mock_requests):
+    def test_get_light_api_key__should_return_failed_dependency_when_max_timeout_error(self, mock_requests):
         mock_requests.post.side_effect = MaxRetryError(HTTPConnectionPool('www.fakehost.com'), '')
         with pytest.raises(FailedDependency):
             get_light_api_key(self.USERNAME, self.PASSWORD)
@@ -443,6 +443,11 @@ class TestLightApiRequests:
 
     def test_get_full_stat__should_not_fail_when_get_request_throws_connection_exception(self, mock_requests):
         mock_requests.get.side_effect = ReadTimeout()
+        with pytest.raises(FailedDependency):
+            get_full_state(self.API_KEY)
+
+    def test_get_full_stat__should_not_fail_when_get_request_throws_connection_timeout_exception(self, mock_requests):
+        mock_requests.get.side_effect = ConnectTimeout()
         with pytest.raises(FailedDependency):
             get_full_state(self.API_KEY)
 
