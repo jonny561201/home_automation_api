@@ -239,6 +239,11 @@ class TestLightApiRequests:
         with pytest.raises(FailedDependency):
             get_light_groups(self.API_KEY)
 
+    def test_get_light_groups__should_raise_failed_dependency_when_request_raises_connection_timeout_error(self, mock_requests):
+        mock_requests.get.side_effect = ConnectTimeout()
+        with pytest.raises(FailedDependency):
+            get_light_groups(self.API_KEY)
+
     def test_get_light_groups__should_return_a_list_of_light_groups(self, mock_requests):
         response_data = {
             "1": {
