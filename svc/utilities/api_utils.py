@@ -27,6 +27,8 @@ def get_garage_door_status(bearer_token, base_url, garage_id):
         response = requests.get(url, headers=header)
     except Exception:
         raise FailedDependency()
+    if response.status_code > 299:
+        raise FailedDependency()
     return response.status_code, response.json()
 
 

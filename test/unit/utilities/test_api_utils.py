@@ -84,12 +84,20 @@ class TestGarageApiRequests:
     FAKE_BEARER = 'fakeBearerToken'
 
     def test_get_garage_door_status__should_call_requests_with_url(self, mock_requests):
+        response = Response()
+        response.status_code = 200
+        mock_requests.get.return_value = response
+        response._content = json.dumps({}).encode('UTF-8')
         get_garage_door_status(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
 
         expected_url = self.BASE_URL + '/garageDoor/' + str(self.GARAGE_ID) + '/status'
         mock_requests.get.assert_called_with(expected_url, headers=ANY)
 
     def test_get_garage_door_status__should_call_requests_with_headers(self, mock_requests):
+        response = Response()
+        response.status_code = 200
+        mock_requests.get.return_value = response
+        response._content = json.dumps({}).encode('UTF-8')
         expected_headers = {'Authorization': 'Bearer ' + self.FAKE_BEARER}
         get_garage_door_status(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
 
@@ -113,6 +121,13 @@ class TestGarageApiRequests:
 
     def test_get_garage_door_status__should_raise_failed_dependency_when_request_raises_connection_timeout_error(self, mock_requests):
         mock_requests.get.side_effect = ConnectTimeout()
+        with pytest.raises(FailedDependency):
+            get_garage_door_status(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
+
+    def test_get_garage_door_status__should_raise_failed_dependency_when_failure_status_code(self, mock_requests):
+        response = Response()
+        response.status_code = 400
+        mock_requests.get.return_value = response
         with pytest.raises(FailedDependency):
             get_garage_door_status(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
 
