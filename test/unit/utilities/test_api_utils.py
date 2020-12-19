@@ -382,10 +382,15 @@ class TestLightApiRequests:
         with pytest.raises(FailedDependency):
             get_light_group_attributes(self.API_KEY, group_id)
 
-
     def test_get_light_group_attributes__should_raise_failed_dependency_when_request_raises_connection_error(self, mock_requests):
         group_id = '3'
         mock_requests.get.side_effect = ConnectionError()
+        with pytest.raises(FailedDependency):
+            get_light_group_attributes(self.API_KEY, group_id)
+
+    def test_get_light_group_attributes__should_raise_failed_dependency_when_request_raises_connection_timeout_error(self, mock_requests):
+        group_id = '3'
+        mock_requests.get.side_effect = ConnectTimeout()
         with pytest.raises(FailedDependency):
             get_light_group_attributes(self.API_KEY, group_id)
 
