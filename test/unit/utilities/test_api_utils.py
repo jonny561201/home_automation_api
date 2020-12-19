@@ -4,6 +4,8 @@ import os
 import pytest
 from mock import patch, ANY
 from requests import Response, ReadTimeout, ConnectTimeout
+from urllib3 import HTTPConnectionPool
+from urllib3.exceptions import MaxRetryError
 from werkzeug.exceptions import FailedDependency
 
 from svc.constants.home_automation import Automation
@@ -202,6 +204,16 @@ class TestLightApiRequests:
 
     def test_get_light_api_key__should_return_failed_dependency_when_connection_timeout_error(self, mock_requests):
         mock_requests.post.side_effect = ConnectTimeout()
+        with pytest.raises(FailedDependency):
+            get_light_api_key(self.USERNAME, self.PASSWORD)
+
+    def test_get_light_api_key__should_return_failed_dependency_when_connection_timeout_error(self, mock_requests):
+        mock_requests.post.side_effect = ConnectionError()
+        with pytest.raises(FailedDependency):
+            get_light_api_key(self.USERNAME, self.PASSWORD)
+
+    def test_get_light_api_key__should_return_failed_dependency_when_connection_timeout_error(self, mock_requests):
+        mock_requests.post.side_effect = MaxRetryError(HTTPConnectionPool('www.fakehost.com'), '')
         with pytest.raises(FailedDependency):
             get_light_api_key(self.USERNAME, self.PASSWORD)
 

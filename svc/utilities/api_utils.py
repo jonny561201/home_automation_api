@@ -3,6 +3,7 @@ import json
 
 import requests
 from requests import ReadTimeout, ConnectTimeout
+from urllib3.exceptions import MaxRetryError
 from werkzeug.exceptions import FailedDependency
 
 from svc.constants.home_automation import Automation
@@ -48,7 +49,7 @@ def get_light_api_key(username, password):
         response = requests.post(LIGHT_BASE_URL, data=json.dumps(body), headers=headers, timeout=5)
         api_key = response.json()[0]['success']['username']
         return api_key
-    except (ReadTimeout, ConnectTimeout):
+    except Exception:
         raise FailedDependency()
 
 
