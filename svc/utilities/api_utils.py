@@ -32,7 +32,10 @@ def get_garage_door_status(bearer_token, base_url, garage_id):
 def toggle_garage_door_state(bearer_token, base_url, garage_id):
     header = {'Authorization': 'Bearer ' + bearer_token}
     url = '%s/garageDoor/%s/toggle' % (base_url, garage_id)
-    response = requests.get(url, headers=header)
+    try:
+        response = requests.get(url, headers=header)
+    except ConnectionError:
+        raise BadRequest(description='Garage node returned a failure')
     __validate_garage_response(response)
 
 
