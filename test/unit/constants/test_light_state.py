@@ -59,10 +59,6 @@ class TestLightState:
 
         mock_thread.assert_called_with(alarm, mock.ANY, Automation.TIME.TEN_SECONDS)
 
-    def test_add_replace_light_alarm__should_not_fail_when_time_is_none(self, mock_api, mock_thread):
-        actual = self.STATE.add_replace_light_alarm(self.GROUP_ID, 'None', self.DAYS)
-        assert actual is not None
-
     def test_get_light_api_key__should_return_cached_api_key(self, mock_api, mock_thread):
         self.STATE.API_KEY = self.API_KEY
         actual = self.STATE.get_light_api_key()
