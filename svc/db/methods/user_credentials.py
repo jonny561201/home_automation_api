@@ -77,7 +77,8 @@ class UserDatabase:
         record.is_imperial = is_imperial if is_imperial is not None else record.is_imperial
         record.city = city if city is not None else record.city
         record.alarm_days = light_alarm.get('alarmDays') if light_alarm is not None else record.alarm_days
-        record.alarm_time = light_alarm.get('alarmTime') if light_alarm is not None else record.alarm_time
+        light_time = None if light_alarm.get('alarmTime') == 'None' else light_alarm.get('alarmTime')
+        record.alarm_time = light_time if light_time is not None else record.alarm_time
         record.alarm_light_group = light_alarm.get('alarmLightGroup') if light_alarm is not None else record.alarm_light_group
         record.alarm_group_name = light_alarm.get('alarmGroupName') if light_alarm is not None else record.alarm_group_name
 

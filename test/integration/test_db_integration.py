@@ -182,6 +182,24 @@ class TestDbPreferenceIntegration:
             assert actual.alarm_light_group == light_group
             assert actual.alarm_group_name == light_name
 
+    def test_insert_preferences_by_user__should_not_fail_when_time_is_none(self):
+        city = 'Vienna'
+        days = 'SunSat'
+        light_group = '32'
+        light_name = 'basement'
+        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': False,
+                           'lightAlarm': {'alarmLightGroup': light_group, 'alarmTime': 'None', 'alarmDays': days, 'alarmGroupName': light_name}}
+        with UserDatabaseManager() as database:
+            database.insert_preferences_by_user(self.USER_ID, preference_info)
+            actual = database.session.query(UserPreference).filter_by(user_id=self.USER_ID).first()
+
+            assert actual.city == city
+            assert actual.is_fahrenheit is True
+            assert actual.alarm_days == days
+            assert actual.alarm_time == datetime.time(2, 22, 22)
+            assert actual.alarm_light_group == light_group
+            assert actual.alarm_group_name == light_name
+
     def test_insert_preferences_by_user__should_not_nullify_city_when_missing(self):
         preference_info = {'isFahrenheit': False, 'isImperial': True}
         with UserDatabaseManager() as database:
