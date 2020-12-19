@@ -37,11 +37,6 @@ def toggle_garage_door_state(bearer_token, base_url, garage_id):
     return response.status_code
 
 
-def __validate_garage_response(response):
-    if response.status_code > 299:
-        raise BadRequest(description='Garage node returned a failure')
-
-
 def update_garage_door_state(bearer_token, base_url, garage_id, request):
     header = {'Authorization': 'Bearer ' + bearer_token}
     url = '%s/garageDoor/%s/state' % (base_url, garage_id)
@@ -162,3 +157,8 @@ def send_new_account_email(email, password):
 def __validate_light_response(response):
     if response.status_code > 299:
         raise FailedDependency()
+
+
+def __validate_garage_response(response):
+    if response.status_code > 299:
+        raise BadRequest(description='Garage node returned a failure')
