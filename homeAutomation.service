@@ -1,6 +1,6 @@
 [Unit]
 Description=Home Automation API Service
-After=multi-user.target
+After=network.target
 
 [Service]
 EnvironmentFile=/home/pi/home_automation_api/serviceEnvVariables
