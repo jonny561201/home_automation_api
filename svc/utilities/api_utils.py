@@ -22,7 +22,7 @@ def get_garage_door_status(bearer_token, base_url, garage_id):
     header = {'Authorization': 'Bearer ' + bearer_token}
     url = '%s/garageDoor/%s/status' % (base_url, garage_id)
     try:
-        response = requests.get(url, headers=header)
+        response = requests.get(url, headers=header, timeout=5)
     except Exception:
         raise FailedDependency()
     __validate_garage_response(response)
@@ -33,7 +33,7 @@ def toggle_garage_door_state(bearer_token, base_url, garage_id):
     header = {'Authorization': 'Bearer ' + bearer_token}
     url = '%s/garageDoor/%s/toggle' % (base_url, garage_id)
     try:
-        response = requests.get(url, headers=header)
+        response = requests.get(url, headers=header, timeout=5)
     except Exception:
         raise BadRequest(description='Garage node returned a failure')
     __validate_garage_response(response)
@@ -43,7 +43,7 @@ def update_garage_door_state(bearer_token, base_url, garage_id, request):
     header = {'Authorization': 'Bearer ' + bearer_token}
     url = '%s/garageDoor/%s/state' % (base_url, garage_id)
     try:
-        response = requests.post(url, headers=header, data=request)
+        response = requests.post(url, headers=header, data=request, timeout=5)
     except Exception:
         raise BadRequest(description='Garage node returned a failure')
     __validate_garage_response(response)
