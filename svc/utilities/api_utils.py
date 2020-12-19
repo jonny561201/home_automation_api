@@ -25,7 +25,7 @@ def get_garage_door_status(bearer_token, base_url, garage_id):
     url = '%s/garageDoor/%s/status' % (base_url, garage_id)
     try:
         response = requests.get(url, headers=header)
-    except ConnectionError:
+    except Exception:
         raise FailedDependency()
     return response.status_code, response.json()
 
