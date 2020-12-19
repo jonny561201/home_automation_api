@@ -57,11 +57,11 @@ def get_light_groups(api_key):
     url = LIGHT_BASE_URL + '/%s/groups' % api_key
     try:
         response = requests.get(url)
-        if response.status_code > 299:
-            raise FailedDependency()
-        return response.json()
     except Exception:
         raise FailedDependency()
+    if response.status_code > 299:
+        raise FailedDependency()
+    return response.json()
 
 
 def set_light_groups(api_key, group_id, state, brightness=None):
@@ -78,22 +78,22 @@ def get_light_group_state(api_key, group_id):
     url = LIGHT_BASE_URL + '/%s/groups/%s' % (api_key, group_id)
     try:
         response = requests.get(url)
-        if response.status_code > 299:
-            raise FailedDependency()
-        return response.json()
     except Exception:
         raise FailedDependency()
+    if response.status_code > 299:
+        raise FailedDependency()
+    return response.json()
 
 
 def get_light_group_attributes(api_key, group_id):
     url = LIGHT_BASE_URL + '/%s/groups/%s' % (api_key, group_id)
     try:
         response = requests.get(url)
-        if response.status_code > 299:
-            raise FailedDependency()
-        return response.json()
     except Exception:
         raise FailedDependency()
+    if response.status_code > 299:
+        raise FailedDependency()
+    return response.json()
 
 
 def create_light_group(api_key, group_name):
@@ -106,22 +106,22 @@ def get_all_lights(api_key):
     url = LIGHT_BASE_URL + '/%s/lights' % api_key
     try:
         response = requests.get(url)
-        if response.status_code > 299:
-            raise FailedDependency()
-        return response.json()
     except Exception:
         raise FailedDependency()
+    if response.status_code > 299:
+        raise FailedDependency()
+    return response.json()
 
 
 def get_light_state(api_key, light_id):
     url = LIGHT_BASE_URL + '/%s/lights/%s' % (api_key, light_id)
     try:
         response = requests.get(url)
-        if response.status_code > 299:
-            raise FailedDependency()
-        return response.json()
     except Exception:
         raise FailedDependency()
+    if response.status_code > 299:
+        raise FailedDependency()
+    return response.json()
 
 
 def set_light_state(api_key, light_id, state, brightness):
@@ -135,11 +135,11 @@ def get_full_state(api_key):
     url = LIGHT_BASE_URL + '/%s' % api_key
     try:
         response = requests.get(url, timeout=10)
-        if response.status_code > 299:
-            raise FailedDependency()
-        return response.json()
     except Exception:
         raise FailedDependency()
+    if response.status_code > 299:
+        raise FailedDependency()
+    return response.json()
 
 
 def send_new_account_email(email, password):
