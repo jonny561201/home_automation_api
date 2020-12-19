@@ -34,7 +34,6 @@ def toggle_garage_door_state(bearer_token, base_url, garage_id):
     url = '%s/garageDoor/%s/toggle' % (base_url, garage_id)
     response = requests.get(url, headers=header)
     __validate_garage_response(response)
-    return response.status_code
 
 
 def update_garage_door_state(bearer_token, base_url, garage_id, request):

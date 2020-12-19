@@ -148,14 +148,6 @@ class TestGarageApiRequests:
 
         mock_requests.get.assert_called_with(ANY, headers=header)
 
-    def test_toggle_garage_door_state__should_return_status_code_from_request(self, mock_request):
-        response = Response()
-        response.status_code = 200
-        mock_request.get.return_value = response
-        actual = toggle_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
-
-        assert actual == 200
-
     def test_toggle_garage_door_state__should_raise_bad_request_when_status_code_failure(self, mock_request):
         response = Response()
         response.status_code = 400
