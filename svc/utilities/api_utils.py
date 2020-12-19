@@ -25,8 +25,7 @@ def get_garage_door_status(bearer_token, base_url, garage_id):
         response = requests.get(url, headers=header)
     except Exception:
         raise FailedDependency()
-    if response.status_code > 299:
-        raise BadRequest(description='Garage node returned a failure')
+    __validate_garage_response(response)
     return response.json()
 
 
@@ -34,7 +33,13 @@ def toggle_garage_door_state(bearer_token, base_url, garage_id):
     header = {'Authorization': 'Bearer ' + bearer_token}
     url = '%s/garageDoor/%s/toggle' % (base_url, garage_id)
     response = requests.get(url, headers=header)
+    __validate_garage_response(response)
     return response.status_code
+
+
+def __validate_garage_response(response):
+    if response.status_code > 299:
+        raise BadRequest(description='Garage node returned a failure')
 
 
 def update_garage_door_state(bearer_token, base_url, garage_id, request):
@@ -62,7 +67,7 @@ def get_light_groups(api_key):
         response = requests.get(url)
     except Exception:
         raise FailedDependency()
-    __validate_response(response)
+    __validate_light_response(response)
     return response.json()
 
 
@@ -82,7 +87,7 @@ def get_light_group_state(api_key, group_id):
         response = requests.get(url)
     except Exception:
         raise FailedDependency()
-    __validate_response(response)
+    __validate_light_response(response)
     return response.json()
 
 
@@ -92,7 +97,7 @@ def get_light_group_attributes(api_key, group_id):
         response = requests.get(url)
     except Exception:
         raise FailedDependency()
-    __validate_response(response)
+    __validate_light_response(response)
     return response.json()
 
 
@@ -108,7 +113,7 @@ def get_all_lights(api_key):
         response = requests.get(url)
     except Exception:
         raise FailedDependency()
-    __validate_response(response)
+    __validate_light_response(response)
     return response.json()
 
 
@@ -118,7 +123,7 @@ def get_light_state(api_key, light_id):
         response = requests.get(url)
     except Exception:
         raise FailedDependency()
-    __validate_response(response)
+    __validate_light_response(response)
     return response.json()
 
 
@@ -135,7 +140,7 @@ def get_full_state(api_key):
         response = requests.get(url, timeout=10)
     except Exception:
         raise FailedDependency()
-    __validate_response(response)
+    __validate_light_response(response)
     return response.json()
 
 
@@ -153,6 +158,6 @@ def send_new_account_email(email, password):
     requests.post(SMTP_URL, data=json.dumps(request), headers=headers)
 
 
-def __validate_response(response):
+def __validate_light_response(response):
     if response.status_code > 299:
         raise FailedDependency()

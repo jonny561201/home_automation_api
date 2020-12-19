@@ -132,12 +132,18 @@ class TestGarageApiRequests:
         assert e.value.description == 'Garage node returned a failure'
 
     def test_toggle_garage_door_state__should_call_requests_with_url(self, mock_requests):
+        response = Response()
+        response.status_code = 200
+        mock_requests.get.return_value = response
         toggle_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
 
         expected_url = self.BASE_URL + '/garageDoor/' + str(self.GARAGE_ID) + '/toggle'
         mock_requests.get.assert_called_with(expected_url, headers=ANY)
 
     def test_toggle_garage_door_state__should_call_requests_with_with_headers(self, mock_requests):
+        response = Response()
+        response.status_code = 200
+        mock_requests.get.return_value = response
         header = {'Authorization': 'Bearer ' + self.FAKE_BEARER}
         toggle_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
 
@@ -150,6 +156,14 @@ class TestGarageApiRequests:
         actual = toggle_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
 
         assert actual == 200
+
+    def test_toggle_garage_door_state__should_raise_bad_request_when_status_code_failure(self, mock_request):
+        response = Response()
+        response.status_code = 400
+        mock_request.get.return_value = response
+        with pytest.raises(BadRequest) as e:
+            toggle_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
+        assert e.value.description == 'Garage node returned a failure'
 
     def test_update_garage_door_state__should_call_requests_with_url(self, mock_requests):
         request = {}
