@@ -44,7 +44,7 @@ def update_garage_door_state(bearer_token, base_url, garage_id, request):
     url = '%s/garageDoor/%s/state' % (base_url, garage_id)
     try:
         response = requests.post(url, headers=header, data=request)
-    except ConnectionError:
+    except Exception:
         raise BadRequest(description='Garage node returned a failure')
     __validate_garage_response(response)
     return response.json()
