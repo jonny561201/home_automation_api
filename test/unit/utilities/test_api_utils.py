@@ -423,6 +423,12 @@ class TestLightApiRequests:
         with pytest.raises(FailedDependency):
             get_light_state(self.API_KEY, light_id)
 
+    def test_get_light_state__should_raise_failed_dependency_when_request_raises_connection_error(self, mock_requests):
+        light_id = '12'
+        mock_requests.get.side_effect = ConnectionError()
+        with pytest.raises(FailedDependency):
+            get_light_state(self.API_KEY, light_id)
+
     def test_set_light_state__should_make_call_to_api(self, mock_requests):
         light_id = '7'
         expected_url = self.BASE_URL + '/%s/lights/%s/state' % (self.API_KEY, light_id)
