@@ -97,3 +97,12 @@ class TestLoginController:
         save_user_preferences(self.BEARER_TOKEN, self.USER_ID, request_data)
 
         mock_light.get_instance.return_value.add_replace_light_alarm.assert_called_with(group_id, datetime.time.fromisoformat(alarm_time), alarm_days)
+
+    def test_save_user_preferences__should_not_call_add_replace_light_alarm_with_time_is_none_string(self, mock_jwt, mock_db, mock_light):
+        alarm_time = 'None'
+        alarm_days = 'TueThu'
+        group_id = 3
+        request_data = json.dumps({'lightAlarm': {'alarmTime': alarm_time, 'alarmDays': alarm_days, 'alarmLightGroup': group_id}}).encode()
+        save_user_preferences(self.BEARER_TOKEN, self.USER_ID, request_data)
+
+        mock_light.get_instance.return_value.add_replace_light_alarm.assert_not_called()
