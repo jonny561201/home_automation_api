@@ -106,6 +106,11 @@ class TestGarageApiRequests:
         assert actual_status == 200
         assert actual_data == response_content
 
+    def test_get_garage_door_status__should_raise_failed_dependency_when_request_raises_connection_error(self, mock_requests):
+        mock_requests.get.side_effect = ConnectionError()
+        with pytest.raises(FailedDependency):
+            get_garage_door_status(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
+
     def test_toggle_garage_door_state__should_call_requests_with_url(self, mock_requests):
         toggle_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
 
