@@ -100,7 +100,7 @@ def get_all_lights(api_key):
         if response.status_code > 299:
             raise FailedDependency()
         return response.json()
-    except ConnectionError:
+    except Exception:
         raise FailedDependency()
 
 
