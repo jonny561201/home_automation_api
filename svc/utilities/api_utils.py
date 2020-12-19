@@ -114,9 +114,9 @@ def get_light_state(api_key, light_id):
         if response.status_code > 299:
             raise FailedDependency()
         return response.json()
-    except ConnectionError:
+    except Exception:
         raise FailedDependency()
-    
+
 
 def set_light_state(api_key, light_id, state, brightness):
     url = LIGHT_BASE_URL + '/%s/lights/%s/state' % (api_key, light_id)
