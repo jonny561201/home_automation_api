@@ -2,8 +2,6 @@ import base64
 import json
 
 import requests
-from requests import ReadTimeout, ConnectTimeout
-from urllib3.exceptions import MaxRetryError
 from werkzeug.exceptions import FailedDependency, BadRequest
 
 from svc.constants.home_automation import Automation
@@ -64,8 +62,7 @@ def get_light_groups(api_key):
         response = requests.get(url)
     except Exception:
         raise FailedDependency()
-    if response.status_code > 299:
-        raise FailedDependency()
+    __validate_response(response)
     return response.json()
 
 
@@ -85,8 +82,7 @@ def get_light_group_state(api_key, group_id):
         response = requests.get(url)
     except Exception:
         raise FailedDependency()
-    if response.status_code > 299:
-        raise FailedDependency()
+    __validate_response(response)
     return response.json()
 
 
@@ -96,8 +92,7 @@ def get_light_group_attributes(api_key, group_id):
         response = requests.get(url)
     except Exception:
         raise FailedDependency()
-    if response.status_code > 299:
-        raise FailedDependency()
+    __validate_response(response)
     return response.json()
 
 
@@ -113,8 +108,7 @@ def get_all_lights(api_key):
         response = requests.get(url)
     except Exception:
         raise FailedDependency()
-    if response.status_code > 299:
-        raise FailedDependency()
+    __validate_response(response)
     return response.json()
 
 
@@ -124,8 +118,7 @@ def get_light_state(api_key, light_id):
         response = requests.get(url)
     except Exception:
         raise FailedDependency()
-    if response.status_code > 299:
-        raise FailedDependency()
+    __validate_response(response)
     return response.json()
 
 
@@ -142,8 +135,7 @@ def get_full_state(api_key):
         response = requests.get(url, timeout=10)
     except Exception:
         raise FailedDependency()
-    if response.status_code > 299:
-        raise FailedDependency()
+    __validate_response(response)
     return response.json()
 
 
@@ -159,3 +151,8 @@ def send_new_account_email(email, password):
         "htmlContent": "<html><head></head><body><p>Hello,</p><p>A new Home Automation account has been setup for you.</p><p>Password: %s</p></body></html>" % password
     }
     requests.post(SMTP_URL, data=json.dumps(request), headers=headers)
+
+
+def __validate_response(response):
+    if response.status_code > 299:
+        raise FailedDependency()
