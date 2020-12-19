@@ -1,5 +1,4 @@
 import json
-import os
 
 import pytest
 from mock import patch, ANY

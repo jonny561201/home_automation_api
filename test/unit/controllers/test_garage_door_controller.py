@@ -1,9 +1,7 @@
 import os
 
 import jwt
-import pytest
 from mock import patch
-from werkzeug.exceptions import BadRequest
 
 from svc.controllers.garage_door_controller import get_status, toggle_door, update_state
 
@@ -47,7 +45,7 @@ class TestGarageController:
 
     def test_get_status__should_return_api_response_for_success(self, mock_jwt, mock_url, mock_util):
         response = {'fake': 'data'}
-        mock_util.get_garage_door_status.return_value = (self.SUCCESS_STATE, response)
+        mock_util.get_garage_door_status.return_value = response
         actual = get_status(self.JWT_TOKEN, self.USER_ID, self.GARAGE_ID)
 
         assert actual == response
@@ -80,17 +78,10 @@ class TestGarageController:
         expected_url = 'http://www.fakeurl.com/test/location'
         response = {'testResponse': 'notRealData'}
         mock_url.return_value = expected_url
-        mock_util.update_garage_door_state.return_value = (self.SUCCESS_STATE, response)
+        mock_util.update_garage_door_state.return_value = response
         actual = update_state(self.JWT_TOKEN, self.USER_ID, self.GARAGE_ID, request)
 
         assert actual == response
-
-    def test_update_state__should_raise_exception_when_failure(self, mock_jwt, mock_url, mock_util):
-        mock_util.update_garage_door_state.return_value = (self.FAILURE_STATUS, {})
-        with pytest.raises(BadRequest) as e:
-            update_state(self.JWT_TOKEN, self.USER_ID, self.GARAGE_ID, {})
-
-        assert e.value.description == 'Garage node returned a failure'
 
     def test_toggle_garage_door_state__should_validate_bearer_token(self, mock_jwt, mock_url, mock_util):
         mock_util.toggle_garage_door_state.return_value = self.SUCCESS_STATE
@@ -117,10 +108,3 @@ class TestGarageController:
         actual = toggle_door(self.JWT_TOKEN, self.USER_ID, self.GARAGE_ID)
 
         assert actual == self.SUCCESS_STATE
-
-    def test_toggle_garage_door_state__should_raise_exception_when_failure(self, mock_jwt, mock_url, mock_util):
-        mock_util.toggle_garage_door_state.return_value = self.FAILURE_STATUS
-        with pytest.raises(BadRequest) as e:
-            toggle_door(self.JWT_TOKEN, self.USER_ID, self.GARAGE_ID)
-
-        assert e.value.description == 'Garage node returned a failure'
