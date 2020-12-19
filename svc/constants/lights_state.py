@@ -25,7 +25,8 @@ class LightState:
         if index is not None:
             existing_alarm = self.LIGHT_ALARMS.pop(index)
             existing_alarm.STOP_EVENT.set()
-        alarm = LightAlarm(light_group_id, alarm_time, alarm_days)
+        scrubbed_time = alarm_time if alarm_time is not 'None' else datetime.time(0,0,0)
+        alarm = LightAlarm(light_group_id, scrubbed_time, alarm_days)
         create_thread(alarm, lambda: run_light_program(alarm, self.get_light_api_key(), light_group_id), Automation.TIME.TEN_SECONDS)
         self.LIGHT_ALARMS.append(alarm)
         return alarm
