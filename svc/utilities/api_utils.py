@@ -81,10 +81,13 @@ def get_light_group_state(api_key, group_id):
 
 def get_light_group_attributes(api_key, group_id):
     url = LIGHT_BASE_URL + '/%s/groups/%s' % (api_key, group_id)
-    response = requests.get(url)
-    if response.status_code > 299:
+    try:
+        response = requests.get(url)
+        if response.status_code > 299:
+            raise FailedDependency()
+        return response.json()
+    except ConnectionError:
         raise FailedDependency()
-    return response.json()
 
 
 def create_light_group(api_key, group_name):
