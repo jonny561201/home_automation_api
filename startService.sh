@@ -85,6 +85,8 @@ function createFile {
     read LIGHT_API_PASS
     echo -e "Enter WEATHER_APP_ID:${WHITE}"
     read WEATHER_APP
+    echo -e "Enter USER_ID:${WHITE}"
+    read USER_ID
 
     echo "JWT_SECRET=${JWT_SECRET}" > serviceEnvVariables
     echo "SQL_USERNAME=${SQL_USER}" >> serviceEnvVariables
@@ -94,6 +96,7 @@ function createFile {
     echo "LIGHT_API_USERNAME=${LIGHT_API_USER}" >> serviceEnvVariables
     echo "LIGHT_API_PASSWORD=${LIGHT_API_PASS}" >> serviceEnvVariables
     echo "WEATHER_APP_ID=${WEATHER_APP}" >> serviceEnvVariables
+    echo "USER_ID=${USER_ID}" >> serviceEnvVariables
 }
 
 
