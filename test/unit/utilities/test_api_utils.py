@@ -162,6 +162,12 @@ class TestGarageApiRequests:
             toggle_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
         assert e.value.description == 'Garage node returned a failure'
 
+    def test_toggle_garage_door_state__should_raise_bad_request_when_request_raises_connection_timeout_error(self, mock_request):
+        mock_request.get.side_effect = ConnectTimeout()
+        with pytest.raises(BadRequest) as e:
+            toggle_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
+        assert e.value.description == 'Garage node returned a failure'
+
     def test_update_garage_door_state__should_call_requests_with_url(self, mock_requests):
         request = {}
         response = Response()
