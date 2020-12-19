@@ -167,6 +167,10 @@ class TestGarageApiRequests:
 
     def test_update_garage_door_state__should_call_requests_with_url(self, mock_requests):
         request = {}
+        response = Response()
+        response.status_code = 200
+        response._content = json.dumps({}).encode('UTF-8')
+        mock_requests.post.return_value = response
         update_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID, request)
 
         expected_url = self.BASE_URL + '/garageDoor/' + str(self.GARAGE_ID) + '/state'
@@ -175,15 +179,32 @@ class TestGarageApiRequests:
     def test_update_garage_door_state__should_call_requests_with_headers(self, mock_requests):
         header = {'Authorization': 'Bearer ' + self.FAKE_BEARER}
         request = {}
+        response = Response()
+        response.status_code = 200
+        response._content = json.dumps({}).encode('UTF-8')
+        mock_requests.post.return_value = response
         update_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID, request)
 
         mock_requests.post.assert_called_with(ANY, headers=header, data=ANY)
 
     def test_update_garage_door_state__should_call_requests_with_request(self, mock_requests):
         request = '{"testData": "NotReal"}'.encode()
+        response = Response()
+        response.status_code = 200
+        response._content = json.dumps({}).encode('UTF-8')
+        mock_requests.post.return_value = response
         update_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID, request)
 
         mock_requests.post.assert_called_with(ANY, headers=ANY, data=request)
+
+    def test_update_garage_door_state__should_raise_bad_request_when_response_is_failure_status(self, mock_requests):
+        response = Response()
+        response.status_code = 400
+        mock_requests.post.return_value = response
+        request = '{"testData": "NotReal"}'.encode()
+        with pytest.raises(BadRequest) as e:
+            update_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID, request)
+        assert e.value.description == 'Garage node returned a failure'
 
     def test_update_garage_door_state__should_return_response(self, mock_requests):
         response = Response()
@@ -192,10 +213,9 @@ class TestGarageApiRequests:
         response.status_code = 200
         response._content = json.dumps(content).encode()
         mock_requests.post.return_value = response
-        actual_status, actual_data = update_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID, request)
+        actual = update_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID, request)
 
-        assert actual_status == 200
-        assert actual_data == content
+        assert actual == content
 
 
 @patch('svc.utilities.api_utils.requests')

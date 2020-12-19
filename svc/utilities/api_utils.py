@@ -46,7 +46,8 @@ def update_garage_door_state(bearer_token, base_url, garage_id, request):
     header = {'Authorization': 'Bearer ' + bearer_token}
     url = '%s/garageDoor/%s/state' % (base_url, garage_id)
     response = requests.post(url, headers=header, data=request)
-    return response.status_code, response.json()
+    __validate_garage_response(response)
+    return response.json()
 
 
 def get_light_api_key(username, password):
