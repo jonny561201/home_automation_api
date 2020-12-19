@@ -6,7 +6,7 @@ from mock import patch, ANY
 from requests import Response, ReadTimeout, ConnectTimeout
 from urllib3 import HTTPConnectionPool
 from urllib3.exceptions import MaxRetryError
-from werkzeug.exceptions import FailedDependency
+from werkzeug.exceptions import FailedDependency, BadRequest
 
 from svc.constants.home_automation import Automation
 from svc.constants.settings_state import Settings
@@ -109,10 +109,9 @@ class TestGarageApiRequests:
         response_content = {'doesNotMatter': 'useless key'}
         response._content = json.dumps(response_content).encode('UTF-8')
         mock_requests.get.return_value = response
-        actual_status, actual_data = get_garage_door_status(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
+        actual = get_garage_door_status(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
 
-        assert actual_status == 200
-        assert actual_data == response_content
+        assert actual == response_content
 
     def test_get_garage_door_status__should_raise_failed_dependency_when_request_raises_connection_error(self, mock_requests):
         mock_requests.get.side_effect = ConnectionError()
@@ -124,12 +123,13 @@ class TestGarageApiRequests:
         with pytest.raises(FailedDependency):
             get_garage_door_status(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
 
-    def test_get_garage_door_status__should_raise_failed_dependency_when_failure_status_code(self, mock_requests):
+    def test_get_garage_door_status__should_raise_bad_request_when_failure_status_code(self, mock_requests):
         response = Response()
         response.status_code = 400
         mock_requests.get.return_value = response
-        with pytest.raises(FailedDependency):
+        with pytest.raises(BadRequest) as e:
             get_garage_door_status(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
+        assert e.value.description == 'Garage node returned a failure'
 
     def test_toggle_garage_door_state__should_call_requests_with_url(self, mock_requests):
         toggle_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)

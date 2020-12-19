@@ -4,7 +4,7 @@ import json
 import requests
 from requests import ReadTimeout, ConnectTimeout
 from urllib3.exceptions import MaxRetryError
-from werkzeug.exceptions import FailedDependency
+from werkzeug.exceptions import FailedDependency, BadRequest
 
 from svc.constants.home_automation import Automation
 from svc.constants.settings_state import Settings
@@ -28,8 +28,8 @@ def get_garage_door_status(bearer_token, base_url, garage_id):
     except Exception:
         raise FailedDependency()
     if response.status_code > 299:
-        raise FailedDependency()
-    return response.status_code, response.json()
+        raise BadRequest(description='Garage node returned a failure')
+    return response.json()
 
 
 def toggle_garage_door_state(bearer_token, base_url, garage_id):

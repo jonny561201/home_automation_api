@@ -8,9 +8,7 @@ from svc.utilities import api_utils
 def get_status(bearer_token, user_id, garage_id):
     is_jwt_valid(bearer_token)
     base_url = get_garage_url_by_user(user_id)
-    status, data = api_utils.get_garage_door_status(bearer_token, base_url, garage_id)
-    __validate_response(status)
-    return data
+    return api_utils.get_garage_door_status(bearer_token, base_url, garage_id)
 
 
 def update_state(bearer_token, user_id, garage_id, request):
