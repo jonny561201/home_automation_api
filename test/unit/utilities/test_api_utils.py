@@ -344,6 +344,11 @@ class TestLightApiRequests:
         with pytest.raises(FailedDependency):
             get_all_lights(self.API_KEY)
 
+    def test_get_all_lights__should_raise_failed_dependency_when_request_raises_connection_error(self, mock_requests):
+        mock_requests.get.side_effect = ConnectionError()
+        with pytest.raises(FailedDependency):
+            get_all_lights(self.API_KEY)
+
     def test_get_light_group_attributes__should_make_api_call_to_url(self, mock_requests):
         group_id = "4"
         mock_requests.get.return_value = self.__create_response()
