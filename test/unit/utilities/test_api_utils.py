@@ -209,6 +209,13 @@ class TestGarageApiRequests:
             update_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID, request)
         assert e.value.description == 'Garage node returned a failure'
 
+    def test_update_garage_door_state__should_raise_bad_request_when_response_raises_connection_error(self, mock_requests):
+        mock_requests.post.side_effect = ConnectionError()
+        request = '{"testData": "NotReal"}'.encode()
+        with pytest.raises(BadRequest) as e:
+            update_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID, request)
+        assert e.value.description == 'Garage node returned a failure'
+
     def test_update_garage_door_state__should_return_response(self, mock_requests):
         response = Response()
         request = {}
