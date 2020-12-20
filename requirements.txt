@@ -6,4 +6,4 @@ psycopg2==2.8.6
 flask_cors==3.0.9
 requests==2.25.1
 yoyo-migrations==7.2.1
-uwsgi
+uwsgi==2.0.19.1
