@@ -66,5 +66,5 @@ class Settings:
             with open(file_path, "r") as reader:
                 self.settings = json.loads(reader.read())
                 self.dev_mode = self.settings.get("Development", False)
-        except FileNotFoundError:
+        except Exception:
             self.settings = {}
