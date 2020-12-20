@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 EnvironmentFile=/home/pi/home_automation_api/serviceEnvVariables
-ExecStart=/usr/bin/python3 -u app.py
+ExecStart=/home/pi/.local/bin/uwsgi --socket 0.0.0.0:5000 --protocol=http -w wsgi:app
 WorkingDirectory=/home/pi/home_automation_api
 Restart=always
 User=pi
