@@ -33,7 +33,7 @@ function stopService {
 function copyServiceFile {
     echo  -e "${YELLOW}---------------Creating SystemD---------------${WHITE}"
     sudo chmod 644 ${HOME_AUTO_SERVICE_FILE}
-    sudo yes | sudo cp ${HOME_AUTO_SERVICE_FILE} /lib/systemd/system/${HOME_AUTO_SERVICE_FILE}
+    sudo yes | sudo cp ./deployment/${HOME_AUTO_SERVICE_FILE} /lib/systemd/system/${HOME_AUTO_SERVICE_FILE}
 }
 
 function configureSystemD {
