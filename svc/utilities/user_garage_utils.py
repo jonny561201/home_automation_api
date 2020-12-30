@@ -8,4 +8,4 @@ def get_garage_url_by_user(user_id):
         return 'http://localhost:5001'
     with UserDatabaseManager() as database:
         ip = database.get_user_garage_ip(user_id)
-        return 'http://%s:5001' % ip
+        return 'http://%s' % ip
