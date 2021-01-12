@@ -90,7 +90,7 @@ class TestGarageApiRequests:
         get_garage_door_status(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
 
         expected_url = self.BASE_URL + '/garageDoor/' + str(self.GARAGE_ID) + '/status'
-        mock_requests.get.assert_called_with(expected_url, headers=ANY)
+        mock_requests.get.assert_called_with(expected_url, headers=ANY, timeout=5)
 
     def test_get_garage_door_status__should_call_requests_with_headers(self, mock_requests):
         response = Response()
@@ -100,7 +100,7 @@ class TestGarageApiRequests:
         expected_headers = {'Authorization': 'Bearer ' + self.FAKE_BEARER}
         get_garage_door_status(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
 
-        mock_requests.get.assert_called_with(ANY, headers=expected_headers)
+        mock_requests.get.assert_called_with(ANY, headers=expected_headers, timeout=5)
 
     def test_get_garage_door_status__should_return_response(self, mock_requests):
         response = Response()
@@ -137,7 +137,7 @@ class TestGarageApiRequests:
         toggle_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
 
         expected_url = self.BASE_URL + '/garageDoor/' + str(self.GARAGE_ID) + '/toggle'
-        mock_requests.get.assert_called_with(expected_url, headers=ANY)
+        mock_requests.get.assert_called_with(expected_url, headers=ANY, timeout=5)
 
     def test_toggle_garage_door_state__should_call_requests_with_with_headers(self, mock_requests):
         response = Response()
@@ -146,7 +146,7 @@ class TestGarageApiRequests:
         header = {'Authorization': 'Bearer ' + self.FAKE_BEARER}
         toggle_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
 
-        mock_requests.get.assert_called_with(ANY, headers=header)
+        mock_requests.get.assert_called_with(ANY, headers=header, timeout=5)
 
     def test_toggle_garage_door_state__should_raise_bad_request_when_status_code_failure(self, mock_request):
         response = Response()
@@ -177,7 +177,7 @@ class TestGarageApiRequests:
         update_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID, request)
 
         expected_url = self.BASE_URL + '/garageDoor/' + str(self.GARAGE_ID) + '/state'
-        mock_requests.post.assert_called_with(expected_url, headers=ANY, data=ANY)
+        mock_requests.post.assert_called_with(expected_url, headers=ANY, data=ANY, timeout=5)
 
     def test_update_garage_door_state__should_call_requests_with_headers(self, mock_requests):
         header = {'Authorization': 'Bearer ' + self.FAKE_BEARER}
@@ -188,7 +188,7 @@ class TestGarageApiRequests:
         mock_requests.post.return_value = response
         update_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID, request)
 
-        mock_requests.post.assert_called_with(ANY, headers=header, data=ANY)
+        mock_requests.post.assert_called_with(ANY, headers=header, data=ANY, timeout=5)
 
     def test_update_garage_door_state__should_call_requests_with_request(self, mock_requests):
         request = '{"testData": "NotReal"}'.encode()
@@ -198,7 +198,7 @@ class TestGarageApiRequests:
         mock_requests.post.return_value = response
         update_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID, request)
 
-        mock_requests.post.assert_called_with(ANY, headers=ANY, data=request)
+        mock_requests.post.assert_called_with(ANY, headers=ANY, data=request, timeout=5)
 
     def test_update_garage_door_state__should_raise_bad_request_when_response_is_failure_status(self, mock_requests):
         response = Response()
