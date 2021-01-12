@@ -9,7 +9,7 @@ from requests import Response
 from svc.constants.home_automation import Automation
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, UserPreference
-from svc.manager import create_app
+from svc.manager import app
 
 
 class TestThermostatRoutesIntegration:
@@ -27,7 +27,7 @@ class TestThermostatRoutesIntegration:
         self.USER_ID = uuid.uuid4()
         self.USER = UserInformation(id=self.USER_ID.hex, first_name='Jon', last_name='Test')
         self.PREFERENCE = UserPreference(user_id=self.USER_ID.hex, city='London', is_fahrenheit=False, is_imperial=False)
-        flask_app = create_app('__main__')
+        flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
         os.environ.update({'JWT_SECRET': self.JWT_SECRET, 'SQL_USERNAME': self.DB_USER,
                            'SQL_PASSWORD': self.DB_PASS, 'SQL_DBNAME': self.DB_NAME,

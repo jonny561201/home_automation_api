@@ -3,7 +3,7 @@ import os
 import jwt
 from mock import patch
 
-from svc.manager import create_app
+from svc.manager import app
 
 
 class TestLightRoutesIntegration:
@@ -14,7 +14,7 @@ class TestLightRoutesIntegration:
 
     def setup_method(self):
         os.environ.update({'JWT_SECRET': self.JWT_SECRET, 'LIGHT_API_USERNAME': self.LIGHT_USER, 'LIGHT_API_PASSWORD': self.LIGHT_PASS})
-        flask_app = create_app('__main__')
+        flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
 
     def teardown_method(self):

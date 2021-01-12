@@ -8,7 +8,7 @@ import jwt
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, \
     UserPreference
-from svc.manager import create_app
+from svc.manager import app
 
 
 class TestSumpRoutes:
@@ -20,7 +20,7 @@ class TestSumpRoutes:
     DB_NAME = 'garage_door'
 
     def setup_method(self):
-        flask_app = create_app('__main__')
+        flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
         self.BEAR_TOKEN = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         self.HEADER = {'Authorization': 'Bearer ' + self.BEAR_TOKEN.decode('UTF-8')}

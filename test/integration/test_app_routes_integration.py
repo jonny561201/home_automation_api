@@ -7,7 +7,7 @@ import jwt
 
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, UserPreference
-from svc.manager import create_app
+from svc.manager import app
 
 
 class TestAppRoutesIntegration:
@@ -22,7 +22,7 @@ class TestAppRoutesIntegration:
     def setup_method(self):
         os.environ.update({'SQL_USERNAME': self.db_user, 'SQL_PASSWORD': self.db_pass, 'JWT_SECRET': self.JWT_SECRET,
                            'SQL_DBNAME': self.db_name, 'SQL_PORT': self.db_port})
-        flask_app = create_app('__main__')
+        flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
         self.PREFERENCE = UserPreference(user_id=self.USER_ID, city=self.CITY, is_fahrenheit=True, is_imperial=True)

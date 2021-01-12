@@ -8,10 +8,7 @@ from svc.routes.garage_door_routes import GARAGE_BLUEPRINT
 from svc.routes.light_routes import LIGHT_BLUEPRINT
 from svc.routes.sump_routes import SUMP_BLUEPRINT
 from svc.routes.thermostat_routes import THERMOSTAT_BLUEPRINT
-from svc.services.light_service import create_start_light_alarm
 
-
-create_start_light_alarm()
 app = Flask(__name__)
 CORS(app)
 app.register_blueprint(APP_BLUEPRINT)

@@ -8,7 +8,7 @@ from requests import Response
 
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, Roles, UserRoles, RoleDevices
-from svc.manager import create_app
+from svc.manager import app
 
 
 @patch('svc.utilities.api_utils.requests')
@@ -26,7 +26,7 @@ class TestGarageDoorRoutesIntegration:
     DEVICE_ID = str(uuid.uuid4())
 
     def setup_method(self):
-        flask_app = create_app('__main__')
+        flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
         os.environ.update({'JWT_SECRET': self.JWT_SECRET, 'SQL_USERNAME': self.DB_USER, 'SQL_PASSWORD': self.DB_PASS,
                            'SQL_DBNAME': self.DB_NAME, 'SQL_PORT': self.DB_PORT})

@@ -7,7 +7,7 @@ from sqlalchemy.orm.exc import ObjectDeletedError
 
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserCredentials, UserInformation, ChildAccounts, UserPreference
-from svc.manager import create_app
+from svc.manager import app
 
 
 class TestAccountRoutesIntegration:
@@ -23,7 +23,7 @@ class TestAccountRoutesIntegration:
     EMAIL_APP_ID = 'as;kljdfski;hasdf'
 
     def setup_method(self):
-        flask_app = create_app('__main__')
+        flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
         os.environ.update({'SQL_USERNAME': self.db_user, 'SQL_PASSWORD': self.db_pass, 'JWT_SECRET': self.JWT_SECRET,
                            'SQL_DBNAME': self.db_name, 'SQL_PORT': self.db_port, 'EMAIL_APP_ID': self.EMAIL_APP_ID})
