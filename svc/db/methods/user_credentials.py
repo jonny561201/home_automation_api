@@ -77,10 +77,7 @@ class UserDatabase:
         record.is_imperial = is_imperial if is_imperial is not None else record.is_imperial
         record.city = city if city is not None else record.city
         record.alarm_days = light_alarm.get('alarmDays') if light_alarm is not None else record.alarm_days
-        light_time = None if light_alarm.get('alarmTime') == 'None' else light_alarm.get('alarmTime')
-        record.alarm_time = light_time if light_time is not None else record.alarm_time
-        record.alarm_light_group = light_alarm.get('alarmLightGroup') if light_alarm is not None else record.alarm_light_group
-        record.alarm_group_name = light_alarm.get('alarmGroupName') if light_alarm is not None else record.alarm_group_name
+        self.__set_user_light_alarm(light_alarm, record)
 
     def get_current_sump_level_by_user(self, user_id):
         child_account = self.session.query(ChildAccounts).filter_by(child_user_id=user_id).first()
@@ -199,6 +196,16 @@ class UserDatabase:
                                   alarm_group_name=pref.alarm_group_name, alarm_light_group=pref.alarm_light_group,
                                   alarm_time=pref.alarm_time, alarm_days=pref.alarm_days, city=pref.city)
         self.session.add(new_pref)
+
+    @staticmethod
+    def __set_user_light_alarm(light_alarm, record):
+        if light_alarm is not None:
+            light_time = None if light_alarm.get('alarmTime') == 'None' else light_alarm.get('alarmTime')
+            light_group = light_alarm.get('alarmLightGroup')
+            light_group_name = light_alarm.get('alarmGroupName')
+            record.alarm_time = light_time if light_time is not None else record.alarm_time
+            record.alarm_light_group = light_group if light_group is not None else record.alarm_light_group
+            record.alarm_group_name = light_group_name if light_group_name is not None else record.alarm_group_name
 
     @staticmethod
     def __create_role(role_devices, role_name):
