@@ -36,33 +36,43 @@ class TestState:
         os.environ.pop('LIGHT_API_PASSWORD')
 
     def test_db_user__should_return_env_var_value(self):
+        self.SETTINGS.dev_mode = False
         assert self.SETTINGS.db_user == self.DB_USER
 
     def test_db_pass__should_return_env_var_value(self):
+        self.SETTINGS.dev_mode = False
         assert self.SETTINGS.db_pass == self.DB_PASS
 
     def test_db_port__should_return_env_var_value(self):
+        self.SETTINGS.dev_mode = False
         assert self.SETTINGS.db_port == self.DB_PORT
 
     def test_db_name__should_return_env_var_value(self):
+        self.SETTINGS.dev_mode = False
         assert self.SETTINGS.db_name == self.DB_NAME
 
     def test_email_app_id__should_return_env_var_value(self):
+        self.SETTINGS.dev_mode = False
         assert self.SETTINGS.email_app_id == self.EMAIL_APP_ID
 
     def test_weather_app_id__should_return_env_var_value(self):
+        self.SETTINGS.dev_mode = False
         assert self.SETTINGS.weather_app_id == self.WEATHER_APP_ID
 
     def test_jwt_secret__should_return_env_var_value(self):
+        self.SETTINGS.dev_mode = False
         assert self.SETTINGS.jwt_secret == self.JWT_SECRET
 
     def test_light_api_user__should_return_env_var_value(self):
+        self.SETTINGS.dev_mode = False
         assert self.SETTINGS.light_api_user == self.LIGHT_API_USER
 
     def test_light_api_password__should_return_env_var_value(self):
+        self.SETTINGS.dev_mode = False
         assert self.SETTINGS.light_api_password == self.LIGHT_API_PASSWORD
 
     def test_user_id__should_return_env_var_value(self):
+        self.SETTINGS.dev_mode = False
         assert self.SETTINGS.user_id == self.USER_ID
 
     def test_db_user__should_pull_from_dictionary_if_dev_mode(self):
