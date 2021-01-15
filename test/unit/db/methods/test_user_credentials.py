@@ -513,56 +513,55 @@ class TestUserDatabase:
     @patch('svc.db.methods.user_credentials.ScheduleTasks')
     def test_insert_schedule_task_by_user__should_call_add_with_task_settings(self, mock_tasks):
         task = {'alarmLightGroup': '1', 'alarmGroupName': 'bathroom', 'alarmTime': '00:01:01', 'alarmDays': 'Mon'}
-        user_id = str(uuid.uuid4())
         created_task = ScheduleTasks()
         mock_tasks.return_value = created_task
-        self.DATABASE.insert_schedule_task_by_user(user_id, task)
+        self.DATABASE.insert_schedule_task_by_user(self.USER_ID, task)
 
         self.SESSION.add.assert_called_with(created_task)
 
     def test_insert_schedule_task_by_user__should_not_throw_when_alarm_light_group_missing(self):
         preference_info = {'alarmDays': 'mon', 'alarmGroupName': 'bedroom', 'alarmTime': '00:01:00'}
-        user_id = str(uuid.uuid4())
-        self.DATABASE.insert_schedule_task_by_user(user_id, preference_info)
+        self.DATABASE.insert_schedule_task_by_user(self.USER_ID, preference_info)
 
     def test_insert_schedule_task_by_user__should_not_throw_when_alarm_time_missing(self):
         preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmDays': 'Mon'}
-        user_id = str(uuid.uuid4())
-        self.DATABASE.insert_schedule_task_by_user(user_id, preference_info)
+        self.DATABASE.insert_schedule_task_by_user(self.USER_ID, preference_info)
 
     def test_insert_schedule_task_by_user__should_not_throw_when_alarm_days_missing(self):
         preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00'}
-        user_id = str(uuid.uuid4())
-        self.DATABASE.insert_schedule_task_by_user(user_id, preference_info)
+        self.DATABASE.insert_schedule_task_by_user(self.USER_ID, preference_info)
 
     def test_insert_schedule_task_by_user__should_not_throw_when_alarm_light_name_missing(self):
         preference_info = {'alarmDays': 'mon', 'alarmLightGroup': '1', 'alarmTime': '00:01:00'}
-        user_id = str(uuid.uuid4())
-        self.DATABASE.insert_schedule_task_by_user(user_id, preference_info)
+        self.DATABASE.insert_schedule_task_by_user(self.USER_ID, preference_info)
 
     def test_get_schedule_tasks_by_user__should_query_database_for_tasks(self):
-        user_id = str(uuid.uuid4())
-        self.DATABASE.get_schedule_tasks_by_user(user_id)
+        self.DATABASE.get_schedule_tasks_by_user(self.USER_ID)
         self.SESSION.query.assert_called_with(ScheduleTasks)
-        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=user_id)
+        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
         self.SESSION.query.return_value.filter_by.return_value.all.assert_called()
 
     def test_get_schedule_tasks_by_user_id__should_return_query_response(self):
-        user_id = str(uuid.uuid4())
         days = 'Sat'
         group_id = '1'
         group_name = 'Bedroom'
         group_time = '06:45:00'
         id = str(uuid.uuid4())
-        task = ScheduleTasks(user_id=user_id, id=id, alarm_light_group=group_id, alarm_group_name=group_name, alarm_days=days, alarm_time=time.fromisoformat(group_time))
+        task = ScheduleTasks(user_id=self.USER_ID, id=id, alarm_light_group=group_id, alarm_group_name=group_name, alarm_days=days, alarm_time=time.fromisoformat(group_time))
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task]
-        actual = self.DATABASE.get_schedule_tasks_by_user(user_id)
+        actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID)
 
         assert actual[0]['alarm_group_name'] == group_name
         assert actual[0]['alarm_light_group'] == group_id
         assert actual[0]['alarm_days'] == days
         assert actual[0]['alarm_time'] == group_time
         assert actual[0]['task_id'] == id
+
+    def test_delete_schedule_task_by_user__should_query_for_existing_record(self):
+        task_id = str(uuid.uuid4())
+        self.DATABASE.delete_schedule_task_by_user(self.USER_ID, task_id)
+        self.SESSION.query.assert_called_with(ScheduleTasks)
+        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID, id=task_id)
 
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
