@@ -5,7 +5,7 @@ import jwt
 from mock import patch, ANY
 
 from svc.controllers.app_controller import get_login, get_user_preferences, save_user_preferences, get_user_tasks, \
-    delete_user_task
+    delete_user_task, insert_user_task
 
 
 @patch('svc.controllers.app_controller.UserDatabaseManager')
@@ -118,3 +118,8 @@ class TestLoginController:
         task_id = 'jklasdf89734'
         delete_user_task(self.BEARER_TOKEN, self.USER_ID, task_id)
         mock_db.return_value.__enter__.return_value.delete_schedule_task_by_user.assert_called_with(ANY, task_id)
+
+    def test_insert_user_task__should_validate_bearer_token(self, mock_jwt, mock_db):
+        task = {}
+        insert_user_task(self.BEARER_TOKEN, self.USER_ID, task)
+        mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)

@@ -79,6 +79,7 @@ class UserDatabase:
         tasks = self.session.query(ScheduleTasks).filter_by(user_id=user_id).all()
         return [self.__create_scheduled_task(task) for task in tasks]
 
+    # TODO: need to return task id from database so user can delete after!!!
     def insert_schedule_task_by_user(self, user_id, task):
         alarm_time = task.get('alarmTime')
         new_task = ScheduleTasks(user_id=user_id, alarm_light_group=task.get('alarmLightGroup'),
