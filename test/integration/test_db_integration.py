@@ -148,7 +148,22 @@ class TestDbPreferenceIntegration:
             database.insert_schedule_task_by_user(self.USER_ID, task)
 
         with UserDatabaseManager() as database:
-            database.session.query(ScheduleTasks).filter_by(user_id=self.USER_ID)
+            actual = database.session.query(ScheduleTasks).filter_by(user_id=self.USER_ID).first()
+            assert actual.user_id == self.USER_ID
+            assert actual.alarm_light_group == self.LIGHT_GROUP
+            assert actual.alarm_time == datetime.time.fromisoformat(self.LIGHT_TIME)
+            assert actual.alarm_days == self.DAYS
+            assert actual.alarm_group_name == self.GROUP_NAME
+
+    def test_insert_schedule_task_by_user__should_not_raise_exception_when_alarm_time_missing(self):
+        task = {'alarmLightGroup': self.LIGHT_GROUP, 'alarmGroupName': self.GROUP_NAME, 'alarmDays': self.DAYS}
+        with UserDatabaseManager() as database:
+            database.insert_schedule_task_by_user(self.USER_ID, task)
+
+        with UserDatabaseManager() as database:
+            actual = database.session.query(ScheduleTasks).filter_by(user_id=self.USER_ID).first()
+            assert actual.user_id == self.USER_ID
+            assert actual.alarm_time is None
 
     def test_get_preferences_by_user__should_return_preferences_for_valid_user(self):
         with UserDatabaseManager() as database:
