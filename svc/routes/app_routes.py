@@ -42,4 +42,4 @@ def get_user_tasks_by_user_id(user_id):
 
 def delete_user_tasks_by_user_id(user_id):
     bearer_token = request.headers.get('Authorization')
-    app_controller.delete_user_task(bearer_token, None, None)
+    app_controller.delete_user_task(bearer_token, user_id, None)

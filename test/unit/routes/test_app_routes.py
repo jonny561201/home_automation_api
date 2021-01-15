@@ -140,3 +140,8 @@ class TestAppRoutes:
         delete_user_tasks_by_user_id(self.USER_ID)
 
         mock_controller.delete_user_task.assert_called_with(self.FAKE_JWT_TOKEN, ANY, ANY)
+
+    def test_delete_user_tasks_by_user_id__should_call_app_controller_with_user_id(self, mock_controller, mock_requests):
+        delete_user_tasks_by_user_id(self.USER_ID)
+
+        mock_controller.delete_user_task.assert_called_with(ANY, self.USER_ID, ANY)
