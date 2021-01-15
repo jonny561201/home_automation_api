@@ -576,6 +576,15 @@ class TestUserDatabase:
         user_id = str(uuid.uuid4())
         self.DATABASE.insert_schedule_task_by_user(user_id, preference_info)
 
+    def test_get_schedule_tasks_by_user__should_query_database_for_tasks(self):
+        user_id = str(uuid.uuid4())
+        self.DATABASE.get_schedule_tasks_by_user(user_id)
+        self.SESSION.query.assert_called_with(ScheduleTasks)
+        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=user_id)
+        self.SESSION.query.return_value.filter_by.return_value.all.assert_called()
+
+    # def test_get_schedule_tasks_by_user_id__should_
+
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()

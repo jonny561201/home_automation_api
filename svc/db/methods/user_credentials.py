@@ -72,6 +72,10 @@ class UserDatabase:
         record.is_imperial = is_imperial if is_imperial is not None else record.is_imperial
         record.city = city if city is not None else record.city
 
+    # TODO: create method to delete a scheduled tasks by user
+    def get_schedule_tasks_by_user(self, user_id):
+        self.session.query(ScheduleTasks).filter_by(user_id=user_id).all()
+
     def insert_schedule_task_by_user(self, user_id, task):
         alarm_time = task.get('alarmTime')
         new_task = ScheduleTasks(user_id=user_id, alarm_light_group=task.get('alarmLightGroup'),
