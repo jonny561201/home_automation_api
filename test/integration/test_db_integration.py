@@ -196,6 +196,14 @@ class TestDbPreferenceIntegration:
             actual = database.session.query(ScheduleTasks).filter_by(user_id=self.USER_ID).first()
             assert actual is None
 
+    def test_delete_schedule_tasks_by_user__should_not_throw_when_record_does_not_exist(self):
+        with UserDatabaseManager() as database:
+            database.delete_schedule_task_by_user(self.USER_ID, self.TASK_ID)
+
+        with UserDatabaseManager() as database:
+            actual = database.session.query(ScheduleTasks).filter_by(user_id=self.USER_ID).first()
+            assert actual is None
+
     def test_get_preferences_by_user__should_return_preferences_for_valid_user(self):
         with UserDatabaseManager() as database:
             response = database.get_preferences_by_user(self.USER_ID)
