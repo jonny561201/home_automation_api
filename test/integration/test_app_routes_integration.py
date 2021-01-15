@@ -86,7 +86,7 @@ class TestAppRoutesIntegration:
         bearer_token = jwt.encode({}, 'bad secret', algorithm='HS256')
         headers = {'Authorization': bearer_token}
 
-        actual = self.TEST_CLIENT.get('userId/' + self.USER_ID + '/preferences', headers=headers)
+        actual = self.TEST_CLIENT.get(f'userId/{self.USER_ID}/preferences', headers=headers)
 
         assert actual.status_code == 401
 
@@ -94,7 +94,7 @@ class TestAppRoutesIntegration:
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         headers = {'Authorization': bearer_token}
 
-        actual = self.TEST_CLIENT.get('userId/' + self.USER_ID + '/preferences', headers=headers)
+        actual = self.TEST_CLIENT.get(f'userId/{self.USER_ID}/preferences', headers=headers)
 
         assert actual.status_code == 200
         assert json.loads(actual.data).get('city') == self.CITY
@@ -103,7 +103,7 @@ class TestAppRoutesIntegration:
         bearer_token = jwt.encode({}, 'bad secret', algorithm='HS256')
         headers = {'Authorization': bearer_token}
 
-        actual = self.TEST_CLIENT.post('userId/' + self.USER_ID + '/preferences/update', headers=headers)
+        actual = self.TEST_CLIENT.post(f'userId/{self.USER_ID}/preferences/update', headers=headers)
 
         assert actual.status_code == 401
 
@@ -113,11 +113,17 @@ class TestAppRoutesIntegration:
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         headers = {'Authorization': bearer_token}
 
-        actual = self.TEST_CLIENT.post('userId/' + self.USER_ID + '/preferences/update', data=post_body, headers=headers)
+        actual = self.TEST_CLIENT.post(f'userId/{self.USER_ID}/preferences/update', data=post_body, headers=headers)
 
         assert actual.status_code == 200
         with UserDatabaseManager() as database:
             preference = database.session.query(UserPreference).filter_by(user_id=self.USER_ID).first()
             assert preference.city == expected_city
 
+    def test_get_user_tasks_by_user_id__should_return_401_when_unauthorized(self):
+        bearer_token = jwt.encode({}, 'bad secret', algorithm='HS256')
+        headers = {'Authorization': bearer_token}
 
+        actual = self.TEST_CLIENT.get(f'userId/{self.USER_ID}/tasks', headers=headers)
+
+        assert actual.status_code == 401

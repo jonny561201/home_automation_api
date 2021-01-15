@@ -34,6 +34,7 @@ def update_user_preferences_by_user_id(user_id):
     return Response(status=200, headers=DEFAULT_HEADERS)
 
 
+@APP_BLUEPRINT.route('/userId/<user_id>/tasks', methods=['GET'])
 def get_user_tasks_by_user_id(user_id):
     bearer_token = request.headers.get('Authorization')
     tasks = app_controller.get_user_tasks(bearer_token, user_id)
