@@ -79,13 +79,14 @@ class UserDatabase:
         tasks = self.session.query(ScheduleTasks).filter_by(user_id=user_id).all()
         return [self.__create_scheduled_task(task) for task in tasks]
 
-    # TODO: need to return task id from database so user can delete after!!!
     def insert_schedule_task_by_user(self, user_id, task):
         alarm_time = task.get('alarmTime')
         new_task = ScheduleTasks(user_id=user_id, alarm_light_group=task.get('alarmLightGroup'),
                                  alarm_group_name=task.get('alarmGroupName'), alarm_days=task.get('alarmDays'),
                                  alarm_time=None if alarm_time is None else time.fromisoformat(alarm_time))
         self.session.add(new_task)
+        new_tasks = self.session.query(ScheduleTasks).filter_by(user_id=user_id).all()
+        return [self.__create_scheduled_task(task) for task in new_tasks]
 
     def get_current_sump_level_by_user(self, user_id):
         child_account = self.session.query(ChildAccounts).filter_by(child_user_id=user_id).first()
@@ -206,7 +207,7 @@ class UserDatabase:
     @staticmethod
     def __create_scheduled_task(task):
         return {'alarm_group_name': task.alarm_group_name, 'alarm_light_group': task.alarm_light_group,
-                'alarm_days': task.alarm_days, 'alarm_time': task.alarm_time.isoformat(), 'task_id': task.id}
+                'alarm_days': task.alarm_days, 'alarm_time': task.alarm_time.isoformat(), 'task_id': str(task.id)}
 
     @staticmethod
     def __create_role(role_devices, role_name):
