@@ -35,4 +35,5 @@ def update_user_preferences_by_user_id(user_id):
 
 
 def get_user_tasks_by_user_id(user_id):
-    app_controller.get_user_tasks(None, user_id)
+    bearer_token = request.headers.get('Authorization')
+    app_controller.get_user_tasks(bearer_token, user_id)
