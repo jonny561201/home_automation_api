@@ -573,8 +573,7 @@ class TestUserDuplication:
     def setup_method(self):
         os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
                            'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
-        self.PREFERENCE = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city=self.CITY, alarm_group_name=self.GROUP_NAME,
-                                         alarm_light_group='1', alarm_time='00:00:01', alarm_days='Mon')
+        self.PREFERENCE = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city=self.CITY)
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
         self.ROLE = Roles(id=self.ROLE_ID, role_desc="lighting", role_name=self.ROLE_NAME)
         self.USER_ROLE = UserRoles(id=self.USER_ROLE_ID, user_id=self.USER_ID, role_id=self.ROLE_ID, role=self.ROLE)
@@ -689,7 +688,8 @@ class TestUserDuplication:
         with UserDatabaseManager() as database:
             new_user = database.session.query(UserPreference).filter_by(user_id=str(self.UPDATED_USER_ID)).first()
             assert new_user.city == self.CITY
-            assert new_user.alarm_group_name == self.GROUP_NAME
+            assert new_user.is_fahrenheit is True
+            assert new_user.is_imperial is True
 
     def test_create_child_account__should_create_child_account_record(self, mock_uuid):
         mock_uuid.uuid4.side_effect = [self.UPDATED_USER_ID, uuid.uuid4(), uuid.uuid4()]
