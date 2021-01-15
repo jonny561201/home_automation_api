@@ -80,7 +80,7 @@ class UserDatabase:
     def insert_schedule_task_by_user(self, user_id, task):
         alarm_time = task.get('alarmTime')
         new_task = ScheduleTasks(user_id=user_id, alarm_light_group=task.get('alarmLightGroup'),
-                                 alarm_group_name=task['alarmGroupName'], alarm_days=task.get('alarmDays'),
+                                 alarm_group_name=task.get('alarmGroupName'), alarm_days=task.get('alarmDays'),
                                  alarm_time=None if alarm_time is None else time.fromisoformat(alarm_time))
         self.session.add(new_task)
 
