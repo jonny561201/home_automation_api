@@ -91,3 +91,7 @@ class TestLoginController:
     def test_get_user_tasks__should_validate_bearer_token(self, mock_jwt, mock_db):
         get_user_tasks(self.BEARER_TOKEN, self.USER_ID)
         mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
+
+    def test_get_user_tasks__should_call_get_schedule_tasks_by_user(self, mock_jwt, mock_db):
+        get_user_tasks(self.BEARER_TOKEN, self.USER_ID)
+        mock_db.return_value.__enter__.return_value.get_schedule_tasks_by_user.assert_called_with(self.USER_ID)
