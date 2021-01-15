@@ -116,6 +116,7 @@ class TestDbValidateIntegration:
 
 class TestDbPreferenceIntegration:
     USER_ID = str(uuid.uuid4())
+    TASK_ID = str(uuid.uuid4())
     CITY = 'Praha'
     UNIT = 'metric'
     LIGHT_GROUP = '42'
@@ -127,6 +128,7 @@ class TestDbPreferenceIntegration:
         os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
                            'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
+        self.TASK = ScheduleTasks(user_id=self.USER_ID, id=self.TASK_ID, alarm_light_group=self.LIGHT_GROUP, alarm_group_name=self.GROUP_NAME, alarm_days=self.DAYS, alarm_time=datetime.time.fromisoformat(self.LIGHT_TIME))
         self.USER_PREFERENCES = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city=self.CITY)
         with UserDatabaseManager() as database:
             database.session.add(self.USER)
@@ -141,6 +143,18 @@ class TestDbPreferenceIntegration:
         os.environ.pop('SQL_PASSWORD')
         os.environ.pop('SQL_DBNAME')
         os.environ.pop('SQL_PORT')
+
+    def test_get_schedule_task_by_user__should_return_task(self):
+        with UserDatabaseManager() as database:
+            database.session.add(self.TASK)
+
+        with UserDatabaseManager() as database:
+            actual = database.get_schedule_tasks_by_user(self.USER_ID)
+            assert actual[0]['alarm_light_group'] == self.LIGHT_GROUP
+            assert actual[0]['alarm_group_name'] == self.GROUP_NAME
+            assert actual[0]['alarm_days'] == self.DAYS
+            assert actual[0]['alarm_time'] == self.LIGHT_TIME
+            assert actual[0]['task_id'] == self.TASK_ID
 
     def test_insert_schedule_task_by_user__should_insert_task(self):
         task = {'alarmTime': self.LIGHT_TIME, 'alarmLightGroup': self.LIGHT_GROUP, 'alarmGroupName': self.GROUP_NAME, 'alarmDays': self.DAYS}
