@@ -133,3 +133,11 @@ class TestLoginController:
         task = {'alarm_time': '00:01:00'}
         insert_user_task(self.BEARER_TOKEN, self.USER_ID, task)
         mock_db.return_value.__enter__.return_value.insert_schedule_task_by_user.assert_called_with(ANY, task)
+
+    def test_insert_user_task__should_return_database_response(self, mock_jwt, mock_db):
+        task = {'alarm_time': '00:01:00'}
+        response = {'task_id': '123basdf-123basd-345jasdf-asd558'}
+        mock_db.return_value.__enter__.return_value.insert_schedule_task_by_user.return_value = response
+        actual = insert_user_task(self.BEARER_TOKEN, self.USER_ID, task)
+
+        assert actual == response

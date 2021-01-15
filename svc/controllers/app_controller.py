@@ -41,4 +41,4 @@ def delete_user_task(bearer_token, user_id, task_id):
 def insert_user_task(bearer_token, user_id, task):
     jwt_utils.is_jwt_valid(bearer_token)
     with UserDatabaseManager() as database:
-        database.insert_schedule_task_by_user(user_id, task)
+        return database.insert_schedule_task_by_user(user_id, task)
