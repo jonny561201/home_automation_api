@@ -146,6 +146,14 @@ class TestAppRoutes:
 
         mock_controller.delete_user_task.assert_called_with(ANY, self.USER_ID, ANY)
 
+    def test_delete_user_tasks_by_user_id__should_call_app_controller_with_request_data(self, mock_controller, mock_requests):
+        data = {'test_data': 'asdfasd'}
+        expected_data = json.dumps(data).encode()
+        mock_requests.data = expected_data
+        delete_user_tasks_by_user_id(self.USER_ID)
+
+        mock_controller.delete_user_task.assert_called_with(ANY, ANY, expected_data)
+
     def test_delete_user_tasks_by_user_id__should_return_success_status_code(self, mock_controller, mock_requests):
         actual = delete_user_tasks_by_user_id(self.USER_ID)
 
