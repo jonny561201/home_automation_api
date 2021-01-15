@@ -121,7 +121,7 @@ class TestAppRoutes:
 
         assert actual.status_code == 200
 
-    def test_get_user_tasks_by_user_id__should_return_success_content(self, mock_controller, mock_requests):
+    def test_get_user_tasks_by_user_id__should_return_success_content_type(self, mock_controller, mock_requests):
         response = {'test_data': 'task'}
         mock_controller.get_user_tasks.return_value = response
         actual = get_user_tasks_by_user_id(self.USER_ID)
@@ -151,3 +151,7 @@ class TestAppRoutes:
 
         assert actual.status_code == 200
 
+    def test_delete_user_tasks_by_user_id__should_return_success_content_type(self, mock_controller, mock_requests):
+        actual = delete_user_tasks_by_user_id(self.USER_ID)
+
+        assert actual.content_type == 'text/json'
