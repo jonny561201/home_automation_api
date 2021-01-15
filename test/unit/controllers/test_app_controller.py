@@ -123,3 +123,8 @@ class TestLoginController:
         task = {}
         insert_user_task(self.BEARER_TOKEN, self.USER_ID, task)
         mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
+
+    def test_insert_user_task__should_validate_bearer_token(self, mock_jwt, mock_db):
+        task = {'alarm_time': '00:01:00'}
+        insert_user_task(self.BEARER_TOKEN, self.USER_ID, task)
+        mock_db.return_value.__enter__.return_value.insert_schedule_task_by_user.assert_called_with(self.USER_ID, ANY)
