@@ -1,11 +1,12 @@
 import uuid
+from datetime import time
 
 from sqlalchemy import orm, create_engine
 from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.constants.settings_state import Settings
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
-    AverageSumpPumpLevel, RoleDevices, UserRoles, RoleDeviceNodes, ChildAccounts, UserInformation
+    AverageSumpPumpLevel, RoleDevices, UserRoles, RoleDeviceNodes, ChildAccounts, UserInformation, ScheduleTasks
 
 
 class UserDatabaseManager:
@@ -66,7 +67,6 @@ class UserDatabase:
 
     def insert_preferences_by_user(self, user_id, preference_info):
         city = preference_info.get('city')
-        light_alarm = preference_info.get('lightAlarm')
         is_imperial = preference_info.get('isImperial')
         is_fahrenheit = preference_info.get('isFahrenheit')
         if len(preference_info) == 0:
@@ -76,8 +76,12 @@ class UserDatabase:
         record.is_fahrenheit = is_fahrenheit if is_fahrenheit is not None else record.is_fahrenheit
         record.is_imperial = is_imperial if is_imperial is not None else record.is_imperial
         record.city = city if city is not None else record.city
-        record.alarm_days = light_alarm.get('alarmDays') if light_alarm is not None else record.alarm_days
-        self.__set_user_light_alarm(light_alarm, record)
+
+    def insert_schedule_task_by_user(self, user_id, task):
+        new_task = ScheduleTasks(user_id=user_id, alarm_light_group=task['alarm_light_group'],
+                                 alarm_group_name=task['alarm_group_name'], alarm_days=task['alarm_days'],
+                                 alarm_time=time.fromisoformat(task['alarm_time']))
+        self.session.add(new_task)
 
     def get_current_sump_level_by_user(self, user_id):
         child_account = self.session.query(ChildAccounts).filter_by(child_user_id=user_id).first()
@@ -192,20 +196,8 @@ class UserDatabase:
 
     def __create_user_preference(self, new_user_id, user_id):
         pref = self.session.query(UserPreference).filter_by(user_id=user_id).first()
-        new_pref = UserPreference(user_id=new_user_id, is_fahrenheit=pref.is_fahrenheit, is_imperial=pref.is_imperial,
-                                  alarm_group_name=pref.alarm_group_name, alarm_light_group=pref.alarm_light_group,
-                                  alarm_time=pref.alarm_time, alarm_days=pref.alarm_days, city=pref.city)
+        new_pref = UserPreference(user_id=new_user_id, is_fahrenheit=pref.is_fahrenheit, is_imperial=pref.is_imperial, city=pref.city)
         self.session.add(new_pref)
-
-    @staticmethod
-    def __set_user_light_alarm(light_alarm, record):
-        if light_alarm is not None:
-            light_time = None if light_alarm.get('alarmTime') == 'None' else light_alarm.get('alarmTime')
-            light_group = light_alarm.get('alarmLightGroup')
-            light_group_name = light_alarm.get('alarmGroupName')
-            record.alarm_time = light_time if light_time is not None else record.alarm_time
-            record.alarm_light_group = light_group if light_group is not None else record.alarm_light_group
-            record.alarm_group_name = light_group_name if light_group_name is not None else record.alarm_group_name
 
     @staticmethod
     def __create_role(role_devices, role_name):

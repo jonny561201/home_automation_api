@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, time
 
 import pytest
 from mock import mock, patch
@@ -8,7 +8,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.db.methods.user_credentials import UserDatabase
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
-    AverageSumpPumpLevel, Roles, UserInformation, UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts
+    AverageSumpPumpLevel, Roles, UserInformation, UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts, ScheduleTasks
 
 
 class TestUserDatabase:
@@ -217,41 +217,6 @@ class TestUserDatabase:
         self.DATABASE.insert_preferences_by_user(user_id, preference_info)
 
         self.SESSION.query.return_value.filter_by.assert_called_with(user_id=user_id)
-
-    def test_insert_preferences_by_user__should_not_throw_when_city_missing(self):
-        preference_info = {'isFahrenheit': False, 'isImperial': True, 'lightAlarm': {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon'}}
-        user_id = str(uuid.uuid4())
-        self.DATABASE.insert_preferences_by_user(user_id, preference_info)
-
-    def test_insert_preferences_by_user__should_not_throw_when_alarm_time_missing(self):
-        preference_info = {'isFahrenheit': False, 'isImperial': True, 'lightAlarm': {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmDays': 'Mon'}}
-        user_id = str(uuid.uuid4())
-        self.DATABASE.insert_preferences_by_user(user_id, preference_info)
-
-    def test_insert_preferences_by_user__should_not_throw_when_alarm_days_missing(self):
-        preference_info = {'isFahrenheit': False, 'isImperial': True, 'lightAlarm': {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00'}}
-        user_id = str(uuid.uuid4())
-        self.DATABASE.insert_preferences_by_user(user_id, preference_info)
-
-    def test_insert_preferences_by_user__should_not_throw_when_alarm_light_group_missing(self):
-        preference_info = {'isFahrenheit': False, 'isImperial': True, 'lightAlarm': {'alarmDays': 'mon', 'alarmGroupName': 'bedroom', 'alarmTime': '00:01:00'}}
-        user_id = str(uuid.uuid4())
-        self.DATABASE.insert_preferences_by_user(user_id, preference_info)
-
-    def test_insert_preferences_by_user__should_not_throw_when_alarm_light_name_missing(self):
-        preference_info = {'isFahrenheit': False, 'isImperial': True, 'lightAlarm': {'alarmDays': 'mon', 'alarmLightGroup': '1', 'alarmTime': '00:01:00'}}
-        user_id = str(uuid.uuid4())
-        self.DATABASE.insert_preferences_by_user(user_id, preference_info)
-
-    def test_insert_preferences_by_user__should_not_throw_when_is_fahrenheit_missing(self):
-        preference_info = {'city': 'London', 'isImperial': False, 'lightAlarm': {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon'}}
-        user_id = str(uuid.uuid4())
-        self.DATABASE.insert_preferences_by_user(user_id, preference_info)
-
-    def test_insert_preferences_by_user__should_not_throw_when_is_imperial_missing(self):
-        preference_info = {'city': 'London', 'isFahrenheit': True, 'lightAlarm': {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon'}}
-        user_id = str(uuid.uuid4())
-        self.DATABASE.insert_preferences_by_user(user_id, preference_info)
 
     def test_insert_preferences_by_user__should_raise_bad_request_when_preferences_empty(self):
         preference_info = {}
@@ -566,6 +531,16 @@ class TestUserDatabase:
         self.SESSION.query.assert_called_with(UserCredentials)
         self.SESSION.query.return_value.filter_by.return_value.delete.assert_called()
 
+    @patch('svc.db.methods.user_credentials.ScheduleTasks')
+    def test_insert_schedule_task_by_user__should_call_add_with_task_settings(self, mock_tasks):
+        task = {'alarm_light_group': '1', 'alarm_group_name': 'bathroom', 'alarm_time': '00:01:01', 'alarm_days': 'Mon'}
+        user_id = str(uuid.uuid4())
+        created_task = ScheduleTasks()
+        mock_tasks.return_value = created_task
+        self.DATABASE.insert_schedule_task_by_user(user_id, task)
+
+        self.SESSION.add.assert_called_with(created_task)
+        
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()
