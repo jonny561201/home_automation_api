@@ -38,3 +38,8 @@ def get_user_tasks_by_user_id(user_id):
     bearer_token = request.headers.get('Authorization')
     tasks = app_controller.get_user_tasks(bearer_token, user_id)
     return Response(json.dumps(tasks), status=200, headers=DEFAULT_HEADERS)
+
+
+def delete_user_tasks_by_user_id(user_id):
+    bearer_token = request.headers.get('Authorization')
+    app_controller.delete_user_task(bearer_token, None, None)
