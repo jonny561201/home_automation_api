@@ -563,6 +563,11 @@ class TestUserDatabase:
         self.SESSION.query.assert_called_with(ScheduleTasks)
         self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID, id=task_id)
 
+    def test_delete_schedule_task_by_user__should_try_to_delete_record(self):
+        task_id = str(uuid.uuid4())
+        self.DATABASE.delete_schedule_task_by_user(self.USER_ID, task_id)
+        self.SESSION.query.return_value.filter_by.return_value.delete.assert_called()
+
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()
