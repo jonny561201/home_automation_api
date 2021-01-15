@@ -24,3 +24,7 @@ def save_user_preferences(bearer_token, user_id, request_data):
     user_preferences = json.loads(request_data.decode('UTF-8'))
     with UserDatabaseManager() as database:
         database.insert_preferences_by_user(user_id, user_preferences)
+
+
+def get_user_tasks(bearer_token, user_id):
+    jwt_utils.is_jwt_valid(bearer_token)

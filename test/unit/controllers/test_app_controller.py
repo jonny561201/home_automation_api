@@ -4,7 +4,7 @@ import datetime
 import jwt
 from mock import patch, ANY
 
-from svc.controllers.app_controller import get_login, get_user_preferences, save_user_preferences
+from svc.controllers.app_controller import get_login, get_user_preferences, save_user_preferences, get_user_tasks
 
 
 @patch('svc.controllers.app_controller.UserDatabaseManager')
@@ -87,3 +87,7 @@ class TestLoginController:
         save_user_preferences(bearer_token, self.USER_ID, request_data)
 
         mock_db.return_value.__enter__.return_value.insert_preferences_by_user.assert_called_with(ANY, user_preferences)
+
+    def test_get_user_tasks__should_validate_bearer_token(self, mock_jwt, mock_db):
+        get_user_tasks(self.BEARER_TOKEN, self.USER_ID)
+        mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
