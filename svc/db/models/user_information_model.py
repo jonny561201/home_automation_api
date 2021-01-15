@@ -73,10 +73,6 @@ class UserPreference(Base):
     is_fahrenheit = Column(Boolean, nullable=False)
     is_imperial = Column(Boolean, nullable=False)
     city = Column(String, nullable=True)
-    alarm_light_group = Column(String, nullable=True)
-    alarm_time = Column(TIME, nullable=True)
-    alarm_days = Column(String, nullable=True)
-    alarm_group_name = Column(String, nullable=True)
 
     user = relationship('UserInformation', foreign_keys='UserPreference.user_id')
 
@@ -85,12 +81,13 @@ class ScheduleTasks(Base):
     __tablename__ = 'schedule_tasks'
 
     id = Column(UUID, nullable=False, primary_key=True, server_default=sqlalchemy.text("gen_random_uuid()"))
+    user_id = Column(UUID, ForeignKey(UserInformation.id))
     alarm_light_group = Column(String, nullable=True)
     alarm_time = Column(TIME, nullable=True)
     alarm_days = Column(String, nullable=True)
     alarm_group_name = Column(String, nullable=True)
 
-    user = relationship('UserInformation', foreign_keys='UserPreference.user_id')
+    user = relationship('UserInformation', foreign_keys='ScheduleTasks.user_id')
 
 
 # TODO: remove cascade delete on user roles
