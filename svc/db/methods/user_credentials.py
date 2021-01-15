@@ -78,9 +78,9 @@ class UserDatabase:
         record.city = city if city is not None else record.city
 
     def insert_schedule_task_by_user(self, user_id, task):
-        new_task = ScheduleTasks(user_id=user_id, alarm_light_group=task['alarm_light_group'],
-                                 alarm_group_name=task['alarm_group_name'], alarm_days=task['alarm_days'],
-                                 alarm_time=time.fromisoformat(task['alarm_time']))
+        new_task = ScheduleTasks(user_id=user_id, alarm_light_group=task.get('alarmLightGroup'),
+                                 alarm_group_name=task['alarmGroupName'], alarm_days=task['alarmDays'],
+                                 alarm_time=time.fromisoformat(task['alarmTime']))
         self.session.add(new_task)
 
     def get_current_sump_level_by_user(self, user_id):

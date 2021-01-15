@@ -548,14 +548,19 @@ class TestUserDatabase:
 
     @patch('svc.db.methods.user_credentials.ScheduleTasks')
     def test_insert_schedule_task_by_user__should_call_add_with_task_settings(self, mock_tasks):
-        task = {'alarm_light_group': '1', 'alarm_group_name': 'bathroom', 'alarm_time': '00:01:01', 'alarm_days': 'Mon'}
+        task = {'alarmLightGroup': '1', 'alarmGroupName': 'bathroom', 'alarmTime': '00:01:01', 'alarmDays': 'Mon'}
         user_id = str(uuid.uuid4())
         created_task = ScheduleTasks()
         mock_tasks.return_value = created_task
         self.DATABASE.insert_schedule_task_by_user(user_id, task)
 
         self.SESSION.add.assert_called_with(created_task)
-        
+
+    def test_insert_schedule_task_by_user__should_not_throw_when_alarm_light_group_missing(self):
+        preference_info = {'alarmDays': 'mon', 'alarmGroupName': 'bedroom', 'alarmTime': '00:01:00'}
+        user_id = str(uuid.uuid4())
+        self.DATABASE.insert_schedule_task_by_user(user_id, preference_info)
+
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()
