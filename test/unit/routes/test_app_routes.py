@@ -114,3 +114,8 @@ class TestAppRoutes:
         actual = get_user_tasks_by_user_id(self.USER_ID)
 
         assert actual.status_code == 200
+
+    def test_get_user_tasks_by_user_id__should_return_success_content(self, mock_controller, mock_requests):
+        actual = get_user_tasks_by_user_id(self.USER_ID)
+
+        assert actual.content_type == 'text/json'
