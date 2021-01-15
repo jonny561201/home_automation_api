@@ -48,5 +48,5 @@ def delete_user_tasks_by_user_id(user_id, task_id):
 
 def insert_user_task_by_user_id(user_id):
     bearer_token = request.headers.get('Authorization')
-    app_controller.insert_user_task(bearer_token, user_id, request.data)
-    return Response(status=200,  headers=DEFAULT_HEADERS)
+    updated_tasks = app_controller.insert_user_task(bearer_token, user_id, request.data)
+    return Response(json.dumps(updated_tasks), status=200,  headers=DEFAULT_HEADERS)
