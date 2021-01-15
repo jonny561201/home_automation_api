@@ -120,24 +120,28 @@ class TestLoginController:
         mock_db.return_value.__enter__.return_value.delete_schedule_task_by_user.assert_called_with(ANY, task_id)
 
     def test_insert_user_task__should_validate_bearer_token(self, mock_jwt, mock_db):
-        task = {}
-        insert_user_task(self.BEARER_TOKEN, self.USER_ID, task)
+        task = {'test': 'data'}
+        request_data = json.dumps(task).encode('UTF-8')
+        insert_user_task(self.BEARER_TOKEN, self.USER_ID, request_data)
         mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
 
     def test_insert_user_task__should_call_insert_schedule_task_by_user_with_user_id(self, mock_jwt, mock_db):
         task = {'alarm_time': '00:01:00'}
-        insert_user_task(self.BEARER_TOKEN, self.USER_ID, task)
+        request_data = json.dumps(task).encode('UTF-8')
+        insert_user_task(self.BEARER_TOKEN, self.USER_ID, request_data)
         mock_db.return_value.__enter__.return_value.insert_schedule_task_by_user.assert_called_with(self.USER_ID, ANY)
 
     def test_insert_user_task__should_call_insert_schedule_task_by_user_with_task(self, mock_jwt, mock_db):
         task = {'alarm_time': '00:01:00'}
-        insert_user_task(self.BEARER_TOKEN, self.USER_ID, task)
+        request_data = json.dumps(task).encode('UTF-8')
+        insert_user_task(self.BEARER_TOKEN, self.USER_ID, request_data)
         mock_db.return_value.__enter__.return_value.insert_schedule_task_by_user.assert_called_with(ANY, task)
 
     def test_insert_user_task__should_return_database_response(self, mock_jwt, mock_db):
         task = {'alarm_time': '00:01:00'}
+        request_data = json.dumps(task).encode('UTF-8')
         response = {'task_id': '123basdf-123basd-345jasdf-asd558'}
         mock_db.return_value.__enter__.return_value.insert_schedule_task_by_user.return_value = response
-        actual = insert_user_task(self.BEARER_TOKEN, self.USER_ID, task)
+        actual = insert_user_task(self.BEARER_TOKEN, self.USER_ID, request_data)
 
         assert actual == response
