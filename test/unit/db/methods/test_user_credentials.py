@@ -566,6 +566,11 @@ class TestUserDatabase:
         user_id = str(uuid.uuid4())
         self.DATABASE.insert_schedule_task_by_user(user_id, preference_info)
 
+    def test_insert_schedule_task_by_user__should_not_throw_when_alarm_days_missing(self):
+        preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00'}
+        user_id = str(uuid.uuid4())
+        self.DATABASE.insert_schedule_task_by_user(user_id, preference_info)
+
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()
