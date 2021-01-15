@@ -109,7 +109,12 @@ class TestLoginController:
         delete_user_task(self.BEARER_TOKEN, self.USER_ID, task_id)
         mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
 
-    def test_delete_user_task__should_call_get_schedule_tasks_by_user(self, mock_jwt, mock_db):
+    def test_delete_user_task__should_call_get_schedule_tasks_by_user_with_user_id(self, mock_jwt, mock_db):
         task_id = 'jklasdf89734'
         delete_user_task(self.BEARER_TOKEN, self.USER_ID, task_id)
-        mock_db.return_value.__enter__.return_value.delete_schedule_task_by_user.assert_called_with(self.USER_ID, task_id)
+        mock_db.return_value.__enter__.return_value.delete_schedule_task_by_user.assert_called_with(self.USER_ID, ANY)
+
+    def test_delete_user_task__should_call_get_schedule_tasks_by_user_with_task_id(self, mock_jwt, mock_db):
+        task_id = 'jklasdf89734'
+        delete_user_task(self.BEARER_TOKEN, self.USER_ID, task_id)
+        mock_db.return_value.__enter__.return_value.delete_schedule_task_by_user.assert_called_with(ANY, task_id)
