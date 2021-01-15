@@ -183,3 +183,8 @@ class TestAppRoutes:
         insert_user_task_by_user_id(self.USER_ID)
 
         mock_controller.insert_user_task.assert_called_with(ANY, ANY, data)
+
+    def test_insert_user_task_by_user_id__should_return_success_status_code(self, mock_controller, mock_requests):
+        actual = insert_user_task_by_user_id(self.USER_ID)
+
+        assert actual.status_code == 200
