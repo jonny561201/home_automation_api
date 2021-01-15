@@ -169,3 +169,8 @@ class TestAppRoutes:
         insert_user_task_by_user_id(self.USER_ID)
 
         mock_controller.insert_user_task.assert_called_with(self.FAKE_JWT_TOKEN, ANY, ANY)
+
+    def test_insert_user_task_by_user_id__should_call_app_controller_with_user_id(self, mock_controller, mock_requests):
+        insert_user_task_by_user_id(self.USER_ID)
+
+        mock_controller.insert_user_task.assert_called_with(ANY, self.USER_ID, ANY)
