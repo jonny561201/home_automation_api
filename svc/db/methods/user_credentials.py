@@ -74,7 +74,8 @@ class UserDatabase:
 
     # TODO: create method to delete a scheduled tasks by user
     def get_schedule_tasks_by_user(self, user_id):
-        self.session.query(ScheduleTasks).filter_by(user_id=user_id).all()
+        tasks = self.session.query(ScheduleTasks).filter_by(user_id=user_id).all()
+        return [self.__create_scheduled_task(task) for task in tasks]
 
     def insert_schedule_task_by_user(self, user_id, task):
         alarm_time = task.get('alarmTime')
@@ -198,6 +199,11 @@ class UserDatabase:
         pref = self.session.query(UserPreference).filter_by(user_id=user_id).first()
         new_pref = UserPreference(user_id=new_user_id, is_fahrenheit=pref.is_fahrenheit, is_imperial=pref.is_imperial, city=pref.city)
         self.session.add(new_pref)
+
+    @staticmethod
+    def __create_scheduled_task(task):
+        return {'alarm_group_name': task.alarm_group_name, 'alarm_light_group': task.alarm_light_group,
+                'alarm_days': task.alarm_days, 'alarm_time': task.alarm_time.isoformat(), 'task_id': task.id}
 
     @staticmethod
     def __create_role(role_devices, role_name):

@@ -583,7 +583,22 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.assert_called_with(user_id=user_id)
         self.SESSION.query.return_value.filter_by.return_value.all.assert_called()
 
-    # def test_get_schedule_tasks_by_user_id__should_
+    def test_get_schedule_tasks_by_user_id__should_return_query_response(self):
+        user_id = str(uuid.uuid4())
+        days = 'Sat'
+        group_id = '1'
+        group_name = 'Bedroom'
+        group_time = '06:45:00'
+        id = str(uuid.uuid4())
+        task = ScheduleTasks(user_id=user_id, id=id, alarm_light_group=group_id, alarm_group_name=group_name, alarm_days=days, alarm_time=time.fromisoformat(group_time))
+        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task]
+        actual = self.DATABASE.get_schedule_tasks_by_user(user_id)
+
+        assert actual[0]['alarm_group_name'] == group_name
+        assert actual[0]['alarm_light_group'] == group_id
+        assert actual[0]['alarm_days'] == days
+        assert actual[0]['alarm_time'] == group_time
+        assert actual[0]['task_id'] == id
 
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
