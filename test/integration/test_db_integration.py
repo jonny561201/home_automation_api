@@ -8,7 +8,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, \
-    UserCredentials, Roles, UserPreference, UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts
+    UserCredentials, Roles, UserPreference, UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts, ScheduleTasks
 
 DB_USER = 'postgres'
 DB_PASS = 'password'
@@ -118,29 +118,37 @@ class TestDbPreferenceIntegration:
     USER_ID = str(uuid.uuid4())
     CITY = 'Praha'
     UNIT = 'metric'
-    LIGHT_GROUP = '65'
+    LIGHT_GROUP = '42'
     LIGHT_TIME = '02:22:22'
-    GROUP_NAME = 'bedroom'
+    GROUP_NAME = 'secret room'
     DAYS = 'MonTueWedThuFri'
 
     def setup_method(self):
         os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
                            'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
-        self.USER_PREFERENCES = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city=self.CITY, alarm_group_name=self.GROUP_NAME,
-                                               alarm_light_group=self.LIGHT_GROUP, alarm_time=self.LIGHT_TIME, alarm_days=self.DAYS)
+        self.USER_PREFERENCES = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city=self.CITY)
         with UserDatabaseManager() as database:
             database.session.add(self.USER)
             database.session.add(self.USER_PREFERENCES)
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
+            database.session.query(ScheduleTasks).delete()
             database.session.delete(self.USER_PREFERENCES)
             database.session.delete(self.USER)
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
         os.environ.pop('SQL_DBNAME')
         os.environ.pop('SQL_PORT')
+
+    def test_insert_schedule_task_by_user__should_insert_task(self):
+        task = {'alarmTime': self.LIGHT_TIME, 'alarmLightGroup': self.LIGHT_GROUP, 'alarmGroupName': self.GROUP_NAME, 'alarmDays': self.DAYS}
+        with UserDatabaseManager() as database:
+            database.insert_schedule_task_by_user(self.USER_ID, task)
+
+        with UserDatabaseManager() as database:
+            database.session.query(ScheduleTasks).filter_by(user_id=self.USER_ID)
 
     def test_get_preferences_by_user__should_return_preferences_for_valid_user(self):
         with UserDatabaseManager() as database:
@@ -151,10 +159,6 @@ class TestDbPreferenceIntegration:
             assert response['city'] == self.CITY
             assert response['is_fahrenheit'] is True
             assert response['is_imperial'] is True
-            assert response.get('light_alarm')['alarm_light_group'] == self.LIGHT_GROUP
-            assert response.get('light_alarm')['alarm_time'] == datetime.time(2,22,22)
-            assert response.get('light_alarm')['alarm_group_name'] == self.GROUP_NAME
-            assert response.get('light_alarm')['alarm_days'] == self.DAYS
 
     def test_get_preferences_by_user__should_raise_bad_request_when_no_preferences(self):
         with pytest.raises(BadRequest):
@@ -164,12 +168,7 @@ class TestDbPreferenceIntegration:
 
     def test_insert_preferences_by_user__should_insert_valid_preferences(self):
         city = 'Vienna'
-        days = 'SunSat'
-        time = '6:59:04'
-        light_group = '32'
-        light_name = 'basement'
-        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': False, 'lightAlarm': {'alarmLightGroup': light_group,
-                           'alarmTime': time, 'alarmDays': days, 'alarmGroupName': light_name}}
+        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': False}
         with UserDatabaseManager() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
             database.session.commit()
@@ -177,28 +176,16 @@ class TestDbPreferenceIntegration:
 
             assert actual.city == city
             assert actual.is_fahrenheit is True
-            assert actual.alarm_days == days
-            assert actual.alarm_time == datetime.time(6, 59, 4)
-            assert actual.alarm_light_group == light_group
-            assert actual.alarm_group_name == light_name
 
     def test_insert_preferences_by_user__should_not_fail_when_time_is_none(self):
         city = 'Vienna'
-        days = 'SunSat'
-        light_group = '32'
-        light_name = 'basement'
-        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': False,
-                           'lightAlarm': {'alarmLightGroup': light_group, 'alarmTime': 'None', 'alarmDays': days, 'alarmGroupName': light_name}}
+        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': False}
         with UserDatabaseManager() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
             actual = database.session.query(UserPreference).filter_by(user_id=self.USER_ID).first()
 
             assert actual.city == city
             assert actual.is_fahrenheit is True
-            assert actual.alarm_days == days
-            assert actual.alarm_time == datetime.time(2, 22, 22)
-            assert actual.alarm_light_group == light_group
-            assert actual.alarm_group_name == light_name
 
     def test_insert_preferences_by_user__should_not_nullify_city_when_missing(self):
         preference_info = {'isFahrenheit': False, 'isImperial': True}
