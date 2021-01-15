@@ -1,9 +1,7 @@
-import datetime
 import json
 
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.utilities import jwt_utils
-from svc.constants.lights_state import LightState
 
 
 def get_login(basic_token):
@@ -26,6 +24,3 @@ def save_user_preferences(bearer_token, user_id, request_data):
     user_preferences = json.loads(request_data.decode('UTF-8'))
     with UserDatabaseManager() as database:
         database.insert_preferences_by_user(user_id, user_preferences)
-    light_pref = user_preferences.get('lightAlarm')
-    if light_pref is not None and light_pref is not {} and light_pref.get('alarmTime') != 'None':
-        LightState.get_instance().add_replace_light_alarm(light_pref.get('alarmLightGroup'), datetime.time.fromisoformat(light_pref.get('alarmTime')), light_pref.get('alarmDays'))
