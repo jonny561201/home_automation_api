@@ -225,6 +225,21 @@ class TestUserDatabase:
             self.DATABASE.insert_preferences_by_user(user_id, preference_info)
             self.SESSION.query.return_value.filter_by.assert_not_called()
 
+    def test_insert_preferences_by_user__should_not_throw_when_city_missing(self):
+        preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon'}
+        user_id = str(uuid.uuid4())
+        self.DATABASE.insert_preferences_by_user(user_id, preference_info)
+
+    def test_insert_preferences_by_user__should_not_throw_when_is_fahrenheit_missing(self):
+        preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon'}
+        user_id = str(uuid.uuid4())
+        self.DATABASE.insert_preferences_by_user(user_id, preference_info)
+
+    def test_insert_preferences_by_user__should_not_throw_when_is_imperial_missing(self):
+        preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon'}
+        user_id = str(uuid.uuid4())
+        self.DATABASE.insert_preferences_by_user(user_id, preference_info)
+
     def test_get_current_sump_level_by_user__should_return_sump_levels(self):
         expected_distance = 43.9
         expected_warning = 1
