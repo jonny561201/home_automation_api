@@ -29,4 +29,4 @@ def save_user_preferences(bearer_token, user_id, request_data):
 def get_user_tasks(bearer_token, user_id):
     jwt_utils.is_jwt_valid(bearer_token)
     with UserDatabaseManager() as database:
-        database.get_schedule_tasks_by_user(user_id)
+        return database.get_schedule_tasks_by_user(user_id)

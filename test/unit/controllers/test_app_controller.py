@@ -95,3 +95,10 @@ class TestLoginController:
     def test_get_user_tasks__should_call_get_schedule_tasks_by_user(self, mock_jwt, mock_db):
         get_user_tasks(self.BEARER_TOKEN, self.USER_ID)
         mock_db.return_value.__enter__.return_value.get_schedule_tasks_by_user.assert_called_with(self.USER_ID)
+
+    def test_get_user_tasks__should_return_user_tasks_from_database(self, mock_jwt, mock_db):
+        response = [{'task_id': '12312bas-12312basdd-12312bjsd-123b123v'}]
+        mock_db.return_value.__enter__.return_value.get_schedule_tasks_by_user.return_value = response
+        actual = get_user_tasks(self.BEARER_TOKEN, self.USER_ID)
+
+        assert actual == response
