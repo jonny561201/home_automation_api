@@ -109,3 +109,8 @@ class TestAppRoutes:
         get_user_tasks_by_user_id(self.USER_ID)
 
         mock_controller.get_user_tasks.assert_called_with(self.FAKE_JWT_TOKEN, ANY)
+
+    def test_get_user_tasks_by_user_id__should_return_success_status_code(self, mock_controller, mock_requests):
+        actual = get_user_tasks_by_user_id(self.USER_ID)
+
+        assert actual.status_code == 200
