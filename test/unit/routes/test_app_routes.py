@@ -100,22 +100,37 @@ class TestAppRoutes:
         assert actual.content_type == 'text/json'
 
     def test_get_user_tasks_by_user_id__should_call_app_controller_with_user_id(self, mock_controller, mock_requests):
+        response = {'test_data': 'task'}
+        mock_controller.get_user_tasks.return_value = response
         get_user_tasks_by_user_id(self.USER_ID)
 
         mock_controller.get_user_tasks.assert_called_with(ANY, self.USER_ID)
 
     def test_get_user_tasks_by_user_id__should_call_app_controller_with_bearer_token(self, mock_controller, mock_requests):
+        response = {'test_data': 'task'}
+        mock_controller.get_user_tasks.return_value = response
         mock_requests.headers = {'Authorization': self.FAKE_JWT_TOKEN}
         get_user_tasks_by_user_id(self.USER_ID)
 
         mock_controller.get_user_tasks.assert_called_with(self.FAKE_JWT_TOKEN, ANY)
 
     def test_get_user_tasks_by_user_id__should_return_success_status_code(self, mock_controller, mock_requests):
+        response = {'test_data': 'task'}
+        mock_controller.get_user_tasks.return_value = response
         actual = get_user_tasks_by_user_id(self.USER_ID)
 
         assert actual.status_code == 200
 
     def test_get_user_tasks_by_user_id__should_return_success_content(self, mock_controller, mock_requests):
+        response = {'test_data': 'task'}
+        mock_controller.get_user_tasks.return_value = response
         actual = get_user_tasks_by_user_id(self.USER_ID)
 
         assert actual.content_type == 'text/json'
+
+    def test_get_user_tasks_by_user_id__should_return_stringified_data_from_controller(self, mock_controller, mock_requests):
+        response = {'test_data': 'task'}
+        mock_controller.get_user_tasks.return_value = response
+        actual = get_user_tasks_by_user_id(self.USER_ID)
+
+        assert json.loads(actual.data) == response
