@@ -80,11 +80,13 @@ class UserDatabase:
         return [self.__create_scheduled_task(task) for task in tasks]
 
     def insert_schedule_task_by_user(self, user_id, task):
-        alarm_time = task.get('alarmTime')
-        new_task = ScheduleTasks(user_id=user_id, alarm_light_group=task.get('alarmLightGroup'),
-                                 alarm_group_name=task.get('alarmGroupName'), alarm_days=task.get('alarmDays'),
-                                 alarm_time=None if alarm_time is None else time.fromisoformat(alarm_time))
-        self.session.add(new_task)
+        try:
+            alarm_time = task['alarmTime']
+            new_task = ScheduleTasks(user_id=user_id, alarm_light_group=task['alarmLightGroup'],alarm_days=task['alarmDays'],
+                                     alarm_group_name=task['alarmGroupName'], alarm_time=time.fromisoformat(alarm_time))
+            self.session.add(new_task)
+        except KeyError:
+            raise BadRequest
         new_tasks = self.session.query(ScheduleTasks).filter_by(user_id=user_id).all()
         return [self.__create_scheduled_task(task) for task in new_tasks]
 
