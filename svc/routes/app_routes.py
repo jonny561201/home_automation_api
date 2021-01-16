@@ -48,6 +48,7 @@ def delete_user_tasks_by_user_id(user_id, task_id):
     return Response(status=200, headers=DEFAULT_HEADERS)
 
 
+@APP_BLUEPRINT.route('/userId/<user_id>/tasks', methods=['POST'])
 def insert_user_task_by_user_id(user_id):
     bearer_token = request.headers.get('Authorization')
     updated_tasks = app_controller.insert_user_task(bearer_token, user_id, request.data)

@@ -6,7 +6,7 @@ import uuid
 import jwt
 
 from svc.db.methods.user_credentials import UserDatabaseManager
-from svc.db.models.user_information_model import UserInformation, UserPreference
+from svc.db.models.user_information_model import UserInformation, UserPreference, ScheduleTasks
 from svc.manager import app
 
 
@@ -33,6 +33,7 @@ class TestAppRoutesIntegration:
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
+            database.session.query(ScheduleTasks).delete()
             database.session.delete(self.PREFERENCE)
             database.session.delete(self.USER)
         os.environ.pop('JWT_SECRET')
@@ -151,5 +152,23 @@ class TestAppRoutesIntegration:
         headers = {'Authorization': bearer_token}
 
         actual = self.TEST_CLIENT.delete(f'userId/{self.USER_ID}/tasks/{task_id}', headers=headers)
+
+        assert actual.status_code == 200
+
+    def test_insert_user_task_by_user_id__should_return_401_when_unauthorized(self):
+        bearer_token = jwt.encode({}, 'bad secret', algorithm='HS256')
+        request_data = json.dumps({'alarm_time': '00:00:01'})
+        headers = {'Authorization': bearer_token}
+
+        actual = self.TEST_CLIENT.post(f'userId/{self.USER_ID}/tasks', data=request_data, headers=headers)
+
+        assert actual.status_code == 401
+
+    def test_insert_user_task_by_user_id__should_successfully_update_user(self):
+        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
+        request_data = json.dumps({'alarmTime': '00:00:01', 'alarmGroupName': 'potty room', 'alarmLightGroup': '43', 'alarmDays': 'Wed'})
+        headers = {'Authorization': bearer_token}
+
+        actual = self.TEST_CLIENT.post(f'userId/{self.USER_ID}/tasks', data=request_data, headers=headers)
 
         assert actual.status_code == 200
