@@ -41,6 +41,7 @@ def get_user_tasks_by_user_id(user_id):
     return Response(json.dumps(tasks), status=200, headers=DEFAULT_HEADERS)
 
 
+@APP_BLUEPRINT.route('/userId/<user_id>/tasks/<task_id>', methods=['DELETE'])
 def delete_user_tasks_by_user_id(user_id, task_id):
     bearer_token = request.headers.get('Authorization')
     app_controller.delete_user_task(bearer_token, user_id, task_id)
