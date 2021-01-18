@@ -548,6 +548,10 @@ class TestUserDatabase:
         with pytest.raises(BadRequest):
             self.DATABASE.insert_schedule_task_by_user(self.USER_ID, preference_info)
 
+    def test_get_schedule_tasks_by_user__should_raise_bad_request_when_user_id_is_none(self):
+        with pytest.raises(BadRequest):
+            self.DATABASE.get_schedule_tasks_by_user(None)
+
     def test_get_schedule_tasks_by_user__should_query_database_for_tasks(self):
         self.DATABASE.get_schedule_tasks_by_user(self.USER_ID)
         self.SESSION.query.assert_called_with(ScheduleTasks)
