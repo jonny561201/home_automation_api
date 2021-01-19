@@ -73,7 +73,9 @@ class UserDatabase:
         record.city = city if city is not None else record.city
 
     def update_schedule_task_by_user_id(self, user_id, task):
-        old_task = self.session.query(ScheduleTasks).filter_by(user_id=user_id, id=task['task_id']).first()
+        old_task = self.session.query(ScheduleTasks).filter_by(user_id=user_id, id=task.get('task_id')).first()
+        if old_task is None:
+            raise BadRequest()
         old_task.id = str(uuid.uuid4())
         old_task.alarm_days = task['alarm_days'] if task.get('alarm_days') else old_task.alarm_days
         old_task.alarm_time = time.fromisoformat(task['alarm_time']) if task.get('alarm_time') else old_task.alarm_time

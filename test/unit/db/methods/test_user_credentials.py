@@ -651,7 +651,7 @@ class TestUserDatabase:
         assert existing_task.alarm_group_name == room
 
     def test_update_schedule_task_by_user_id__should_use_the_original_light_alarm_days_if_none(self):
-        task = {'task_id': 'asdfasd','alarm_group_name': 'bedroom', 'alarm_light_group': '3', 'alarm_time': '00:00:00'}
+        task = {'task_id': 'asdfasd', 'alarm_group_name': 'bedroom', 'alarm_light_group': '3', 'alarm_time': '00:00:00'}
         days = 'SatSun'
         existing_task = ScheduleTasks(alarm_days=days)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
@@ -660,13 +660,19 @@ class TestUserDatabase:
         assert existing_task.alarm_days == days
 
     def test_update_schedule_task_by_user_id__should_use_the_original_light_time_days_if_none(self):
-        task = {'task_id': 'asdfasd','alarm_group_name': 'bedroom', 'alarm_days': 'Mon', 'alarm_light_group': '3'}
+        task = {'task_id': 'asdfasd', 'alarm_group_name': 'bedroom', 'alarm_days': 'Mon', 'alarm_light_group': '3'}
         alarm_time = time()
         existing_task = ScheduleTasks(alarm_time=alarm_time)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.alarm_time == alarm_time
+
+    def test_update_schedule_task_by_user_id__should_raise_exception_when_query_returns_zero_records(self):
+        task = {'task_id': 'absdf'}
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
+        with pytest.raises(BadRequest):
+            self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
     def test_delete_schedule_task_by_user__should_query_for_existing_record(self):
         task_id = str(uuid.uuid4())
