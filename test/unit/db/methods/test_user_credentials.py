@@ -576,7 +576,7 @@ class TestUserDatabase:
 
     def test_update_schedule_task_by_user_id__should_query_for_user(self):
         task_id = 'asd123'
-        task = {'task_id': task_id}
+        task = {'task_id': task_id, 'alarm_light_group': '1'}
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         self.SESSION.query.assert_called_with(ScheduleTasks)
@@ -584,9 +584,9 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.first.assert_called()
 
     @patch('svc.db.methods.user_credentials.uuid')
-    def test_update_schedule_task_by_user_id__should_update_task_and_insert(self, mock_uuid):
+    def test_update_schedule_task_by_user_id__should_update_task_id(self, mock_uuid):
         task_id = 'asd123'
-        task = {'task_id': task_id}
+        task = {'task_id': task_id, 'alarm_light_group': '1'}
         new_task_id = uuid.uuid4()
         mock_uuid.uuid4.return_value = new_task_id
         existing_task = ScheduleTasks(user_id=self.USER_ID)
@@ -595,6 +595,15 @@ class TestUserDatabase:
 
         assert existing_task.user_id == self.USER_ID
         assert existing_task.id == str(new_task_id)
+
+    def test_update_schedule_task_by_user_id__should_update_task_group_id(self):
+        new_group_id = '1'
+        task = {'task_id': 'asdfasd', 'alarm_light_group': new_group_id}
+        existing_task = ScheduleTasks(alarm_light_group='2')
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
+
+        assert existing_task.alarm_light_group == new_group_id
 
     def test_delete_schedule_task_by_user__should_query_for_existing_record(self):
         task_id = str(uuid.uuid4())

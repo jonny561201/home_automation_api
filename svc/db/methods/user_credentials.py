@@ -72,10 +72,10 @@ class UserDatabase:
         record.is_imperial = is_imperial if is_imperial is not None else record.is_imperial
         record.city = city if city is not None else record.city
 
-# TODO: build this out to update the task and MUST CHANGE THE ID
     def update_schedule_task_by_user_id(self, user_id, task):
         existing_task = self.session.query(ScheduleTasks).filter_by(user_id=user_id, id=task['task_id']).first()
         existing_task.id = str(uuid.uuid4())
+        existing_task.alarm_light_group = task['alarm_light_group']
 
     def delete_schedule_task_by_user(self, user_id, task_id):
         self.session.query(ScheduleTasks).filter_by(user_id=user_id, id=task_id).delete()
