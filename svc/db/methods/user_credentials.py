@@ -78,7 +78,7 @@ class UserDatabase:
         existing_task.alarm_days = task['alarm_days']
         existing_task.alarm_time = time.fromisoformat(task['alarm_time'])
         existing_task.alarm_group_name = task['alarm_group_name']
-        existing_task.alarm_light_group = task['alarm_light_group']
+        existing_task.alarm_light_group = task['alarm_light_group'] if task.get('alarm_light_group') else existing_task.alarm_light_group
 
     def delete_schedule_task_by_user(self, user_id, task_id):
         self.session.query(ScheduleTasks).filter_by(user_id=user_id, id=task_id).delete()
