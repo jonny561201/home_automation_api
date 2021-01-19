@@ -218,3 +218,11 @@ class TestAppRoutes:
         update_user_task_by_user_id(self.USER_ID)
 
         mock_controller.update_user_task.assert_called_with(ANY, self.USER_ID, ANY)
+
+    def test_update_user_task_by_user_id_should_call_app_controller_with_request_data(self, mock_controller, mock_requests):
+        data = {'test_data': 'asdfasd'}
+        mock_requests.data = data
+        mock_controller.insert_user_task.return_value = {}
+        update_user_task_by_user_id(self.USER_ID)
+
+        mock_controller.update_user_task.assert_called_with(ANY, ANY, data)
