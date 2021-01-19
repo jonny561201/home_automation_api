@@ -574,6 +574,15 @@ class TestUserDatabase:
         assert actual[0]['alarm_time'] == group_time
         assert actual[0]['task_id'] == id
 
+    def test_update_schedule_task_by_user_id__should_query_for_user(self):
+        task_id = 'asd123'
+        task = {'task_id': task_id}
+        self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
+
+        self.SESSION.query.assert_called_with(ScheduleTasks)
+        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID, id=task_id)
+        self.SESSION.query.return_value.filter_by.return_value.first.assert_called()
+
     def test_delete_schedule_task_by_user__should_query_for_existing_record(self):
         task_id = str(uuid.uuid4())
         self.DATABASE.delete_schedule_task_by_user(self.USER_ID, task_id)
