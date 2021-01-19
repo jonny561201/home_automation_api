@@ -73,14 +73,14 @@ class UserDatabase:
         record.city = city if city is not None else record.city
 
     def update_schedule_task_by_user_id(self, user_id, task):
-        old_task = self.session.query(ScheduleTasks).filter_by(user_id=user_id, id=task.get('task_id')).first()
+        old_task = self.session.query(ScheduleTasks).filter_by(user_id=user_id, id=task.get('taskId')).first()
         if old_task is None:
             raise BadRequest()
         old_task.id = str(uuid.uuid4())
-        old_task.alarm_days = task['alarm_days'] if task.get('alarm_days') else old_task.alarm_days
-        old_task.alarm_time = time.fromisoformat(task['alarm_time']) if task.get('alarm_time') else old_task.alarm_time
-        old_task.alarm_group_name = task['alarm_group_name'] if task.get('alarm_group_name') else old_task.alarm_group_name
-        old_task.alarm_light_group = task['alarm_light_group'] if task.get('alarm_light_group') else old_task.alarm_light_group
+        old_task.alarm_days = task['alarmDays'] if task.get('alarmDays') else old_task.alarm_days
+        old_task.alarm_time = time.fromisoformat(task['alarmTime']) if task.get('alarmTime') else old_task.alarm_time
+        old_task.alarm_group_name = task['alarmGroupName'] if task.get('alarmGroupName') else old_task.alarm_group_name
+        old_task.alarm_light_group = task['alarmLightGroup'] if task.get('alarmLightGroup') else old_task.alarm_light_group
 
     def delete_schedule_task_by_user(self, user_id, task_id):
         self.session.query(ScheduleTasks).filter_by(user_id=user_id, id=task_id).delete()

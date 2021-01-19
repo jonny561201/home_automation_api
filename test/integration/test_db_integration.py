@@ -187,7 +187,7 @@ class TestDbPreferenceIntegration:
             assert actual is None
 
     def test_update_schedule_task_by_user__should_raise_bad_request_when_user_does_not_exist(self):
-        new_task = {'task_id': str(uuid.uuid4()), 'alarm_days': 'SatSun', 'alarm_group_name': 'private potty room'}
+        new_task = {'taskId': str(uuid.uuid4()), 'alarmDays': 'SatSun', 'alarmGroupName': 'private potty room'}
         with UserDatabaseManager() as database:
             database.session.add(self.TASK)
 
@@ -196,7 +196,7 @@ class TestDbPreferenceIntegration:
                 database.update_schedule_task_by_user_id(self.USER_ID, new_task)
 
     def test_update_schedule_task_by_user__should_update_existing_record(self):
-        new_task = {'task_id': self.TASK_ID, 'alarm_days': 'SatSun', 'alarm_group_name': 'private potty room'}
+        new_task = {'taskId': self.TASK_ID, 'alarmDays': 'SatSun', 'alarmGroupName': 'private potty room'}
         with UserDatabaseManager() as database:
             database.session.add(self.TASK)
 

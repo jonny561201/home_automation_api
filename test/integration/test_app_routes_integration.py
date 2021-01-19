@@ -181,3 +181,23 @@ class TestAppRoutesIntegration:
         actual = self.TEST_CLIENT.post(f'userId/{self.USER_ID}/tasks/update', data=request_data, headers=headers)
 
         assert actual.status_code == 401
+
+    def test_update_user_task_by_user_id__should_successfully_update_user(self):
+        task_id = str(uuid.uuid4())
+        task = ScheduleTasks(user_id=self.USER_ID, id=task_id, alarm_group_name='fake room', alarm_light_group='42', alarm_days='Mon')
+        with UserDatabaseManager() as database:
+            database.session.add(task)
+
+        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
+        new_day = 'Wed'
+        new_room = 'potty room'
+        request_data = json.dumps({'taskId': task_id, 'alarmTime': '00:00:01', 'alarmGroupName': new_room, 'alarmLightGroup': '43', 'alarmDays': new_day})
+        headers = {'Authorization': bearer_token}
+
+        actual = self.TEST_CLIENT.post(f'userId/{self.USER_ID}/tasks/update', data=request_data, headers=headers)
+        assert actual.status_code == 200
+
+        with UserDatabaseManager() as database:
+            record = database.session.query(ScheduleTasks).filter_by(user_id=self.USER_ID).first()
+            assert record.alarm_group_name == new_room
+            assert record.alarm_days == new_day
