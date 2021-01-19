@@ -186,6 +186,15 @@ class TestDbPreferenceIntegration:
             actual = database.session.query(ScheduleTasks).filter_by(user_id=self.USER_ID).first()
             assert actual is None
 
+    def test_update_schedule_task_by_user__should_raise_bad_request_when_user_does_not_exist(self):
+        new_task = {'task_id': str(uuid.uuid4()), 'alarm_days': 'SatSun', 'alarm_group_name': 'private potty room'}
+        with UserDatabaseManager() as database:
+            database.session.add(self.TASK)
+
+        with pytest.raises(BadRequest):
+            with UserDatabaseManager() as database:
+                database.update_schedule_task_by_user_id(self.USER_ID, new_task)
+
     def test_update_schedule_task_by_user__should_update_existing_record(self):
         new_task = {'task_id': self.TASK_ID, 'alarm_days': 'SatSun', 'alarm_group_name': 'private potty room'}
         with UserDatabaseManager() as database:
@@ -199,15 +208,6 @@ class TestDbPreferenceIntegration:
             assert actual.alarm_days == 'SatSun'
             assert actual.alarm_group_name == 'private potty room'
             assert actual.id != self.TASK_ID
-
-    def test_update_schedule_task_by_user__should_raise_bad_request_when_user_does_not_exist(self):
-        new_task = {'task_id': str(uuid.uuid4()), 'alarm_days': 'SatSun', 'alarm_group_name': 'private potty room'}
-        with UserDatabaseManager() as database:
-            database.session.add(self.TASK)
-
-        with pytest.raises(BadRequest):
-            with UserDatabaseManager() as database:
-                database.update_schedule_task_by_user_id(self.USER_ID, new_task)
 
     def test_delete_schedule_tasks_by_user__should_not_throw_when_record_does_not_exist(self):
         with UserDatabaseManager() as database:
