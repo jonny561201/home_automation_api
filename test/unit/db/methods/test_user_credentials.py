@@ -633,13 +633,20 @@ class TestUserDatabase:
         assert existing_task.alarm_time == time.fromisoformat(alarm_time)
 
     def test_update_schedule_task_by_user_id__should_use_the_original_light_group_if_none(self):
-        alarm_time = '00:00:00'
-        task = {'task_id': 'asdfasd', 'alarm_group_name': 'bedroom', 'alarm_days': 'Mon', 'alarm_time': alarm_time}
+        task = {'task_id': 'asdfasd', 'alarm_group_name': 'bedroom', 'alarm_days': 'Mon', 'alarm_time': '00:00:00'}
         existing_task = ScheduleTasks(alarm_light_group='2')
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.alarm_light_group == '2'
+
+    def test_update_schedule_task_by_user_id__should_use_the_original_light_group_name_if_none(self):
+        task = {'task_id': 'asdfasd', 'alarm_light_group': '3', 'alarm_days': 'Mon', 'alarm_time': '00:00:00'}
+        existing_task = ScheduleTasks(alarm_group_name='potty')
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
+
+        assert existing_task.alarm_group_name == 'potty'
 
     def test_delete_schedule_task_by_user__should_query_for_existing_record(self):
         task_id = str(uuid.uuid4())
