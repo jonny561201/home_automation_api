@@ -583,6 +583,15 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID, id=task_id)
         self.SESSION.query.return_value.filter_by.return_value.first.assert_called()
 
+    def test_update_schedule_task_by_user_id__should_update_task_and_insert(self):
+        task_id = 'asd123'
+        task = {'task_id': task_id}
+        existing_task = ScheduleTasks()
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
+
+        self.SESSION.add.assert_called_with(existing_task)
+
     def test_delete_schedule_task_by_user__should_query_for_existing_record(self):
         task_id = str(uuid.uuid4())
         self.DATABASE.delete_schedule_task_by_user(self.USER_ID, task_id)
