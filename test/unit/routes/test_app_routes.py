@@ -4,7 +4,7 @@ import json
 from mock import patch, ANY
 
 from svc.routes.app_routes import app_login, get_user_preferences_by_user_id, update_user_preferences_by_user_id, \
-    get_user_tasks_by_user_id, delete_user_tasks_by_user_id, insert_user_task_by_user_id
+    get_user_tasks_by_user_id, delete_user_tasks_by_user_id, insert_user_task_by_user_id, update_user_task_by_user_id
 
 
 @patch('svc.routes.app_routes.request')
@@ -205,3 +205,10 @@ class TestAppRoutes:
         actual = insert_user_task_by_user_id(self.USER_ID)
 
         assert json.loads(actual.data) == response
+
+    def test_update_user_task_by_user_id__should_call_app_controller_with_bearer_token(self, mock_controller, mock_requests):
+        mock_requests.headers = {'Authorization': self.FAKE_JWT_TOKEN}
+        mock_controller.insert_user_task.return_value = {}
+        update_user_task_by_user_id(self.USER_ID)
+
+        mock_controller.update_user_task.assert_called_with(self.FAKE_JWT_TOKEN, ANY, ANY)
