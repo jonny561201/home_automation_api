@@ -172,3 +172,12 @@ class TestAppRoutesIntegration:
         actual = self.TEST_CLIENT.post(f'userId/{self.USER_ID}/tasks', data=request_data, headers=headers)
 
         assert actual.status_code == 200
+
+    def test_update_user_task_by_user_id__should_return_401_when_unauthorized(self):
+        bearer_token = jwt.encode({}, 'bad secret', algorithm='HS256')
+        request_data = json.dumps({'alarm_time': '00:00:01'})
+        headers = {'Authorization': bearer_token}
+
+        actual = self.TEST_CLIENT.post(f'userId/{self.USER_ID}/tasks/update', data=request_data, headers=headers)
+
+        assert actual.status_code == 401
