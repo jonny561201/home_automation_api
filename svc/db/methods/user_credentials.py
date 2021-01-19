@@ -75,11 +75,10 @@ class UserDatabase:
 # TODO: build this out to update the task and MUST CHANGE THE ID
     def update_schedule_task_by_user_id(self, user_id, task):
         existing_task = self.session.query(ScheduleTasks).filter_by(user_id=user_id, id=task['task_id']).first()
-        self.session.add(existing_task)
+        existing_task.id = str(uuid.uuid4())
 
     def delete_schedule_task_by_user(self, user_id, task_id):
         self.session.query(ScheduleTasks).filter_by(user_id=user_id, id=task_id).delete()
-
 
     def get_schedule_tasks_by_user(self, user_id):
         if user_id is None:

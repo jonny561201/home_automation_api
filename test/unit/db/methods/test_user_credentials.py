@@ -583,14 +583,18 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID, id=task_id)
         self.SESSION.query.return_value.filter_by.return_value.first.assert_called()
 
-    def test_update_schedule_task_by_user_id__should_update_task_and_insert(self):
+    @patch('svc.db.methods.user_credentials.uuid')
+    def test_update_schedule_task_by_user_id__should_update_task_and_insert(self, mock_uuid):
         task_id = 'asd123'
         task = {'task_id': task_id}
-        existing_task = ScheduleTasks()
+        new_task_id = uuid.uuid4()
+        mock_uuid.uuid4.return_value = new_task_id
+        existing_task = ScheduleTasks(user_id=self.USER_ID)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
-        self.SESSION.add.assert_called_with(existing_task)
+        assert existing_task.user_id == self.USER_ID
+        assert existing_task.id == str(new_task_id)
 
     def test_delete_schedule_task_by_user__should_query_for_existing_record(self):
         task_id = str(uuid.uuid4())
