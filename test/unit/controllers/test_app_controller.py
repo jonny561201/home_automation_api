@@ -157,3 +157,10 @@ class TestLoginController:
         update_user_task(self.BEARER_TOKEN, self.USER_ID, request_data)
 
         mock_db.return_value.__enter__.return_value.update_schedule_task_by_user_id.assert_called_with(self.USER_ID, ANY)
+
+    def test_update_user_task__should_call_update_schedule_task_by_user_id_with_new_task(self, mock_jwt, mock_db):
+        task = {'alarm_time': '00:01:00'}
+        request_data = json.dumps(task).encode('UTF-8')
+        update_user_task(self.BEARER_TOKEN, self.USER_ID, request_data)
+
+        mock_db.return_value.__enter__.return_value.update_schedule_task_by_user_id.assert_called_with(self.USER_ID, task)
