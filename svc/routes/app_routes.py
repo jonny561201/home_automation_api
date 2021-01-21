@@ -58,5 +58,5 @@ def insert_user_task_by_user_id(user_id):
 @APP_BLUEPRINT.route('/userId/<user_id>/tasks/update', methods=['POST'])
 def update_user_task_by_user_id(user_id):
     bearer_token = request.headers.get('Authorization')
-    app_controller.update_user_task(bearer_token, user_id, request.data)
-    return Response(status=200, headers=DEFAULT_HEADERS)
+    task = app_controller.update_user_task(bearer_token, user_id, request.data)
+    return Response(json.dumps(task), status=200, headers=DEFAULT_HEADERS)
