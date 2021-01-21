@@ -674,6 +674,16 @@ class TestUserDatabase:
         with pytest.raises(BadRequest):
             self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
+    @patch('svc.db.methods.user_credentials.uuid')
+    def test_update_schedule_task_by_user_id__should_return_revised_task(self, mock_uuid):
+        task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmLightGroup': '3', 'alarmTime': '00:00:00'}
+        new_task_id = uuid.uuid4()
+        mock_uuid.uuid4.return_value = new_task_id
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = ScheduleTasks()
+        actual = self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
+
+        assert actual['task_id'] == str(new_task_id)
+
     def test_delete_schedule_task_by_user__should_query_for_existing_record(self):
         task_id = str(uuid.uuid4())
         self.DATABASE.delete_schedule_task_by_user(self.USER_ID, task_id)

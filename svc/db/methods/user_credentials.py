@@ -81,6 +81,7 @@ class UserDatabase:
         old_task.alarm_time = time.fromisoformat(task['alarmTime']) if task.get('alarmTime') else old_task.alarm_time
         old_task.alarm_group_name = task['alarmGroupName'] if task.get('alarmGroupName') else old_task.alarm_group_name
         old_task.alarm_light_group = task['alarmLightGroup'] if task.get('alarmLightGroup') else old_task.alarm_light_group
+        return self.__create_scheduled_task(old_task)
 
     def delete_schedule_task_by_user(self, user_id, task_id):
         self.session.query(ScheduleTasks).filter_by(user_id=user_id, id=task_id).delete()
