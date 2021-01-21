@@ -47,4 +47,4 @@ def update_user_task(bearer_token, user_id, task):
     jwt_utils.is_jwt_valid(bearer_token)
     request = json.loads(task.decode('UTF-8'))
     with UserDatabaseManager() as database:
-        database.update_schedule_task_by_user_id(user_id, request)
+        return database.update_schedule_task_by_user_id(user_id, request)
