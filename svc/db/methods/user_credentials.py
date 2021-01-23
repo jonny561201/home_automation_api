@@ -6,7 +6,8 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.constants.settings_state import Settings
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
-    AverageSumpPumpLevel, RoleDevices, UserRoles, RoleDeviceNodes, ChildAccounts, UserInformation, ScheduleTasks
+    AverageSumpPumpLevel, RoleDevices, UserRoles, RoleDeviceNodes, ChildAccounts, UserInformation, ScheduleTasks, \
+    ScheduledTaskTypes
 
 
 class UserDatabaseManager:
@@ -81,6 +82,8 @@ class UserDatabase:
         old_task.alarm_time = time.fromisoformat(task['alarmTime']) if task.get('alarmTime') else old_task.alarm_time
         old_task.alarm_group_name = task['alarmGroupName'] if task.get('alarmGroupName') else old_task.alarm_group_name
         old_task.alarm_light_group = task['alarmLightGroup'] if task.get('alarmLightGroup') else old_task.alarm_light_group
+        if old_task.task_type.activity_name != task.get('task_type'):
+            old_task.task_type = self.session.query(ScheduledTaskTypes).filter_by(activity_name=task.get('task_type')).first()
         return self.__create_scheduled_task(old_task)
 
     def delete_schedule_task_by_user(self, user_id, task_id):
