@@ -170,7 +170,7 @@ class TestDbPreferenceIntegration:
             assert actual == []
 
     def test_insert_schedule_task_by_user__should_insert_task(self):
-        task = {'alarmTime': self.LIGHT_TIME, 'alarmLightGroup': self.LIGHT_GROUP, 'alarmGroupName': self.GROUP_NAME, 'alarmDays': self.DAYS, 'enabled': False, 'task_type': 'turn on'}
+        task = {'alarmTime': self.LIGHT_TIME, 'alarmLightGroup': self.LIGHT_GROUP, 'alarmGroupName': self.GROUP_NAME, 'alarmDays': self.DAYS, 'enabled': False, 'taskType': 'turn on'}
         with UserDatabaseManager() as database:
             database.insert_schedule_task_by_user(self.USER_ID, task)
 
@@ -209,7 +209,7 @@ class TestDbPreferenceIntegration:
 
     def test_update_schedule_task_by_user__should_update_existing_record(self):
         new_task_type = 'turn on'
-        new_task = {'taskId': self.TASK_ID, 'alarmDays': 'SatSun', 'alarmGroupName': 'private potty room', 'task_type': new_task_type, 'enabled':  False}
+        new_task = {'taskId': self.TASK_ID, 'alarmDays': 'SatSun', 'alarmGroupName': 'private potty room', 'taskType': new_task_type, 'enabled':  False}
         with UserDatabaseManager() as database:
             task_type = database.session.query(ScheduledTaskTypes).filter_by(activity_name='turn off').first()
             self.TASK.task_type = task_type

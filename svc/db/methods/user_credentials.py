@@ -84,7 +84,7 @@ class UserDatabase:
         old_task.alarm_light_group = task['alarmLightGroup'] if task.get('alarmLightGroup') else old_task.alarm_light_group
         old_task.enabled = task['enabled'] if task.get('enabled') is not None else old_task.enabled
         if old_task.task_type.activity_name != task.get('taskType'):
-            old_task.task_type = self.session.query(ScheduledTaskTypes).filter_by(activity_name=task.get('task_type')).first()
+            old_task.task_type = self.session.query(ScheduledTaskTypes).filter_by(activity_name=task.get('taskType')).first()
         return self.__create_scheduled_task(old_task)
 
     def delete_schedule_task_by_user(self, user_id, task_id):
