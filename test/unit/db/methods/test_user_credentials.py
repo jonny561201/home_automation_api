@@ -8,7 +8,8 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.db.methods.user_credentials import UserDatabase
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
-    AverageSumpPumpLevel, Roles, UserInformation, UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts, ScheduleTasks
+    AverageSumpPumpLevel, Roles, UserInformation, UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts, ScheduleTasks, \
+    ScheduledTaskTypes
 
 
 class TestUserDatabase:
@@ -574,6 +575,15 @@ class TestUserDatabase:
         assert actual[0]['alarm_time'] == group_time
         assert actual[0]['task_id'] == id
 
+    def test_get_schedule_tasks_by_user_id__should_task_activity_type(self):
+        activity = 'turn all on'
+        task_type = ScheduledTaskTypes(id=uuid.uuid4(), activity_name=activity)
+        task = ScheduleTasks(id=id, alarm_time=time(), task_type=task_type)
+        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task]
+        actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID)
+
+        assert actual[0]['task_type'] == activity
+
     def test_update_schedule_task_by_user_id__should_query_for_user(self):
         task_id = 'asd123'
         task = {'taskId': task_id, 'alarmLightGroup': '1', 'alarmGroupName': 'jkasdhj', 'alarmDays': 'Mon', 'alarmTime': '00:00'}
@@ -683,6 +693,14 @@ class TestUserDatabase:
         actual = self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert actual['task_id'] == str(new_task_id)
+
+    def test_update_schedule_task_by_user_id__should_return_task_type_with_response(self):
+        task_type = 'turn on'
+        task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmLightGroup': '3', 'alarmTime': '00:00:00', 'task_type': task_type}
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = ScheduleTasks(task_type=ScheduledTaskTypes(activity_name=task_type))
+        actual = self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
+
+        assert actual['task_type'] == task_type
 
     def test_delete_schedule_task_by_user__should_query_for_existing_record(self):
         task_id = str(uuid.uuid4())

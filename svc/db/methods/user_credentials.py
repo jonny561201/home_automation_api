@@ -221,8 +221,8 @@ class UserDatabase:
 
     @staticmethod
     def __create_scheduled_task(task):
-        return {'alarm_group_name': task.alarm_group_name, 'alarm_light_group': task.alarm_light_group,
-                'alarm_days': task.alarm_days, 'alarm_time': task.alarm_time.isoformat(), 'task_id': str(task.id)}
+        return {'alarm_group_name': task.alarm_group_name, 'alarm_light_group': task.alarm_light_group, 'task_id': str(task.id),
+                'alarm_days': task.alarm_days, 'alarm_time': task.alarm_time.isoformat(), 'task_type': task.task_type.activity_name}
 
     @staticmethod
     def __create_role(role_devices, role_name):
