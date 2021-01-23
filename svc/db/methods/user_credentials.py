@@ -83,7 +83,7 @@ class UserDatabase:
         old_task.alarm_group_name = task['alarmGroupName'] if task.get('alarmGroupName') else old_task.alarm_group_name
         old_task.alarm_light_group = task['alarmLightGroup'] if task.get('alarmLightGroup') else old_task.alarm_light_group
         old_task.enabled = task['enabled'] if task.get('enabled') is not None else old_task.enabled
-        if old_task.task_type.activity_name != task.get('task_type'):
+        if old_task.task_type.activity_name != task.get('taskType'):
             old_task.task_type = self.session.query(ScheduledTaskTypes).filter_by(activity_name=task.get('task_type')).first()
         return self.__create_scheduled_task(old_task)
 
@@ -99,8 +99,8 @@ class UserDatabase:
     def insert_schedule_task_by_user(self, user_id, task):
         try:
             alarm_time = task['alarmTime']
-            task_type = self.session.query(ScheduledTaskTypes).filter_by(activity_name=task.get('task_type')).first()
-            new_task = ScheduleTasks(user_id=user_id, alarm_light_group=task['alarmLightGroup'],alarm_days=task['alarmDays'],
+            task_type = self.session.query(ScheduledTaskTypes).filter_by(activity_name=task.get('taskType')).first()
+            new_task = ScheduleTasks(user_id=user_id, alarm_light_group=task['alarmLightGroup'], alarm_days=task['alarmDays'],
                                      alarm_group_name=task['alarmGroupName'], alarm_time=time.fromisoformat(alarm_time),
                                      task_type=task_type, enabled=task['enabled'])
             self.session.add(new_task)

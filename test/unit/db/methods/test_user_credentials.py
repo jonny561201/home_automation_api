@@ -531,7 +531,7 @@ class TestUserDatabase:
 
     def test_insert_schedule_task_by_user__should_query_for_scheduled_task_type(self):
         task_type = 'all on'
-        task = {'alarmLightGroup': '1', 'alarmGroupName': 'bathroom', 'alarmTime': '00:01:01', 'alarmDays': 'Mon', 'task_type': task_type, 'enabled': False}
+        task = {'alarmLightGroup': '1', 'alarmGroupName': 'bathroom', 'alarmTime': '00:01:01', 'alarmDays': 'Mon', 'taskType': task_type, 'enabled': False}
         self.DATABASE.insert_schedule_task_by_user(self.USER_ID, task)
         self.SESSION.query.assert_any_call(ScheduledTaskTypes)
         self.SESSION.query.return_value.filter_by.assert_any_call(activity_name=task_type)
@@ -697,7 +697,7 @@ class TestUserDatabase:
 
     def test_update_schedule_task_by_user_id__should_updates_scheduled_task_type(self):
         task_type = 'sunrise alarm'
-        task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon', 'alarmTime': '00:00:00', 'task_type': task_type}
+        task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon', 'alarmTime': '00:00:00', 'taskType': task_type}
         existing_task = ScheduleTasks(task_type=ScheduledTaskTypes())
         self.SESSION.query.return_value.filter_by.return_value.first.side_effect = [existing_task, ScheduledTaskTypes(activity_name=task_type)]
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
@@ -706,7 +706,7 @@ class TestUserDatabase:
 
     def test_update_schedule_task_by_user_id__should_not_update_scheduled_task_type_when_matches_old(self):
         task_type = 'sunrise alarm'
-        task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon', 'alarmTime': '00:00:00', 'task_type': task_type}
+        task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon', 'alarmTime': '00:00:00', 'taskType': task_type}
         existing_task = ScheduleTasks(task_type=ScheduledTaskTypes(activity_name=task_type))
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
@@ -731,7 +731,7 @@ class TestUserDatabase:
 
     def test_update_schedule_task_by_user_id__should_return_task_type_with_response(self):
         task_type = 'turn on'
-        task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmLightGroup': '3', 'alarmTime': '00:00:00', 'task_type': task_type}
+        task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmLightGroup': '3', 'alarmTime': '00:00:00', 'taskType': task_type}
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = ScheduleTasks(task_type=ScheduledTaskTypes(activity_name=task_type))
         actual = self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
