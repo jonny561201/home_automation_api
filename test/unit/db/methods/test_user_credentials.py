@@ -513,7 +513,7 @@ class TestUserDatabase:
 
     @patch('svc.db.methods.user_credentials.ScheduleTasks')
     def test_insert_schedule_task_by_user__should_call_add_with_task_settings(self, mock_tasks):
-        task = {'alarmLightGroup': '1', 'alarmGroupName': 'bathroom', 'alarmTime': '00:01:01', 'alarmDays': 'Mon'}
+        task = {'alarmLightGroup': '1', 'alarmGroupName': 'bathroom', 'alarmTime': '00:01:01', 'alarmDays': 'Mon', 'enabled': False}
         created_task = ScheduleTasks()
         mock_tasks.return_value = created_task
         self.DATABASE.insert_schedule_task_by_user(self.USER_ID, task)
@@ -521,7 +521,7 @@ class TestUserDatabase:
         self.SESSION.add.assert_called_with(created_task)
 
     def test_insert_schedule_task_by_user__should_return_query_response_with_task_id(self):
-        task = {'alarmLightGroup': '1', 'alarmGroupName': 'bathroom', 'alarmTime': '00:01:01', 'alarmDays': 'Mon'}
+        task = {'alarmLightGroup': '1', 'alarmGroupName': 'bathroom', 'alarmTime': '00:01:01', 'alarmDays': 'Mon', 'enabled': True}
         task_id = uuid.uuid4()
         new_task = ScheduleTasks(id=task_id, alarm_light_group='1', alarm_time=time.fromisoformat('00:01:01'), alarm_days='Mon', alarm_group_name='bathroom', task_type=ScheduledTaskTypes())
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [new_task]
@@ -531,7 +531,7 @@ class TestUserDatabase:
 
     def test_insert_schedule_task_by_user__should_query_for_scheduled_task_type(self):
         task_type = 'all on'
-        task = {'alarmLightGroup': '1', 'alarmGroupName': 'bathroom', 'alarmTime': '00:01:01', 'alarmDays': 'Mon', 'task_type': task_type}
+        task = {'alarmLightGroup': '1', 'alarmGroupName': 'bathroom', 'alarmTime': '00:01:01', 'alarmDays': 'Mon', 'task_type': task_type, 'enabled': False}
         self.DATABASE.insert_schedule_task_by_user(self.USER_ID, task)
         self.SESSION.query.assert_any_call(ScheduledTaskTypes)
         self.SESSION.query.return_value.filter_by.assert_any_call(activity_name=task_type)
@@ -667,6 +667,15 @@ class TestUserDatabase:
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.alarm_group_name == room
+
+    def test_update_schedule_task_by_user_id__should_use_the_original_enabled_value_if_none(self):
+        task = {'taskId': 'asdfasd', 'alarmLightGroup': '3', 'alarmDays': 'Mon', 'alarmTime': '00:00:00'}
+        enabled_value = False
+        existing_task = ScheduleTasks(enabled=enabled_value, task_type=ScheduledTaskTypes())
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
+
+        assert existing_task.enabled == enabled_value
 
     def test_update_schedule_task_by_user_id__should_use_the_original_light_alarm_days_if_none(self):
         task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmLightGroup': '3', 'alarmTime': '00:00:00'}

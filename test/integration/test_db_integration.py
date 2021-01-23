@@ -8,7 +8,8 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, \
-    UserCredentials, Roles, UserPreference, UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts, ScheduleTasks
+    UserCredentials, Roles, UserPreference, UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts, ScheduleTasks, \
+    ScheduledTaskTypes
 
 DB_USER = 'postgres'
 DB_PASS = 'password'
@@ -117,6 +118,7 @@ class TestDbValidateIntegration:
 class TestDbPreferenceIntegration:
     USER_ID = str(uuid.uuid4())
     TASK_ID = str(uuid.uuid4())
+    TASK_NAME = 'all on'
     CITY = 'Praha'
     UNIT = 'metric'
     LIGHT_GROUP = '42'
@@ -128,7 +130,7 @@ class TestDbPreferenceIntegration:
         os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
                            'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
-        self.TASK = ScheduleTasks(user_id=self.USER_ID, id=self.TASK_ID, alarm_light_group=self.LIGHT_GROUP, alarm_group_name=self.GROUP_NAME, alarm_days=self.DAYS, alarm_time=datetime.time.fromisoformat(self.LIGHT_TIME))
+        self.TASK = ScheduleTasks(user_id=self.USER_ID, id=self.TASK_ID, alarm_light_group=self.LIGHT_GROUP, alarm_group_name=self.GROUP_NAME, alarm_days=self.DAYS, alarm_time=datetime.time.fromisoformat(self.LIGHT_TIME), enabled=True)
         self.USER_PREFERENCES = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city=self.CITY)
         with UserDatabaseManager() as database:
             database.session.add(self.USER)
@@ -146,6 +148,9 @@ class TestDbPreferenceIntegration:
 
     def test_get_schedule_task_by_user__should_return_task(self):
         with UserDatabaseManager() as database:
+            task_type = database.session.query(ScheduledTaskTypes).first()
+            task_name = task_type.activity_name
+            self.TASK.task_type = task_type
             database.session.add(self.TASK)
 
         with UserDatabaseManager() as database:
@@ -155,6 +160,8 @@ class TestDbPreferenceIntegration:
             assert actual[0]['alarm_days'] == self.DAYS
             assert actual[0]['alarm_time'] == self.LIGHT_TIME
             assert actual[0]['task_id'] == self.TASK_ID
+            assert actual[0]['enabled'] == True
+            assert actual[0]['task_type'] == task_name
             
     def test_get_schedule_task_by_user__should_return_empty_list_when_no_matches(self):
         user_id = str(uuid.uuid4())
@@ -163,7 +170,7 @@ class TestDbPreferenceIntegration:
             assert actual == []
 
     def test_insert_schedule_task_by_user__should_insert_task(self):
-        task = {'alarmTime': self.LIGHT_TIME, 'alarmLightGroup': self.LIGHT_GROUP, 'alarmGroupName': self.GROUP_NAME, 'alarmDays': self.DAYS}
+        task = {'alarmTime': self.LIGHT_TIME, 'alarmLightGroup': self.LIGHT_GROUP, 'alarmGroupName': self.GROUP_NAME, 'alarmDays': self.DAYS, 'enabled': False, 'task_type': 'turn on'}
         with UserDatabaseManager() as database:
             database.insert_schedule_task_by_user(self.USER_ID, task)
 
@@ -174,9 +181,12 @@ class TestDbPreferenceIntegration:
             assert actual.alarm_time == datetime.time.fromisoformat(self.LIGHT_TIME)
             assert actual.alarm_days == self.DAYS
             assert actual.alarm_group_name == self.GROUP_NAME
+            assert actual.enabled is False
 
     def test_delete_schedule_tasks_by_user__should_delete_record_that_already_exists(self):
         with UserDatabaseManager() as database:
+            task_type = database.session.query(ScheduledTaskTypes).first()
+            self.TASK.task_type = task_type
             database.session.add(self.TASK)
 
         with UserDatabaseManager() as database:
@@ -189,6 +199,8 @@ class TestDbPreferenceIntegration:
     def test_update_schedule_task_by_user__should_raise_bad_request_when_user_does_not_exist(self):
         new_task = {'taskId': str(uuid.uuid4()), 'alarmDays': 'SatSun', 'alarmGroupName': 'private potty room'}
         with UserDatabaseManager() as database:
+            task_type = database.session.query(ScheduledTaskTypes).first()
+            self.TASK.task_type = task_type
             database.session.add(self.TASK)
 
         with pytest.raises(BadRequest):
@@ -196,8 +208,11 @@ class TestDbPreferenceIntegration:
                 database.update_schedule_task_by_user_id(self.USER_ID, new_task)
 
     def test_update_schedule_task_by_user__should_update_existing_record(self):
-        new_task = {'taskId': self.TASK_ID, 'alarmDays': 'SatSun', 'alarmGroupName': 'private potty room'}
+        new_task_type = 'turn on'
+        new_task = {'taskId': self.TASK_ID, 'alarmDays': 'SatSun', 'alarmGroupName': 'private potty room', 'task_type': new_task_type, 'enabled':  False}
         with UserDatabaseManager() as database:
+            task_type = database.session.query(ScheduledTaskTypes).filter_by(activity_name='turn off').first()
+            self.TASK.task_type = task_type
             database.session.add(self.TASK)
 
         with UserDatabaseManager() as database:
@@ -208,6 +223,8 @@ class TestDbPreferenceIntegration:
             assert actual.alarm_days == 'SatSun'
             assert actual.alarm_group_name == 'private potty room'
             assert actual.id != self.TASK_ID
+            assert actual.task_type.activity_name == new_task_type
+            assert actual.enabled is False
 
     def test_delete_schedule_tasks_by_user__should_not_throw_when_record_does_not_exist(self):
         with UserDatabaseManager() as database:
