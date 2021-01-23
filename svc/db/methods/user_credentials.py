@@ -98,8 +98,10 @@ class UserDatabase:
     def insert_schedule_task_by_user(self, user_id, task):
         try:
             alarm_time = task['alarmTime']
+            task_type = self.session.query(ScheduledTaskTypes).filter_by(activity_name=task.get('task_type')).first()
             new_task = ScheduleTasks(user_id=user_id, alarm_light_group=task['alarmLightGroup'],alarm_days=task['alarmDays'],
-                                     alarm_group_name=task['alarmGroupName'], alarm_time=time.fromisoformat(alarm_time))
+                                     alarm_group_name=task['alarmGroupName'], alarm_time=time.fromisoformat(alarm_time),
+                                     task_type=task_type)
             self.session.add(new_task)
         except KeyError:
             raise BadRequest

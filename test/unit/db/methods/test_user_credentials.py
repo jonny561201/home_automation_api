@@ -529,6 +529,14 @@ class TestUserDatabase:
 
         assert actual[0]['task_id'] == str(task_id)
 
+    def test_insert_schedule_task_by_user__should_query_for_scheduled_task_type(self):
+        task_type = 'all on'
+        task = {'alarmLightGroup': '1', 'alarmGroupName': 'bathroom', 'alarmTime': '00:01:01', 'alarmDays': 'Mon', 'task_type': task_type}
+        self.DATABASE.insert_schedule_task_by_user(self.USER_ID, task)
+        self.SESSION.query.assert_any_call(ScheduledTaskTypes)
+        self.SESSION.query.return_value.filter_by.assert_any_call(activity_name=task_type)
+        self.SESSION.query.return_value.filter_by.return_value.first.assert_called()
+
     def test_insert_schedule_task_by_user__should_raise_bad_request_when_alarm_light_group_missing(self):
         preference_info = {'alarmDays': 'mon', 'alarmGroupName': 'bedroom', 'alarmTime': '00:01:00'}
         with pytest.raises(BadRequest):
