@@ -44,7 +44,7 @@ function configureSystemD {
 
 function migrateDatabase {
     echo  -e "${YELLOW}---------------Migrating Database---------------${WHITE}"
-    python3 -m yoyo apply -b --database postgresql://${SQL_USERNAME}:${SQL_PASSWORD}@localhost:${SQL_PORT}/${SQL_DBNAME} ./docker/flyway/migration/
+    python3 -m yoyo apply -b --database postgresql://${SQL_USERNAME}:${SQL_PASSWORD}@localhost:${SQL_PORT}/${SQL_DBNAME} ../docker/flyway/migration/
 }
 
 function restartDevice {
@@ -65,7 +65,7 @@ function createEnvironmentVariableFile {
         fi
     fi
     echo -e "${YELLOW}---------------Exporting Environment Variables---------------${WHITE}"
-    set -o allexport; source serviceEnvVariables; set +o allexport
+    set -o allexport; source ../serviceEnvVariables; set +o allexport
 }
 
 function createFile {
