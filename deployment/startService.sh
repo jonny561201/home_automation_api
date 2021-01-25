@@ -20,7 +20,8 @@ function cloneServiceFiles {
 }
 
 function startVirtualEnv {
-  source ./home_automation_api/bin/activate
+    echo -e "${YELLOW}---------------starting VirtualEnv---------------${WHITE}"
+    source ./venv/bin/activate
 }
 
 function installDependencies {
