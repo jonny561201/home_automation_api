@@ -19,6 +19,10 @@ function cloneServiceFiles {
     fi
 }
 
+function startVirtualEnv {
+  source ./home_automation_api/bin/activate
+}
+
 function installDependencies {
     echo -e "${YELLOW}---------------Installing Dependencies---------------${WHITE}"
     pip3 install -Ur requirements.txt
@@ -32,7 +36,7 @@ function stopService {
 
 function copyServiceFile {
     echo  -e "${YELLOW}---------------Creating SystemD---------------${WHITE}"
-    sudo chmod 644 ${HOME_AUTO_SERVICE_FILE}
+    sudo chmod 666 ${HOME_AUTO_SERVICE_FILE}
     sudo yes | sudo cp ./deployment/${HOME_AUTO_SERVICE_FILE} /lib/systemd/system/${HOME_AUTO_SERVICE_FILE}
 }
 
@@ -102,6 +106,7 @@ function createFile {
 
 stopService
 cloneServiceFiles
+startVirtualEnv
 installDependencies
 createEnvironmentVariableFile
 migrateDatabase
