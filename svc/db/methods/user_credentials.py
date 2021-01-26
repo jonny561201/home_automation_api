@@ -99,7 +99,7 @@ class UserDatabase:
     def insert_schedule_task_by_user(self, user_id, task):
         try:
             alarm_time = task['alarmTime']
-            light_group = 'ALL' if task['alarmLightGroup'] == 'All Rooms' else task['alarmLightGroup']
+            light_group = 'ALL' if task['alarmLightGroup'].upper() == 'ALL ROOMS' else task['alarmLightGroup']
             task_type = self.session.query(ScheduledTaskTypes).filter_by(activity_name=task.get('taskType')).first()
             new_task = ScheduleTasks(user_id=user_id, alarm_light_group=light_group, alarm_days=task['alarmDays'],
                                      alarm_group_name=task['alarmGroupName'], alarm_time=time.fromisoformat(alarm_time),
