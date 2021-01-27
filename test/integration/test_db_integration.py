@@ -184,14 +184,14 @@ class TestDbPreferenceIntegration:
             assert actual.enabled is False
 
     def test_insert_schedule_task_by_user__should_insert_task_for_all_rooms(self):
-        task = {'alarmTime': self.LIGHT_TIME, 'alarmLightGroup': 'All Rooms', 'alarmGroupName': self.GROUP_NAME, 'alarmDays': self.DAYS, 'enabled': False, 'taskType': 'turn on'}
+        task = {'alarmTime': self.LIGHT_TIME, 'alarmLightGroup': '0', 'alarmGroupName': self.GROUP_NAME, 'alarmDays': self.DAYS, 'enabled': False, 'taskType': 'turn on'}
         with UserDatabaseManager() as database:
             database.insert_schedule_task_by_user(self.USER_ID, task)
 
         with UserDatabaseManager() as database:
             actual = database.session.query(ScheduleTasks).filter_by(user_id=self.USER_ID).first()
             assert actual.user_id == self.USER_ID
-            assert actual.alarm_light_group == 'ALL'
+            assert actual.alarm_light_group == '0'
 
     def test_delete_schedule_tasks_by_user__should_delete_record_that_already_exists(self):
         with UserDatabaseManager() as database:
