@@ -7,3 +7,4 @@ flask_cors==3.0.9
 requests==2.25.1
 yoyo-migrations==7.2.1
 uwsgi==2.0.19.1
+RPi.GPIO==0.7.0
