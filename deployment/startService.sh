@@ -21,7 +21,7 @@ function cloneServiceFiles {
 
 function startVirtualEnv {
     if [[ ! -d "/home/pi/home_automation_api/venv" ]]; then
-      echo -e "${YELLOW}----------Creating VirtualEnv----------"
+      echo -e "${YELLOW}----------Creating VirtualEnv----------${WHITE}"
       pushd "/home/pi/home_automation_api"
       pip3 install virtualenv
       virtualenv venv
