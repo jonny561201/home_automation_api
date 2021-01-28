@@ -7,6 +7,7 @@ from werkzeug.exceptions import FailedDependency, BadRequest
 from svc.constants.home_automation import Automation
 from svc.constants.settings_state import Settings
 
+# TODO: move to settings file
 LIGHT_BASE_URL = 'http://192.168.1.142:80/api'
 SMTP_URL = 'https://api.sendinblue.com/v3/smtp/email'
 WEATHER_URL = 'https://api.openweathermap.org/data/2.5/weather'

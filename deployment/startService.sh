@@ -20,10 +20,16 @@ function cloneServiceFiles {
 }
 
 function startVirtualEnv {
-    echo -e "${YELLOW}---------------starting VirtualEnv---------------${WHITE}"
-    source ./venv/bin/activate
+    if [[ ! -d "/home/pi/home_automation_api/venv" ]]; then
+      echo -e "${YELLOW}----------Creating VirtualEnv----------"
+      pushd "/home/pi/home_automation_api"
+      pip3 install virtualenv
+      virtualenv venv
+      popd
+    fi
+      echo -e "${YELLOW}---------------starting VirtualEnv---------------${WHITE}"
+      source ./venv/bin/activate
 }
-
 function installDependencies {
     echo -e "${YELLOW}---------------Installing Dependencies---------------${WHITE}"
     pip3 install -Ur requirements.txt
