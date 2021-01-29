@@ -24,12 +24,13 @@ function startVirtualEnv {
       echo -e "${YELLOW}----------Creating VirtualEnv----------${WHITE}"
       pushd "/home/pi/home_automation_api"
       pip3 install virtualenv
-      virtualenv venv
+      sudo virtualenv venv
       popd
     fi
       echo -e "${YELLOW}---------------starting VirtualEnv---------------${WHITE}"
       source ./venv/bin/activate
 }
+
 function installDependencies {
     echo -e "${YELLOW}---------------Installing Dependencies---------------${WHITE}"
     pip3 install -Ur requirements.txt
