@@ -77,7 +77,7 @@ def set_light_groups(api_key, group_id, state, brightness=None):
     url = LIGHT_BASE_URL + '/%s/groups/%s/action' % (api_key, group_id)
     request = {'on': state}
     if brightness is not None:
-        request['on'] = True
+        request['on'] = False if brightness == 0 else True
         request['bri'] = brightness
 
     requests.put(url, data=json.dumps(request))
