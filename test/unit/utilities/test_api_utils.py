@@ -354,7 +354,7 @@ class TestLightApiRequests:
         mock_requests.put.return_value = self.__create_response()
         set_light_groups(self.API_KEY, 2, 0)
 
-        expected_request = json.dumps({'on': False, 'bri': 0})
+        expected_request = json.dumps({'on': False})
         mock_requests.put.assert_called_with(ANY, data=expected_request)
 
     def test_set_light_groups__should_call_state_with_dimmer_value(self, mock_requests):
