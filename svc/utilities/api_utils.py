@@ -80,7 +80,7 @@ def set_light_groups(api_key, group_id, state, brightness=None):
         request['on'] = False if brightness == 0 else True
         request['bri'] = brightness
 
-    requests.put(url, data=json.dumps(request))
+    __validate_light_response(requests.put(url, data=json.dumps(request)))
 
 
 def get_light_group_state(api_key, group_id):
