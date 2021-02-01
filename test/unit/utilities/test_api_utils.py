@@ -338,39 +338,37 @@ class TestLightApiRequests:
         group_id = 1
         mock_requests.put.return_value = self.__create_response()
         expected_url = self.BASE_URL + '/%s/groups/%s/action' % (self.API_KEY, group_id)
-        set_light_groups(self.API_KEY, group_id, True)
+        set_light_groups(self.API_KEY, group_id, 132)
 
         mock_requests.put.assert_called_with(expected_url, data=ANY)
 
     def test_set_light_groups__should_call_state_with_on_off_set(self, mock_requests):
-        state = False
+        brightness = 222
         mock_requests.put.return_value = self.__create_response()
-        set_light_groups(self.API_KEY, 2, state)
+        set_light_groups(self.API_KEY, 2, brightness)
 
-        expected_request = json.dumps({'on': state})
+        expected_request = json.dumps({'on': True, 'bri': brightness})
         mock_requests.put.assert_called_with(ANY, data=expected_request)
 
     def test_set_light_groups__should_call_state_with_on_to_false_when_brightness_zero(self, mock_requests):
-        state = False
         mock_requests.put.return_value = self.__create_response()
-        set_light_groups(self.API_KEY, 2, state, 0)
+        set_light_groups(self.API_KEY, 2, 0)
 
-        expected_request = json.dumps({'on': state, 'bri': 0})
+        expected_request = json.dumps({'on': False, 'bri': 0})
         mock_requests.put.assert_called_with(ANY, data=expected_request)
 
     def test_set_light_groups__should_call_state_with_dimmer_value(self, mock_requests):
-        state = True
         brightness = 233
         mock_requests.put.return_value = self.__create_response()
-        set_light_groups(self.API_KEY, 1, state, brightness)
+        set_light_groups(self.API_KEY, 1, brightness)
 
-        expected_request = json.dumps({'on': state, 'bri': brightness})
+        expected_request = json.dumps({'on': True, 'bri': brightness})
         mock_requests.put.assert_called_with(ANY, data=expected_request)
 
     def test_set_light_groups__should_call_state_with_on_set_true_if_dimmer_value(self, mock_requests):
         brightness = 155
         mock_requests.put.return_value = self.__create_response()
-        set_light_groups(self.API_KEY, 1, False, brightness)
+        set_light_groups(self.API_KEY, 1, brightness)
 
         expected_request = json.dumps({'on': True, 'bri': brightness})
         mock_requests.put.assert_called_with(ANY, data=expected_request)
@@ -379,7 +377,7 @@ class TestLightApiRequests:
         brightness = 155
         mock_requests.put.return_value = self.__create_response(status=400)
         with pytest.raises(FailedDependency):
-            set_light_groups(self.API_KEY, 1, False, brightness)
+            set_light_groups(self.API_KEY, 1, brightness)
 
     def test_get_light_group_state__should_call_url(self, mock_requests):
         group_id = '1'
