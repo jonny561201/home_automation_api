@@ -131,7 +131,9 @@ def get_light_state(api_key, light_id):
 
 def set_light_state(api_key, light_id, brightness):
     url = LIGHT_BASE_URL + '/%s/lights/%s/state' % (api_key, light_id)
-    request = {'on': False if brightness == 0 else True, 'bri': brightness}
+    request = {'on': False if brightness == 0 else True}
+    if brightness != 0:
+        request['bri'] = brightness
 
     __validate_light_response(requests.put(url, data=json.dumps(request)))
 

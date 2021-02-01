@@ -569,7 +569,7 @@ class TestLightApiRequests:
     def test_set_light_state__should_set_light_on_state_to_false_when_brightness_zero(self, mock_requests):
         light_id = '9'
         brightness = 0
-        expected_data = json.dumps({'on': False, 'bri': brightness})
+        expected_data = json.dumps({'on': False})
         mock_requests.put.return_value = self.__create_response()
         set_light_state(self.API_KEY, light_id, brightness)
 
