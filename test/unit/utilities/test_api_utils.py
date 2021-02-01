@@ -543,6 +543,7 @@ class TestLightApiRequests:
     def test_set_light_state__should_make_call_to_api(self, mock_requests):
         light_id = '7'
         expected_url = self.BASE_URL + '/%s/lights/%s/state' % (self.API_KEY, light_id)
+        mock_requests.put.return_value = self.__create_response()
         set_light_state(self.API_KEY, light_id, None, None)
 
         mock_requests.put.assert_called_with(expected_url, data=ANY)
@@ -552,6 +553,7 @@ class TestLightApiRequests:
         state = False
         brightness = 188
         expected_data = json.dumps({'on': state, 'bri': brightness})
+        mock_requests.put.return_value = self.__create_response()
         set_light_state(self.API_KEY, light_id, state, brightness)
 
         mock_requests.put.assert_called_with(ANY, data=expected_data)
@@ -561,9 +563,15 @@ class TestLightApiRequests:
         state = True
         brightness = 0
         expected_data = json.dumps({'on': False, 'bri': brightness})
+        mock_requests.put.return_value = self.__create_response()
         set_light_state(self.API_KEY, light_id, state, brightness)
 
         mock_requests.put.assert_called_with(ANY, data=expected_data)
+
+    def test_set_light_state__should_raise_failed_dependency_when_exception(self, mock_requests):
+        mock_requests.put.return_value = self.__create_response(400)
+        with pytest.raises(FailedDependency):
+            set_light_state(self.API_KEY, '4', False, 255)
 
     def test_get_full_state__should_make_call_to_api(self, mock_requests):
         mock_requests.get.return_value = self.__create_response()
