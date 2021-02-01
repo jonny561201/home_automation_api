@@ -560,7 +560,7 @@ class TestLightApiRequests:
     def test_set_light_state__should_submit_data_to_requested_url(self, mock_requests):
         light_id = '9'
         brightness = 188
-        expected_data = json.dumps({'on': True, 'bri': brightness})
+        expected_data = json.dumps({'on': True, 'bri': brightness, 'ct': 2700})
         mock_requests.put.return_value = self.__create_response()
         set_light_state(self.API_KEY, light_id, brightness)
 
