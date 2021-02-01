@@ -3,6 +3,7 @@ import os
 import jwt
 from mock import patch
 
+from svc.constants.settings_state import Settings
 from svc.manager import app
 
 
@@ -13,6 +14,7 @@ class TestLightRoutesIntegration:
     LIGHT_PASS = 'fakeLightSecret'
 
     def setup_method(self):
+        Settings.get_instance().dev_mode = False
         os.environ.update({'JWT_SECRET': self.JWT_SECRET, 'LIGHT_API_USERNAME': self.LIGHT_USER, 'LIGHT_API_PASSWORD': self.LIGHT_PASS})
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
@@ -40,8 +42,9 @@ class TestLightRoutesIntegration:
 
         assert actual.status_code == 401
 
+    @patch('svc.utilities.api_utils.set_light_groups')
     @patch('svc.constants.lights_state.get_light_api_key')
-    def test_set_assigned_light_group__should_return_success_with_valid_jwt(self, mock_api):
+    def test_set_assigned_light_group__should_return_success_with_valid_jwt(self, mock_api, mock_groups):
         post_body = '{"on": "False", "brightness": 144, "groupId": 1}'
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         header = {'Authorization': bearer_token}
@@ -55,8 +58,9 @@ class TestLightRoutesIntegration:
 
         assert actual.status_code == 401
 
+    @patch('svc.utilities.api_utils.set_light_state')
     @patch('svc.constants.lights_state.get_light_api_key')
-    def test_set_light_state__should_return_success_with_valid_jwt(self, mock_api):
+    def test_set_light_state__should_return_success_with_valid_jwt(self, mock_api, mock_groups):
         post_body = '{"on": "True", "brightness": 1, "lightId": "3"}'
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         header = {'Authorization': bearer_token}
