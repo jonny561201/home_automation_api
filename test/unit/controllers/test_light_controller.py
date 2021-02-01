@@ -46,14 +46,14 @@ class TestLightRequest:
         mock_light.get_instance.return_value.get_light_api_key.return_value = api_key
         set_assigned_light_groups(self.BEARER_TOKEN, self.REQUEST)
 
-        mock_api.set_light_groups.assert_called_with(api_key, self.GROUP_ID, self.STATE, None)
+        mock_api.set_light_groups.assert_called_with(api_key, self.GROUP_ID, None)
 
     def test_set_assigned_light_groups__should_make_api_call_to_set_brightness_optionally(self, mock_api, mock_jwt, mock_light):
         brightness = 255
         self.REQUEST['brightness'] = brightness
         set_assigned_light_groups(self.BEARER_TOKEN, self.REQUEST)
 
-        mock_api.set_light_groups.assert_called_with(ANY, ANY, ANY, brightness)
+        mock_api.set_light_groups.assert_called_with(ANY, ANY, brightness)
 
     def test_set_assigned_light__should_call_is_jwt_valid(self, mock_api, mock_jwt, mock_light):
         request_data = {'lightId': '4', 'on': True, 'brightness': 179}
@@ -74,7 +74,7 @@ class TestLightRequest:
         mock_light.get_instance.return_value.get_light_api_key.return_value = self.API_KEY
         set_assigned_light(self.BEARER_TOKEN, request_data)
 
-        mock_api.set_light_state.assert_called_with(self.API_KEY, light_id, True, brightness)
+        mock_api.set_light_state.assert_called_with(self.API_KEY, light_id, brightness)
 
     def test_get_assigned_light_groups__should_make_api_call_to_get_full_state(self, mock_api, mock_jwt, mock_light):
         mock_light.get_instance.return_value.get_light_api_key.return_value = self.API_KEY
