@@ -78,6 +78,7 @@ def set_light_groups(api_key, group_id, brightness):
     request = {'on': False if brightness == 0 else True}
     if brightness != 0:
         request['bri'] = brightness
+        request['hue'] = 0
 
     __validate_light_response(requests.put(url, data=json.dumps(request)))
 
