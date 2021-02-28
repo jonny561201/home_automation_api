@@ -20,14 +20,14 @@ class TestState:
     def setup_method(self):
         os.environ.update({'SQL_USERNAME': self.DB_USER, 'SQL_PASSWORD': self.DB_PASS, 'SQL_PORT': self.DB_PORT,
                            'SQL_DBNAME': self.DB_NAME, 'EMAIL_APP_ID': self.EMAIL_APP_ID, 'WEATHER_APP_ID': self.WEATHER_APP_ID,
-                           'JWT_SECRET': self.JWT_SECRET, 'LIGHT_API_USERNAME': self.LIGHT_API_USER, 'FILE_NAME': self.FILE_NAME,
+                           'JWT_SECRET': self.JWT_SECRET, 'LIGHT_API_USERNAME': self.LIGHT_API_USER, 'TEMP_FILE_NAME': self.FILE_NAME,
                            'LIGHT_API_PASSWORD': self.LIGHT_API_PASSWORD, 'USER_ID': self.USER_ID})
         self.SETTINGS = Settings.get_instance()
 
     def teardown_method(self):
         os.environ.pop('USER_ID')
         os.environ.pop('SQL_PORT')
-        os.environ.pop('FILE_NAME')
+        os.environ.pop('TEMP_FILE_NAME')
         os.environ.pop('JWT_SECRET')
         os.environ.pop('SQL_DBNAME')
         os.environ.pop('SQL_USERNAME')
@@ -79,7 +79,7 @@ class TestState:
 
     def test_file_name__should_return_env_var_value(self):
         self.SETTINGS.dev_mode = False
-        assert self.SETTINGS.file_name == self.FILE_NAME
+        assert self.SETTINGS.temp_file_name == self.FILE_NAME
 
     def test_db_user__should_pull_from_dictionary_if_dev_mode(self):
         db_user = 'other_user'
@@ -144,5 +144,5 @@ class TestState:
     def test_file_name__should_pull_from_dictionary_if_dev_mode(self):
         file_name = 'other_file_name'
         self.SETTINGS.dev_mode = True
-        self.SETTINGS.settings = {'FileName': file_name}
-        assert self.SETTINGS.file_name == file_name
+        self.SETTINGS.settings = {'TempFileName': file_name}
+        assert self.SETTINGS.temp_file_name == file_name
