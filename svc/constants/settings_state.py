@@ -54,6 +54,10 @@ class Settings:
     def user_id(self):
         return self.settings.get('UserId') if self.dev_mode else os.environ.get('USER_ID')
 
+    @property
+    def file_name(self):
+        return self.settings.get('FileName') if self.dev_mode else os.environ.get('FILE_NAME')
+
     @staticmethod
     def get_instance():
         if Settings.__instance is None:
