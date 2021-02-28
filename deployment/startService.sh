@@ -109,6 +109,7 @@ function createFile {
     echo "LIGHT_API_PASSWORD=${LIGHT_API_PASS}" >> serviceEnvVariables
     echo "WEATHER_APP_ID=${WEATHER_APP}" >> serviceEnvVariables
     echo "USER_ID=${USER_ID}" >> serviceEnvVariables
+    echo "TEMP_FILE_NAME=/home/pi/temperature_settings.json" > serviceEnvVariables
 }
 
 
