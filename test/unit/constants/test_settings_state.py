@@ -140,3 +140,9 @@ class TestState:
         self.SETTINGS.dev_mode = True
         self.SETTINGS.settings = {'UserId': user_id}
         assert self.SETTINGS.user_id == user_id
+
+    def test_file_name__should_pull_from_dictionary_if_dev_mode(self):
+        file_name = 'other_file_name'
+        self.SETTINGS.dev_mode = True
+        self.SETTINGS.settings = {'FileName': file_name}
+        assert self.SETTINGS.file_name == file_name
