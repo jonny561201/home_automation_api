@@ -562,22 +562,22 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.first.assert_called()
 
     def test_insert_schedule_task_by_user__should_raise_bad_request_when_alarm_light_group_missing(self):
-        preference_info = {'alarmDays': 'mon', 'alarmGroupName': 'bedroom', 'alarmTime': '00:01:00'}
+        preference_info = {'alarmDays': 'mon', 'alarmGroupName': 'bedroom', 'alarmTime': '00:01:00', 'taskType': 'all on', 'enabled': False}
         with pytest.raises(BadRequest):
             self.DATABASE.insert_schedule_task_by_user(self.USER_ID, preference_info)
 
     def test_insert_schedule_task_by_user__should_raise_bad_request_when_alarm_time_missing(self):
-        preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmDays': 'Mon'}
+        preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmDays': 'Mon', 'taskType': 'all on', 'enabled': False}
         with pytest.raises(BadRequest):
             self.DATABASE.insert_schedule_task_by_user(self.USER_ID, preference_info)
 
     def test_insert_schedule_task_by_user__should_raise_bad_request_when_alarm_days_missing(self):
-        preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00'}
+        preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'taskType': 'all on', 'enabled': False}
         with pytest.raises(BadRequest):
             self.DATABASE.insert_schedule_task_by_user(self.USER_ID, preference_info)
 
     def test_insert_schedule_task_by_user__should_raise_bad_request_when_alarm_light_name_missing(self):
-        preference_info = {'alarmDays': 'mon', 'alarmLightGroup': '1', 'alarmTime': '00:01:00'}
+        preference_info = {'alarmDays': 'mon', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'taskType': 'all on', 'enabled': False}
         with pytest.raises(BadRequest):
             self.DATABASE.insert_schedule_task_by_user(self.USER_ID, preference_info)
 
