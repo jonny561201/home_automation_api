@@ -26,7 +26,7 @@ def create_child_account_by_user(bearer_token, user_id, request_data):
     request = json.loads(request_data.decode('UTF-8'))
     email = request.get('email')
     roles = request.get('roles')
-    if email is '' or roles == []:
+    if email == '' or roles == []:
         raise BadRequest()
     new_pass = generate_password(10)
     with UserDatabaseManager() as database:
