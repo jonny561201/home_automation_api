@@ -90,10 +90,13 @@ class ScheduleTasks(Base):
 
     id = Column(UUID, nullable=False, primary_key=True, server_default=sqlalchemy.text("gen_random_uuid()"))
     user_id = Column(UUID, ForeignKey(UserInformation.id))
-    alarm_light_group = Column(String, nullable=True)
     alarm_time = Column(TIME, nullable=True)
     alarm_days = Column(String, nullable=True)
+    alarm_light_group = Column(String, nullable=True)
     alarm_group_name = Column(String, nullable=True)
+    hvac_start = Column(TIME, nullable=True)
+    hvac_stop = Column(TIME, nullable=True)
+    hvac_mode = Column(String, nullable=True)
     enabled = Column(Boolean, nullable=False)
     task_type_id = Column(UUID, ForeignKey(ScheduledTaskTypes.id))
 
