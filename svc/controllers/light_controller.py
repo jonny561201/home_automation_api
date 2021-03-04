@@ -17,7 +17,7 @@ def set_assigned_light_groups(bearer_token, request):
     light_state = LightState.get_instance()
     api_key = light_state.get_light_api_key()
 
-    api_utils.set_light_groups(api_key, request.get('groupId'), request.get('on'), request.get('brightness'))
+    api_utils.set_light_groups(api_key, request.get('groupId'), request.get('brightness'))
 
 
 def set_assigned_light(bearer_token, request_data):
@@ -25,7 +25,7 @@ def set_assigned_light(bearer_token, request_data):
     light_state = LightState.get_instance()
     api_key = light_state.get_light_api_key()
 
-    api_utils.set_light_state(api_key, request_data.get('lightId'), request_data.get('on'), request_data.get('brightness'))
+    api_utils.set_light_state(api_key, request_data.get('lightId'), request_data.get('brightness'))
 
 
 def __group_mapper(k, v, full_state):

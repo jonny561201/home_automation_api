@@ -52,12 +52,14 @@ class TestThermostatRoutesIntegration:
 
         assert actual.status_code == 401
 
+    @patch('svc.controllers.thermostat_controller.get_desired_temp')
     @patch('svc.utilities.api_utils.requests')
-    def test_get_temperature__should_return_temperature(self, mock_requests):
+    def test_get_temperature__should_return_temperature(self, mock_requests, mock_file):
         response = Response()
         response.status_code = 200
         response._content = json.dumps({'weather': [{'description': 'light drizzle'}],
                                         'main': {'temp': 23.4, 'temp_min': 21.0, 'temp_max': 25.1}})
+        mock_file.return_value = {'desiredTemp': 22.2, 'mode': Automation.HVAC.MODE.HEATING}
 
         mock_requests.get.return_value = response
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
@@ -76,8 +78,8 @@ class TestThermostatRoutesIntegration:
 
         assert actual.status_code == 401
 
-    @patch('svc.utilities.event_utils.MyThread')
-    def test_set_temperature__should_return_successfully(self, mock_thread):
+    @patch('svc.controllers.thermostat_controller.write_desired_temp_to_file')
+    def test_set_temperature__should_return_successfully(self, mock_file):
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         headers = {'Authorization': bearer_token}
         request = {'desiredTemp': 23.7, 'mode': Automation.HVAC.MODE.HEATING, 'isFahrenheit': True}

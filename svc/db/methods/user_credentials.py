@@ -6,7 +6,8 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from svc.constants.settings_state import Settings
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
-    AverageSumpPumpLevel, RoleDevices, UserRoles, RoleDeviceNodes, ChildAccounts, UserInformation, ScheduleTasks
+    AverageSumpPumpLevel, RoleDevices, UserRoles, RoleDeviceNodes, ChildAccounts, UserInformation, ScheduleTasks, \
+    ScheduledTaskTypes
 
 
 class UserDatabaseManager:
@@ -72,18 +73,36 @@ class UserDatabase:
         record.is_imperial = is_imperial if is_imperial is not None else record.is_imperial
         record.city = city if city is not None else record.city
 
+    def update_schedule_task_by_user_id(self, user_id, task):
+        old_task = self.session.query(ScheduleTasks).filter_by(user_id=user_id, id=task.get('taskId')).first()
+        if old_task is None:
+            raise BadRequest()
+        old_task.id = str(uuid.uuid4())
+        old_task.alarm_days = task['alarmDays'] if task.get('alarmDays') else old_task.alarm_days
+        old_task.alarm_time = time.fromisoformat(task['alarmTime']) if task.get('alarmTime') else old_task.alarm_time
+        old_task.alarm_group_name = task['alarmGroupName'] if task.get('alarmGroupName') else old_task.alarm_group_name
+        old_task.alarm_light_group = task['alarmLightGroup'] if task.get('alarmLightGroup') else old_task.alarm_light_group
+        old_task.enabled = task['enabled'] if task.get('enabled') is not None else old_task.enabled
+        if old_task.task_type.activity_name != task.get('taskType'):
+            old_task.task_type = self.session.query(ScheduledTaskTypes).filter_by(activity_name=task.get('taskType')).first()
+        return self.__create_scheduled_task(old_task)
+
     def delete_schedule_task_by_user(self, user_id, task_id):
         self.session.query(ScheduleTasks).filter_by(user_id=user_id, id=task_id).delete()
 
     def get_schedule_tasks_by_user(self, user_id):
+        if user_id is None:
+            raise BadRequest()
         tasks = self.session.query(ScheduleTasks).filter_by(user_id=user_id).all()
         return [self.__create_scheduled_task(task) for task in tasks]
 
     def insert_schedule_task_by_user(self, user_id, task):
         try:
             alarm_time = task['alarmTime']
-            new_task = ScheduleTasks(user_id=user_id, alarm_light_group=task['alarmLightGroup'],alarm_days=task['alarmDays'],
-                                     alarm_group_name=task['alarmGroupName'], alarm_time=time.fromisoformat(alarm_time))
+            task_type = self.session.query(ScheduledTaskTypes).filter_by(activity_name=task.get('taskType')).first()
+            new_task = ScheduleTasks(user_id=user_id, alarm_light_group=task['alarmLightGroup'], alarm_days=task['alarmDays'],
+                                     alarm_group_name=task['alarmGroupName'], alarm_time=time.fromisoformat(alarm_time),
+                                     task_type=task_type, enabled=task['enabled'])
             self.session.add(new_task)
         except KeyError:
             raise BadRequest
@@ -208,8 +227,8 @@ class UserDatabase:
 
     @staticmethod
     def __create_scheduled_task(task):
-        return {'alarm_group_name': task.alarm_group_name, 'alarm_light_group': task.alarm_light_group,
-                'alarm_days': task.alarm_days, 'alarm_time': task.alarm_time.isoformat(), 'task_id': str(task.id)}
+        return {'alarm_group_name': task.alarm_group_name, 'alarm_light_group': task.alarm_light_group, 'task_id': str(task.id), 'enabled': task.enabled,
+                'alarm_days': task.alarm_days, 'alarm_time': task.alarm_time.isoformat(), 'task_type': task.task_type.activity_name}
 
     @staticmethod
     def __create_role(role_devices, role_name):

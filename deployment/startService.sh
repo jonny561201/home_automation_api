@@ -19,6 +19,18 @@ function cloneServiceFiles {
     fi
 }
 
+function startVirtualEnv {
+    if [[ ! -d "/home/pi/home_automation_api/venv" ]]; then
+      echo -e "${YELLOW}----------Creating VirtualEnv----------${WHITE}"
+      pushd "/home/pi/home_automation_api"
+      pip3 install virtualenv
+      sudo virtualenv venv
+      popd
+    fi
+      echo -e "${YELLOW}---------------starting VirtualEnv---------------${WHITE}"
+      source ./venv/bin/activate
+}
+
 function installDependencies {
     echo -e "${YELLOW}---------------Installing Dependencies---------------${WHITE}"
     pip3 install -Ur requirements.txt
@@ -32,7 +44,7 @@ function stopService {
 
 function copyServiceFile {
     echo  -e "${YELLOW}---------------Creating SystemD---------------${WHITE}"
-    sudo chmod 644 ${HOME_AUTO_SERVICE_FILE}
+    sudo chmod 666 ${HOME_AUTO_SERVICE_FILE}
     sudo yes | sudo cp ./deployment/${HOME_AUTO_SERVICE_FILE} /lib/systemd/system/${HOME_AUTO_SERVICE_FILE}
 }
 
@@ -65,7 +77,7 @@ function createEnvironmentVariableFile {
         fi
     fi
     echo -e "${YELLOW}---------------Exporting Environment Variables---------------${WHITE}"
-    set -o allexport; source serviceEnvVariables; set +o allexport
+    set -o allexport; source ./serviceEnvVariables; set +o allexport
 }
 
 function createFile {
@@ -97,11 +109,13 @@ function createFile {
     echo "LIGHT_API_PASSWORD=${LIGHT_API_PASS}" >> serviceEnvVariables
     echo "WEATHER_APP_ID=${WEATHER_APP}" >> serviceEnvVariables
     echo "USER_ID=${USER_ID}" >> serviceEnvVariables
+    echo "TEMP_FILE_NAME=/home/pi/temperature_settings.json" > serviceEnvVariables
 }
 
 
 stopService
 cloneServiceFiles
+startVirtualEnv
 installDependencies
 createEnvironmentVariableFile
 migrateDatabase

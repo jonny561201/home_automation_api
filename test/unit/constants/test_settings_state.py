@@ -11,6 +11,7 @@ class TestState:
     DB_PASS = 'test_pass'
     DB_NAME = 'fake_name'
     EMAIL_APP_ID = 'abc123'
+    FILE_NAME = "test.json"
     WEATHER_APP_ID = '345def'
     JWT_SECRET = 'FakeSecret'
     LIGHT_API_USER = 'lightUser'
@@ -19,13 +20,14 @@ class TestState:
     def setup_method(self):
         os.environ.update({'SQL_USERNAME': self.DB_USER, 'SQL_PASSWORD': self.DB_PASS, 'SQL_PORT': self.DB_PORT,
                            'SQL_DBNAME': self.DB_NAME, 'EMAIL_APP_ID': self.EMAIL_APP_ID, 'WEATHER_APP_ID': self.WEATHER_APP_ID,
-                           'JWT_SECRET': self.JWT_SECRET, 'LIGHT_API_USERNAME': self.LIGHT_API_USER,
+                           'JWT_SECRET': self.JWT_SECRET, 'LIGHT_API_USERNAME': self.LIGHT_API_USER, 'TEMP_FILE_NAME': self.FILE_NAME,
                            'LIGHT_API_PASSWORD': self.LIGHT_API_PASSWORD, 'USER_ID': self.USER_ID})
         self.SETTINGS = Settings.get_instance()
 
     def teardown_method(self):
         os.environ.pop('USER_ID')
         os.environ.pop('SQL_PORT')
+        os.environ.pop('TEMP_FILE_NAME')
         os.environ.pop('JWT_SECRET')
         os.environ.pop('SQL_DBNAME')
         os.environ.pop('SQL_USERNAME')
@@ -74,6 +76,10 @@ class TestState:
     def test_user_id__should_return_env_var_value(self):
         self.SETTINGS.dev_mode = False
         assert self.SETTINGS.user_id == self.USER_ID
+
+    def test_file_name__should_return_env_var_value(self):
+        self.SETTINGS.dev_mode = False
+        assert self.SETTINGS.temp_file_name == self.FILE_NAME
 
     def test_db_user__should_pull_from_dictionary_if_dev_mode(self):
         db_user = 'other_user'
@@ -134,3 +140,9 @@ class TestState:
         self.SETTINGS.dev_mode = True
         self.SETTINGS.settings = {'UserId': user_id}
         assert self.SETTINGS.user_id == user_id
+
+    def test_file_name__should_pull_from_dictionary_if_dev_mode(self):
+        file_name = 'other_file_name'
+        self.SETTINGS.dev_mode = True
+        self.SETTINGS.settings = {'TempFileName': file_name}
+        assert self.SETTINGS.temp_file_name == file_name

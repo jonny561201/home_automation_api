@@ -5,8 +5,9 @@ import uuid
 
 import jwt
 
+from svc.constants.settings_state import Settings
 from svc.db.methods.user_credentials import UserDatabaseManager
-from svc.db.models.user_information_model import UserInformation, UserPreference, ScheduleTasks
+from svc.db.models.user_information_model import UserInformation, UserPreference, ScheduleTasks, ScheduledTaskTypes
 from svc.manager import app
 
 
@@ -20,6 +21,7 @@ class TestAppRoutesIntegration:
     CITY = 'Prague'
 
     def setup_method(self):
+        Settings.get_instance().dev_mode = False
         os.environ.update({'SQL_USERNAME': self.db_user, 'SQL_PASSWORD': self.db_pass, 'JWT_SECRET': self.JWT_SECRET,
                            'SQL_DBNAME': self.db_name, 'SQL_PORT': self.db_port})
         flask_app = app
@@ -121,13 +123,13 @@ class TestAppRoutesIntegration:
             preference = database.session.query(UserPreference).filter_by(user_id=self.USER_ID).first()
             assert preference.city == expected_city
 
-    def test_get_user_tasks_by_user_id__should_return_401_when_unauthorized(self):
-        bearer_token = jwt.encode({}, 'bad secret', algorithm='HS256')
-        headers = {'Authorization': bearer_token}
-
-        actual = self.TEST_CLIENT.get(f'userId/{self.USER_ID}/tasks', headers=headers)
-
-        assert actual.status_code == 401
+    # def test_get_user_tasks_by_user_id__should_return_401_when_unauthorized(self):
+    #     bearer_token = jwt.encode({}, 'bad secret', algorithm='HS256')
+    #     headers = {'Authorization': bearer_token}
+    #
+    #     actual = self.TEST_CLIENT.get(f'userId/{self.USER_ID}/tasks', headers=headers)
+    #
+    #     assert actual.status_code == 401
 
     def test_get_user_tasks_by_user_id__should_successfully_update_user(self):
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
@@ -166,9 +168,40 @@ class TestAppRoutesIntegration:
 
     def test_insert_user_task_by_user_id__should_successfully_update_user(self):
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
-        request_data = json.dumps({'alarmTime': '00:00:01', 'alarmGroupName': 'potty room', 'alarmLightGroup': '43', 'alarmDays': 'Wed'})
+        request_data = json.dumps({'alarmTime': '00:00:01', 'alarmGroupName': 'potty room', 'alarmLightGroup': '43', 'alarmDays': 'Wed', 'taskType': 'turn on', 'enabled': True})
         headers = {'Authorization': bearer_token}
 
         actual = self.TEST_CLIENT.post(f'userId/{self.USER_ID}/tasks', data=request_data, headers=headers)
 
         assert actual.status_code == 200
+
+    def test_update_user_task_by_user_id__should_return_401_when_unauthorized(self):
+        bearer_token = jwt.encode({}, 'bad secret', algorithm='HS256')
+        request_data = json.dumps({'alarm_time': '00:00:01'})
+        headers = {'Authorization': bearer_token}
+
+        actual = self.TEST_CLIENT.post(f'userId/{self.USER_ID}/tasks/update', data=request_data, headers=headers)
+
+        assert actual.status_code == 401
+
+    def test_update_user_task_by_user_id__should_successfully_update_user(self):
+        task_id = str(uuid.uuid4())
+        task = ScheduleTasks(user_id=self.USER_ID, id=task_id, alarm_group_name='fake room', alarm_light_group='42', alarm_days='Mon', enabled=False)
+        with UserDatabaseManager() as database:
+            task_type = database.session.query(ScheduledTaskTypes).first()
+            task.task_type = task_type
+            database.session.add(task)
+
+        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
+        new_day = 'Wed'
+        new_room = 'potty room'
+        request_data = json.dumps({'taskId': task_id, 'alarmTime': '00:00:01', 'alarmGroupName': new_room, 'alarmLightGroup': '43', 'alarmDays': new_day, 'taskType': 'turn off', 'enabled': False})
+        headers = {'Authorization': bearer_token}
+
+        actual = self.TEST_CLIENT.post(f'userId/{self.USER_ID}/tasks/update', data=request_data, headers=headers)
+        assert actual.status_code == 200
+
+        with UserDatabaseManager() as database:
+            record = database.session.query(ScheduleTasks).filter_by(user_id=self.USER_ID).first()
+            assert record.alarm_group_name == new_room
+            assert record.alarm_days == new_day

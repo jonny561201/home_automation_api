@@ -7,6 +7,7 @@ from werkzeug.exceptions import FailedDependency, BadRequest
 from svc.constants.home_automation import Automation
 from svc.constants.settings_state import Settings
 
+# TODO: move to settings file
 LIGHT_BASE_URL = 'http://192.168.1.142:80/api'
 SMTP_URL = 'https://api.sendinblue.com/v3/smtp/email'
 WEATHER_URL = 'https://api.openweathermap.org/data/2.5/weather'
@@ -72,14 +73,14 @@ def get_light_groups(api_key):
     return response.json()
 
 
-def set_light_groups(api_key, group_id, state, brightness=None):
+def set_light_groups(api_key, group_id, brightness):
     url = LIGHT_BASE_URL + '/%s/groups/%s/action' % (api_key, group_id)
-    request = {'on': state}
-    if brightness is not None:
-        request['on'] = True
+    request = {'on': False if brightness == 0 else True}
+    if brightness != 0:
         request['bri'] = brightness
+        request['ct'] = 2700
 
-    requests.put(url, data=json.dumps(request))
+    __validate_light_response(requests.put(url, data=json.dumps(request)))
 
 
 def get_light_group_state(api_key, group_id):
@@ -128,11 +129,14 @@ def get_light_state(api_key, light_id):
     return response.json()
 
 
-def set_light_state(api_key, light_id, state, brightness):
+def set_light_state(api_key, light_id, brightness):
     url = LIGHT_BASE_URL + '/%s/lights/%s/state' % (api_key, light_id)
-    request = {'on': state, 'bri': brightness}
+    request = {'on': False if brightness == 0 else True}
+    if brightness != 0:
+        request['bri'] = brightness
+        request['ct'] = 2700
 
-    requests.put(url, data=json.dumps(request))
+    __validate_light_response(requests.put(url, data=json.dumps(request)))
 
 
 def get_full_state(api_key):
@@ -149,12 +153,13 @@ def send_new_account_email(email, password):
     settings = Settings.get_instance()
     headers = {
         'api-key': settings.email_app_id,
-        'content-type': 'application/json'}
+        'content-type': 'application/json',
+        'accept': 'application/json'}
     request = {
-        "sender": {"name": "My Name", "email": email},
-        "to": [{"email": email, "name": "My Name"}],
-        "subject": "Home Automation: New Account Registration",
-        "htmlContent": "<html><head></head><body><p>Hello,</p><p>A new Home Automation account has been setup for you.</p><p>Password: %s</p></body></html>" % password
+        'sender': {'name': 'Home Automation', 'email': 'senderalex@example.com'},
+        'to': [{'email': email, 'name': 'Your Name'}],
+        'subject': 'Home Automation: New Account',
+        'htmlContent': f'<html><head></head><body><p>Hello,</p><p>A new Home Automation account has been setup for you.</p><p>Password: {password}</p></body></html>'
     }
     requests.post(SMTP_URL, data=json.dumps(request), headers=headers)
 
