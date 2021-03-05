@@ -530,19 +530,8 @@ class TestUserDatabase:
         self.DATABASE.insert_schedule_task_by_user(self.USER_ID, task)
 
         mock_tasks.assert_called_with(user_id=self.USER_ID, alarm_light_group=task['alarmLightGroup'], alarm_time=time.fromisoformat(task['alarmTime']),
-                                      alarm_group_name=task['alarmGroupName'], alarm_days=task['alarmDays'], task_type=task_type, enabled=task['enabled'])
-
-    @patch('svc.db.methods.user_credentials.ScheduleTasks')
-    def test_insert_schedule_task_by_user__should_create_task(self, mock_tasks):
-        task = {'alarmLightGroup': '0', 'alarmGroupName': 'bathroom', 'alarmTime': '00:01:01', 'alarmDays': 'Mon', 'enabled': False, 'taskType': 'turn on'}
-        created_task = ScheduleTasks()
-        mock_tasks.return_value = created_task
-        task_type = ScheduledTaskTypes(activity_name='turn on')
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = task_type
-        self.DATABASE.insert_schedule_task_by_user(self.USER_ID, task)
-
-        mock_tasks.assert_called_with(user_id=self.USER_ID, alarm_light_group=task['alarmLightGroup'], alarm_time=time.fromisoformat(task['alarmTime']),
-                                      alarm_group_name=task['alarmGroupName'], alarm_days=task['alarmDays'], task_type=task_type, enabled=task['enabled'])
+                                      alarm_group_name=task['alarmGroupName'], alarm_days=task['alarmDays'], task_type=task_type, enabled=task['enabled'],
+                                      hvac_mode=None, hvac_start=None, hvac_stop=None)
 
     def test_insert_schedule_task_by_user__should_return_query_response_with_task_id(self):
         task = {'alarmLightGroup': '1', 'alarmGroupName': 'bathroom', 'alarmTime': '00:01:01', 'alarmDays': 'Mon', 'enabled': True}
