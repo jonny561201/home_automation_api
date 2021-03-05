@@ -99,12 +99,12 @@ class UserDatabase:
     def insert_schedule_task_by_user(self, user_id, task):
         try:
             alarm_time = None if task.get('alarmTime') is None else time.fromisoformat(task.get('alarmTime'))
-            hvac_start = None if task.get('hvac_start') is None else time.fromisoformat(task.get('hvac_start'))
-            hvac_stop = None if task.get('hvac_stop') is None else time.fromisoformat(task.get('hvac_stop'))
+            hvac_start = None if task.get('hvacStart') is None else time.fromisoformat(task.get('hvacStart'))
+            hvac_stop = None if task.get('hvacStop') is None else time.fromisoformat(task.get('hvacStop'))
             task_type = self.session.query(ScheduledTaskTypes).filter_by(activity_name=task.get('taskType')).first()
             new_task = ScheduleTasks(user_id=user_id, alarm_light_group=task.get('alarmLightGroup'), alarm_days=task['alarmDays'],
                                      alarm_group_name=task.get('alarmGroupName'), alarm_time=alarm_time, task_type=task_type,
-                                     enabled=task['enabled'], hvac_mode=task.get('hvac_mode'), hvac_start=hvac_start, hvac_stop=hvac_stop)
+                                     enabled=task['enabled'], hvac_mode=task.get('hvacMode'), hvac_start=hvac_start, hvac_stop=hvac_stop)
             self.session.add(new_task)
         except KeyError:
             raise BadRequest

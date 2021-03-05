@@ -522,7 +522,7 @@ class TestUserDatabase:
 
     @patch('svc.db.methods.user_credentials.ScheduleTasks')
     def test_insert_schedule_task_by_user__should_create_task(self, mock_tasks):
-        task = {'alarmLightGroup': '2', 'alarmGroupName': 'bathroom', 'alarmTime': '00:01:01', 'alarmDays': 'Mon', 'enabled': False, 'taskType': 'turn on'}
+        task = {'alarmLightGroup': '2', 'alarmGroupName': 'bathroom', 'alarmTime': '00:01:01', 'alarmDays': 'Mon', 'enabled': False, 'taskType': 'turn on', 'hvacMode': 'HEATING', 'hvacStart': '00:02:00', 'hvacStop': '01:00:01'}
         created_task = ScheduleTasks()
         mock_tasks.return_value = created_task
         task_type = ScheduledTaskTypes(activity_name='turn on')
@@ -531,7 +531,7 @@ class TestUserDatabase:
 
         mock_tasks.assert_called_with(user_id=self.USER_ID, alarm_light_group=task['alarmLightGroup'], alarm_time=time.fromisoformat(task['alarmTime']),
                                       alarm_group_name=task['alarmGroupName'], alarm_days=task['alarmDays'], task_type=task_type, enabled=task['enabled'],
-                                      hvac_mode=None, hvac_start=None, hvac_stop=None)
+                                      hvac_mode=task['hvacMode'], hvac_start=time.fromisoformat(task['hvacStart']), hvac_stop=time.fromisoformat(task['hvacStop']))
 
     def test_insert_schedule_task_by_user__should_return_query_response_with_task_id(self):
         task = {'alarmLightGroup': '1', 'alarmGroupName': 'bathroom', 'alarmTime': '00:01:01', 'alarmDays': 'Mon', 'enabled': True}
