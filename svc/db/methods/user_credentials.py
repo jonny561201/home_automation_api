@@ -83,7 +83,7 @@ class UserDatabase:
         old_task.alarm_group_name = task['alarmGroupName'] if task.get('alarmGroupName') else old_task.alarm_group_name
         old_task.alarm_light_group = task['alarmLightGroup'] if task.get('alarmLightGroup') else old_task.alarm_light_group
         old_task.enabled = task['enabled'] if task.get('enabled') is not None else old_task.enabled
-        old_task.hvac_start = time.fromisoformat(task['hvacStart'])
+        old_task.hvac_start = time.fromisoformat(task['hvacStart']) if task.get('hvacStart') else old_task.hvac_start
 
         if old_task.task_type.activity_name != task.get('taskType'):
             old_task.task_type = self.session.query(ScheduledTaskTypes).filter_by(activity_name=task.get('taskType')).first()
