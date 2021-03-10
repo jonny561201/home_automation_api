@@ -589,7 +589,7 @@ class TestUserDatabase:
         assert actual[0]['hvac_start'] == hvac_start
         assert actual[0]['hvac_stop'] == hvac_stop
 
-    def test_get_schedule_tasks_by_user_id__should_task_activity_type(self):
+    def test_get_schedule_tasks_by_user_id__should_return_task_activity_type(self):
         activity = 'turn all on'
         task_type = ScheduledTaskTypes(id=uuid.uuid4(), activity_name=activity)
         task = ScheduleTasks(id=id, alarm_time=time(), task_type=task_type, hvac_start=time(), hvac_stop=time())
@@ -597,6 +597,15 @@ class TestUserDatabase:
         actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID)
 
         assert actual[0]['task_type'] == activity
+
+    def test_get_schedule_tasks_by_user_id__should_return_none_when_no_alarm_time(self):
+        activity = 'turn all on'
+        task_type = ScheduledTaskTypes(id=uuid.uuid4(), activity_name=activity)
+        task = ScheduleTasks(id=id, task_type=task_type, hvac_start=time(), hvac_stop=time())
+        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task]
+        actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID)
+
+        assert actual[0]['alarm_time'] is None
 
     def test_update_schedule_task_by_user_id__should_query_for_user(self):
         task_id = 'asd123'
