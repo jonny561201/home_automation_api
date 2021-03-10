@@ -683,6 +683,15 @@ class TestUserDatabase:
 
         assert existing_task.alarm_time == time.fromisoformat(alarm_time)
 
+    def test_update_schedule_task_by_user_id__should_update_hvac_start_as_date_object(self):
+        alarm_time = '00:00:00'
+        task = {'taskId': 'asdfasd', 'alarmLightGroup': '3', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon', 'hvacStart': alarm_time}
+        existing_task = ScheduleTasks(alarm_light_group=time(), task_type=ScheduledTaskTypes())
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
+
+        assert existing_task.hvac_start == time.fromisoformat(alarm_time)
+
     def test_update_schedule_task_by_user_id__should_use_the_original_light_group_if_none(self):
         task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon', 'alarmTime': '00:00:00'}
         group_id = '2'
