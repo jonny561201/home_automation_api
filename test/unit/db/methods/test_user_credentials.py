@@ -536,7 +536,8 @@ class TestUserDatabase:
     def test_insert_schedule_task_by_user__should_return_query_response_with_task_id(self):
         task = {'alarmLightGroup': '1', 'alarmGroupName': 'bathroom', 'alarmTime': '00:01:01', 'alarmDays': 'Mon', 'enabled': True}
         task_id = uuid.uuid4()
-        new_task = ScheduleTasks(id=task_id, alarm_light_group='1', alarm_time=time.fromisoformat('00:01:01'), alarm_days='Mon', alarm_group_name='bathroom', task_type=ScheduledTaskTypes())
+        task_time = time.fromisoformat('00:01:01')
+        new_task = ScheduleTasks(id=task_id, alarm_light_group='1', alarm_time=task_time, alarm_days='Mon', alarm_group_name='bathroom', task_type=ScheduledTaskTypes(), hvac_start=task_time, hvac_stop=task_time)
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [new_task]
         actual = self.DATABASE.insert_schedule_task_by_user(self.USER_ID, task)
 
@@ -570,8 +571,12 @@ class TestUserDatabase:
         group_id = '1'
         group_name = 'Bedroom'
         group_time = '06:45:00'
+        hvac_start = '08:45:00'
+        hvac_stop = '07:45:00'
+        mode = 'HEAT'
         id = str(uuid.uuid4())
-        task = ScheduleTasks(user_id=self.USER_ID, id=id, alarm_light_group=group_id, alarm_group_name=group_name, alarm_days=days, alarm_time=time.fromisoformat(group_time), task_type=ScheduledTaskTypes())
+        task = ScheduleTasks(user_id=self.USER_ID, id=id, alarm_light_group=group_id, alarm_group_name=group_name, alarm_days=days, alarm_time=time.fromisoformat(group_time),
+                             task_type=ScheduledTaskTypes(), hvac_mode=mode, hvac_start=time.fromisoformat(hvac_start), hvac_stop=time.fromisoformat(hvac_stop))
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task]
         actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID)
 
@@ -580,11 +585,14 @@ class TestUserDatabase:
         assert actual[0]['alarm_days'] == days
         assert actual[0]['alarm_time'] == group_time
         assert actual[0]['task_id'] == id
+        assert actual[0]['hvac_mode'] == mode
+        assert actual[0]['hvac_start'] == hvac_start
+        assert actual[0]['hvac_stop'] == hvac_stop
 
     def test_get_schedule_tasks_by_user_id__should_task_activity_type(self):
         activity = 'turn all on'
         task_type = ScheduledTaskTypes(id=uuid.uuid4(), activity_name=activity)
-        task = ScheduleTasks(id=id, alarm_time=time(), task_type=task_type)
+        task = ScheduleTasks(id=id, alarm_time=time(), task_type=task_type, hvac_start=time(), hvac_stop=time())
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task]
         actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID)
 

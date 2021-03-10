@@ -229,8 +229,12 @@ class UserDatabase:
 
     @staticmethod
     def __create_scheduled_task(task):
+        alarm_time = None if task.alarm_time is None else task.alarm_time.isoformat()
+        hvac_start = None if task.hvac_start is None else task.hvac_start.isoformat()
+        hvac_stop = None if task.hvac_stop is None else task.hvac_stop.isoformat()
         return {'alarm_group_name': task.alarm_group_name, 'alarm_light_group': task.alarm_light_group, 'task_id': str(task.id), 'enabled': task.enabled,
-                'alarm_days': task.alarm_days, 'alarm_time': task.alarm_time.isoformat(), 'task_type': task.task_type.activity_name}
+                'alarm_days': task.alarm_days, 'alarm_time': alarm_time, 'task_type': task.task_type.activity_name,
+                'hvac_mode': task.hvac_mode, 'hvac_start': hvac_start, 'hvac_stop': hvac_stop}
 
     @staticmethod
     def __create_role(role_devices, role_name):
