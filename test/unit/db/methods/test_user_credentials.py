@@ -701,6 +701,15 @@ class TestUserDatabase:
 
         assert existing_task.hvac_stop == time.fromisoformat(alarm_time)
 
+    def test_update_schedule_task_by_user_id__should_update_hvac_mode(self):
+        mode = 'COOL'
+        task = {'taskId': 'asdfasd', 'alarmLightGroup': '3', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon', 'hvacMode': mode}
+        existing_task = ScheduleTasks(alarm_light_group=time(), task_type=ScheduledTaskTypes())
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
+
+        assert existing_task.hvac_mode == mode
+
     def test_update_schedule_task_by_user_id__should_use_the_original_hvac_stop_if_none(self):
         task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon'}
         hvac_stop = time()
