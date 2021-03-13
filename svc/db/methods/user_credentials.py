@@ -109,8 +109,9 @@ class UserDatabase:
             hvac_stop = None if task.get('hvacStop') is None else time.fromisoformat(task.get('hvacStop'))
             task_type = self.session.query(ScheduledTaskTypes).filter_by(activity_name=task.get('taskType')).first()
             new_task = ScheduleTasks(user_id=user_id, alarm_light_group=task.get('alarmLightGroup'), alarm_days=task['alarmDays'],
-                                     alarm_group_name=task.get('alarmGroupName'), alarm_time=alarm_time, task_type=task_type,
-                                     enabled=task['enabled'], hvac_mode=task.get('hvacMode'), hvac_start=hvac_start, hvac_stop=hvac_stop)
+                                     alarm_group_name=task.get('alarmGroupName'), alarm_time=alarm_time, task_type=task_type, enabled=task['enabled'],
+                                     hvac_mode=task.get('hvacMode'), hvac_start=hvac_start, hvac_stop=hvac_stop,
+                                     hvac_start_temp=task.get('hvacStartTemp'), hvac_stop_temp=task.get('hvacStopTemp'))
             self.session.add(new_task)
         except KeyError:
             raise BadRequest
