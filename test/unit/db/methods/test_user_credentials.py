@@ -558,10 +558,10 @@ class TestUserDatabase:
 
     def test_get_schedule_tasks_by_user__should_raise_bad_request_when_user_id_is_none(self):
         with pytest.raises(BadRequest):
-            self.DATABASE.get_schedule_tasks_by_user(None)
+            self.DATABASE.get_schedule_tasks_by_user(None, None)
 
     def test_get_schedule_tasks_by_user__should_query_database_for_tasks(self):
-        self.DATABASE.get_schedule_tasks_by_user(self.USER_ID)
+        self.DATABASE.get_schedule_tasks_by_user(self.USER_ID, None)
         self.SESSION.query.assert_called_with(ScheduleTasks)
         self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
         self.SESSION.query.return_value.filter_by.return_value.all.assert_called()
@@ -578,7 +578,7 @@ class TestUserDatabase:
         task = ScheduleTasks(user_id=self.USER_ID, id=id, alarm_light_group=group_id, alarm_group_name=group_name, alarm_days=days, alarm_time=time.fromisoformat(group_time),
                              task_type=ScheduledTaskTypes(), hvac_mode=mode, hvac_start=time.fromisoformat(hvac_start), hvac_stop=time.fromisoformat(hvac_stop))
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task]
-        actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID)
+        actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID, None)
 
         assert actual[0]['alarm_group_name'] == group_name
         assert actual[0]['alarm_light_group'] == group_id
@@ -614,7 +614,7 @@ class TestUserDatabase:
         task_type = ScheduledTaskTypes(id=uuid.uuid4(), activity_name=activity)
         task = ScheduleTasks(id=id, alarm_time=time(), task_type=task_type, hvac_start=time(), hvac_stop=time())
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task]
-        actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID)
+        actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID, None)
 
         assert actual[0]['task_type'] == activity
 
@@ -623,7 +623,7 @@ class TestUserDatabase:
         task_type = ScheduledTaskTypes(id=uuid.uuid4(), activity_name=activity)
         task = ScheduleTasks(id=id, task_type=task_type, hvac_start=time(), hvac_stop=time())
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task]
-        actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID)
+        actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID, None)
 
         assert actual[0]['alarm_time'] is None
 
@@ -632,7 +632,7 @@ class TestUserDatabase:
         task_type = ScheduledTaskTypes(id=uuid.uuid4(), activity_name=activity)
         task = ScheduleTasks(id=id, task_type=task_type, alarm_time=time(), hvac_stop=time())
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task]
-        actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID)
+        actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID, None)
 
         assert actual[0]['hvac_start'] is None
 
@@ -641,7 +641,7 @@ class TestUserDatabase:
         task_type = ScheduledTaskTypes(id=uuid.uuid4(), activity_name=activity)
         task = ScheduleTasks(id=id, task_type=task_type, alarm_time=time(), hvac_start=time())
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task]
-        actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID)
+        actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID, None)
 
         assert actual[0]['hvac_stop'] is None
 
