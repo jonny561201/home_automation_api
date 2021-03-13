@@ -781,6 +781,15 @@ class TestUserDatabase:
 
         assert existing_task.hvac_start_temp == temp
 
+    def test_update_schedule_task_by_user_id__should_update_hvac_stop_temp(self):
+        temp = 22
+        task = {'taskId': 'asdfasd', 'alarmLightGroup': '3', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon', 'hvacStopTemp': temp}
+        existing_task = ScheduleTasks(alarm_light_group=time(), task_type=ScheduledTaskTypes())
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
+
+        assert existing_task.hvac_stop_temp == temp
+
     def test_update_schedule_task_by_user_id__should_use_the_original_hvac_start_temp_if_none(self):
         task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon'}
         start_temp = 18

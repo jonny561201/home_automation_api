@@ -87,6 +87,7 @@ class UserDatabase:
         old_task.hvac_stop = time.fromisoformat(task['hvacStop']) if task.get('hvacStop') else old_task.hvac_stop
         old_task.hvac_mode = task['hvacMode'] if task.get('hvacMode') else old_task.hvac_mode
         old_task.hvac_start_temp = task['hvacStartTemp'] if task.get('hvacStartTemp') else old_task.hvac_start_temp
+        old_task.hvac_stop_temp = task['hvacStopTemp']
 
         if old_task.task_type.activity_name != task.get('taskType'):
             old_task.task_type = self.session.query(ScheduledTaskTypes).filter_by(activity_name=task.get('taskType')).first()
