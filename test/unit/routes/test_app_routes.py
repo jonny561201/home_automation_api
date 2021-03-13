@@ -104,7 +104,7 @@ class TestAppRoutes:
         mock_controller.get_user_tasks.return_value = response
         get_user_tasks_by_user_id(self.USER_ID)
 
-        mock_controller.get_user_tasks.assert_called_with(ANY, self.USER_ID)
+        mock_controller.get_user_tasks.assert_called_with(ANY, self.USER_ID, ANY)
 
     def test_get_user_tasks_by_user_id__should_call_app_controller_with_bearer_token(self, mock_controller, mock_requests):
         response = {'test_data': 'task'}
@@ -112,7 +112,15 @@ class TestAppRoutes:
         mock_requests.headers = {'Authorization': self.FAKE_JWT_TOKEN}
         get_user_tasks_by_user_id(self.USER_ID)
 
-        mock_controller.get_user_tasks.assert_called_with(self.FAKE_JWT_TOKEN, ANY)
+        mock_controller.get_user_tasks.assert_called_with(self.FAKE_JWT_TOKEN, ANY, ANY)
+
+    def test_get_user_tasks_by_user_id__should_call_app_controller_with_task_type(self, mock_controller, mock_requests):
+        response = {'test_data': 'task'}
+        mock_controller.get_user_tasks.return_value = response
+        task_type = 'hvac'
+        get_user_tasks_by_user_id(self.USER_ID, task_type)
+
+        mock_controller.get_user_tasks.assert_called_with(ANY, ANY, task_type)
 
     def test_get_user_tasks_by_user_id__should_return_success_status_code(self, mock_controller, mock_requests):
         response = {'test_data': 'task'}
