@@ -589,6 +589,26 @@ class TestUserDatabase:
         assert actual[0]['hvac_start'] == hvac_start
         assert actual[0]['hvac_stop'] == hvac_stop
 
+    def test_get_schedule_tasks_by_user_id__should_return_matching_type_when_type_supplied(self):
+        days = 'Sat'
+        group_id = '1'
+        group_name = 'Bedroom'
+        group_time = '06:45:00'
+        hvac_start = '08:45:00'
+        hvac_stop = '07:45:00'
+        mode = 'HEAT'
+        id_one = str(uuid.uuid4())
+        id_two = str(uuid.uuid4())
+        task_one = ScheduleTasks(user_id=self.USER_ID, id=id_one, alarm_light_group=group_id, alarm_group_name=group_name, alarm_days=days, alarm_time=time.fromisoformat(group_time),
+                             task_type=ScheduledTaskTypes(activity_name='sunrise alarm'), hvac_mode=mode, hvac_start=time.fromisoformat(hvac_start), hvac_stop=time.fromisoformat(hvac_stop))
+        task_two = ScheduleTasks(user_id=self.USER_ID, id=id_two, alarm_light_group=group_id, alarm_group_name=group_name, alarm_days=days, alarm_time=time.fromisoformat(group_time),
+                             task_type=ScheduledTaskTypes(activity_name='hvac'), hvac_mode=mode, hvac_start=time.fromisoformat(hvac_start), hvac_stop=time.fromisoformat(hvac_stop))
+        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task_one, task_two]
+        actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID, 'hvac')
+
+        assert len(actual) == 1
+        assert actual[0]['task_type'] == 'hvac'
+
     def test_get_schedule_tasks_by_user_id__should_return_task_activity_type(self):
         activity = 'turn all on'
         task_type = ScheduledTaskTypes(id=uuid.uuid4(), activity_name=activity)

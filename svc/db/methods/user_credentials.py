@@ -94,10 +94,12 @@ class UserDatabase:
     def delete_schedule_task_by_user(self, user_id, task_id):
         self.session.query(ScheduleTasks).filter_by(user_id=user_id, id=task_id).delete()
 
-    def get_schedule_tasks_by_user(self, user_id):
+    def get_schedule_tasks_by_user(self, user_id, type=None):
         if user_id is None:
             raise BadRequest()
         tasks = self.session.query(ScheduleTasks).filter_by(user_id=user_id).all()
+        if type is not None:
+            return [self.__create_scheduled_task(task) for task in tasks if task.task_type.activity_name == type]
         return [self.__create_scheduled_task(task) for task in tasks]
 
     def insert_schedule_task_by_user(self, user_id, task):
