@@ -93,13 +93,18 @@ class TestLoginController:
     #     mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
 
     def test_get_user_tasks__should_call_get_schedule_tasks_by_user(self, mock_jwt, mock_db):
-        get_user_tasks(self.BEARER_TOKEN, self.USER_ID)
-        mock_db.return_value.__enter__.return_value.get_schedule_tasks_by_user.assert_called_with(self.USER_ID)
+        get_user_tasks(self.BEARER_TOKEN, self.USER_ID, 'hvac')
+        mock_db.return_value.__enter__.return_value.get_schedule_tasks_by_user.assert_called_with(self.USER_ID, ANY)
+
+    def test_get_user_tasks__should_call_get_schedule_tasks_by_task_type(self, mock_jwt, mock_db):
+        task_type = 'sunrise alarm'
+        get_user_tasks(self.BEARER_TOKEN, self.USER_ID, task_type)
+        mock_db.return_value.__enter__.return_value.get_schedule_tasks_by_user.assert_called_with(ANY, task_type)
 
     def test_get_user_tasks__should_return_user_tasks_from_database(self, mock_jwt, mock_db):
         response = [{'task_id': '12312bas-12312basdd-12312bjsd-123b123v'}]
         mock_db.return_value.__enter__.return_value.get_schedule_tasks_by_user.return_value = response
-        actual = get_user_tasks(self.BEARER_TOKEN, self.USER_ID)
+        actual = get_user_tasks(self.BEARER_TOKEN, self.USER_ID, 'turn on')
 
         assert actual == response
 
