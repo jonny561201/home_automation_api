@@ -97,6 +97,8 @@ class ScheduleTasks(Base):
     hvac_start = Column(TIME, nullable=True)
     hvac_stop = Column(TIME, nullable=True)
     hvac_mode = Column(String, nullable=True)
+    hvac_start_temp = Column(Integer, nullable=True)
+    hvac_stop_temp = Column(Integer, nullable=True)
     enabled = Column(Boolean, nullable=False)
     task_type_id = Column(UUID, ForeignKey(ScheduledTaskTypes.id))
 
