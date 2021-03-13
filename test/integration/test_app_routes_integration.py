@@ -131,11 +131,19 @@ class TestAppRoutesIntegration:
     #
     #     assert actual.status_code == 401
 
-    def test_get_user_tasks_by_user_id__should_successfully_update_user(self):
+    def test_get_user_tasks_by_user_id__should_successfully_retrieve_user(self):
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         headers = {'Authorization': bearer_token}
 
         actual = self.TEST_CLIENT.get(f'userId/{self.USER_ID}/tasks', headers=headers)
+
+        assert actual.status_code == 200
+
+    def test_get_user_tasks_by_user_id__should_successfully_retrieve_user_by_type(self):
+        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
+        headers = {'Authorization': bearer_token}
+
+        actual = self.TEST_CLIENT.get(f'userId/{self.USER_ID}/tasks/hvac', headers=headers)
 
         assert actual.status_code == 200
 

@@ -102,7 +102,7 @@ class TestAppRoutes:
     def test_get_user_tasks_by_user_id__should_call_app_controller_with_user_id(self, mock_controller, mock_requests):
         response = {'test_data': 'task'}
         mock_controller.get_user_tasks.return_value = response
-        get_user_tasks_by_user_id(self.USER_ID)
+        get_user_tasks_by_user_id(self.USER_ID, None)
 
         mock_controller.get_user_tasks.assert_called_with(ANY, self.USER_ID, ANY)
 
@@ -110,7 +110,7 @@ class TestAppRoutes:
         response = {'test_data': 'task'}
         mock_controller.get_user_tasks.return_value = response
         mock_requests.headers = {'Authorization': self.FAKE_JWT_TOKEN}
-        get_user_tasks_by_user_id(self.USER_ID)
+        get_user_tasks_by_user_id(self.USER_ID, None)
 
         mock_controller.get_user_tasks.assert_called_with(self.FAKE_JWT_TOKEN, ANY, ANY)
 
@@ -125,21 +125,21 @@ class TestAppRoutes:
     def test_get_user_tasks_by_user_id__should_return_success_status_code(self, mock_controller, mock_requests):
         response = {'test_data': 'task'}
         mock_controller.get_user_tasks.return_value = response
-        actual = get_user_tasks_by_user_id(self.USER_ID)
+        actual = get_user_tasks_by_user_id(self.USER_ID, None)
 
         assert actual.status_code == 200
 
     def test_get_user_tasks_by_user_id__should_return_success_content_type(self, mock_controller, mock_requests):
         response = {'test_data': 'task'}
         mock_controller.get_user_tasks.return_value = response
-        actual = get_user_tasks_by_user_id(self.USER_ID)
+        actual = get_user_tasks_by_user_id(self.USER_ID, None)
 
         assert actual.content_type == 'text/json'
 
     def test_get_user_tasks_by_user_id__should_return_serialize_data_from_controller(self, mock_controller, mock_requests):
         response = {'test_data': 'task'}
         mock_controller.get_user_tasks.return_value = response
-        actual = get_user_tasks_by_user_id(self.USER_ID)
+        actual = get_user_tasks_by_user_id(self.USER_ID, None)
 
         assert json.loads(actual.data) == response
 
