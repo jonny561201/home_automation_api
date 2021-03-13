@@ -568,15 +568,18 @@ class TestUserDatabase:
 
     def test_get_schedule_tasks_by_user_id__should_return_query_response(self):
         days = 'Sat'
+        mode = 'HEAT'
         group_id = '1'
         group_name = 'Bedroom'
         group_time = '06:45:00'
         hvac_start = '08:45:00'
         hvac_stop = '07:45:00'
-        mode = 'HEAT'
+        hvac_start_temp = 20
+        hvac_stop_temp = 16
         id = str(uuid.uuid4())
         task = ScheduleTasks(user_id=self.USER_ID, id=id, alarm_light_group=group_id, alarm_group_name=group_name, alarm_days=days, alarm_time=time.fromisoformat(group_time),
-                             task_type=ScheduledTaskTypes(), hvac_mode=mode, hvac_start=time.fromisoformat(hvac_start), hvac_stop=time.fromisoformat(hvac_stop))
+                             task_type=ScheduledTaskTypes(), hvac_mode=mode, hvac_start=time.fromisoformat(hvac_start), hvac_stop=time.fromisoformat(hvac_stop),
+                             hvac_start_temp=hvac_start_temp, hvac_stop_temp=hvac_stop_temp)
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task]
         actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID, None)
 
@@ -588,6 +591,8 @@ class TestUserDatabase:
         assert actual[0]['hvac_mode'] == mode
         assert actual[0]['hvac_start'] == hvac_start
         assert actual[0]['hvac_stop'] == hvac_stop
+        assert actual[0]['hvac_start_temp'] == hvac_start_temp
+        assert actual[0]['hvac_stop_temp'] == hvac_stop_temp
 
     def test_get_schedule_tasks_by_user_id__should_return_matching_type_when_type_supplied(self):
         days = 'Sat'
