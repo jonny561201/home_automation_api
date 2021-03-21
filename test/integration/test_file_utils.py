@@ -11,3 +11,11 @@ def test_write_desired_temp_to_file__should_default_is_auto_to_false():
     with open(file_name) as file:
         content = json.load(file)
         assert content['isAuto'] is False
+
+
+def test_write_desired_temp_to_file__should_set_is_auto_to_true():
+    file_name = Settings.get_instance().temp_file_name
+    write_desired_temp_to_file(12.2, None, True)
+    with open(file_name) as file:
+        content = json.load(file)
+        assert content['isAuto'] is True
