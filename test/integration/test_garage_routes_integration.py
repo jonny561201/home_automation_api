@@ -6,6 +6,7 @@ from flask import json
 from mock import patch
 from requests import Response
 
+from svc.constants.settings_state import Settings
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, Roles, UserRoles, RoleDevices
 from svc.manager import app
@@ -27,6 +28,7 @@ class TestGarageDoorRoutesIntegration:
 
     def setup_method(self):
         flask_app = app
+        Settings.get_instance().dev_mode = False
         self.TEST_CLIENT = flask_app.test_client()
         os.environ.update({'JWT_SECRET': self.JWT_SECRET, 'SQL_USERNAME': self.DB_USER, 'SQL_PASSWORD': self.DB_PASS,
                            'SQL_DBNAME': self.DB_NAME, 'SQL_PORT': self.DB_PORT})
