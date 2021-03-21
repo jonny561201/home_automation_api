@@ -154,7 +154,7 @@ class TestDbPreferenceIntegration:
             database.session.add(self.TASK)
 
         with UserDatabaseManager() as database:
-            actual = database.get_schedule_tasks_by_user(self.USER_ID)
+            actual = database.get_schedule_tasks_by_user(self.USER_ID, None)
             assert actual[0]['alarm_light_group'] == self.LIGHT_GROUP
             assert actual[0]['alarm_group_name'] == self.GROUP_NAME
             assert actual[0]['alarm_days'] == self.DAYS
@@ -166,7 +166,7 @@ class TestDbPreferenceIntegration:
     def test_get_schedule_task_by_user__should_return_empty_list_when_no_matches(self):
         user_id = str(uuid.uuid4())
         with UserDatabaseManager() as database:
-            actual = database.get_schedule_tasks_by_user(user_id)
+            actual = database.get_schedule_tasks_by_user(user_id, None)
             assert actual == []
 
     def test_insert_schedule_task_by_user__should_insert_task(self):
