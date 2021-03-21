@@ -10,7 +10,7 @@ def write_desired_temp_to_file(metric_temp, mode, isAuto=False):
         with open(file_name, 'r', encoding='utf-8') as file:
             content = json.load(file)
             content['desiredTemp'] = metric_temp
-            content['mode'] = mode
+            content['mode'] = mode if not isAuto else None
             content['isAuto'] = isAuto
 
         with open(file_name, "w") as file:

@@ -19,3 +19,11 @@ def test_write_desired_temp_to_file__should_set_is_auto_to_true():
     with open(file_name) as file:
         content = json.load(file)
         assert content['isAuto'] is True
+
+
+def test_write_desired_temp_to_file__should_set_mode_to_none_when_in_auto_mode():
+    file_name = Settings.get_instance().temp_file_name
+    write_desired_temp_to_file(12.2, Automation.HVAC.MODE.HEATING, True)
+    with open(file_name) as file:
+        content = json.load(file)
+        assert content['mode'] is None
