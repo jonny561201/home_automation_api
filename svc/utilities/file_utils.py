@@ -31,4 +31,3 @@ def get_desired_temp():
         with open(file_name, "w+") as file:
             json.dump(content, file)
         return content
-
