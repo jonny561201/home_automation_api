@@ -158,7 +158,7 @@ def send_new_account_email(email, password):
     request = {
         'sender': {'name': 'Home Automation', 'email': 'senderalex@example.com'},
         'to': [{'email': email, 'name': 'Your Name'}],
-        'subject': 'Home Automation: New Account',
+        'subject': 'Home Automation: New Account Registration',
         'htmlContent': f'<html><head></head><body><p>Hello,</p><p>A new Home Automation account has been setup for you.</p><p>Password: {password}</p></body></html>'
     }
     requests.post(SMTP_URL, data=json.dumps(request), headers=headers)

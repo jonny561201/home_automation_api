@@ -634,7 +634,7 @@ class TestEmailApiRequests:
         self.SETTINGS.settings = {'DevEmailAppId': self.API_KEY}
 
     def test_send_new_account_email__should_pass_api_key_to_header_in_requests(self, mock_request):
-        expected_header = {'api-key': self.API_KEY, 'content-type': 'application/json'}
+        expected_header = {'api-key': self.API_KEY, 'content-type': 'application/json', 'accept': 'application/json'}
         send_new_account_email(self.EMAIL, self.PASSWORD)
 
         mock_request.post.assert_called_with(ANY, data=ANY, headers=expected_header)
@@ -647,8 +647,8 @@ class TestEmailApiRequests:
 
     def test_send_new_account_email__should_make_call_to_post_request_with_correct_body(self, mock_request):
         expected_data = {
-            "sender": {"name": "My Name", "email": self.EMAIL},
-            "to": [{"email": self.EMAIL, "name": "My Name"}],
+            "sender": {"name": "Home Automation", "email": 'senderalex@example.com'},
+            "to": [{"email": self.EMAIL, "name": "Your Name"}],
             "subject": "Home Automation: New Account Registration",
             "htmlContent": "<html><head></head><body><p>Hello,</p><p>A new Home Automation account has been setup for you.</p><p>Password: %s</p></body></html>" % self.PASSWORD
         }
