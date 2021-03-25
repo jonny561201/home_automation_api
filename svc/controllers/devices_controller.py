@@ -1,7 +1,7 @@
 from werkzeug.exceptions import BadRequest
 
-from svc.utilities.jwt_utils import is_jwt_valid
 from svc.db.methods.user_credentials import UserDatabaseManager
+from svc.utilities.jwt_utils import is_jwt_valid
 
 
 def add_device_to_role(bearer_token, user_id, request_data):

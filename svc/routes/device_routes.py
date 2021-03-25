@@ -1,6 +1,7 @@
 import json
 
 from flask import request, Response, Blueprint
+
 from svc.controllers import devices_controller
 
 
