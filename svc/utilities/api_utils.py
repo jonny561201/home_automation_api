@@ -32,7 +32,7 @@ def get_garage_door_status(bearer_token, base_url, garage_id):
 
 def toggle_garage_door_state(bearer_token, base_url, garage_id):
     header = {'Authorization': 'Bearer ' + bearer_token}
-    url = f'%{base_url}/garageDoor/{garage_id}/toggle'
+    url = f'{base_url}/garageDoor/{garage_id}/toggle'
     try:
         response = requests.get(url, headers=header, timeout=5)
     except Exception:

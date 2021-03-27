@@ -29,5 +29,5 @@ class TestGarageUtils:
         mock_db.return_value.__enter__.return_value.get_user_garage_ip.return_value = database_response
         actual = get_garage_url_by_user(self.USER_ID)
 
-        assert actual == 'http://%s' % database_response
+        assert actual == f'http://{database_response}'
 
