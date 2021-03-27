@@ -58,7 +58,7 @@ class TestAppRoutesIntegration:
     def test_login__should_return_401_when_invalid_user(self):
         user_name = 'not_real_user'
         user_pass = 'wrongPass'
-        creds = "%s:%s" % (user_name, user_pass)
+        creds = f'{user_name}:{user_pass}'
         headers = {'Authorization': base64.b64encode(creds.encode())}
 
         actual = self.TEST_CLIENT.get('login', headers=headers)
@@ -68,7 +68,7 @@ class TestAppRoutesIntegration:
     def test_login__should_return_401_when_invalid_password(self):
         user_name = 'Jonny561201'
         user_pass = 'wrongPass'
-        creds = "%s:%s" % (user_name, user_pass)
+        creds = f'{user_name}:{user_pass}'
         headers = {'Authorization': base64.b64encode(creds.encode())}
 
         actual = self.TEST_CLIENT.get('login', headers=headers)
@@ -78,7 +78,7 @@ class TestAppRoutesIntegration:
     def test_login__should_return_success_when_user_valid(self):
         user_name = 'Jonny561201'
         user_pass = 'password'
-        creds = "%s:%s" % (user_name, user_pass)
+        creds = f'{user_name}:{user_pass}'
         headers = {'Authorization': base64.b64encode(creds.encode())}
 
         actual = self.TEST_CLIENT.get('login', headers=headers)
