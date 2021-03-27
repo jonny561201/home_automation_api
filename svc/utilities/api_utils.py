@@ -21,7 +21,7 @@ def get_weather_by_city(city, unit, app_id):
 
 def get_garage_door_status(bearer_token, base_url, garage_id):
     header = {'Authorization': 'Bearer ' + bearer_token}
-    url = '%s/garageDoor/%s/status' % (base_url, garage_id)
+    url = f'{base_url}/garageDoor/{garage_id}/status'
     try:
         response = requests.get(url, headers=header, timeout=5)
     except Exception:
@@ -32,7 +32,7 @@ def get_garage_door_status(bearer_token, base_url, garage_id):
 
 def toggle_garage_door_state(bearer_token, base_url, garage_id):
     header = {'Authorization': 'Bearer ' + bearer_token}
-    url = '%s/garageDoor/%s/toggle' % (base_url, garage_id)
+    url = f'%{base_url}/garageDoor/{garage_id}/toggle'
     try:
         response = requests.get(url, headers=header, timeout=5)
     except Exception:
@@ -42,7 +42,7 @@ def toggle_garage_door_state(bearer_token, base_url, garage_id):
 
 def update_garage_door_state(bearer_token, base_url, garage_id, request):
     header = {'Authorization': 'Bearer ' + bearer_token}
-    url = '%s/garageDoor/%s/state' % (base_url, garage_id)
+    url = f'{base_url}/garageDoor/{garage_id}/state'
     try:
         response = requests.post(url, headers=header, data=request, timeout=5)
     except Exception:
@@ -53,7 +53,7 @@ def update_garage_door_state(bearer_token, base_url, garage_id, request):
 
 def get_light_api_key(username, password):
     body = {'devicetype': Automation().APP_NAME}
-    auth = base64.b64encode((username + ':' + password).encode('UTF-8')).decode('UTF-8')
+    auth = base64.b64encode(f'{username}:{password}'.encode('UTF-8')).decode('UTF-8')
     headers = {'Authorization': 'Basic ' + auth}
     try:
         response = requests.post(LIGHT_BASE_URL, data=json.dumps(body), headers=headers, timeout=5)
@@ -64,7 +64,7 @@ def get_light_api_key(username, password):
 
 
 def get_light_groups(api_key):
-    url = LIGHT_BASE_URL + '/%s/groups' % api_key
+    url = f'{LIGHT_BASE_URL}/{api_key}/groups'
     try:
         response = requests.get(url)
     except Exception:
@@ -74,7 +74,7 @@ def get_light_groups(api_key):
 
 
 def set_light_groups(api_key, group_id, brightness):
-    url = LIGHT_BASE_URL + '/%s/groups/%s/action' % (api_key, group_id)
+    url = f'{LIGHT_BASE_URL}/{api_key}/groups/{group_id}/action'
     request = {'on': False if brightness == 0 else True}
     if brightness != 0:
         request['bri'] = brightness
@@ -84,7 +84,7 @@ def set_light_groups(api_key, group_id, brightness):
 
 
 def get_light_group_state(api_key, group_id):
-    url = LIGHT_BASE_URL + '/%s/groups/%s' % (api_key, group_id)
+    url = f'{LIGHT_BASE_URL}/{api_key}/groups/{group_id}'
     try:
         response = requests.get(url)
     except Exception:
@@ -94,7 +94,7 @@ def get_light_group_state(api_key, group_id):
 
 
 def get_light_group_attributes(api_key, group_id):
-    url = LIGHT_BASE_URL + '/%s/groups/%s' % (api_key, group_id)
+    url = f'{LIGHT_BASE_URL}/{api_key}/groups/{group_id}'
     try:
         response = requests.get(url)
     except Exception:
@@ -104,13 +104,13 @@ def get_light_group_attributes(api_key, group_id):
 
 
 def create_light_group(api_key, group_name):
-    url = LIGHT_BASE_URL + '/%s/groups' % api_key
+    url = f'{LIGHT_BASE_URL}/{api_key}/groups'
     request = {'name': group_name}
     requests.post(url, data=json.dumps(request))
 
 
 def get_all_lights(api_key):
-    url = LIGHT_BASE_URL + '/%s/lights' % api_key
+    url = f'{LIGHT_BASE_URL}/{api_key}/lights'
     try:
         response = requests.get(url)
     except Exception:
@@ -120,7 +120,7 @@ def get_all_lights(api_key):
 
 
 def get_light_state(api_key, light_id):
-    url = LIGHT_BASE_URL + '/%s/lights/%s' % (api_key, light_id)
+    url = f'{LIGHT_BASE_URL}/{api_key}/lights/{light_id}'
     try:
         response = requests.get(url)
     except Exception:
@@ -130,7 +130,7 @@ def get_light_state(api_key, light_id):
 
 
 def set_light_state(api_key, light_id, brightness):
-    url = LIGHT_BASE_URL + '/%s/lights/%s/state' % (api_key, light_id)
+    url = f'{LIGHT_BASE_URL}/{api_key}/lights/{light_id}/state'
     request = {'on': False if brightness == 0 else True}
     if brightness != 0:
         request['bri'] = brightness
@@ -140,7 +140,7 @@ def set_light_state(api_key, light_id, brightness):
 
 
 def get_full_state(api_key):
-    url = LIGHT_BASE_URL + '/%s' % api_key
+    url = f'{LIGHT_BASE_URL}/{api_key}'
     try:
         response = requests.get(url, timeout=10)
     except Exception:
