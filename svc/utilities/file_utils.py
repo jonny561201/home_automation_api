@@ -4,19 +4,19 @@ from svc.constants.home_automation import Automation
 from svc.constants.settings_state import Settings
 
 
-def write_desired_temp_to_file(metric_temp, mode, isAuto=False):
+def write_desired_temp_to_file(metric_temp, mode):
     file_name = Settings.get_instance().temp_file_name
     try:
         with open(file_name, 'r', encoding='utf-8') as file:
             content = json.load(file)
             content['desiredTemp'] = metric_temp
-            content['mode'] = mode if not isAuto else None
-            content['isAuto'] = isAuto
+            content['mode'] = mode
+            content['isAuto'] = mode == 'auto'
 
         with open(file_name, "w") as file:
             json.dump(content, file)
     except FileNotFoundError:
-        content = {'desiredTemp': metric_temp, 'mode': mode, 'isAuto': isAuto}
+        content = {'desiredTemp': metric_temp, 'mode': mode, 'isAuto': False}
         with open(file_name, "w+") as file:
             json.dump(content, file)
 
