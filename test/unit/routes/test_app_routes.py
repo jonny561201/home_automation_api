@@ -14,7 +14,7 @@ class TestAppRoutes:
     USER_ID = '123bac34'
     PWORD = 'password'
     FAKE_JWT_TOKEN = 'fakeJwtToken'.encode('UTF-8')
-    CREDS = ('%s:%s' % (USER, PWORD)).encode()
+    CREDS = f'{USER}:{PWORD}'.encode()
     ENCODED_CREDS = base64.b64encode(CREDS).decode('UTF-8')
     AUTH_HEADER = {"Authorization": "Basic " + ENCODED_CREDS}
 

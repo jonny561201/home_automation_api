@@ -136,7 +136,7 @@ class TestGarageApiRequests:
         mock_requests.get.return_value = response
         toggle_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
 
-        expected_url = self.BASE_URL + '/garageDoor/' + str(self.GARAGE_ID) + '/toggle'
+        expected_url = f'{self.BASE_URL}/garageDoor/{str(self.GARAGE_ID)}/toggle'
         mock_requests.get.assert_called_with(expected_url, headers=ANY, timeout=5)
 
     def test_toggle_garage_door_state__should_call_requests_with_with_headers(self, mock_requests):
@@ -294,7 +294,7 @@ class TestLightApiRequests:
             get_light_api_key(self.USERNAME, self.PASSWORD)
 
     def test_get_light_groups__should_call_groups_url(self, mock_requests):
-        expected_url = self.BASE_URL + '/%s/groups' % self.API_KEY
+        expected_url = f'{self.BASE_URL}/{self.API_KEY}/groups'
         mock_requests.get.return_value = self.__create_response()
         get_light_groups(self.API_KEY)
 
@@ -337,7 +337,7 @@ class TestLightApiRequests:
     def test_set_light_groups__should_call_state_url(self, mock_requests):
         group_id = 1
         mock_requests.put.return_value = self.__create_response()
-        expected_url = self.BASE_URL + '/%s/groups/%s/action' % (self.API_KEY, group_id)
+        expected_url = f'{self.BASE_URL}/{self.API_KEY}/groups/{group_id}/action'
         set_light_groups(self.API_KEY, group_id, 132)
 
         mock_requests.put.assert_called_with(expected_url, data=ANY)
@@ -381,7 +381,7 @@ class TestLightApiRequests:
 
     def test_get_light_group_state__should_call_url(self, mock_requests):
         group_id = '1'
-        url = self.BASE_URL + '/%s/groups/%s' % (self.API_KEY, group_id)
+        url = f'{self.BASE_URL}/{self.API_KEY}/groups/{group_id}'
         mock_requests.get.return_value = self.__create_response()
 
         get_light_group_state(self.API_KEY, group_id)
@@ -436,7 +436,7 @@ class TestLightApiRequests:
 
     def test_get_all_lights__should_make_api_call_to_url(self, mock_requests):
         mock_requests.get.return_value = self.__create_response()
-        expected_url = self.BASE_URL + '/%s/lights' % self.API_KEY
+        expected_url = f'{self.BASE_URL}/{self.API_KEY}/lights'
         get_all_lights(self.API_KEY)
 
         mock_requests.get.assert_called_with(expected_url)
@@ -471,7 +471,7 @@ class TestLightApiRequests:
     def test_get_light_group_attributes__should_make_api_call_to_url(self, mock_requests):
         group_id = "4"
         mock_requests.get.return_value = self.__create_response()
-        expected_url = self.BASE_URL + '/%s/groups/%s' % (self.API_KEY, group_id)
+        expected_url = f'{self.BASE_URL}/{self.API_KEY}/groups/{group_id}'
         get_light_group_attributes(self.API_KEY, group_id)
 
         mock_requests.get.assert_called_with(expected_url)
@@ -510,7 +510,7 @@ class TestLightApiRequests:
 
     def test_get_light_state__should_make_api_call_to_url(self, mock_requests):
         light_id = "4"
-        expected_url = self.BASE_URL + '/%s/lights/%s' % (self.API_KEY, light_id)
+        expected_url = f'{self.BASE_URL}/{self.API_KEY}/lights/{light_id}'
         mock_requests.get.return_value = self.__create_response()
         get_light_state(self.API_KEY, light_id)
 
@@ -551,7 +551,7 @@ class TestLightApiRequests:
 
     def test_set_light_state__should_make_call_to_api(self, mock_requests):
         light_id = '7'
-        expected_url = self.BASE_URL + '/%s/lights/%s/state' % (self.API_KEY, light_id)
+        expected_url = f'{self.BASE_URL}/{self.API_KEY}/lights/{light_id}/state'
         mock_requests.put.return_value = self.__create_response()
         set_light_state(self.API_KEY, light_id, None)
 
@@ -582,7 +582,7 @@ class TestLightApiRequests:
 
     def test_get_full_state__should_make_call_to_api(self, mock_requests):
         mock_requests.get.return_value = self.__create_response()
-        expected_url = self.BASE_URL + '/%s' % self.API_KEY
+        expected_url = f'{self.BASE_URL}/{self.API_KEY}'
         get_full_state(self.API_KEY)
 
         mock_requests.get.assert_called_with(expected_url, timeout=10)
@@ -650,7 +650,7 @@ class TestEmailApiRequests:
             "sender": {"name": "Home Automation", "email": 'senderalex@example.com'},
             "to": [{"email": self.EMAIL, "name": "Your Name"}],
             "subject": "Home Automation: New Account Registration",
-            "htmlContent": "<html><head></head><body><p>Hello,</p><p>A new Home Automation account has been setup for you.</p><p>Password: %s</p></body></html>" % self.PASSWORD
+            "htmlContent": f"<html><head></head><body><p>Hello,</p><p>A new Home Automation account has been setup for you.</p><p>Password: {self.PASSWORD}</p></body></html>"
         }
         send_new_account_email(self.EMAIL, self.PASSWORD)
 
