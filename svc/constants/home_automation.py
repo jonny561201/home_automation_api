@@ -3,6 +3,7 @@ class Mode:
     COOLING = 'cooling'
     HEATING = 'heating'
     TURN_OFF = 'off'
+    AUTO = 'auto'
 
 
 class Hvac:
