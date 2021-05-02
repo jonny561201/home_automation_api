@@ -1,6 +1,6 @@
 from svc.constants.settings_state import Settings
 from svc.services.weather_request import get_weather
-from svc.utilities.gpio_utils import read_temperature_file
+from svc.utilities.file_utils import read_temperature_file
 from svc.utilities.user_temp_utils import get_user_temperature
 
 
