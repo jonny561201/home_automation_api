@@ -18,21 +18,21 @@ class TestFileUtils:
 
     def test_write_desired_temp_to_file__should_set_is_auto_to_true(self):
         file_name = Settings.get_instance().temp_file_name
-        write_desired_temp_to_file(12.2, None, True)
+        write_desired_temp_to_file(12.2, Automation.HVAC.MODE.AUTO)
         with open(file_name) as file:
             content = json.load(file)
             assert content['isAuto'] is True
 
     def test_write_desired_temp_to_file__should_save_mode(self):
         file_name = Settings.get_instance().temp_file_name
-        write_desired_temp_to_file(12.2, Automation.HVAC.MODE.HEATING, False)
+        write_desired_temp_to_file(12.2, Automation.HVAC.MODE.HEATING)
         with open(file_name) as file:
             content = json.load(file)
             assert content['mode'] == Automation.HVAC.MODE.HEATING
 
-    def test_write_desired_temp_to_file__should_set_mode_to_none_when_in_auto_mode(self):
+    def test_write_desired_temp_to_file__should_set_mode_to_auto_when_in_auto_mode(self):
         file_name = Settings.get_instance().temp_file_name
-        write_desired_temp_to_file(12.2, Automation.HVAC.MODE.HEATING, True)
+        write_desired_temp_to_file(12.2, Automation.HVAC.MODE.AUTO)
         with open(file_name) as file:
             content = json.load(file)
-            assert content['mode'] is None
+            assert content['mode'] == Automation.HVAC.MODE.AUTO
