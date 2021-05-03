@@ -1,7 +1,7 @@
 import RPi.GPIO as GPIO
 from svc.manager import app
 
-THERMO_PIN = 11
+THERMO_PIN = 18
 
 
 GPIO.setmode(GPIO.BOARD)
