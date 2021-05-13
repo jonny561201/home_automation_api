@@ -213,7 +213,12 @@ class UserDatabase:
         return [self.__get_user_info(child_id) for child_id in children_ids]
 
     def get_scenes_by_user(self, user_id):
-        self.session.query(Scenes).filter_by(user_id=user_id).first()
+        scenes = self.session.query(Scenes).filter_by(user_id=user_id).all()
+        return [{'name': scene.name, 'lights': self.__create_light_scenes(scene.details)} for scene in scenes]
+
+    @staticmethod
+    def __create_light_scenes(light_details):
+        return [{'group_name': detail.light_group_name, 'group_id': detail.light_group, 'brightness': detail.light_brightness} for detail in light_details]
 
     def __duplicate_roles(self, new_user_id, user_role):
         role_id = str(uuid.uuid4())

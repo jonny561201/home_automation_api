@@ -9,7 +9,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 from svc.db.methods.user_credentials import UserDatabase
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
     AverageSumpPumpLevel, Roles, UserInformation, UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts, ScheduleTasks, \
-    ScheduledTaskTypes, Scenes
+    ScheduledTaskTypes, Scenes, SceneDetails
 
 
 class TestUserDatabase:
@@ -937,7 +937,21 @@ class TestUserDatabase:
         self.DATABASE.get_scenes_by_user(self.USER_ID)
         self.SESSION.query.assert_called_with(Scenes)
         self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
-        self.SESSION.query.return_value.filter_by.return_value.first.assert_called()
+        self.SESSION.query.return_value.filter_by.return_value.all.assert_called()
+
+    def test_get_scenes_by_user__should_return_user_data(self):
+        scene = Scenes()
+        scene_name = 'my test name'
+        scene.name = scene_name
+        detail = SceneDetails()
+        room_name = 'fake room'
+        detail.light_group_name = room_name
+        scene.details = [detail]
+        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [scene]
+        actual = self.DATABASE.get_scenes_by_user(self.USER_ID)
+
+        assert actual[0]['name'] == scene_name
+        assert actual[0]['lights'][0]['group_name'] == room_name
 
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
