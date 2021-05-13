@@ -9,7 +9,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, \
     UserCredentials, Roles, UserPreference, UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts, ScheduleTasks, \
-    ScheduledTaskTypes
+    ScheduledTaskTypes, Scenes, SceneDetails
 
 DB_USER = 'postgres'
 DB_PASS = 'password'
@@ -821,3 +821,39 @@ class TestUserDuplication:
             assert actual_child_user is None
             actual_parent = database.session.query(UserCredentials).filter_by(user_id=self.USER_ID).first()
             assert actual_parent is not None
+
+
+class TestUserScenes:
+    SCENE_ID = str(uuid.uuid4())
+    USER_ID = str(uuid.uuid4())
+    SCENE_NAME = 'Movie'
+    GROUP_NAME = 'living room'
+    USER_INFO = UserInformation(id=USER_ID, first_name='tony', last_name='stark')
+    SCENE = Scenes(name=SCENE_NAME, user_id=USER_ID, id=SCENE_ID)
+    DETAIL = SceneDetails(light_group='2', light_group_name=GROUP_NAME, light_brightness=45, scene_id=SCENE_ID)
+
+    def setup_method(self):
+        os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
+                           'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
+        with UserDatabaseManager() as database:
+            database.session.add(self.USER_INFO)
+            database.session.commit()
+            database.session.add(self.SCENE)
+            database.session.add(self.DETAIL)
+
+    def teardown_method(self):
+        with UserDatabaseManager() as database:
+            database.session.delete(self.DETAIL)
+            database.session.delete(self.SCENE)
+            database.session.delete(self.USER_INFO)
+        os.environ.pop('SQL_USERNAME')
+        os.environ.pop('SQL_PASSWORD')
+        os.environ.pop('SQL_DBNAME')
+        os.environ.pop('SQL_PORT')
+
+    def test_get_scenes_by_user__should_return_records(self):
+        with UserDatabaseManager() as database:
+            actual = database.get_scenes_by_user(self.USER_ID)
+
+        assert actual[0]['name'] == self.SCENE_NAME
+        assert actual[0]['lights'][0]['group_name'] == self.GROUP_NAME
