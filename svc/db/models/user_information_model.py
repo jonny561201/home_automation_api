@@ -65,11 +65,12 @@ class RoleDeviceNodes(Base):
     role_device_id = Column(UUID, ForeignKey(RoleDevices.id))
 
 
-class Scene(Base):
+class Scenes(Base):
     __tablename__ = 'scenes'
 
     id = Column(UUID, nullable=False, primary_key=True, server_default=sqlalchemy.text("gen_random_uuid()"))
     name = Column(String, nullable=False)
+    user_id = Column(UUID, ForeignKey(UserInformation.id))
 
     details = relationship('SceneDetails', cascade='delete', backref="parent", lazy='joined')
 
@@ -78,7 +79,7 @@ class SceneDetails(Base):
     __tablename__ = 'scene_details'
 
     id = Column(UUID, nullable=False, primary_key=True, server_default=sqlalchemy.text("gen_random_uuid()"))
-    scene_id = Column(UUID, ForeignKey(Scene.id))
+    scene_id = Column(UUID, ForeignKey(Scenes.id))
     light_group = Column(String, nullable=True)
     light_group_name = Column(String, nullable=True)
     light_brightness = Column(SMALLINT, nullable=True)
