@@ -9,7 +9,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 from svc.db.methods.user_credentials import UserDatabase
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
     AverageSumpPumpLevel, Roles, UserInformation, UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts, ScheduleTasks, \
-    ScheduledTaskTypes
+    ScheduledTaskTypes, Scenes
 
 
 class TestUserDatabase:
@@ -932,6 +932,12 @@ class TestUserDatabase:
         task_id = str(uuid.uuid4())
         self.DATABASE.delete_schedule_task_by_user(self.USER_ID, task_id)
         self.SESSION.query.return_value.filter_by.return_value.delete.assert_called()
+
+    def test_get_scenes_by_user__should__should_query_for_scenes_by_user_id(self):
+        self.DATABASE.get_scenes_by_user(self.USER_ID)
+        self.SESSION.query.assert_called_with(Scenes)
+        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
+        self.SESSION.query.return_value.filter_by.return_value.first.assert_called()
 
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):

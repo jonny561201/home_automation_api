@@ -7,7 +7,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 from svc.constants.settings_state import Settings
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
     AverageSumpPumpLevel, RoleDevices, UserRoles, RoleDeviceNodes, ChildAccounts, UserInformation, ScheduleTasks, \
-    ScheduledTaskTypes
+    ScheduledTaskTypes, Scenes
 
 
 class UserDatabaseManager:
@@ -211,6 +211,9 @@ class UserDatabase:
         children = self.session.query(ChildAccounts).filter_by(parent_user_id=user_id).all()
         children_ids = [child.child_user_id for child in children]
         return [self.__get_user_info(child_id) for child_id in children_ids]
+
+    def get_scenes_by_user(self, user_id):
+        self.session.query(Scenes).filter_by(user_id=user_id).first()
 
     def __duplicate_roles(self, new_user_id, user_role):
         role_id = str(uuid.uuid4())
