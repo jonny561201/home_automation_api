@@ -959,6 +959,10 @@ class TestUserDatabase:
 
         assert actual == []
 
+    def test_get_scenes_by_user__should_raise_bad_request_when_user_id_is_none(self):
+        with pytest.raises(BadRequest):
+            self.DATABASE.get_scenes_by_user(None)
+
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()
