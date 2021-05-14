@@ -84,3 +84,10 @@ class TestSceneRoutes:
 
         assert actual.status_code == 200
 
+    def test_delete_scene_by_user__should_return_content_type(self, mock_controller, mock_request):
+        mock_controller.delete_created_scene.return_value = self.RESPONSE
+        mock_request.headers = {'Authorization': self.BEARER_TOKEN}
+        actual = delete_scene_by_user(self.USER_ID, self.SCENE_ID)
+
+        assert actual.content_type == 'text/json'
+
