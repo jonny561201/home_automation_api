@@ -535,6 +535,11 @@ class TestUserDatabase:
 
         assert actual == []
 
+    def test_delete_child_user_account__should_raise_bad_request_when_user_id_is_none(self):
+        with pytest.raises(BadRequest):
+            self.DATABASE.delete_child_user_account(None, str(uuid.uuid4()))
+        self.SESSION.query.assert_not_called()
+
     def test_delete_child_user_account__should_query_child_accounts_by_user_id(self):
         child_user_id = str(uuid.uuid4())
         child_account = ChildAccounts(parent_user_id=self.USER_ID, child_user_id=child_user_id)

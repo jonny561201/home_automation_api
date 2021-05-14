@@ -197,6 +197,7 @@ class UserDatabase:
         return [self.__get_user_info(child_id) for child_id in children_ids]
 
     def delete_child_user_account(self, user_id, child_user_id):
+        self.__validate_user_id(user_id)
         self.session.query(ChildAccounts).filter_by(parent_user_id=user_id, child_user_id=child_user_id).delete()
         self.session.query(UserCredentials).filter_by(user_id=child_user_id).delete()
 
