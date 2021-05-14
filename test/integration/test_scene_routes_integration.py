@@ -43,8 +43,9 @@ class TestSceneRoutes:
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
-            database.session.delete(self.DETAIL)
-            database.session.delete(self.SCENE)
+            database.session.query(SceneDetails).delete()
+            database.session.commit()
+            database.session.query(Scenes).delete()
             database.session.delete(self.USER_INFO)
         os.environ.pop('JWT_SECRET')
         os.environ.pop('SQL_USERNAME')
@@ -66,3 +67,10 @@ class TestSceneRoutes:
         actual = self.TEST_CLIENT.get(url)
 
         assert actual.status_code == 401
+
+    def test_delete_scene_by_user__should_remove_existing_record(self):
+        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
+        headers = {'Authorization': bearer_token}
+        actual = self.TEST_CLIENT.delete(f'scenes/userId/{self.USER_ID}/scene/{self.SCENE_ID}', headers=headers)
+
+        assert actual.status_code == 200
