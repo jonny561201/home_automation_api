@@ -235,6 +235,7 @@ class UserDatabase:
 
     def delete_scene_by_user(self, user_id, scene_id):
         self.__validate_user_id(user_id)
+        self.session.query(Scenes).filter_by(user_id=user_id, id=scene_id).delete()
 
     @staticmethod
     def __create_light_scenes(light_details):

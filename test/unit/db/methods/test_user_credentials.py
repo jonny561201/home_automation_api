@@ -1059,6 +1059,14 @@ class TestUserDatabase:
             self.DATABASE.delete_scene_by_user(None, str(uuid.uuid4()))
         self.SESSION.query.assert_not_called()
 
+    def test_delete_scene_by_user__should_query_for_scene(self):
+        scene_id = str(uuid.uuid4())
+        self.DATABASE.delete_scene_by_user(self.USER_ID, scene_id)
+
+        self.SESSION.query.assert_called_with(Scenes)
+        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID, id=scene_id)
+        self.SESSION.query.return_value.filter_by.return_value.delete.assert_called()
+
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()
