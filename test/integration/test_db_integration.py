@@ -857,3 +857,9 @@ class TestUserScenes:
 
         assert actual[0]['name'] == self.SCENE_NAME
         assert actual[0]['lights'][0]['group_name'] == self.GROUP_NAME
+
+    def test_get_scenes_by_user__should_return_empty_list_when_none(self):
+        with UserDatabaseManager() as database:
+            actual = database.get_scenes_by_user(str(uuid.uuid4()))
+
+        assert actual == []
