@@ -202,6 +202,7 @@ class UserDatabase:
         self.session.query(UserCredentials).filter_by(user_id=child_user_id).delete()
 
     def create_child_account(self, user_id, email, roles, new_pass):
+        self.__validate_user_id(user_id)
         child_account = self.session.query(ChildAccounts).filter_by(child_user_id=user_id).first()
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
         if user is None or child_account is not None:

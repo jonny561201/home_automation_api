@@ -439,6 +439,11 @@ class TestUserDatabase:
 
         assert actual == ip_address
 
+    def test_create_child_account__should_raise_bad_request_when_user_id_is_none(self):
+        with pytest.raises(BadRequest):
+            self.DATABASE.create_child_account(None, '', [], '')
+        self.SESSION.query.assert_not_called()
+
     def test_create_child_account__should_query_user_creds_by_user_id(self):
         user_info = UserInformation()
         self.SESSION.query.return_value.filter_by.return_value.first.side_effect = [None, UserCredentials(user=user_info), UserPreference()]
