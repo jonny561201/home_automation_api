@@ -156,6 +156,7 @@ class UserDatabase:
             raise BadRequest
 
     def add_new_role_device(self, user_id, role_name, ip_address):
+        self.__validate_user_id(user_id)
         child_account = self.session.query(ChildAccounts).filter_by(child_user_id=user_id).first()
         select_user_id = user_id if child_account is None else child_account.parent_user_id
         user_roles = self.session.query(UserRoles).filter_by(user_id=select_user_id).all()
