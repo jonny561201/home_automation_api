@@ -40,24 +40,22 @@ class UserDatabase:
                 'first_name': user.user.first_name, 'last_name': user.user.last_name}
 
     def get_roles_by_user(self, user_id):
-        self.__validate_user_id(user_id)
+        self.__validate_property(user_id)
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
-        if user is None:
-            raise BadRequest
+        self.__validate_property(user)
         return {'roles': [self.__create_role(role.role_devices, role.role.role_name) for role in user.user_roles]}
 
     def change_user_password(self, user_id, old_pass, new_pass):
-        self.__validate_user_id(user_id)
+        self.__validate_property(user_id)
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
         if user.password != old_pass:
             raise Unauthorized
         user.password = new_pass
 
     def get_preferences_by_user(self, user_id):
-        self.__validate_user_id(user_id)
+        self.__validate_property(user_id)
         preference = self.session.query(UserPreference).filter_by(user_id=user_id).first()
-        if preference is None:
-            raise BadRequest
+        self.__validate_property(preference)
         return {'temp_unit': 'fahrenheit' if preference.is_fahrenheit else 'celsius',
                 'measure_unit': 'imperial' if preference.is_imperial else 'metric',
                 'city': preference.city,
@@ -77,10 +75,9 @@ class UserDatabase:
         record.city = city if city is not None else record.city
 
     def update_schedule_task_by_user_id(self, user_id, task):
-        self.__validate_user_id(user_id)
+        self.__validate_property(user_id)
         old_task = self.session.query(ScheduleTasks).filter_by(user_id=user_id, id=task.get('taskId')).first()
-        if old_task is None:
-            raise BadRequest()
+        self.__validate_property(old_task)
         old_task.id = str(uuid.uuid4())
         old_task.alarm_days = task['alarmDays'] if task.get('alarmDays') else old_task.alarm_days
         old_task.alarm_time = time.fromisoformat(task['alarmTime']) if task.get('alarmTime') else old_task.alarm_time
@@ -98,18 +95,18 @@ class UserDatabase:
         return self.__create_scheduled_task(old_task)
 
     def delete_schedule_task_by_user(self, user_id, task_id):
-        self.__validate_user_id(user_id)
+        self.__validate_property(user_id)
         self.session.query(ScheduleTasks).filter_by(user_id=user_id, id=task_id).delete()
 
     def get_schedule_tasks_by_user(self, user_id, task_type):
-        self.__validate_user_id(user_id)
+        self.__validate_property(user_id)
         tasks = self.session.query(ScheduleTasks).filter_by(user_id=user_id).all()
         if task_type is not None:
             return [self.__create_scheduled_task(task) for task in tasks if task.task_type.activity_name == task_type.lower()]
         return [self.__create_scheduled_task(task) for task in tasks]
 
     def insert_schedule_task_by_user(self, user_id, task):
-        self.__validate_user_id(user_id)
+        self.__validate_property(user_id)
         try:
             alarm_time = None if task.get('alarmTime') is None else time.fromisoformat(task.get('alarmTime'))
             hvac_start = None if task.get('hvacStart') is None else time.fromisoformat(task.get('hvacStart'))
@@ -126,25 +123,23 @@ class UserDatabase:
         return [self.__create_scheduled_task(task) for task in new_tasks]
 
     def get_current_sump_level_by_user(self, user_id):
-        self.__validate_user_id(user_id)
+        self.__validate_property(user_id)
         child_account = self.session.query(ChildAccounts).filter_by(child_user_id=user_id).first()
         select_user_id = user_id if child_account is None else child_account.parent_user_id
         sump_level = self.session.query(DailySumpPumpLevel).filter_by(user_id=select_user_id).order_by(DailySumpPumpLevel.id.desc()).first()
-        if sump_level is None:
-            raise BadRequest
+        self.__validate_property(sump_level)
         return {'currentDepth': float(sump_level.distance), 'warningLevel': sump_level.warning_level}
 
     def get_average_sump_level_by_user(self, user_id):
-        self.__validate_user_id(user_id)
+        self.__validate_property(user_id)
         child_account = self.session.query(ChildAccounts).filter_by(child_user_id=user_id).first()
         select_user_id = user_id if child_account is None else child_account.parent_user_id
         average = self.session.query(AverageSumpPumpLevel).filter_by(user_id=select_user_id).order_by(AverageSumpPumpLevel.id.desc()).first()
-        if average is None:
-            raise BadRequest
+        self.__validate_property(average)
         return {'latestDate': str(average.create_day), 'averageDepth': float(average.distance)}
 
     def insert_current_sump_level(self, user_id, depth_info):
-        self.__validate_user_id(user_id)
+        self.__validate_property(user_id)
         try:
             depth = depth_info['depth']
             date = depth_info['datetime']
@@ -156,7 +151,7 @@ class UserDatabase:
             raise BadRequest
 
     def add_new_role_device(self, user_id, role_name, ip_address):
-        self.__validate_user_id(user_id)
+        self.__validate_property(user_id)
         child_account = self.session.query(ChildAccounts).filter_by(child_user_id=user_id).first()
         select_user_id = user_id if child_account is None else child_account.parent_user_id
         user_roles = self.session.query(UserRoles).filter_by(user_id=select_user_id).all()
@@ -170,7 +165,7 @@ class UserDatabase:
 
     # TODO: should validate user_id matches result from db else 401
     def add_new_device_node(self, user_id, device_id, node_name):
-        self.__validate_user_id(user_id)
+        self.__validate_property(user_id)
         device = self.session.query(RoleDevices).filter_by(id=device_id).first()
         if device is None:
             raise Unauthorized
@@ -182,14 +177,13 @@ class UserDatabase:
         return {'availableNodes': device.max_nodes - (node_size + 1)}
 
     def get_user_garage_ip(self, user_id):
-        self.__validate_user_id(user_id)
+        self.__validate_property(user_id)
         user_role = self.session.query(UserRoles).filter_by(user_id=user_id).first()
-        if user_role is None:
-            raise BadRequest
+        self.__validate_property(user_role)
         return user_role.role_devices.ip_address
 
     def get_user_child_accounts(self, user_id):
-        self.__validate_user_id(user_id)
+        self.__validate_property(user_id)
         children = self.session.query(ChildAccounts).filter_by(parent_user_id=user_id).all()
         if children is None:
             return []
@@ -197,12 +191,12 @@ class UserDatabase:
         return [self.__get_user_info(child_id) for child_id in children_ids]
 
     def delete_child_user_account(self, user_id, child_user_id):
-        self.__validate_user_id(user_id)
+        self.__validate_property(user_id)
         self.session.query(ChildAccounts).filter_by(parent_user_id=user_id, child_user_id=child_user_id).delete()
         self.session.query(UserCredentials).filter_by(user_id=child_user_id).delete()
 
     def create_child_account(self, user_id, email, roles, new_pass):
-        self.__validate_user_id(user_id)
+        self.__validate_property(user_id)
         child_account = self.session.query(ChildAccounts).filter_by(child_user_id=user_id).first()
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
         if user is None or child_account is not None:
@@ -227,16 +221,15 @@ class UserDatabase:
         return [self.__get_user_info(child_id) for child_id in children_ids]
 
     def get_scenes_by_user(self, user_id):
-        self.__validate_user_id(user_id)
+        self.__validate_property(user_id)
         scenes = self.session.query(Scenes).filter_by(user_id=user_id).all()
         if scenes is None:
             return []
         return [{'name': scene.name, 'lights': self.__create_light_scenes(scene.details)} for scene in scenes]
 
     def delete_scene_by_user(self, user_id, scene_id):
-        self.__validate_user_id(user_id)
-        if scene_id is None:
-            raise BadRequest()
+        self.__validate_property(user_id)
+        self.__validate_property(scene_id)
         self.session.query(SceneDetails).filter_by(scene_id=scene_id).delete()
         self.session.query(Scenes).filter_by(user_id=user_id, id=scene_id).delete()
 
@@ -269,8 +262,8 @@ class UserDatabase:
         self.session.add(new_pref)
 
     @staticmethod
-    def __validate_user_id(user_id):
-        if user_id is None:
+    def __validate_property(record):
+        if record is None:
             raise BadRequest()
 
     @staticmethod
