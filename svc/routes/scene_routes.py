@@ -19,3 +19,4 @@ def get_scenes_by_user(user_id):
 def delete_scene_by_user(user_id, scene_id):
     bearer_token = request.headers['Authorization']
     scene_controller.delete_created_scene(bearer_token, user_id, scene_id)
+    return Response(status=200)
