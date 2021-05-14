@@ -271,7 +271,12 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
 
         with pytest.raises(Unauthorized):
-            self.DATABASE.change_user_password(self.FAKE_USER,self.FAKE_PASS, new_pass)
+            self.DATABASE.change_user_password(self.FAKE_USER, self.FAKE_PASS, new_pass)
+
+    def test_change_user_password__should_raise_bad_request_if_user_id_none(self):
+        with pytest.raises(BadRequest):
+            self.DATABASE.change_user_password(None, self.FAKE_PASS, 'some text')
+        self.SESSION.query.assert_not_called()
 
     def test_change_user_password__should_query_user_credentials(self):
         new_pass = 'new_pass'

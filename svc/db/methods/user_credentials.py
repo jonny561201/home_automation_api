@@ -47,6 +47,7 @@ class UserDatabase:
         return {'roles': [self.__create_role(role.role_devices, role.role.role_name) for role in user.user_roles]}
 
     def change_user_password(self, user_id, old_pass, new_pass):
+        self.__validate_user_id(user_id)
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
         if user.password != old_pass:
             raise Unauthorized
