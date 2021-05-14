@@ -1059,6 +1059,11 @@ class TestUserDatabase:
             self.DATABASE.delete_scene_by_user(None, str(uuid.uuid4()))
         self.SESSION.query.assert_not_called()
 
+    def test_delete_scene_by_user__should_raise_bad_request_when_scene_id_is_none(self):
+        with pytest.raises(BadRequest):
+            self.DATABASE.delete_scene_by_user(self.USER_ID, None)
+        self.SESSION.query.assert_not_called()
+
     def test_delete_scene_by_user__should_query_to_delete_scene(self):
         scene_id = str(uuid.uuid4())
         self.DATABASE.delete_scene_by_user(self.USER_ID, scene_id)
