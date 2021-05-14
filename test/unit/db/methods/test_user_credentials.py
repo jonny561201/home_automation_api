@@ -282,6 +282,14 @@ class TestUserDatabase:
         with pytest.raises(BadRequest):
             self.DATABASE.insert_current_sump_level(user_id, depth_info)
 
+    def test_insert_current_sump_level__should_raise_bad_request_when_user_id_is_none(self):
+        depth_info = {'datetime': None,
+                      'warning_level': 1,
+                      'depth': None}
+        with pytest.raises(BadRequest):
+            self.DATABASE.insert_current_sump_level(None, depth_info)
+        self.SESSION.add.assert_not_called()
+
     def test_insert_current_sump_level__should_raise_bad_request_when_depth_info_missing_keys(self):
         depth_info = {'badKey': 1234}
         user_id = 1234

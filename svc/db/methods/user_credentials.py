@@ -144,6 +144,7 @@ class UserDatabase:
         return {'latestDate': str(average.create_day), 'averageDepth': float(average.distance)}
 
     def insert_current_sump_level(self, user_id, depth_info):
+        self.__validate_user_id(user_id)
         try:
             depth = depth_info['depth']
             date = depth_info['datetime']
