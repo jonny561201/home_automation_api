@@ -7,7 +7,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 from svc.constants.settings_state import Settings
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
     AverageSumpPumpLevel, RoleDevices, UserRoles, RoleDeviceNodes, ChildAccounts, UserInformation, ScheduleTasks, \
-    ScheduledTaskTypes, Scenes
+    ScheduledTaskTypes, Scenes, SceneDetails
 
 
 class UserDatabaseManager:
@@ -235,6 +235,7 @@ class UserDatabase:
 
     def delete_scene_by_user(self, user_id, scene_id):
         self.__validate_user_id(user_id)
+        self.session.query(SceneDetails).filter_by(scene_id=scene_id)
         self.session.query(Scenes).filter_by(user_id=user_id, id=scene_id).delete()
 
     @staticmethod
