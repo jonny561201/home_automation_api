@@ -35,3 +35,9 @@ class TestSceneRoutes:
 
         assert actual.status_code == 200
 
+    def test_get_scenes_by_user__should_return_content_type(self, mock_controller, mock_request):
+        mock_request.headers = {'Authorization': self.BEARER_TOKEN}
+        actual = get_scenes_by_user(self.USER_ID)
+
+        assert actual.content_type == 'text/json'
+
