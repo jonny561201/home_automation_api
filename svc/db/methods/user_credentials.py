@@ -189,6 +189,7 @@ class UserDatabase:
         return user_role.role_devices.ip_address
 
     def get_user_child_accounts(self, user_id):
+        self.__validate_user_id(user_id)
         children = self.session.query(ChildAccounts).filter_by(parent_user_id=user_id).all()
         if children is None:
             return []

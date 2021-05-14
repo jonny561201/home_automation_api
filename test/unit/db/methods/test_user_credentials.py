@@ -499,6 +499,11 @@ class TestUserDatabase:
         self.DATABASE.get_user_child_accounts(self.USER_ID)
         self.SESSION.query.return_value.filter_by.assert_called_with(parent_user_id=self.USER_ID)
 
+    def test_get_user_child_accounts__should_return_bad_request_when_user_id_is_none(self):
+        with pytest.raises(BadRequest):
+            self.DATABASE.get_user_child_accounts(None)
+        self.SESSION.query.assert_not_called()
+
     def test_get_user_child_accounts__should_query_credentials_by_each_user_id(self):
         user_id_one = uuid.uuid4()
         user_id_two = uuid.uuid4()
