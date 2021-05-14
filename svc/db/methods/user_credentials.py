@@ -135,6 +135,7 @@ class UserDatabase:
         return {'currentDepth': float(sump_level.distance), 'warningLevel': sump_level.warning_level}
 
     def get_average_sump_level_by_user(self, user_id):
+        self.__validate_user_id(user_id)
         child_account = self.session.query(ChildAccounts).filter_by(child_user_id=user_id).first()
         select_user_id = user_id if child_account is None else child_account.parent_user_id
         average = self.session.query(AverageSumpPumpLevel).filter_by(user_id=select_user_id).order_by(AverageSumpPumpLevel.id.desc()).first()

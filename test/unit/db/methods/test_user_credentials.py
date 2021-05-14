@@ -247,11 +247,12 @@ class TestUserDatabase:
     def test_get_average_sump_level_by_user__should_return_sump_levels(self):
         expected_depth = 12.23
         user = TestUserDatabase.__create_database_user()
+        user.user_id = self.USER_ID
         date = datetime.date(datetime.now())
         average = AverageSumpPumpLevel(user=user, distance=expected_depth, create_day=date)
         self.SESSION.query.return_value.filter_by.return_value.order_by.return_value.first.return_value = average
 
-        actual = self.DATABASE.get_average_sump_level_by_user(user.user_id)
+        actual = self.DATABASE.get_average_sump_level_by_user(self.USER_ID)
 
         assert actual['latestDate'] == str(date)
         assert actual['averageDepth'] == expected_depth
@@ -260,6 +261,11 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.order_by.return_value.first.return_value = None
         with pytest.raises(BadRequest):
             self.DATABASE.get_average_sump_level_by_user('12345')
+
+    def test_get_average_sump_level_by_user__should_raise_bad_request_when_user_id_is_none(self):
+        with pytest.raises(BadRequest):
+            self.DATABASE.get_average_sump_level_by_user(None)
+        self.SESSION.query.assert_not_called()
 
     def test_insert_current_sump_level__should_call_add(self):
         user_id = 1234
