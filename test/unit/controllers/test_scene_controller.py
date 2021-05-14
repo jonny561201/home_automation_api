@@ -16,7 +16,7 @@ class TestSceneController:
         get_created_scenes(self.BEARER_TOKEN, self.USER_ID)
         mock_jwt.assert_called_with(self.BEARER_TOKEN)
 
-    def test_get_created_scenes__should_quer_database_for_records(self, mock_jwt, mock_db):
+    def test_get_created_scenes__should_query_database_for_records(self, mock_jwt, mock_db):
         get_created_scenes(self.BEARER_TOKEN, self.USER_ID)
         mock_db.return_value.__enter__.return_value.get_scenes_by_user.assert_called_with(self.USER_ID)
 
@@ -30,3 +30,7 @@ class TestSceneController:
     def test_delete_created_scene__should_validate_jwt(self, mock_jwt, mock_db):
         delete_created_scene(self.BEARER_TOKEN, self.USER_ID, self.SCENE_ID)
         mock_jwt.assert_called_with(self.BEARER_TOKEN)
+
+    def test_delete_created_scene__should_query_database_to_delete_record(self, mock_jwt, mock_db):
+        delete_created_scene(self.BEARER_TOKEN, self.USER_ID, self.SCENE_ID)
+        mock_db.return_value.__enter__.return_value.delete_scene_by_user.assert_called_with(self.USER_ID, self.SCENE_ID)
