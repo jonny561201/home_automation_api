@@ -18,3 +18,10 @@ class TestSceneController:
     def test_get_created_scenes__should_quer_database_for_records(self, mock_jwt, mock_db):
         get_created_scenes(self.BEARER_TOKEN, self.USER_ID)
         mock_db.return_value.__enter__.return_value.get_scenes_by_user.assert_called_with(self.USER_ID)
+
+    def test_get_created_scenes__should_return_response_from_database(self, mock_jwt, mock_db):
+        response = {'test_record': 'doesnt matter'}
+        mock_db.return_value.__enter__.return_value.get_scenes_by_user.return_value = response
+        actual = get_created_scenes(self.BEARER_TOKEN, self.USER_ID)
+
+        assert actual == response
