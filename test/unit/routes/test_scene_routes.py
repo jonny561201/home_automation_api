@@ -22,3 +22,9 @@ class TestSceneRoutes:
         get_scenes_by_user(self.USER_ID)
 
         mock_controller.assert_called_with(ANY, self.USER_ID)
+
+    def test_get_scenes_by_user__should_call_controller_when_no_auth_header(self, mock_controller, mock_request):
+        mock_request.headers = {}
+        get_scenes_by_user(self.USER_ID)
+
+        mock_controller.assert_called_with(None, self.USER_ID)
