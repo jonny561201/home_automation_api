@@ -21,9 +21,6 @@ class TestSceneRoutes:
     DB_PASS = 'password'
     DB_PORT = '5432'
     DB_NAME = 'garage_door'
-    USER_INFO = UserInformation(id=USER_ID, first_name='tony', last_name='stark')
-    SCENE = Scenes(name=SCENE_NAME, user_id=USER_ID, id=SCENE_ID)
-    DETAIL = SceneDetails(light_group='2', light_group_name=GROUP_NAME, light_brightness=45, scene_id=SCENE_ID)
 
     def setup_method(self):
         settings = Settings.get_instance()
@@ -35,6 +32,9 @@ class TestSceneRoutes:
         os.environ.update({'JWT_SECRET': self.JWT_SECRET, 'SQL_USERNAME': self.DB_USER,
                            'SQL_PASSWORD': self.DB_PASS, 'SQL_DBNAME': self.DB_NAME,
                            'SQL_PORT': self.DB_PORT})
+        self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
+        self.SCENE = Scenes(name=self.SCENE_NAME, user_id=self.USER_ID, id=self.SCENE_ID)
+        self.DETAIL = SceneDetails(light_group='2', light_group_name=self.GROUP_NAME, light_brightness=45, scene_id=self.SCENE_ID)
         with UserDatabaseManager() as database:
             database.session.add(self.USER_INFO)
             database.session.commit()
@@ -55,8 +55,14 @@ class TestSceneRoutes:
     def test_get_scenes_by_user__should_return_success_response(self):
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         headers = {'Authorization': bearer_token}
-        actual = self.TEST_CLIENT.get(f'scenes/userId/{self.USER_ID}', data={}, headers=headers)
+        actual = self.TEST_CLIENT.get(f'scenes/userId/{self.USER_ID}', headers=headers)
 
         assert actual.status_code == 200
         assert json.loads(actual.data)[0]['name'] == self.SCENE_NAME
         assert json.loads(actual.data)[0]['lights'][0]['group_name'] == self.GROUP_NAME
+
+    def test_get_scenes_by_user__should_return_unauthorized_with_no_header(self):
+        url = f'scenes/userId/{self.USER_ID}'
+        actual = self.TEST_CLIENT.get(url)
+
+        assert actual.status_code == 401
