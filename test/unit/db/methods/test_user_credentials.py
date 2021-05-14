@@ -925,6 +925,11 @@ class TestUserDatabase:
         with pytest.raises(BadRequest):
             self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
+    def test_update_schedule_task_by_user_id__should_raise_bad_request_when_user_id_none(self):
+        with pytest.raises(BadRequest):
+            self.DATABASE.update_schedule_task_by_user_id(None, {})
+        self.SESSION.query.assert_not_called()
+
     @patch('svc.db.methods.user_credentials.uuid')
     def test_update_schedule_task_by_user_id__should_return_revised_task(self, mock_uuid):
         task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmLightGroup': '3', 'alarmTime': '00:00:00'}
