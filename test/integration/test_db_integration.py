@@ -828,11 +828,11 @@ class TestUserScenes:
     USER_ID = str(uuid.uuid4())
     SCENE_NAME = 'Movie'
     GROUP_NAME = 'living room'
-    USER_INFO = UserInformation(id=USER_ID, first_name='tony', last_name='stark')
-    SCENE = Scenes(name=SCENE_NAME, user_id=USER_ID, id=SCENE_ID)
-    DETAIL = SceneDetails(light_group='2', light_group_name=GROUP_NAME, light_brightness=45, scene_id=SCENE_ID)
 
     def setup_method(self):
+        self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
+        self.SCENE = Scenes(name=self.SCENE_NAME, user_id=self.USER_ID, id=self.SCENE_ID)
+        self.DETAIL = SceneDetails(light_group='2', light_group_name=self.GROUP_NAME, light_brightness=45, scene_id=self.SCENE_ID)
         os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
                            'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
         with UserDatabaseManager() as database:
@@ -843,8 +843,9 @@ class TestUserScenes:
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
-            database.session.delete(self.DETAIL)
-            database.session.delete(self.SCENE)
+            database.session.query(SceneDetails).delete()
+            database.session.commit()
+            database.session.query(Scenes).delete()
             database.session.delete(self.USER_INFO)
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
@@ -863,3 +864,11 @@ class TestUserScenes:
             actual = database.get_scenes_by_user(str(uuid.uuid4()))
 
         assert actual == []
+
+    def test_delete_scene_by_user__should_delete_record(self):
+        with UserDatabaseManager() as database:
+            database.delete_scene_by_user(self.USER_ID, self.SCENE_ID)
+
+        with UserDatabaseManager() as database:
+            actual = database.session.query(Scenes).filter_by(user_id=self.USER_ID).all()
+            assert len(actual) == 0

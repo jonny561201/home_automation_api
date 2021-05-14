@@ -237,7 +237,7 @@ class UserDatabase:
         self.__validate_user_id(user_id)
         if scene_id is None:
             raise BadRequest()
-        self.session.query(SceneDetails).filter_by(scene_id=scene_id)
+        self.session.query(SceneDetails).filter_by(scene_id=scene_id).delete()
         self.session.query(Scenes).filter_by(user_id=user_id, id=scene_id).delete()
 
     @staticmethod
