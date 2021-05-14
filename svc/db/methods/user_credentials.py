@@ -65,11 +65,11 @@ class UserDatabase:
                 'is_imperial': preference.is_imperial}
 
     def insert_preferences_by_user(self, user_id, preference_info):
+        if len(preference_info) == 0 or user_id is None:
+            raise BadRequest
         city = preference_info.get('city')
         is_imperial = preference_info.get('isImperial')
         is_fahrenheit = preference_info.get('isFahrenheit')
-        if len(preference_info) == 0:
-            raise BadRequest
 
         record = self.session.query(UserPreference).filter_by(user_id=user_id).first()
         record.is_fahrenheit = is_fahrenheit if is_fahrenheit is not None else record.is_fahrenheit

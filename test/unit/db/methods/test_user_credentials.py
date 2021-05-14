@@ -201,6 +201,11 @@ class TestUserDatabase:
             self.DATABASE.insert_preferences_by_user(user_id, preference_info)
             self.SESSION.query.return_value.filter_by.assert_not_called()
 
+    def test_insert_preferences_by_user__should_raise_bad_request_when_no_user_id(self):
+        with pytest.raises(BadRequest):
+            self.DATABASE.insert_preferences_by_user(None, {'isFahrenheit': True})
+        self.SESSION.query.assert_not_called()
+
     def test_insert_preferences_by_user__should_not_throw_when_city_missing(self):
         preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon'}
         user_id = str(uuid.uuid4())
