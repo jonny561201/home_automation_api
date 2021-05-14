@@ -182,6 +182,7 @@ class UserDatabase:
         return {'availableNodes': device.max_nodes - (node_size + 1)}
 
     def get_user_garage_ip(self, user_id):
+        self.__validate_user_id(user_id)
         user_role = self.session.query(UserRoles).filter_by(user_id=user_id).first()
         if user_role is None:
             raise BadRequest

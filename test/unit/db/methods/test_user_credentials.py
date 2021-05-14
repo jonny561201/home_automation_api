@@ -425,6 +425,11 @@ class TestUserDatabase:
         with pytest.raises(BadRequest):
             self.DATABASE.get_user_garage_ip(self.USER_ID)
 
+    def test_get_user_garage_ip__should_raise_bad_request_when_user_id_none(self):
+        with pytest.raises(BadRequest):
+            self.DATABASE.get_user_garage_ip(None)
+        self.SESSION.query.assert_not_called()
+
     def test_get_user_garage_ip__should_return_ip_address_of_user(self):
         ip_address = '1.1.1.1'
         device = RoleDevices(ip_address=ip_address)
