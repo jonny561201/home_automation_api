@@ -109,6 +109,7 @@ class UserDatabase:
         return [self.__create_scheduled_task(task) for task in tasks]
 
     def insert_schedule_task_by_user(self, user_id, task):
+        self.__validate_user_id(user_id)
         try:
             alarm_time = None if task.get('alarmTime') is None else time.fromisoformat(task.get('alarmTime'))
             hvac_start = None if task.get('hvacStart') is None else time.fromisoformat(task.get('hvacStart'))
