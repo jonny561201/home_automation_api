@@ -959,6 +959,11 @@ class TestUserDatabase:
         self.DATABASE.delete_schedule_task_by_user(self.USER_ID, task_id)
         self.SESSION.query.return_value.filter_by.return_value.delete.assert_called()
 
+    def test_delete_schedule_task_by_user__should_raise_bad_request_when_user_id_none(self):
+        with pytest.raises(BadRequest):
+            self.DATABASE.delete_schedule_task_by_user(None, str(uuid.uuid4()))
+        self.SESSION.query.assert_not_called()
+
     def test_get_scenes_by_user__should__should_query_for_scenes_by_user_id(self):
         self.DATABASE.get_scenes_by_user(self.USER_ID)
         self.SESSION.query.assert_called_with(Scenes)
