@@ -213,9 +213,9 @@ class UserDatabase:
         return [self.__get_user_info(child_id) for child_id in children_ids]
 
     def get_scenes_by_user(self, user_id):
-        scenes = self.session.query(Scenes).filter_by(user_id=user_id).all()
         if user_id is None:
             raise BadRequest()
+        scenes = self.session.query(Scenes).filter_by(user_id=user_id).all()
         if scenes is None:
             return []
         return [{'name': scene.name, 'lights': self.__create_light_scenes(scene.details)} for scene in scenes]

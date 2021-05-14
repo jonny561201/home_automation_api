@@ -963,6 +963,11 @@ class TestUserDatabase:
         with pytest.raises(BadRequest):
             self.DATABASE.get_scenes_by_user(None)
 
+    def test_get_scenes_by_user__should_not_call_database_when_user_id_is_none(self):
+        with pytest.raises(BadRequest):
+            self.DATABASE.get_scenes_by_user(None)
+        self.SESSION.query.assert_not_called()
+
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()
