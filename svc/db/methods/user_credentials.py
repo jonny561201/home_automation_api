@@ -168,8 +168,9 @@ class UserDatabase:
         self.session.add(device)
         return str(device_id)
 
-    # TODO: should validate user_id matches else 401
+    # TODO: should validate user_id matches result from db else 401
     def add_new_device_node(self, user_id, device_id, node_name):
+        self.__validate_user_id(user_id)
         device = self.session.query(RoleDevices).filter_by(id=device_id).first()
         if device is None:
             raise Unauthorized

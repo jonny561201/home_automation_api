@@ -402,6 +402,11 @@ class TestUserDatabase:
         with pytest.raises(Unauthorized):
             self.DATABASE.add_new_device_node(self.USER_ID, self.USER_ID, node_name)
 
+    def test_add_new_device_node__should_raise_bad_request_when_user_id_is_none(self):
+        with pytest.raises(BadRequest):
+            self.DATABASE.add_new_device_node(None, self.USER_ID, '')
+        self.SESSION.query.assert_not_called()
+
     def test_add_new_device_node__should_return_the_number_of_node_positions_open(self):
         node_name = 'test name'
         devices = RoleDevices(max_nodes=2, role_device_nodes=[])
