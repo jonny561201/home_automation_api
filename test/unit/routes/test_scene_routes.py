@@ -28,3 +28,10 @@ class TestSceneRoutes:
         get_scenes_by_user(self.USER_ID)
 
         mock_controller.assert_called_with(None, self.USER_ID)
+
+    def test_get_scenes_by_user__should_return_success_status_code(self, mock_controller, mock_request):
+        mock_request.headers = {'Authorization': self.BEARER_TOKEN}
+        actual = get_scenes_by_user(self.USER_ID)
+
+        assert actual.status_code == 200
+
