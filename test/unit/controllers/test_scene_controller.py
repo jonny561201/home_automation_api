@@ -1,10 +1,20 @@
+import uuid
+
 from mock import patch
 
 from svc.controllers.scene_controller import get_created_scenes
 
 
+@patch('svc.controllers.scene_controller.UserDatabaseManager')
 @patch('svc.controllers.scene_controller.is_jwt_valid')
-def test_get_created_scenes__should_validate_jwt(mock_jwt):
-    bearer_token = 'fake bearer token'
-    get_created_scenes(bearer_token)
-    mock_jwt.assert_called_with(bearer_token)
+class TestSceneController:
+    USER_ID = str(uuid.uuid4())
+    BEARER_TOKEN = 'fake bearer token'
+
+    def test_get_created_scenes__should_validate_jwt(self, mock_jwt, mock_db):
+        get_created_scenes(self.BEARER_TOKEN, self.USER_ID)
+        mock_jwt.assert_called_with(self.BEARER_TOKEN)
+
+    def test_get_created_scenes__should_quer_database_for_records(self, mock_jwt, mock_db):
+        get_created_scenes(self.BEARER_TOKEN, self.USER_ID)
+        mock_db.return_value.__enter__.return_value.get_scenes_by_user.assert_called_with(self.USER_ID)
