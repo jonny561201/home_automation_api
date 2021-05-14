@@ -74,3 +74,9 @@ class TestSceneRoutes:
         actual = self.TEST_CLIENT.delete(f'scenes/userId/{self.USER_ID}/scene/{self.SCENE_ID}', headers=headers)
 
         assert actual.status_code == 200
+
+    def test_delete_scene_by_user__should_return_unauthorized_with_no_header(self):
+        url = f'scenes/userId/{self.USER_ID}/scene/{self.SCENE_ID}'
+        actual = self.TEST_CLIENT.delete(url)
+
+        assert actual.status_code == 401

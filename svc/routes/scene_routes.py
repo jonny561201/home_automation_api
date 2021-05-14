@@ -18,6 +18,6 @@ def get_scenes_by_user(user_id):
 
 @SCENE_BLUEPRINT.route('/userId/<user_id>/scene/<scene_id>', methods=['DELETE'])
 def delete_scene_by_user(user_id, scene_id):
-    bearer_token = request.headers['Authorization']
+    bearer_token = request.headers.get('Authorization')
     scene_controller.delete_created_scene(bearer_token, user_id, scene_id)
     return Response(status=200, headers=DEFAULT_HEADERS)

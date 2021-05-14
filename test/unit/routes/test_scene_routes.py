@@ -63,6 +63,13 @@ class TestSceneRoutes:
 
         mock_controller.delete_created_scene.assert_called_with(self.BEARER_TOKEN, ANY, ANY)
 
+    def test_delete_scene_by_user__should_call_controller_with_none_when_bearer_token_missing(self, mock_controller, mock_request):
+        mock_controller.delete_created_scene.return_value = self.RESPONSE
+        mock_request.headers = {}
+        delete_scene_by_user(self.USER_ID, self.SCENE_ID)
+
+        mock_controller.delete_created_scene.assert_called_with(None, ANY, ANY)
+
     def test_delete_scene_by_user__should_call_controller_with_user_id(self, mock_controller, mock_request):
         mock_controller.delete_created_scene.return_value = self.RESPONSE
         mock_request.headers = {'Authorization': self.BEARER_TOKEN}
