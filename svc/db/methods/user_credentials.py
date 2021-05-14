@@ -126,6 +126,7 @@ class UserDatabase:
         return [self.__create_scheduled_task(task) for task in new_tasks]
 
     def get_current_sump_level_by_user(self, user_id):
+        self.__validate_user_id(user_id)
         child_account = self.session.query(ChildAccounts).filter_by(child_user_id=user_id).first()
         select_user_id = user_id if child_account is None else child_account.parent_user_id
         sump_level = self.session.query(DailySumpPumpLevel).filter_by(user_id=select_user_id).order_by(DailySumpPumpLevel.id.desc()).first()

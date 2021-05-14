@@ -225,10 +225,11 @@ class TestUserDatabase:
         expected_distance = 43.9
         expected_warning = 1
         user = TestUserDatabase.__create_database_user()
+        user.user_id = self.USER_ID
         sump = DailySumpPumpLevel(user=user, distance=expected_distance, warning_level=expected_warning)
         self.SESSION.query.return_value.filter_by.return_value.order_by.return_value.first.return_value = sump
 
-        actual = self.DATABASE.get_current_sump_level_by_user(user.user_id)
+        actual = self.DATABASE.get_current_sump_level_by_user(self.USER_ID)
 
         assert actual['currentDepth'] == expected_distance
         assert actual['warningLevel'] == expected_warning
@@ -237,6 +238,11 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.order_by.return_value.first.return_value = None
         with pytest.raises(BadRequest):
             self.DATABASE.get_current_sump_level_by_user(uuid.uuid4().hex)
+
+    def test_get_current_sump_level_by_user__should_raise_bad_request_when_user_id_is_none(self):
+        with pytest.raises(BadRequest):
+            self.DATABASE.get_current_sump_level_by_user(None)
+        self.SESSION.query.assert_not_called()
 
     def test_get_average_sump_level_by_user__should_return_sump_levels(self):
         expected_depth = 12.23
