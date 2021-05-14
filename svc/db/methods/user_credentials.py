@@ -233,6 +233,9 @@ class UserDatabase:
             return []
         return [{'name': scene.name, 'lights': self.__create_light_scenes(scene.details)} for scene in scenes]
 
+    def delete_scene_by_user(self, user_id, scene_id):
+        self.__validate_user_id(user_id)
+
     @staticmethod
     def __create_light_scenes(light_details):
         return [{'group_name': detail.light_group_name, 'group_id': detail.light_group, 'brightness': detail.light_brightness} for detail in light_details]
