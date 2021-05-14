@@ -54,6 +54,7 @@ class UserDatabase:
         user.password = new_pass
 
     def get_preferences_by_user(self, user_id):
+        self.__validate_user_id(user_id)
         preference = self.session.query(UserPreference).filter_by(user_id=user_id).first()
         if preference is None:
             raise BadRequest

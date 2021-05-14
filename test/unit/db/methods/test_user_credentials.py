@@ -181,6 +181,12 @@ class TestUserDatabase:
         with pytest.raises(BadRequest):
             self.DATABASE.get_preferences_by_user(uuid.uuid4().hex)
 
+    def test_get_preferences_by_user__should_throw_bad_request_when_user_id_none(self):
+        with pytest.raises(BadRequest):
+            self.DATABASE.get_preferences_by_user(None)
+
+        self.SESSION.query.assert_not_called()
+
     def test_insert_preferences_by_user__should_call_query(self):
         preference_info = {'isFahrenheit': True, 'isImperial': True, 'city': 'Des Moines', 'lightAlarm': {}}
         user_id = str(uuid.uuid4())
