@@ -102,8 +102,7 @@ class UserDatabase:
         self.session.query(ScheduleTasks).filter_by(user_id=user_id, id=task_id).delete()
 
     def get_schedule_tasks_by_user(self, user_id, task_type):
-        if user_id is None:
-            raise BadRequest()
+        self.__validate_user_id(user_id)
         tasks = self.session.query(ScheduleTasks).filter_by(user_id=user_id).all()
         if task_type is not None:
             return [self.__create_scheduled_task(task) for task in tasks if task.task_type.activity_name == task_type.lower()]
