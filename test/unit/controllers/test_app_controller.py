@@ -1,5 +1,5 @@
 import json
-import datetime
+import uuid
 
 import jwt
 from mock import patch, ANY
@@ -31,11 +31,13 @@ class TestLoginController:
 
     def test_get_login__should_call_create_jwt_token_with_database_response(self, mock_jwt, mock_db):
         user_info = {'user_id': 'sdfasdf', 'role_name': 'lighting'}
+        refresh = str(uuid.uuid4())
+        mock_jwt.generate_refresh_token.return_value = refresh
         mock_db.return_value.__enter__.return_value.validate_credentials.return_value = user_info
         mock_jwt.extract_credentials.return_value = (self.USER, self.PWORD)
         get_login(self.BASIC_AUTH_TOKEN)
 
-        mock_jwt.create_jwt_token.assert_called_with(user_info)
+        mock_jwt.create_jwt_token.assert_called_with(user_info, refresh)
 
     def test_get_login__should_return_response_from_jwt_service(self, mock_jwt, mock_db):
         mock_jwt.extract_credentials.return_value = (self.USER, self.PWORD)
