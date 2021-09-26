@@ -86,6 +86,12 @@ class TestUserDatabase:
         with pytest.raises(Unauthorized):
             self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
 
+    def test_insert_refresh_token__should_call_add_method(self):
+        refresh = str(uuid.uuid4())
+        self.DATABASE.insert_refresh_token(refresh)
+
+        self.SESSION.add.assert_called()
+
     def test_get_roles_by_user__should_query_user_creds_by_user_id(self):
         self.DATABASE.get_roles_by_user(self.USER_ID)
 

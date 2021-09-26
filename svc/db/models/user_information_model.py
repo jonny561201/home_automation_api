@@ -7,6 +7,14 @@ from sqlalchemy.orm import relationship
 Base = declarative.declarative_base()
 
 
+class RefreshToken(Base):
+    __tablename__ = 'refresh_token'
+
+    id = Column(UUID, nullable=False, primary_key=True)
+    refresh = Column(UUID, nullable=False)
+    count = Column(SMALLINT, nullable=False)
+
+
 class UserInformation(Base):
     __tablename__ = 'user_information'
 

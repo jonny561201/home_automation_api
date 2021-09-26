@@ -40,7 +40,7 @@ class UserDatabase:
                 'first_name': user.user.first_name, 'last_name': user.user.last_name}
 
     def insert_refresh_token(self, refresh_token):
-        pass
+        self.session.add()
 
     def get_roles_by_user(self, user_id):
         self.__validate_property(user_id)
