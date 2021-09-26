@@ -10,7 +10,7 @@ Base = declarative.declarative_base()
 class RefreshToken(Base):
     __tablename__ = 'refresh_token'
 
-    id = Column(UUID, nullable=False, primary_key=True)
+    id = Column(UUID, nullable=False, primary_key=True, server_default=sqlalchemy.text("gen_random_uuid()"))
     refresh = Column(UUID, nullable=False)
     count = Column(SMALLINT, nullable=False)
 

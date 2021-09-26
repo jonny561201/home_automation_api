@@ -9,7 +9,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, \
     UserCredentials, Roles, UserPreference, UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts, ScheduleTasks, \
-    ScheduledTaskTypes, Scenes, SceneDetails
+    ScheduledTaskTypes, Scenes, SceneDetails, RefreshToken
 
 DB_USER = 'postgres'
 DB_PASS = 'password'
@@ -47,6 +47,7 @@ class TestDbValidateIntegration:
             database.session.delete(self.USER_LOGIN)
             database.session.commit()
             database.session.delete(self.ROLE)
+            database.session.query(RefreshToken).delete()
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
         os.environ.pop('SQL_DBNAME')
@@ -94,6 +95,16 @@ class TestDbValidateIntegration:
             user_pass = 'wrongPassword'
             with pytest.raises(Unauthorized):
                 database.validate_credentials(self.USER_NAME, user_pass)
+
+    def test_insert_refresh_token__should_insert_token_to_db(self):
+        token = str(uuid.uuid4())
+        with UserDatabaseManager() as database:
+            database.insert_refresh_token(token)
+
+        with UserDatabaseManager() as database:
+            actual = database.session.query(RefreshToken).first()
+            assert actual.count == 10
+            assert actual.refresh == token
 
     def test_get_roles_by_user__should_return_role_device_data(self):
         ip_address = '0.1.2.3'

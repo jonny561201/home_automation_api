@@ -7,7 +7,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 from svc.constants.settings_state import Settings
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
     AverageSumpPumpLevel, RoleDevices, UserRoles, RoleDeviceNodes, ChildAccounts, UserInformation, ScheduleTasks, \
-    ScheduledTaskTypes, Scenes, SceneDetails
+    ScheduledTaskTypes, Scenes, SceneDetails, RefreshToken
 
 
 class UserDatabaseManager:
@@ -40,7 +40,10 @@ class UserDatabase:
                 'first_name': user.user.first_name, 'last_name': user.user.last_name}
 
     def insert_refresh_token(self, refresh_token):
-        self.session.add()
+        token = RefreshToken()
+        token.refresh = refresh_token
+        token.count = 10
+        self.session.add(token)
 
     def get_roles_by_user(self, user_id):
         self.__validate_property(user_id)
