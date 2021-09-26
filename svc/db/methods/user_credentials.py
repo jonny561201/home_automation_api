@@ -39,6 +39,9 @@ class UserDatabase:
         return {'user_id': user.user_id, 'roles': [self.__create_role(role.role_devices, role.role.role_name) for role in user.user_roles],
                 'first_name': user.user.first_name, 'last_name': user.user.last_name}
 
+    def insert_refresh_token(self, refresh_token):
+        pass
+
     def get_roles_by_user(self, user_id):
         self.__validate_property(user_id)
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()

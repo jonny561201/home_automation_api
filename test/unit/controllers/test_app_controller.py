@@ -46,6 +46,15 @@ class TestLoginController:
 
         assert actual == self.BEARER_TOKEN
 
+    def test_get_login__should_store_refresh_token_in_db(self, mock_jwt, mock_db):
+        mock_jwt.extract_credentials.return_value = (self.USER, self.PWORD)
+        refresh = str(uuid.uuid4())
+        mock_jwt.generate_refresh_token.return_value = refresh
+
+        get_login(self.BASIC_AUTH_TOKEN)
+
+        mock_db.return_value.__enter__.return_value.insert_refresh_token.assert_called_with(refresh)
+
     def test_get_user_preferences__should_validate_bearer_token(self, mock_jwt, mock_db):
         get_user_preferences(self.BASIC_AUTH_TOKEN, self.USER_ID)
 
