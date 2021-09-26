@@ -24,6 +24,10 @@ def create_jwt_token(user_id, refresh_token):
                        'exp': expire_time}, settings.jwt_secret, algorithm='HS256')
 
 
+def generate_refresh_token():
+    return str(uuid.uuid4())
+
+
 def extract_credentials(bearer_token):
     if bearer_token is None or bearer_token == '':
         raise BadRequest

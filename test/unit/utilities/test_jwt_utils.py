@@ -9,7 +9,7 @@ from mock import patch
 from werkzeug.exceptions import Unauthorized, BadRequest
 
 from svc.constants.settings_state import Settings
-from svc.utilities.jwt_utils import is_jwt_valid, create_jwt_token, extract_credentials
+from svc.utilities.jwt_utils import is_jwt_valid, create_jwt_token, extract_credentials, generate_refresh_token
 
 
 class TestJwt:
@@ -75,6 +75,14 @@ class TestJwt:
         actual = create_jwt_token(expected_id, refresh)
 
         assert jwt.decode(actual, self.JWT_SECRET, algorithms='HS256') == expected_token_body
+
+    @patch('svc.utilities.jwt_utils.uuid')
+    def test_generate_refresh_token__should_return_generated_id(self, mock_uuid):
+        refresh = uuid.uuid4()
+        mock_uuid.uuid4.return_value = refresh
+        actual = generate_refresh_token()
+
+        assert actual == str(refresh)
 
     def test_extract_credentials__should_return_valid_credentials(self):
         user = "user"
