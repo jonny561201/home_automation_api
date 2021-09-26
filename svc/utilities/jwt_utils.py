@@ -1,4 +1,5 @@
 import base64
+import uuid
 from datetime import timedelta, datetime
 
 import jwt
@@ -18,7 +19,9 @@ def is_jwt_valid(jwt_token):
 def create_jwt_token(user_id):
     expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=8)
     settings = Settings.get_instance()
-    return jwt.encode({'user': user_id, 'exp': expire_time}, settings.jwt_secret, algorithm='HS256')
+    return jwt.encode({'user': user_id,
+                       'refresh_token': str(uuid.uuid4()),
+                       'exp': expire_time}, settings.jwt_secret, algorithm='HS256')
 
 
 def extract_credentials(bearer_token):

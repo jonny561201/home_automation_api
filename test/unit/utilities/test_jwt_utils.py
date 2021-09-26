@@ -1,4 +1,5 @@
 import base64
+import uuid
 from datetime import datetime, timedelta
 
 import jwt
@@ -59,14 +60,19 @@ class TestJwt:
 
         is_jwt_valid(jwt_token)
 
+    @patch('svc.utilities.jwt_utils.uuid')
     @patch('svc.utilities.jwt_utils.datetime')
-    def test_create_jwt_token__should_return_a_valid_token(self, mock_date):
+    def test_create_jwt_token__should_return_a_valid_token(self, mock_date, mock_uuid):
+        refresh = uuid.uuid4()
+        mock_uuid.uuid4.return_value = refresh
         now = datetime.now(pytz.timezone('US/Central'))
         mock_date.now.return_value = now
         expected_expiration = now + timedelta(hours=8)
         truncated_expiration = (str(expected_expiration.timestamp() * 1000))[:10]
         expected_id = 12345
-        expected_token_body = {'user': expected_id, 'exp': int(truncated_expiration)}
+        expected_token_body = {'user': expected_id,
+                               'refresh_token': str(refresh),
+                               'exp': int(truncated_expiration)}
 
         actual = create_jwt_token(expected_id)
 
