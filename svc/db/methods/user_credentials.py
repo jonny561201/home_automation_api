@@ -51,7 +51,7 @@ class UserDatabase:
 
     def generate_new_refresh_token(self, refresh_token):
         token = self.session.query(RefreshToken).filter_by(refresh_token).first()
-        if token is None:
+        if token is None or token.expire_time < datetime.now():
             raise Unauthorized
 
     def get_roles_by_user(self, user_id):

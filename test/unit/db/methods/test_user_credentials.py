@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 
 import pytest
 from mock import mock, patch
@@ -94,6 +94,9 @@ class TestUserDatabase:
 
     def test_generate_new_refresh_token__should_query_for_existing_refresh_token(self):
         refresh = str(uuid.uuid4())
+        token = RefreshToken()
+        token.expire_time = datetime.now() + timedelta(minutes=1)
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = token
         self.DATABASE.generate_new_refresh_token(refresh)
         self.SESSION.query.assert_called_with(RefreshToken)
         self.SESSION.query.return_value.filter_by.assert_called_with(refresh)
@@ -102,6 +105,15 @@ class TestUserDatabase:
     def test_generate_new_refresh_token__should_raise_unauthorized_if_token_does_not_exist(self):
         refresh = str(uuid.uuid4())
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
+
+        with pytest.raises(Unauthorized):
+            self.DATABASE.generate_new_refresh_token(refresh)
+
+    def test_generate_new_refresh_token__should_raise_unauthorized_if_token_has_expired(self):
+        refresh = str(uuid.uuid4())
+        expired_token = RefreshToken()
+        expired_token.expire_time = datetime.now() - timedelta(minutes=1)
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = expired_token
 
         with pytest.raises(Unauthorized):
             self.DATABASE.generate_new_refresh_token(refresh)
