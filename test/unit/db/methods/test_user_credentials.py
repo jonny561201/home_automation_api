@@ -146,6 +146,20 @@ class TestUserDatabase:
         assert token.refresh == new_refresh
         assert token.expire_time > datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=11)
 
+    @patch('svc.db.methods.user_credentials.uuid')
+    def test_generate_new_refresh_token__should_reduce_refresh_count(self, mock_uuid):
+        refresh = str(uuid.uuid4())
+        new_refresh = str(uuid.uuid4())
+        mock_uuid.uuid4.return_value = new_refresh
+        token = RefreshToken()
+        token.count = 10
+        token.expire_time = datetime.now() + timedelta(minutes=1)
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = token
+
+        self.DATABASE.generate_new_refresh_token(refresh)
+
+        assert token.count == 9
+
     def test_get_roles_by_user__should_query_user_creds_by_user_id(self):
         self.DATABASE.get_roles_by_user(self.USER_ID)
 
