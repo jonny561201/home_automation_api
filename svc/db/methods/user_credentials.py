@@ -50,7 +50,9 @@ class UserDatabase:
         self.session.add(token)
 
     def generate_new_refresh_token(self, refresh_token):
-        self.session.query(RefreshToken).filter_by(refresh_token).first()
+        token = self.session.query(RefreshToken).filter_by(refresh_token).first()
+        if token is None:
+            raise Unauthorized
 
     def get_roles_by_user(self, user_id):
         self.__validate_property(user_id)

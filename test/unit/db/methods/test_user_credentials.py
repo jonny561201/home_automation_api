@@ -99,6 +99,13 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.assert_called_with(refresh)
         self.SESSION.query.return_value.filter_by.return_value.first.assert_called()
 
+    def test_generate_new_refresh_token__should_raise_unauthorized_if_token_does_not_exist(self):
+        refresh = str(uuid.uuid4())
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
+
+        with pytest.raises(Unauthorized):
+            self.DATABASE.generate_new_refresh_token(refresh)
+
     def test_get_roles_by_user__should_query_user_creds_by_user_id(self):
         self.DATABASE.get_roles_by_user(self.USER_ID)
 
