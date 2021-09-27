@@ -9,7 +9,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 from svc.db.methods.user_credentials import UserDatabase
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
     AverageSumpPumpLevel, Roles, UserInformation, UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts, ScheduleTasks, \
-    ScheduledTaskTypes, Scenes, SceneDetails
+    ScheduledTaskTypes, Scenes, SceneDetails, RefreshToken
 
 
 class TestUserDatabase:
@@ -91,6 +91,13 @@ class TestUserDatabase:
         self.DATABASE.insert_refresh_token(refresh)
 
         self.SESSION.add.assert_called()
+
+    def test_generate_new_refresh_token__should_query_for_existing_refresh_token(self):
+        refresh = str(uuid.uuid4())
+        self.DATABASE.generate_new_refresh_token(refresh)
+        self.SESSION.query.assert_called_with(RefreshToken)
+        self.SESSION.query.return_value.filter_by.assert_called_with(refresh)
+        self.SESSION.query.return_value.filter_by.return_value.first.assert_called()
 
     def test_get_roles_by_user__should_query_user_creds_by_user_id(self):
         self.DATABASE.get_roles_by_user(self.USER_ID)

@@ -49,6 +49,9 @@ class UserDatabase:
         token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=8)
         self.session.add(token)
 
+    def generate_new_refresh_token(self, refresh_token):
+        self.session.query(RefreshToken).filter_by(refresh_token).first()
+
     def get_roles_by_user(self, user_id):
         self.__validate_property(user_id)
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
