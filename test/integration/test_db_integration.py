@@ -105,6 +105,7 @@ class TestDbValidateIntegration:
             actual = database.session.query(RefreshToken).first()
             assert actual.count == 10
             assert actual.refresh == token
+            assert (actual.expire_time - datetime.timedelta(hours=7)) > datetime.datetime.now()
 
     def test_get_roles_by_user__should_return_role_device_data(self):
         ip_address = '0.1.2.3'

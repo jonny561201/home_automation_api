@@ -1,6 +1,7 @@
 import uuid
-from datetime import time
+from datetime import time, datetime, timedelta
 
+import pytz
 from sqlalchemy import orm, create_engine
 from werkzeug.exceptions import BadRequest, Unauthorized
 
@@ -36,13 +37,16 @@ class UserDatabase:
         user = self.session.query(UserCredentials).filter_by(user_name=user_name).first()
         if user is None or user.password != pword:
             raise Unauthorized
-        return {'user_id': user.user_id, 'roles': [self.__create_role(role.role_devices, role.role.role_name) for role in user.user_roles],
-                'first_name': user.user.first_name, 'last_name': user.user.last_name}
+        return {'user_id': user.user_id,
+                'roles': [self.__create_role(role.role_devices, role.role.role_name) for role in user.user_roles],
+                'first_name': user.user.first_name,
+                'last_name': user.user.last_name}
 
     def insert_refresh_token(self, refresh_token):
         token = RefreshToken()
         token.refresh = refresh_token
         token.count = 10
+        token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=8)
         self.session.add(token)
 
     def get_roles_by_user(self, user_id):
