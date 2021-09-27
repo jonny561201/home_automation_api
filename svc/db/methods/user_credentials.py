@@ -46,7 +46,7 @@ class UserDatabase:
         token = RefreshToken()
         token.refresh = refresh_token
         token.count = 10
-        token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=8)
+        token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=12)
         self.session.add(token)
 
     def generate_new_refresh_token(self, refresh_token):
