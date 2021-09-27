@@ -119,6 +119,16 @@ class TestUserDatabase:
         with pytest.raises(Unauthorized):
             self.DATABASE.generate_new_refresh_token(refresh)
 
+    def test_generate_new_refresh_token__should_raise_unauthorized_token_count_has_expired(self):
+        refresh = str(uuid.uuid4())
+        expired_token = RefreshToken()
+        expired_token.count = 0
+        expired_token.expire_time = datetime.now() + timedelta(minutes=1)
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = expired_token
+
+        with pytest.raises(Unauthorized):
+            self.DATABASE.generate_new_refresh_token(refresh)
+
     @patch('svc.db.methods.user_credentials.uuid')
     def test_generate_new_refresh_token__should_return_a_new_refresh_token(self, mock_uuid):
         refresh = str(uuid.uuid4())

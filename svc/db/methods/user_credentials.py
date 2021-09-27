@@ -51,7 +51,7 @@ class UserDatabase:
 
     def generate_new_refresh_token(self, refresh_token):
         token = self.session.query(RefreshToken).filter_by(refresh_token).first()
-        if token is None or token.expire_time < datetime.now():
+        if token is None or token.expire_time < datetime.now() or token.count == 0:
             raise Unauthorized
         new_refresh = str(uuid.uuid4())
         token.refresh = new_refresh
