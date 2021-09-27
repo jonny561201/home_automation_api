@@ -13,6 +13,7 @@ class RefreshToken(Base):
     id = Column(UUID, nullable=False, primary_key=True, server_default=sqlalchemy.text("gen_random_uuid()"))
     refresh = Column(UUID, nullable=False)
     count = Column(SMALLINT, nullable=False)
+    expire_time = Column(TIME, nullable=False)
 
 
 class UserInformation(Base):
