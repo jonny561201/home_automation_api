@@ -118,6 +118,19 @@ class TestUserDatabase:
         with pytest.raises(Unauthorized):
             self.DATABASE.generate_new_refresh_token(refresh)
 
+    @patch('svc.db.methods.user_credentials.uuid')
+    def test_generate_new_refresh_token__should_return_a_new_refresh_token(self, mock_uuid):
+        refresh = str(uuid.uuid4())
+        new_refresh = str(uuid.uuid4())
+        mock_uuid.uuid4.return_value = new_refresh
+        token = RefreshToken()
+        token.expire_time = datetime.now() + timedelta(minutes=1)
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = token
+
+        actual = self.DATABASE.generate_new_refresh_token(refresh)
+
+        assert actual == new_refresh
+
     def test_get_roles_by_user__should_query_user_creds_by_user_id(self):
         self.DATABASE.get_roles_by_user(self.USER_ID)
 
