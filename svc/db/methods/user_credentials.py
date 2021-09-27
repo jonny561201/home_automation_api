@@ -53,8 +53,10 @@ class UserDatabase:
         token = self.session.query(RefreshToken).filter_by(refresh_token).first()
         if token is None or token.expire_time < datetime.now():
             raise Unauthorized
-        return str(uuid.uuid4())
-
+        new_refresh = str(uuid.uuid4())
+        token.refresh = new_refresh
+        token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=12)
+        return new_refresh
 
     def get_roles_by_user(self, user_id):
         self.__validate_property(user_id)
