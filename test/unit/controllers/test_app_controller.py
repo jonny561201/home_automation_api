@@ -5,7 +5,7 @@ import jwt
 from mock import patch, ANY
 
 from svc.controllers.app_controller import get_login, get_user_preferences, save_user_preferences, get_user_tasks, \
-    delete_user_task, insert_user_task, update_user_task
+    delete_user_task, insert_user_task, update_user_task, refresh_bearer_token
 
 
 @patch('svc.controllers.app_controller.UserDatabaseManager')
@@ -54,6 +54,12 @@ class TestLoginController:
         get_login(self.BASIC_AUTH_TOKEN)
 
         mock_db.return_value.__enter__.return_value.insert_refresh_token.assert_called_with(refresh)
+
+    def test_refresh_bearer_token__should_make_call_to_db_to_generate_new_refresh_token(self, mock_jwt, mock_db):
+        old_refresh = str(uuid.uuid4())
+        refresh_bearer_token(old_refresh)
+
+        mock_db.return_value.__enter__.return_value.generate_new_refresh_token.assert_called_with(old_refresh)
 
     def test_get_user_preferences__should_validate_bearer_token(self, mock_jwt, mock_db):
         get_user_preferences(self.BASIC_AUTH_TOKEN, self.USER_ID)

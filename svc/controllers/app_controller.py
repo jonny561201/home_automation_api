@@ -13,6 +13,11 @@ def get_login(basic_token):
         return jwt_utils.create_jwt_token(user_info, refresh)
 
 
+def refresh_bearer_token(old_refresh):
+    with UserDatabaseManager() as database:
+        database.generate_new_refresh_token(old_refresh)
+
+
 def get_user_preferences(bearer_token, user_id):
     jwt_utils.is_jwt_valid(bearer_token)
     with UserDatabaseManager() as database:
