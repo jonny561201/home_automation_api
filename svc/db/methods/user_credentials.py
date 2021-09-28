@@ -42,6 +42,9 @@ class UserDatabase:
                 'first_name': user.user.first_name,
                 'last_name': user.user.last_name}
 
+    def get_user_info(self, user_id):
+        self.session.query(UserCredentials).filter_by(id=user_id).first()
+
     def insert_refresh_token(self, refresh_token):
         token = RefreshToken()
         token.refresh = refresh_token
