@@ -59,7 +59,7 @@ class UserDatabase:
         self.session.add(token)
 
     def generate_new_refresh_token(self, refresh_token):
-        token = self.session.query(RefreshToken).filter_by(refresh_token).first()
+        token = self.session.query(RefreshToken).filter_by(refresh=refresh_token).first()
         if token is None or token.expire_time < datetime.now() or token.count <= 0:
             raise Forbidden
         new_refresh = str(uuid.uuid4())

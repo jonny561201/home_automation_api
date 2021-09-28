@@ -4,7 +4,7 @@ import datetime
 
 import pytest
 from mock import patch
-from werkzeug.exceptions import BadRequest, Unauthorized
+from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, \
@@ -128,6 +128,12 @@ class TestDbValidateIntegration:
 
             assert actual['roles'] == [{'ip_address': ip_address, 'role_name': self.ROLE_NAME, 'device_id': device_id,
                                         'devices': [{'node_device': 1, 'node_name': node_name}]}]
+
+    def test_generate_new_refresh_token__should_raise_forbidden_when_no_existing_refresh_token(self):
+        missing_refresh = str(uuid.uuid4())
+        with pytest.raises(Forbidden):
+            with UserDatabaseManager() as database:
+                database.generate_new_refresh_token(missing_refresh)
 
     def test_get_user_info__should_raise_unauthorized_when_user_not_found(self):
         with pytest.raises(Unauthorized):

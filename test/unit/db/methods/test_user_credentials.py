@@ -137,7 +137,7 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = token
         self.DATABASE.generate_new_refresh_token(refresh)
         self.SESSION.query.assert_called_with(RefreshToken)
-        self.SESSION.query.return_value.filter_by.assert_called_with(refresh)
+        self.SESSION.query.return_value.filter_by.assert_called_with(refresh=refresh)
         self.SESSION.query.return_value.filter_by.return_value.first.assert_called()
 
     def test_generate_new_refresh_token__should_raise_unauthorized_if_token_does_not_exist(self):
