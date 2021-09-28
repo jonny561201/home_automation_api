@@ -279,3 +279,11 @@ class TestAppRoutes:
         actual = get_refreshed_bearer_token(self.USER_ID, old_refresh)
 
         assert actual.content_type == 'text/json'
+
+    def test_get_refreshed_bearer_token__should_return_response_data(self, mock_controller, mock_requests):
+        old_refresh = str(uuid.uuid4())
+        mock_controller.refresh_bearer_token.return_value = self.FAKE_JWT_TOKEN
+        actual = get_refreshed_bearer_token(self.USER_ID, old_refresh)
+
+        json_actual = json.loads(actual.data)
+        assert json_actual['bearerToken'] == self.FAKE_JWT_TOKEN.decode('UTF-8')
