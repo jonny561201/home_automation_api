@@ -3,6 +3,7 @@ import uuid
 import datetime
 
 import pytest
+import pytz
 from mock import patch
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
@@ -129,12 +130,6 @@ class TestDbValidateIntegration:
             assert actual['roles'] == [{'ip_address': ip_address, 'role_name': self.ROLE_NAME, 'device_id': device_id,
                                         'devices': [{'node_device': 1, 'node_name': node_name}]}]
 
-    def test_generate_new_refresh_token__should_raise_forbidden_when_no_existing_refresh_token(self):
-        missing_refresh = str(uuid.uuid4())
-        with pytest.raises(Forbidden):
-            with UserDatabaseManager() as database:
-                database.generate_new_refresh_token(missing_refresh)
-
     def test_get_user_info__should_raise_unauthorized_when_user_not_found(self):
         with pytest.raises(Unauthorized):
             with UserDatabaseManager() as database:
@@ -159,6 +154,48 @@ class TestDbValidateIntegration:
         with pytest.raises(BadRequest):
             with UserDatabaseManager() as database:
                 database.get_roles_by_user(str(uuid.uuid4()))
+
+
+class TestRefreshTokenIntegration:
+    VALID_TOKEN = str(uuid.uuid4())
+    WORN_TOKEN = str(uuid.uuid4())
+    EXPIRED_TOKEN = str(uuid.uuid4())
+    EXPIRE = datetime.datetime.now(tz=pytz.timezone('US/Central')) + datetime.timedelta(hours=12)
+    EXPIRED = datetime.datetime.now(tz=pytz.timezone('US/Central')) - datetime.timedelta(minutes=5)
+
+    def setup_method(self):
+        os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
+                           'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
+        self.VALID_REFRESH = RefreshToken(refresh=self.VALID_TOKEN, count=10, expire_time=self.EXPIRE)
+        self.EXPIRED_REFRESH = RefreshToken(refresh=self.EXPIRED_TOKEN, count=10, expire_time=self.EXPIRED)
+        self.WORN_REFRESH = RefreshToken(refresh=self.WORN_TOKEN, count=0, expire_time=self.EXPIRE)
+        with UserDatabaseManager() as database:
+            database.session.add(self.EXPIRED_REFRESH)
+            database.session.add(self.VALID_REFRESH)
+
+    def teardown_method(self):
+        with UserDatabaseManager() as database:
+            database.session.query(RefreshToken).delete()
+        os.environ.pop('SQL_USERNAME')
+        os.environ.pop('SQL_PASSWORD')
+        os.environ.pop('SQL_DBNAME')
+        os.environ.pop('SQL_PORT')
+
+    def test_generate_new_refresh_token__should_raise_forbidden_when_no_existing_refresh_token(self):
+        missing_refresh = str(uuid.uuid4())
+        with pytest.raises(Forbidden):
+            with UserDatabaseManager() as database:
+                database.generate_new_refresh_token(missing_refresh)
+
+    def test_generate_new_refresh_token__should_raise_forbidden_when_token_has_expired(self):
+        with pytest.raises(Forbidden):
+            with UserDatabaseManager() as database:
+                database.generate_new_refresh_token(self.EXPIRED_TOKEN)
+
+    def test_generate_new_refresh_token__should_raise_forbidden_when_token_has_worn_out(self):
+        with pytest.raises(Forbidden):
+            with UserDatabaseManager() as database:
+                database.generate_new_refresh_token(self.WORN_TOKEN)
 
 
 class TestDbPreferenceIntegration:
