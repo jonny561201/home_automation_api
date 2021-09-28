@@ -116,7 +116,12 @@ class TestUserDatabase:
 
         actual = self.DATABASE.get_user_info(user.user_id)
 
-        assert actual['roles'] == [{'role_name': self.ROLE_NAME }]
+        assert actual['roles'] == [{'role_name': self.ROLE_NAME}]
+
+    def test_get_user_info__should_raise_unauthorized_if_user_is_none(self):
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
+        with pytest.raises(Unauthorized):
+            self.DATABASE.get_user_info('123abc')
 
     def test_insert_refresh_token__should_call_add_method(self):
         refresh = str(uuid.uuid4())
