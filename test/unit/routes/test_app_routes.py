@@ -273,3 +273,9 @@ class TestAppRoutes:
         actual = get_refreshed_bearer_token(self.USER_ID, old_refresh)
 
         assert actual.status_code == 200
+
+    def test_get_refreshed_bearer_token__should_return_success_content_type(self, mock_controller, mock_requests):
+        old_refresh = str(uuid.uuid4())
+        actual = get_refreshed_bearer_token(self.USER_ID, old_refresh)
+
+        assert actual.content_type == 'text/json'
