@@ -205,6 +205,7 @@ class TestRefreshTokenIntegration:
             actual = database.generate_new_refresh_token(self.VALID_TOKEN)
             assert actual == new_refresh
 
+
 class TestDbPreferenceIntegration:
     USER_ID = str(uuid.uuid4())
     TASK_ID = str(uuid.uuid4())

@@ -133,7 +133,7 @@ class TestUserDatabase:
         refresh = str(uuid.uuid4())
         token = RefreshToken()
         token.count = 1
-        token.expire_time = datetime.now() + timedelta(minutes=1)
+        token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(minutes=1)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = token
         self.DATABASE.generate_new_refresh_token(refresh)
         self.SESSION.query.assert_called_with(RefreshToken)
@@ -150,7 +150,7 @@ class TestUserDatabase:
     def test_generate_new_refresh_token__should_raise_unauthorized_if_token_has_expired(self):
         refresh = str(uuid.uuid4())
         expired_token = RefreshToken()
-        expired_token.expire_time = datetime.now() - timedelta(minutes=1)
+        expired_token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) - timedelta(minutes=1)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = expired_token
 
         with pytest.raises(Forbidden):
@@ -160,7 +160,7 @@ class TestUserDatabase:
         refresh = str(uuid.uuid4())
         expired_token = RefreshToken()
         expired_token.count = 0
-        expired_token.expire_time = datetime.now() + timedelta(minutes=1)
+        expired_token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(minutes=1)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = expired_token
 
         with pytest.raises(Forbidden):
@@ -170,7 +170,7 @@ class TestUserDatabase:
         refresh = str(uuid.uuid4())
         expired_token = RefreshToken()
         expired_token.count = -1
-        expired_token.expire_time = datetime.now() + timedelta(minutes=1)
+        expired_token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(minutes=1)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = expired_token
 
         with pytest.raises(Forbidden):
@@ -183,7 +183,7 @@ class TestUserDatabase:
         mock_uuid.uuid4.return_value = new_refresh
         token = RefreshToken()
         token.count = 1
-        token.expire_time = datetime.now() + timedelta(minutes=1)
+        token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(minutes=1)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = token
 
         actual = self.DATABASE.generate_new_refresh_token(refresh)
@@ -197,7 +197,7 @@ class TestUserDatabase:
         mock_uuid.uuid4.return_value = new_refresh
         token = RefreshToken()
         token.count = 1
-        token.expire_time = datetime.now() + timedelta(minutes=1)
+        token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(minutes=1)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = token
 
         self.DATABASE.generate_new_refresh_token(refresh)
@@ -212,7 +212,7 @@ class TestUserDatabase:
         mock_uuid.uuid4.return_value = new_refresh
         token = RefreshToken()
         token.count = 10
-        token.expire_time = datetime.now() + timedelta(minutes=1)
+        token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(minutes=1)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = token
 
         self.DATABASE.generate_new_refresh_token(refresh)
