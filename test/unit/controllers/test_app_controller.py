@@ -77,6 +77,13 @@ class TestLoginController:
 
         mock_jwt.create_jwt_token.assert_called_with(user_info, new_refresh)
 
+    def test_refresh_bearer_token__should_return_the_new_bearer_token(self, mock_jwt, mock_db):
+        old_refresh = str(uuid.uuid4())
+        mock_jwt.create_jwt_token.return_value = self.BEARER_TOKEN
+        actual = refresh_bearer_token(self.USER_ID, old_refresh)
+
+        assert actual == self.BEARER_TOKEN
+
     def test_get_user_preferences__should_validate_bearer_token(self, mock_jwt, mock_db):
         get_user_preferences(self.BASIC_AUTH_TOKEN, self.USER_ID)
 
