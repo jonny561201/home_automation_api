@@ -3,7 +3,7 @@ from datetime import time, datetime, timedelta
 
 import pytz
 from sqlalchemy import orm, create_engine
-from werkzeug.exceptions import BadRequest, Unauthorized
+from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
 from svc.constants.settings_state import Settings
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
@@ -52,7 +52,7 @@ class UserDatabase:
     def generate_new_refresh_token(self, refresh_token):
         token = self.session.query(RefreshToken).filter_by(refresh_token).first()
         if token is None or token.expire_time < datetime.now() or token.count <= 0:
-            raise Unauthorized
+            raise Forbidden
         new_refresh = str(uuid.uuid4())
         token.refresh = new_refresh
         token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=12)

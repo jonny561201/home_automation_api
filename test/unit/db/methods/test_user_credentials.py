@@ -5,7 +5,7 @@ import pytest
 import pytz
 from mock import mock, patch
 from sqlalchemy import orm
-from werkzeug.exceptions import BadRequest, Unauthorized
+from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
 from svc.db.methods.user_credentials import UserDatabase
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
@@ -108,7 +108,7 @@ class TestUserDatabase:
         refresh = str(uuid.uuid4())
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
 
-        with pytest.raises(Unauthorized):
+        with pytest.raises(Forbidden):
             self.DATABASE.generate_new_refresh_token(refresh)
 
     def test_generate_new_refresh_token__should_raise_unauthorized_if_token_has_expired(self):
@@ -117,7 +117,7 @@ class TestUserDatabase:
         expired_token.expire_time = datetime.now() - timedelta(minutes=1)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = expired_token
 
-        with pytest.raises(Unauthorized):
+        with pytest.raises(Forbidden):
             self.DATABASE.generate_new_refresh_token(refresh)
 
     def test_generate_new_refresh_token__should_raise_unauthorized_token_count_has_expired(self):
@@ -127,7 +127,7 @@ class TestUserDatabase:
         expired_token.expire_time = datetime.now() + timedelta(minutes=1)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = expired_token
 
-        with pytest.raises(Unauthorized):
+        with pytest.raises(Forbidden):
             self.DATABASE.generate_new_refresh_token(refresh)
 
     def test_generate_new_refresh_token__should_raise_unauthorized_token_count_is_below_zero(self):
@@ -137,7 +137,7 @@ class TestUserDatabase:
         expired_token.expire_time = datetime.now() + timedelta(minutes=1)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = expired_token
 
-        with pytest.raises(Unauthorized):
+        with pytest.raises(Forbidden):
             self.DATABASE.generate_new_refresh_token(refresh)
 
     @patch('svc.db.methods.user_credentials.uuid')
