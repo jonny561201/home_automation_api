@@ -261,3 +261,9 @@ class TestAppRoutes:
         get_refreshed_bearer_token(self.USER_ID, old_refresh)
 
         mock_controller.refresh_bearer_token.assert_called_with(self.USER_ID, ANY)
+
+    def test_get_refreshed_bearer_token__should_call_app_controller_with_old_refresh_token(self, mock_controller, mock_requests):
+        old_refresh = str(uuid.uuid4())
+        get_refreshed_bearer_token(self.USER_ID, old_refresh)
+
+        mock_controller.refresh_bearer_token.assert_called_with(ANY, old_refresh)
