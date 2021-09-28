@@ -88,14 +88,25 @@ class TestUserDatabase:
             self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
 
     def test_get_user_info__should_query_database_by_user_id(self):
-        user_id = uuid.uuid4()
+        user_id = str(uuid.uuid4())
         user = self.__create_database_user(id=user_id)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
 
-        self.DATABASE.get_user_info(str(user_id))
+        self.DATABASE.get_user_info(user_id)
 
-        self.SESSION.query.return_value.filter_by.assert_any_call(id=str(user_id))
+        self.SESSION.query.return_value.filter_by.assert_any_call(id=user_id)
         self.SESSION.query.return_value.filter_by.return_value.first.assert_called()
+
+    def test_get_user_info__should_return_the_matching_user_info(self):
+        user_id = str(uuid.uuid4())
+        user = self.__create_database_user(id=user_id, first=self.FIRST_NAME, last=self.LAST_NAME)
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+
+        actual = self.DATABASE.get_user_info(user_id)
+
+        assert actual['user_id'] == user_id
+        assert actual['first_name'] == self.FIRST_NAME
+        assert actual['last_name'] == self.LAST_NAME
 
     def test_insert_refresh_token__should_call_add_method(self):
         refresh = str(uuid.uuid4())
@@ -1202,6 +1213,6 @@ class TestUserDatabase:
         return preference
 
     @staticmethod
-    def __create_database_user(id=uuid.uuid4(), password=FAKE_PASS, first=FIRST_NAME, last=LAST_NAME):
+    def __create_database_user(id=str(uuid.uuid4()), password=FAKE_PASS, first=FIRST_NAME, last=LAST_NAME):
         user = UserInformation(first_name=first, last_name=last)
-        return UserCredentials(id=id, user_name=user, password=password, user=user)
+        return UserCredentials(id=uuid.uuid4(), user_name=user, password=password, user=user, user_id=id)
