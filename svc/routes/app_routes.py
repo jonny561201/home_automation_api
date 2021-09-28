@@ -61,3 +61,7 @@ def update_user_task_by_user_id(user_id):
     bearer_token = request.headers.get('Authorization')
     task = app_controller.update_user_task(bearer_token, user_id, request.data)
     return Response(json.dumps(task), status=200, headers=DEFAULT_HEADERS)
+
+
+def get_refreshed_bearer_token(user_id, refresh_token):
+    app_controller.refresh_bearer_token(user_id, None)
