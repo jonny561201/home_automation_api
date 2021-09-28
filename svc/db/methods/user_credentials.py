@@ -45,6 +45,7 @@ class UserDatabase:
     def get_user_info(self, user_id):
         user = self.session.query(UserCredentials).filter_by(id=user_id).first()
         return {'user_id': user.user_id,
+                'roles': [self.__create_role(role.role_devices, role.role.role_name) for role in user.user_roles],
                 'first_name': user.user.first_name,
                 'last_name': user.user.last_name}
 

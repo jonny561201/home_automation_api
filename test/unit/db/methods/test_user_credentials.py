@@ -108,6 +108,16 @@ class TestUserDatabase:
         assert actual['first_name'] == self.FIRST_NAME
         assert actual['last_name'] == self.LAST_NAME
 
+    def test_get_user_info__should_return_roles_if_password_matches_queried_user(self):
+        user = self.__create_database_user()
+        user.user_id = '123455'
+        user.user_roles = [UserRoles(role=Roles(role_name=self.ROLE_NAME))]
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+
+        actual = self.DATABASE.get_user_info(user.user_id)
+
+        assert actual['roles'] == [{'role_name': self.ROLE_NAME }]
+
     def test_insert_refresh_token__should_call_add_method(self):
         refresh = str(uuid.uuid4())
         self.DATABASE.insert_refresh_token(refresh)
