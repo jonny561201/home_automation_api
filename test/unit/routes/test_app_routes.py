@@ -267,3 +267,9 @@ class TestAppRoutes:
         get_refreshed_bearer_token(self.USER_ID, old_refresh)
 
         mock_controller.refresh_bearer_token.assert_called_with(ANY, old_refresh)
+
+    def test_get_refreshed_bearer_token__should_return_success_status_code(self, mock_controller, mock_requests):
+        old_refresh = str(uuid.uuid4())
+        actual = get_refreshed_bearer_token(self.USER_ID, old_refresh)
+
+        assert actual.status_code == 200

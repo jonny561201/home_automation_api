@@ -65,3 +65,4 @@ def update_user_task_by_user_id(user_id):
 
 def get_refreshed_bearer_token(user_id, refresh_token):
     app_controller.refresh_bearer_token(user_id, refresh_token)
+    return Response(status=200)
