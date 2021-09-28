@@ -197,6 +197,13 @@ class TestRefreshTokenIntegration:
             with UserDatabaseManager() as database:
                 database.generate_new_refresh_token(self.WORN_TOKEN)
 
+    @patch('svc.db.methods.user_credentials.uuid')
+    def test_generate_new_refresh_token__should_return_a_valid_token(self, mock_uuid):
+        new_refresh = str(uuid.uuid4())
+        mock_uuid.uuid4.return_value = new_refresh
+        with UserDatabaseManager() as database:
+            actual = database.generate_new_refresh_token(self.VALID_TOKEN)
+            assert actual == new_refresh
 
 class TestDbPreferenceIntegration:
     USER_ID = str(uuid.uuid4())
