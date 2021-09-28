@@ -43,7 +43,7 @@ class UserDatabase:
                 'last_name': user.user.last_name}
 
     def get_user_info(self, user_id):
-        user = self.session.query(UserCredentials).filter_by(id=user_id).first()
+        user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
         if user is None:
             raise Unauthorized
         return {'user_id': user.user_id,

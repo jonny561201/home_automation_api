@@ -94,7 +94,7 @@ class TestUserDatabase:
 
         self.DATABASE.get_user_info(user_id)
 
-        self.SESSION.query.return_value.filter_by.assert_any_call(id=user_id)
+        self.SESSION.query.return_value.filter_by.assert_any_call(user_id=user_id)
         self.SESSION.query.return_value.filter_by.return_value.first.assert_called()
 
     def test_get_user_info__should_return_the_matching_user_info(self):

@@ -107,6 +107,34 @@ class TestDbValidateIntegration:
             assert actual.refresh == token
             assert (actual.expire_time - datetime.timedelta(hours=11)) > datetime.datetime.now()
 
+    def test_get_user_info__should_return_user_information(self):
+        with UserDatabaseManager() as database:
+            actual = database.get_user_info(self.USER_ID)
+
+            assert actual['user_id'] == self.USER_ID
+            assert actual['first_name'] == self.FIRST
+            assert actual['last_name'] == self.LAST
+
+    def test_get_user_info__should_return_role_device_data(self):
+        ip_address = '0.1.2.3'
+        node_name = 'test_node'
+        device_id = str(uuid.uuid4())
+        with UserDatabaseManager() as database:
+            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=1, ip_address=ip_address)
+            node = RoleDeviceNodes(role_device_id=device_id, node_name=node_name, node_device=1)
+            database.session.add(device)
+            database.session.add(node)
+            actual = database.get_user_info(self.USER_ID)
+
+            assert actual['roles'] == [{'ip_address': ip_address, 'role_name': self.ROLE_NAME, 'device_id': device_id,
+                                        'devices': [{'node_device': 1, 'node_name': node_name}]}]
+
+    def test_get_user_info__should_raise_unauthorized_when_user_not_found(self):
+        with pytest.raises(Unauthorized):
+            with UserDatabaseManager() as database:
+                missing_user_id = str(uuid.uuid4())
+                database.get_user_info(missing_user_id)
+
     def test_get_roles_by_user__should_return_role_device_data(self):
         ip_address = '0.1.2.3'
         node_name = 'test_node'
