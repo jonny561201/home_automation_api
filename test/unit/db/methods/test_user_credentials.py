@@ -208,6 +208,17 @@ class TestUserDatabase:
 
         assert actual['roles'] == [{'role_name': self.ROLE_NAME }]
 
+    def test_get_roles_by_user__should_return_the_user_info(self):
+        user = self.__create_database_user()
+        user.user_id = self.USER_ID
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+
+        actual = self.DATABASE.get_roles_by_user(self.FAKE_USER)
+
+        assert actual['user_id'] == self.USER_ID
+        assert actual['first_name'] == self.FIRST_NAME
+        assert actual['last_name'] == self.LAST_NAME
+
     def test_get_preferences_by_user__should_return_user_temp_preferences(self):
         user = TestUserDatabase.__create_database_user()
         preference = TestUserDatabase.__create_user_preference(user)

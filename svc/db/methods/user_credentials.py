@@ -63,7 +63,10 @@ class UserDatabase:
         self.__validate_property(user_id)
         user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
         self.__validate_property(user)
-        return {'roles': [self.__create_role(role.role_devices, role.role.role_name) for role in user.user_roles]}
+        return {'user_id': user.user_id,
+                'first_name': user.user.first_name,
+                'last_name': user.user.last_name,
+                'roles': [self.__create_role(role.role_devices, role.role.role_name) for role in user.user_roles]}
 
     def change_user_password(self, user_id, old_pass, new_pass):
         self.__validate_property(user_id)
