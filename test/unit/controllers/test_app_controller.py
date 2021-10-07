@@ -5,7 +5,7 @@ import jwt
 from mock import patch, ANY
 
 from svc.controllers.app_controller import get_login, get_user_preferences, save_user_preferences, get_user_tasks, \
-    delete_user_task, insert_user_task, update_user_task
+    delete_user_task, insert_user_task, update_user_task, refresh_bearer_token
 
 
 @patch('svc.controllers.app_controller.UserDatabaseManager')
@@ -190,3 +190,7 @@ class TestLoginController:
         actual = update_user_task(self.BEARER_TOKEN, self.USER_ID, request_data)
 
         assert actual == response
+
+    def test_refresh_bearer_token__should_call_get_roles_by_user_with_user_id(self, mock_jwt, mock_db):
+        refresh_bearer_token(self.USER_ID)
+        mock_db.return_value.__enter__.return_value.get_roles_by_user.assert_called_with(self.USER_ID)
