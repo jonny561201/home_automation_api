@@ -202,3 +202,13 @@ class TestLoginController:
         refresh_bearer_token(self.USER_ID, old_refresh)
 
         mock_db.return_value.__enter__.return_value.generate_new_refresh_token.assert_called_with(old_refresh)
+
+    def test_refresh_bearer_token__should_call_to_generate_new_bearer_token(self, mock_jwt, mock_db):
+        old_refresh = str(uuid.uuid4())
+        new_refresh = str(uuid.uuid4())
+        user_info = {'user_id': self.USER_ID}
+        mock_db.return_value.__enter__.return_value.get_roles_by_user.return_value = user_info
+        mock_db.return_value.__enter__.return_value.generate_new_refresh_token.return_value = new_refresh
+        refresh_bearer_token(self.USER_ID, old_refresh)
+
+        mock_jwt.create_jwt_token.assert_called_with(user_info, new_refresh)
