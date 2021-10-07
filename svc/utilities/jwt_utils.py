@@ -16,10 +16,10 @@ def is_jwt_valid(jwt_token):
     _parse_jwt_token(jwt_token)
 
 
-def create_jwt_token(user_id, refresh_token):
+def create_jwt_token(user_info, refresh_token):
     expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=8)
     settings = Settings.get_instance()
-    return jwt.encode({'user': user_id,
+    return jwt.encode({'user': user_info,
                        'refresh_token': refresh_token,
                        'exp': expire_time}, settings.jwt_secret, algorithm='HS256')
 
