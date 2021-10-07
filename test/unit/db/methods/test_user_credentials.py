@@ -5,7 +5,7 @@ import pytest
 import pytz
 from mock import mock, patch
 from sqlalchemy import orm
-from werkzeug.exceptions import BadRequest, Unauthorized
+from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
 from svc.db.methods.user_credentials import UserDatabase
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
@@ -87,6 +87,42 @@ class TestUserDatabase:
         with pytest.raises(Unauthorized):
             self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
 
+    def test_get_user_info__should_query_database_by_user_id(self):
+        user_id = str(uuid.uuid4())
+        user = self.__create_database_user(id=user_id)
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+
+        self.DATABASE.get_user_info(user_id)
+
+        self.SESSION.query.return_value.filter_by.assert_any_call(user_id=user_id)
+        self.SESSION.query.return_value.filter_by.return_value.first.assert_called()
+
+    def test_get_user_info__should_return_the_matching_user_info(self):
+        user_id = str(uuid.uuid4())
+        user = self.__create_database_user(id=user_id, first=self.FIRST_NAME, last=self.LAST_NAME)
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+
+        actual = self.DATABASE.get_user_info(user_id)
+
+        assert actual['user_id'] == user_id
+        assert actual['first_name'] == self.FIRST_NAME
+        assert actual['last_name'] == self.LAST_NAME
+
+    def test_get_user_info__should_return_roles_if_password_matches_queried_user(self):
+        user = self.__create_database_user()
+        user.user_id = '123455'
+        user.user_roles = [UserRoles(role=Roles(role_name=self.ROLE_NAME))]
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+
+        actual = self.DATABASE.get_user_info(user.user_id)
+
+        assert actual['roles'] == [{'role_name': self.ROLE_NAME}]
+
+    def test_get_user_info__should_raise_unauthorized_if_user_is_none(self):
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
+        with pytest.raises(Unauthorized):
+            self.DATABASE.get_user_info('123abc')
+
     def test_insert_refresh_token__should_call_add_method(self):
         refresh = str(uuid.uuid4())
         self.DATABASE.insert_refresh_token(refresh)
@@ -97,47 +133,47 @@ class TestUserDatabase:
         refresh = str(uuid.uuid4())
         token = RefreshToken()
         token.count = 1
-        token.expire_time = datetime.now() + timedelta(minutes=1)
+        token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(minutes=1)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = token
         self.DATABASE.generate_new_refresh_token(refresh)
         self.SESSION.query.assert_called_with(RefreshToken)
-        self.SESSION.query.return_value.filter_by.assert_called_with(refresh)
+        self.SESSION.query.return_value.filter_by.assert_called_with(refresh=refresh)
         self.SESSION.query.return_value.filter_by.return_value.first.assert_called()
 
     def test_generate_new_refresh_token__should_raise_unauthorized_if_token_does_not_exist(self):
         refresh = str(uuid.uuid4())
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
 
-        with pytest.raises(Unauthorized):
+        with pytest.raises(Forbidden):
             self.DATABASE.generate_new_refresh_token(refresh)
 
     def test_generate_new_refresh_token__should_raise_unauthorized_if_token_has_expired(self):
         refresh = str(uuid.uuid4())
         expired_token = RefreshToken()
-        expired_token.expire_time = datetime.now() - timedelta(minutes=1)
+        expired_token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) - timedelta(minutes=1)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = expired_token
 
-        with pytest.raises(Unauthorized):
+        with pytest.raises(Forbidden):
             self.DATABASE.generate_new_refresh_token(refresh)
 
     def test_generate_new_refresh_token__should_raise_unauthorized_token_count_has_expired(self):
         refresh = str(uuid.uuid4())
         expired_token = RefreshToken()
         expired_token.count = 0
-        expired_token.expire_time = datetime.now() + timedelta(minutes=1)
+        expired_token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(minutes=1)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = expired_token
 
-        with pytest.raises(Unauthorized):
+        with pytest.raises(Forbidden):
             self.DATABASE.generate_new_refresh_token(refresh)
 
     def test_generate_new_refresh_token__should_raise_unauthorized_token_count_is_below_zero(self):
         refresh = str(uuid.uuid4())
         expired_token = RefreshToken()
         expired_token.count = -1
-        expired_token.expire_time = datetime.now() + timedelta(minutes=1)
+        expired_token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(minutes=1)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = expired_token
 
-        with pytest.raises(Unauthorized):
+        with pytest.raises(Forbidden):
             self.DATABASE.generate_new_refresh_token(refresh)
 
     @patch('svc.db.methods.user_credentials.uuid')
@@ -147,7 +183,7 @@ class TestUserDatabase:
         mock_uuid.uuid4.return_value = new_refresh
         token = RefreshToken()
         token.count = 1
-        token.expire_time = datetime.now() + timedelta(minutes=1)
+        token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(minutes=1)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = token
 
         actual = self.DATABASE.generate_new_refresh_token(refresh)
@@ -161,7 +197,7 @@ class TestUserDatabase:
         mock_uuid.uuid4.return_value = new_refresh
         token = RefreshToken()
         token.count = 1
-        token.expire_time = datetime.now() + timedelta(minutes=1)
+        token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(minutes=1)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = token
 
         self.DATABASE.generate_new_refresh_token(refresh)
@@ -176,7 +212,7 @@ class TestUserDatabase:
         mock_uuid.uuid4.return_value = new_refresh
         token = RefreshToken()
         token.count = 10
-        token.expire_time = datetime.now() + timedelta(minutes=1)
+        token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(minutes=1)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = token
 
         self.DATABASE.generate_new_refresh_token(refresh)
@@ -1203,6 +1239,6 @@ class TestUserDatabase:
         return preference
 
     @staticmethod
-    def __create_database_user(password=FAKE_PASS, first=FIRST_NAME, last=LAST_NAME):
+    def __create_database_user(id=str(uuid.uuid4()), password=FAKE_PASS, first=FIRST_NAME, last=LAST_NAME):
         user = UserInformation(first_name=first, last_name=last)
-        return UserCredentials(id=uuid.uuid4(), user_name=user, password=password, user=user)
+        return UserCredentials(id=uuid.uuid4(), user_name=user, password=password, user=user, user_id=id)

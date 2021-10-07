@@ -3,7 +3,7 @@ from datetime import time, datetime, timedelta
 
 import pytz
 from sqlalchemy import orm, create_engine
-from werkzeug.exceptions import BadRequest, Unauthorized
+from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
 from svc.constants.settings_state import Settings
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
@@ -42,6 +42,15 @@ class UserDatabase:
                 'first_name': user.user.first_name,
                 'last_name': user.user.last_name}
 
+    def get_user_info(self, user_id):
+        user = self.session.query(UserCredentials).filter_by(user_id=user_id).first()
+        if user is None:
+            raise Unauthorized
+        return {'user_id': user.user_id,
+                'roles': [self.__create_role(role.role_devices, role.role.role_name) for role in user.user_roles],
+                'first_name': user.user.first_name,
+                'last_name': user.user.last_name}
+
     def insert_refresh_token(self, refresh_token):
         token = RefreshToken()
         token.refresh = refresh_token
@@ -50,9 +59,9 @@ class UserDatabase:
         self.session.add(token)
 
     def generate_new_refresh_token(self, refresh_token):
-        token = self.session.query(RefreshToken).filter_by(refresh_token).first()
-        if token is None or token.expire_time < datetime.now() or token.count <= 0:
-            raise Unauthorized
+        token = self.session.query(RefreshToken).filter_by(refresh=refresh_token).first()
+        if token is None or token.expire_time < datetime.now(tz=pytz.timezone('US/Central')) or token.count <= 0:
+            raise Forbidden
         new_refresh = str(uuid.uuid4())
         token.refresh = new_refresh
         token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=12)

@@ -55,6 +55,35 @@ class TestLoginController:
 
         mock_db.return_value.__enter__.return_value.insert_refresh_token.assert_called_with(refresh)
 
+    def test_refresh_bearer_token__should_make_call_to_db_to_generate_new_refresh_token(self, mock_jwt, mock_db):
+        old_refresh = str(uuid.uuid4())
+        refresh_bearer_token(self.USER_ID, old_refresh)
+
+        mock_db.return_value.__enter__.return_value.generate_new_refresh_token.assert_called_with(old_refresh)
+
+    def test_refresh_bearer_token__should_make_call_to_get_user_info_from_db(self, mock_jwt, mock_db):
+        old_refresh = str(uuid.uuid4())
+        refresh_bearer_token(self.USER_ID, old_refresh)
+
+        mock_db.return_value.__enter__.return_value.get_user_info.assert_called_with(self.USER_ID)
+
+    def test_refresh_bearer_token__should_have_jwt_util_create_new_bearer_token(self, mock_jwt, mock_db):
+        old_refresh = str(uuid.uuid4())
+        new_refresh = str(uuid.uuid4())
+        user_info = {'first_name': 'Paul', 'last_name': 'Atreides'}
+        mock_db.return_value.__enter__.return_value.generate_new_refresh_token.return_value = new_refresh
+        mock_db.return_value.__enter__.return_value.get_user_info.return_value = user_info
+        refresh_bearer_token(self.USER_ID, old_refresh)
+
+        mock_jwt.create_jwt_token.assert_called_with(user_info, new_refresh)
+
+    def test_refresh_bearer_token__should_return_the_new_bearer_token(self, mock_jwt, mock_db):
+        old_refresh = str(uuid.uuid4())
+        mock_jwt.create_jwt_token.return_value = self.BEARER_TOKEN
+        actual = refresh_bearer_token(self.USER_ID, old_refresh)
+
+        assert actual == self.BEARER_TOKEN
+
     def test_get_user_preferences__should_validate_bearer_token(self, mock_jwt, mock_db):
         get_user_preferences(self.BASIC_AUTH_TOKEN, self.USER_ID)
 
