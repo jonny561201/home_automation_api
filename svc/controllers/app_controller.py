@@ -13,8 +13,9 @@ def get_login(basic_token):
         return jwt_utils.create_jwt_token(user_info, refresh)
 
 
-def refresh_bearer_token(user_id):
+def refresh_bearer_token(user_id, refresh_token):
     with UserDatabaseManager() as database:
+        database.generate_new_refresh_token(refresh_token)
         database.get_roles_by_user(user_id)
 
 

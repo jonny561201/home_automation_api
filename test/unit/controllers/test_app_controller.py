@@ -192,5 +192,13 @@ class TestLoginController:
         assert actual == response
 
     def test_refresh_bearer_token__should_call_get_roles_by_user_with_user_id(self, mock_jwt, mock_db):
-        refresh_bearer_token(self.USER_ID)
+        old_refresh = str(uuid.uuid4())
+        refresh_bearer_token(self.USER_ID, old_refresh)
+
         mock_db.return_value.__enter__.return_value.get_roles_by_user.assert_called_with(self.USER_ID)
+
+    def test_refresh_bearer_token__should_call_to_get_a_new_refresh_token(self, mock_jwt, mock_db):
+        old_refresh = str(uuid.uuid4())
+        refresh_bearer_token(self.USER_ID, old_refresh)
+
+        mock_db.return_value.__enter__.return_value.generate_new_refresh_token.assert_called_with(old_refresh)
