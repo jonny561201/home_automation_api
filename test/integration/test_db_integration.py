@@ -106,7 +106,7 @@ class TestDbValidateIntegration:
             actual = database.session.query(RefreshToken).first()
             assert actual.count == 10
             assert actual.refresh == token
-            assert (actual.expire_time - datetime.timedelta(hours=11)) > datetime.datetime.now()
+            assert (actual.expire_time - datetime.timedelta(hours=11)) > datetime.datetime.now(tz=pytz.timezone('US/Central'))
 
     def test_get_user_info__should_return_user_information(self):
         with UserDatabaseManager() as database:

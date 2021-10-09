@@ -63,6 +63,8 @@ def update_user_task_by_user_id(user_id):
     return Response(json.dumps(task), status=200, headers=DEFAULT_HEADERS)
 
 
-def get_refreshed_bearer_token(user_id, refresh_token):
-    new_token = app_controller.refresh_bearer_token(user_id, refresh_token)
+@APP_BLUEPRINT.route('/userId/<user_id>/token', methods=['POST'])
+def get_refreshed_bearer_token(user_id):
+    body = json.loads(request.data)
+    new_token = app_controller.refresh_bearer_token(user_id, body['refresh_token'])
     return Response(json.dumps({'bearerToken': new_token.decode('UTF-8')}), status=200, headers=DEFAULT_HEADERS)

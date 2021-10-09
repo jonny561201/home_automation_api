@@ -2,12 +2,15 @@ import base64
 import json
 import os
 import uuid
+from datetime import datetime, timedelta
 
 import jwt
+import pytz
 
 from svc.constants.settings_state import Settings
 from svc.db.methods.user_credentials import UserDatabaseManager
-from svc.db.models.user_information_model import UserInformation, UserPreference, ScheduleTasks, ScheduledTaskTypes
+from svc.db.models.user_information_model import UserInformation, UserPreference, ScheduleTasks, ScheduledTaskTypes, \
+    RefreshToken, UserCredentials
 from svc.manager import app
 
 
@@ -216,3 +219,50 @@ class TestAppRoutesIntegration:
             assert record.alarm_group_name == new_room
             assert record.alarm_days == new_day
             assert record.hvac_mode == 'COOL'
+
+
+class TestRefreshTokenApp:
+    db_user = 'postgres'
+    db_pass = 'password'
+    db_port = '5432'
+    db_name = 'garage_door'
+    JWT_SECRET = 'testSecret'
+    BAD_TOKEN = str(uuid.uuid4())
+    GOOD_TOKEN = str(uuid.uuid4())
+    USER_ID = str(uuid.uuid4())
+    FUTURE_TIME = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=12)
+    EXPIRED_TIME = datetime.now(tz=pytz.timezone('US/Central')) - timedelta(hours=1)
+
+    def setup_method(self):
+        Settings.get_instance().dev_mode = False
+        os.environ.update({'SQL_USERNAME': self.db_user, 'SQL_PASSWORD': self.db_pass, 'JWT_SECRET': self.JWT_SECRET,
+                           'SQL_DBNAME': self.db_name, 'SQL_PORT': self.db_port})
+        flask_app = app
+        self.TEST_CLIENT = flask_app.test_client()
+        self.GOOD_REFRESH = RefreshToken(id=str(uuid.uuid4()), refresh=self.GOOD_TOKEN, count=1, expire_time=self.FUTURE_TIME)
+        self.BAD_REFRESH = RefreshToken(id=str(uuid.uuid4()), refresh=self.BAD_TOKEN, count=1, expire_time=self.EXPIRED_TIME)
+        self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
+        self.USER_CREDS = UserCredentials(id=str(uuid.uuid4()), user_name="test", password="test", user=self.USER)
+
+        with UserDatabaseManager() as database:
+            database.session.add(self.USER)
+            database.session.add(self.USER_CREDS)
+            database.session.add(self.BAD_REFRESH)
+            database.session.add(self.GOOD_REFRESH)
+
+    def teardown_method(self):
+        with UserDatabaseManager() as database:
+            database.session.delete(self.USER_CREDS)
+            database.session.query(RefreshToken).delete()
+            database.session.query(ScheduleTasks).delete()
+        os.environ.pop('JWT_SECRET')
+        os.environ.pop('SQL_USERNAME')
+        os.environ.pop('SQL_PASSWORD')
+        os.environ.pop('SQL_DBNAME')
+        os.environ.pop('SQL_PORT')
+
+    def test_get_refreshed_bearer_token__should_return_forbidden_when_token_count_expired(self):
+        request_data = {'refresh_token': self.BAD_TOKEN}
+        actual = self.TEST_CLIENT.post(f'userId/{self.USER_ID}/token', data=json.dumps(request_data))
+
+        assert actual.status_code == 403
