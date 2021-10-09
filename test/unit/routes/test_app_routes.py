@@ -258,24 +258,28 @@ class TestAppRoutes:
 
     def test_get_refreshed_bearer_token__should_call_app_controller_with_user_id(self, mock_controller, mock_requests):
         old_refresh = str(uuid.uuid4())
+        mock_controller.refresh_bearer_token.return_value = self.FAKE_JWT_TOKEN
         get_refreshed_bearer_token(self.USER_ID, old_refresh)
 
         mock_controller.refresh_bearer_token.assert_called_with(self.USER_ID, ANY)
 
     def test_get_refreshed_bearer_token__should_call_app_controller_with_old_refresh_token(self, mock_controller, mock_requests):
         old_refresh = str(uuid.uuid4())
+        mock_controller.refresh_bearer_token.return_value = self.FAKE_JWT_TOKEN
         get_refreshed_bearer_token(self.USER_ID, old_refresh)
 
         mock_controller.refresh_bearer_token.assert_called_with(ANY, old_refresh)
 
     def test_get_refreshed_bearer_token__should_return_success_status_code(self, mock_controller, mock_requests):
         old_refresh = str(uuid.uuid4())
+        mock_controller.refresh_bearer_token.return_value = self.FAKE_JWT_TOKEN
         actual = get_refreshed_bearer_token(self.USER_ID, old_refresh)
 
         assert actual.status_code == 200
 
     def test_get_refreshed_bearer_token__should_return_success_content_type(self, mock_controller, mock_requests):
         old_refresh = str(uuid.uuid4())
+        mock_controller.refresh_bearer_token.return_value = self.FAKE_JWT_TOKEN
         actual = get_refreshed_bearer_token(self.USER_ID, old_refresh)
 
         assert actual.content_type == 'text/json'
