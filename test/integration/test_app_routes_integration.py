@@ -227,9 +227,9 @@ class TestRefreshTokenApp:
     db_port = '5432'
     db_name = 'garage_door'
     JWT_SECRET = 'testSecret'
+    USER_ID = str(uuid.uuid4())
     BAD_TOKEN = str(uuid.uuid4())
     GOOD_TOKEN = str(uuid.uuid4())
-    USER_ID = str(uuid.uuid4())
     FUTURE_TIME = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=12)
     EXPIRED_TIME = datetime.now(tz=pytz.timezone('US/Central')) - timedelta(hours=1)
 
@@ -239,22 +239,23 @@ class TestRefreshTokenApp:
                            'SQL_DBNAME': self.db_name, 'SQL_PORT': self.db_port})
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
-        self.GOOD_REFRESH = RefreshToken(id=str(uuid.uuid4()), refresh=self.GOOD_TOKEN, count=1, expire_time=self.FUTURE_TIME)
-        self.BAD_REFRESH = RefreshToken(id=str(uuid.uuid4()), refresh=self.BAD_TOKEN, count=1, expire_time=self.EXPIRED_TIME)
+        self.GOOD_REFRESH = RefreshToken(id=str(uuid.uuid4()), user_id=self.USER_ID, refresh=self.GOOD_TOKEN, count=1, expire_time=self.FUTURE_TIME)
+        self.BAD_REFRESH = RefreshToken(id=str(uuid.uuid4()), user_id=self.USER_ID, refresh=self.BAD_TOKEN, count=1, expire_time=self.EXPIRED_TIME)
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
-        self.USER_CREDS = UserCredentials(id=str(uuid.uuid4()), user_name="test", password="test", user=self.USER)
+        self.USER_CREDS = UserCredentials(id=str(uuid.uuid4()), user_name="test", password="test", user=self.USER, user_id=self.USER_ID)
 
         with UserDatabaseManager() as database:
             database.session.add(self.USER)
+        with UserDatabaseManager() as database:
             database.session.add(self.USER_CREDS)
             database.session.add(self.BAD_REFRESH)
             database.session.add(self.GOOD_REFRESH)
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
-            database.session.delete(self.USER_CREDS)
             database.session.query(RefreshToken).delete()
             database.session.query(ScheduleTasks).delete()
+            database.session.delete(self.USER_CREDS)
         os.environ.pop('JWT_SECRET')
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
