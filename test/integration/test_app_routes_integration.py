@@ -264,6 +264,6 @@ class TestRefreshTokenApp:
 
     def test_get_refreshed_bearer_token__should_return_forbidden_when_token_count_expired(self):
         request_data = {'refresh_token': self.BAD_TOKEN}
-        actual = self.TEST_CLIENT.post(f'userId/{self.USER_ID}/token', data=json.dumps(request_data))
+        actual = self.TEST_CLIENT.post(f'token', data=json.dumps(request_data))
 
         assert actual.status_code == 403
