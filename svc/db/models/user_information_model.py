@@ -7,15 +7,6 @@ from sqlalchemy.orm import relationship
 Base = declarative.declarative_base()
 
 
-class RefreshToken(Base):
-    __tablename__ = 'refresh_token'
-
-    id = Column(UUID, nullable=False, primary_key=True, server_default=sqlalchemy.text("gen_random_uuid()"))
-    refresh = Column(UUID, nullable=False)
-    count = Column(SMALLINT, nullable=False)
-    expire_time = Column(TIME, nullable=False)
-
-
 class UserInformation(Base):
     __tablename__ = 'user_information'
 
@@ -25,6 +16,16 @@ class UserInformation(Base):
     email = Column(String, nullable=True)
 
     child_accounts = relationship("ChildAccounts", cascade='delete', primaryjoin="and_(ChildAccounts.parent_user_id == UserInformation.id)", viewonly=True)
+
+
+class RefreshToken(Base):
+    __tablename__ = 'refresh_token'
+
+    id = Column(UUID, nullable=False, primary_key=True, server_default=sqlalchemy.text("gen_random_uuid()"))
+    refresh = Column(UUID, nullable=False)
+    count = Column(SMALLINT, nullable=False)
+    expire_time = Column(TIME, nullable=False)
+    user_id = Column(UUID, ForeignKey(UserInformation.id))
 
 
 class ChildAccounts(Base):
