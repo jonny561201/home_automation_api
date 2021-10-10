@@ -125,7 +125,7 @@ class TestUserDatabase:
 
     def test_insert_refresh_token__should_call_add_method(self):
         refresh = str(uuid.uuid4())
-        self.DATABASE.insert_refresh_token(refresh)
+        self.DATABASE.insert_refresh_token(self.USER_ID, refresh)
 
         self.SESSION.add.assert_called()
 

@@ -48,7 +48,6 @@ class TestDbValidateIntegration:
             database.session.delete(self.USER_LOGIN)
             database.session.commit()
             database.session.delete(self.ROLE)
-            database.session.query(RefreshToken).delete()
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
         os.environ.pop('SQL_DBNAME')
@@ -96,17 +95,6 @@ class TestDbValidateIntegration:
             user_pass = 'wrongPassword'
             with pytest.raises(Unauthorized):
                 database.validate_credentials(self.USER_NAME, user_pass)
-
-    def test_insert_refresh_token__should_insert_token_to_db(self):
-        token = str(uuid.uuid4())
-        with UserDatabaseManager() as database:
-            database.insert_refresh_token(token)
-
-        with UserDatabaseManager() as database:
-            actual = database.session.query(RefreshToken).first()
-            assert actual.count == 10
-            assert actual.refresh == token
-            assert (actual.expire_time - datetime.timedelta(hours=11)) > datetime.datetime.now(tz=pytz.timezone('US/Central'))
 
     def test_get_user_info__should_return_user_information(self):
         with UserDatabaseManager() as database:
@@ -157,6 +145,9 @@ class TestDbValidateIntegration:
 
 
 class TestRefreshTokenIntegration:
+    FIRST = 'Kalynn'
+    LAST = 'Graf'
+    USER_ID = str(uuid.uuid4() )
     VALID_TOKEN = str(uuid.uuid4())
     WORN_TOKEN = str(uuid.uuid4())
     EXPIRED_TOKEN = str(uuid.uuid4())
@@ -166,9 +157,12 @@ class TestRefreshTokenIntegration:
     def setup_method(self):
         os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
                            'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
-        self.VALID_REFRESH = RefreshToken(refresh=self.VALID_TOKEN, count=10, expire_time=self.EXPIRE)
-        self.EXPIRED_REFRESH = RefreshToken(refresh=self.EXPIRED_TOKEN, count=10, expire_time=self.EXPIRED)
+        self.USER = UserInformation(id=self.USER_ID, first_name=self.FIRST, last_name=self.LAST)
+        self.VALID_REFRESH = RefreshToken(refresh=self.VALID_TOKEN, user_id=self.USER_ID, count=10, expire_time=self.EXPIRE)
+        self.EXPIRED_REFRESH = RefreshToken(refresh=self.EXPIRED_TOKEN, user_id=self.USER_ID, count=10, expire_time=self.EXPIRED)
         self.WORN_REFRESH = RefreshToken(refresh=self.WORN_TOKEN, count=0, expire_time=self.EXPIRE)
+        with UserDatabaseManager() as database:
+            database.session.add(self.USER)
         with UserDatabaseManager() as database:
             database.session.add(self.EXPIRED_REFRESH)
             database.session.add(self.VALID_REFRESH)
@@ -176,10 +170,23 @@ class TestRefreshTokenIntegration:
     def teardown_method(self):
         with UserDatabaseManager() as database:
             database.session.query(RefreshToken).delete()
+            database.session.delete(self.USER)
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
         os.environ.pop('SQL_DBNAME')
         os.environ.pop('SQL_PORT')
+
+    def test_insert_refresh_token__should_insert_token_to_db(self):
+        token = str(uuid.uuid4())
+        with UserDatabaseManager() as database:
+            database.insert_refresh_token(self.USER_ID, token)
+
+        with UserDatabaseManager() as database:
+            actual = database.session.query(RefreshToken).filter_by(refresh=token).first()
+            assert actual.count == 10
+            assert actual.user_id == self.USER_ID
+            assert actual.refresh == token
+            assert (actual.expire_time - datetime.timedelta(hours=11)) > datetime.datetime.now(tz=pytz.timezone('US/Central'))
 
     def test_generate_new_refresh_token__should_raise_forbidden_when_no_existing_refresh_token(self):
         missing_refresh = str(uuid.uuid4())
