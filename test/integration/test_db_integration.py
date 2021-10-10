@@ -210,7 +210,7 @@ class TestRefreshTokenIntegration:
         mock_uuid.uuid4.return_value = new_refresh
         with UserDatabaseManager() as database:
             actual = database.generate_new_refresh_token(self.VALID_TOKEN)
-            assert actual == new_refresh
+            assert actual == {'user_id': self.USER_ID, 'refresh_token': new_refresh}
 
 
 class TestDbPreferenceIntegration:

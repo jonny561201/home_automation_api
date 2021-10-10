@@ -64,7 +64,7 @@ class UserDatabase:
         token.refresh = new_refresh
         token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=12)
         token.count -= 1
-        return new_refresh
+        return {'user_id': token.user_id, 'refresh_token': new_refresh}
 
     def get_roles_by_user(self, user_id):
         self.__validate_property(user_id)

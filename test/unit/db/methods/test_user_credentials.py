@@ -181,14 +181,14 @@ class TestUserDatabase:
         refresh = str(uuid.uuid4())
         new_refresh = str(uuid.uuid4())
         mock_uuid.uuid4.return_value = new_refresh
-        token = RefreshToken()
+        token = RefreshToken(user_id=self.USER_ID)
         token.count = 1
         token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(minutes=1)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = token
 
         actual = self.DATABASE.generate_new_refresh_token(refresh)
 
-        assert actual == new_refresh
+        assert actual == {'user_id': self.USER_ID, 'refresh_token': new_refresh}
 
     @patch('svc.db.methods.user_credentials.uuid')
     def test_generate_new_refresh_token__should_insert_new_refresh_token_into_db(self, mock_uuid):
