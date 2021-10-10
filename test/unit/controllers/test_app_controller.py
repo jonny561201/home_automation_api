@@ -15,7 +15,7 @@ class TestLoginController:
     BEARER_TOKEN = jwt.encode({}, 'fake_jwt_secret', algorithm='HS256').decode('UTF-8')
     USER = 'user_name'
     PWORD = 'password'
-    USER_ID = 'fake_user_id'
+    USER_ID = str(uuid.uuid4())
 
     def test_get_login__should_call_validate_credentials_with_post_body(self, mock_jwt, mock_db):
         mock_jwt.extract_credentials.return_value = (self.USER, self.PWORD)
@@ -48,12 +48,13 @@ class TestLoginController:
 
     def test_get_login__should_store_refresh_token_in_db(self, mock_jwt, mock_db):
         mock_jwt.extract_credentials.return_value = (self.USER, self.PWORD)
+        mock_db.return_value.__enter__.return_value.validate_credentials.return_value = {'user_id': self.USER_ID}
         refresh = str(uuid.uuid4())
         mock_jwt.generate_refresh_token.return_value = refresh
 
         get_login(self.BASIC_AUTH_TOKEN)
 
-        mock_db.return_value.__enter__.return_value.insert_refresh_token.assert_called_with(refresh)
+        mock_db.return_value.__enter__.return_value.insert_refresh_token.assert_called_with(self.USER_ID, refresh)
 
     def test_refresh_bearer_token__should_make_call_to_db_to_generate_new_refresh_token(self, mock_jwt, mock_db):
         old_refresh = str(uuid.uuid4())

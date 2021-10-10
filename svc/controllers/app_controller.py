@@ -9,7 +9,7 @@ def get_login(basic_token):
     with UserDatabaseManager() as user_database:
         user_info = user_database.validate_credentials(user_name, pword)
         refresh = jwt_utils.generate_refresh_token()
-        user_database.insert_refresh_token(refresh)
+        user_database.insert_refresh_token(user_info['user_id'], refresh)
         return jwt_utils.create_jwt_token(user_info, refresh)
 
 
