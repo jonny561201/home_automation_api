@@ -13,11 +13,11 @@ def get_login(basic_token):
         return jwt_utils.create_jwt_token(user_info, refresh)
 
 
-def refresh_bearer_token(user_id, old_refresh):
+def refresh_bearer_token(old_refresh):
     with UserDatabaseManager() as database:
-        user_info = database.get_user_info(user_id)
-        new_refresh = database.generate_new_refresh_token(old_refresh)
-        return jwt_utils.create_jwt_token(user_info, new_refresh)
+        refresh_data = database.generate_new_refresh_token(old_refresh)
+        user_info = database.get_user_info(refresh_data['user_id'])
+        return jwt_utils.create_jwt_token(user_info, refresh_data['refresh_token'])
 
 
 def get_user_preferences(bearer_token, user_id):
