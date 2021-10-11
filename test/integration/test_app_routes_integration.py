@@ -54,7 +54,7 @@ class TestAppRoutesIntegration:
         assert actual.data.decode('UTF-8') == 'Success'
 
     def test_login__should_return_400_when_no_header(self):
-        actual = self.TEST_CLIENT.get('login')
+        actual = self.TEST_CLIENT.get('token')
 
         assert actual.status_code == 400
 
@@ -64,7 +64,7 @@ class TestAppRoutesIntegration:
         creds = f'{user_name}:{user_pass}'
         headers = {'Authorization': base64.b64encode(creds.encode())}
 
-        actual = self.TEST_CLIENT.get('login', headers=headers)
+        actual = self.TEST_CLIENT.get('token', headers=headers)
 
         assert actual.status_code == 401
 
@@ -74,7 +74,7 @@ class TestAppRoutesIntegration:
         creds = f'{user_name}:{user_pass}'
         headers = {'Authorization': base64.b64encode(creds.encode())}
 
-        actual = self.TEST_CLIENT.get('login', headers=headers)
+        actual = self.TEST_CLIENT.get('token', headers=headers)
 
         assert actual.status_code == 401
 
@@ -84,7 +84,7 @@ class TestAppRoutesIntegration:
         creds = f'{user_name}:{user_pass}'
         headers = {'Authorization': base64.b64encode(creds.encode())}
 
-        actual = self.TEST_CLIENT.get('login', headers=headers)
+        actual = self.TEST_CLIENT.get('token', headers=headers)
 
         assert actual.status_code == 200
 

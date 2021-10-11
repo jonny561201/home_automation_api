@@ -4,9 +4,8 @@ import uuid
 
 from mock import patch, ANY
 
-from svc.routes.app_routes import app_login, get_user_preferences_by_user_id, update_user_preferences_by_user_id, \
-    get_user_tasks_by_user_id, delete_user_tasks_by_user_id, insert_user_task_by_user_id, update_user_task_by_user_id, \
-    get_refreshed_bearer_token
+from svc.routes.app_routes import get_token, get_user_preferences_by_user_id, update_user_preferences_by_user_id, \
+    get_user_tasks_by_user_id, delete_user_tasks_by_user_id, insert_user_task_by_user_id, update_user_task_by_user_id
 
 
 @patch('svc.routes.app_routes.request')
@@ -20,27 +19,30 @@ class TestAppRoutes:
     ENCODED_CREDS = base64.b64encode(CREDS).decode('UTF-8')
     AUTH_HEADER = {"Authorization": "Basic " + ENCODED_CREDS}
 
-    def test_app_login__should_respond_with_success_status_code(self, mock_controller, mock_request):
+    def test_token__should_respond_with_success_status_code(self, mock_controller, mock_request):
         mock_request.headers = self.AUTH_HEADER
+        mock_request.method = 'GET'
         mock_controller.get_login.return_value = self.FAKE_JWT_TOKEN
 
-        actual = app_login()
+        actual = get_token()
 
         assert actual.status_code == 200
 
-    def test_app_login__should_respond_with_success_login_response(self, mock_controller, mock_request):
+    def test_token__should_respond_with_success_login_response(self, mock_controller, mock_request):
         mock_request.headers = self.AUTH_HEADER
+        mock_request.method = 'GET'
         mock_controller.get_login.return_value = self.FAKE_JWT_TOKEN
 
-        actual = app_login()
+        actual = get_token()
         json_actual = json.loads(actual.data)
 
         assert json_actual['bearerToken'] == self.FAKE_JWT_TOKEN.decode('UTF-8')
 
-    def test_app_login__should_call_get_login(self, mock_controller, mock_request):
+    def test_token__should_call_get_login(self, mock_controller, mock_request):
         mock_request.headers = self.AUTH_HEADER
+        mock_request.method = 'GET'
         mock_controller.get_login.return_value = self.FAKE_JWT_TOKEN
-        app_login()
+        get_token()
 
         expected_bearer = "Basic " + self.ENCODED_CREDS
         mock_controller.get_login.assert_called_with(expected_bearer)
@@ -256,32 +258,32 @@ class TestAppRoutes:
 
         assert json.loads(actual.data) == response
 
-    def test_get_refreshed_bearer_token__should_call_app_controller_with_old_refresh_token(self, mock_controller, mock_requests):
+    def test_token__should_call_app_controller_with_old_refresh_token(self, mock_controller, mock_requests):
         old_refresh = str(uuid.uuid4())
         mock_requests.data = json.dumps({'refresh_token': old_refresh})
         mock_controller.refresh_bearer_token.return_value = self.FAKE_JWT_TOKEN
-        get_refreshed_bearer_token()
+        get_token()
 
         mock_controller.refresh_bearer_token.assert_called_with(old_refresh)
 
-    def test_get_refreshed_bearer_token__should_return_success_status_code(self, mock_controller, mock_requests):
+    def test_token__should_return_success_status_code(self, mock_controller, mock_requests):
         mock_requests.data = json.dumps({'refresh_token': str(uuid.uuid4())})
         mock_controller.refresh_bearer_token.return_value = self.FAKE_JWT_TOKEN
-        actual = get_refreshed_bearer_token()
+        actual = get_token()
 
         assert actual.status_code == 200
 
-    def test_get_refreshed_bearer_token__should_return_success_content_type(self, mock_controller, mock_requests):
+    def test_token__should_return_success_content_type(self, mock_controller, mock_requests):
         mock_requests.data = json.dumps({'refresh_token': str(uuid.uuid4())})
         mock_controller.refresh_bearer_token.return_value = self.FAKE_JWT_TOKEN
-        actual = get_refreshed_bearer_token()
+        actual = get_token()
 
         assert actual.content_type == 'text/json'
 
-    def test_get_refreshed_bearer_token__should_return_response_data(self, mock_controller, mock_requests):
+    def test_token__should_return_response_data(self, mock_controller, mock_requests):
         mock_requests.data = json.dumps({'refresh_token': str(uuid.uuid4())})
         mock_controller.refresh_bearer_token.return_value = self.FAKE_JWT_TOKEN
-        actual = get_refreshed_bearer_token()
+        actual = get_token()
 
         json_actual = json.loads(actual.data)
         assert json_actual['bearerToken'] == self.FAKE_JWT_TOKEN.decode('UTF-8')

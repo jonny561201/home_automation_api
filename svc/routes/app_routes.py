@@ -13,11 +13,15 @@ def health_check():
     return "Success"
 
 
-@APP_BLUEPRINT.route('/login', methods=['GET'])
-def app_login():
-    basic_token = request.headers.get('Authorization')
-    jwt_token = app_controller.get_login(basic_token)
-    return Response(json.dumps({'bearerToken': jwt_token.decode('UTF-8')}), status=200, headers=DEFAULT_HEADERS)
+@APP_BLUEPRINT.route('/token', methods=['GET', 'POST'])
+def get_token():
+    if request.method == 'GET':
+        basic_token = request.headers.get('Authorization')
+        token = app_controller.get_login(basic_token)
+    else:
+        body = json.loads(request.data)
+        token = app_controller.refresh_bearer_token(body['refresh_token'])
+    return Response(json.dumps({'bearerToken': token.decode('UTF-8')}), status=200, headers=DEFAULT_HEADERS)
 
 
 @APP_BLUEPRINT.route('/userId/<user_id>/preferences', methods=['GET'])
@@ -61,10 +65,3 @@ def update_user_task_by_user_id(user_id):
     bearer_token = request.headers.get('Authorization')
     task = app_controller.update_user_task(bearer_token, user_id, request.data)
     return Response(json.dumps(task), status=200, headers=DEFAULT_HEADERS)
-
-
-@APP_BLUEPRINT.route('/token', methods=['POST'])
-def get_refreshed_bearer_token():
-    body = json.loads(request.data)
-    new_token = app_controller.refresh_bearer_token(body['refresh_token'])
-    return Response(json.dumps({'bearerToken': new_token.decode('UTF-8')}), status=200, headers=DEFAULT_HEADERS)
