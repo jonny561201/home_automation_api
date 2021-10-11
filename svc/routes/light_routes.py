@@ -2,10 +2,10 @@ import json
 
 from flask import request, Response, Blueprint
 
+from svc.constants.home_automation import DEFAULT_HEADERS
 from svc.controllers import light_controller
 
 LIGHT_BLUEPRINT = Blueprint('light_blueprint', __name__, url_prefix="/lights")
-DEFAULT_HEADERS = {'Content-Type': 'text/json'}
 
 
 @LIGHT_BLUEPRINT.route('/groups', methods=['GET'])

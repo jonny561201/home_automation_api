@@ -2,11 +2,11 @@ import json
 
 from flask import request, Response, Blueprint
 
+from svc.constants.home_automation import DEFAULT_HEADERS
 from svc.controllers import devices_controller
 
 
 DEVICES_BLUEPRINT = Blueprint('devices_routes', __name__, url_prefix='/devices')
-DEFAULT_HEADERS = {'Content-Type': 'text/json'}
 
 
 @DEVICES_BLUEPRINT.route('/userId/<user_id>/devices', methods=['POST'])

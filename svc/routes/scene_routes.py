@@ -2,11 +2,11 @@ import json
 
 from flask import request, Response, Blueprint
 
+from svc.constants.home_automation import DEFAULT_HEADERS
 from svc.controllers import scene_controller
 
 
 SCENE_BLUEPRINT = Blueprint('scene_routes', __name__, url_prefix='/scenes')
-DEFAULT_HEADERS = {'Content-Type': 'text/json'}
 
 
 @SCENE_BLUEPRINT.route('/userId/<user_id>', methods=['GET'])

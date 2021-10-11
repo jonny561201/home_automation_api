@@ -2,10 +2,10 @@ from flask import Response, Blueprint
 from flask import json
 from flask import request
 
+from svc.constants.home_automation import DEFAULT_HEADERS
 from svc.controllers import garage_door_controller
 
 GARAGE_BLUEPRINT = Blueprint('garage_blueprint', __name__, url_prefix='/garageDoor')
-DEFAULT_HEADERS = {'Content-Type': 'text/json'}
 
 
 @GARAGE_BLUEPRINT.route('/<garage_id>/user/<user_id>/status', methods=['GET'])

@@ -2,10 +2,10 @@ import json
 
 from flask import Blueprint, request, Response
 
+from svc.constants.home_automation import DEFAULT_HEADERS
 from svc.controllers import app_controller
 
 APP_BLUEPRINT = Blueprint('app_routes', __name__)
-DEFAULT_HEADERS = {'Content-Type': 'text/json'}
 
 
 @APP_BLUEPRINT.route('/healthCheck')

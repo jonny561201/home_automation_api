@@ -1,9 +1,9 @@
 from flask import Blueprint, request, Response
 
+from svc.constants.home_automation import DEFAULT_HEADERS
 from svc.controllers.thermostat_controller import get_user_temp, set_user_temperature
 
 THERMOSTAT_BLUEPRINT = Blueprint('thermostat_blueprint', __name__, url_prefix='/thermostat')
-DEFAULT_HEADERS = {'Content-Type': 'text/json'}
 
 
 @THERMOSTAT_BLUEPRINT.route('/temperature/<user_id>', methods=['GET'])

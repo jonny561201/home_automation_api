@@ -2,10 +2,10 @@ import json
 
 from flask import Blueprint, request, Response
 
+from svc.constants.home_automation import DEFAULT_HEADERS
 from svc.controllers import account_controller
 
 ACCOUNT_BLUEPRINT = Blueprint('account_routes', __name__, url_prefix='/account')
-DEFAULT_HEADERS = {'Content-Type': 'text/json'}
 
 
 @ACCOUNT_BLUEPRINT.route('/userId/<user_id>/updateAccount', methods=['POST'])

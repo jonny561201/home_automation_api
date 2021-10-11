@@ -1,3 +1,5 @@
+DEFAULT_HEADERS = {'Content-Type': 'text/json'}
+
 class Mode:
     BLOWER = 'blower'
     COOLING = 'cooling'
