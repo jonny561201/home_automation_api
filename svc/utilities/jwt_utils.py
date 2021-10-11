@@ -1,11 +1,10 @@
-import base64
 import uuid
 from datetime import timedelta, datetime
 
 import jwt
 import pytz
 from jwt import DecodeError, ExpiredSignatureError, InvalidSignatureError
-from werkzeug.exceptions import Unauthorized, BadRequest
+from werkzeug.exceptions import Unauthorized
 
 from svc.constants.settings_state import Settings
 
@@ -26,16 +25,6 @@ def create_jwt_token(user_info, refresh_token):
 
 def generate_refresh_token():
     return str(uuid.uuid4())
-
-
-def extract_credentials(bearer_token):
-    if bearer_token is None or bearer_token == '':
-        raise BadRequest
-    encoded_token = bearer_token.replace('Basic ', '')
-    decoded_token = base64.b64decode(encoded_token).decode('UTF-8')
-
-    credentials = decoded_token.split(':')
-    return credentials[0], credentials[1]
 
 
 def _parse_jwt_token(jwt_token):

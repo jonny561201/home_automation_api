@@ -13,13 +13,12 @@ def health_check():
     return "Success"
 
 
-@APP_BLUEPRINT.route('/token', methods=['GET', 'POST'])
+@APP_BLUEPRINT.route('/token', methods=['POST'])
 def get_token():
-    if request.method == 'GET':
-        basic_token = request.headers.get('Authorization')
-        token = app_controller.get_login(basic_token)
-    else:
-        body = json.loads(request.data)
+    body = json.loads(request.data)
+    if body['grant_type'] == 'client_credentials':
+        token = app_controller.get_login(body['client_id'], body['client_secret'])
+    elif body['grant_type'] == 'refresh_token':
         token = app_controller.refresh_bearer_token(body['refresh_token'])
     return Response(json.dumps({'bearerToken': token.decode('UTF-8')}), status=200, headers=DEFAULT_HEADERS)
 

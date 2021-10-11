@@ -11,23 +11,15 @@ from svc.controllers.app_controller import get_login, get_user_preferences, save
 @patch('svc.controllers.app_controller.UserDatabaseManager')
 @patch('svc.controllers.app_controller.jwt_utils')
 class TestLoginController:
-    BASIC_AUTH_TOKEN = 'not_a_real_auth_token'
     BEARER_TOKEN = jwt.encode({}, 'fake_jwt_secret', algorithm='HS256').decode('UTF-8')
     USER = 'user_name'
     PWORD = 'password'
     USER_ID = str(uuid.uuid4())
 
     def test_get_login__should_call_validate_credentials_with_post_body(self, mock_jwt, mock_db):
-        mock_jwt.extract_credentials.return_value = (self.USER, self.PWORD)
-        get_login(self.BASIC_AUTH_TOKEN)
+        get_login(self.USER, self.PWORD)
 
         mock_db.return_value.__enter__.return_value.validate_credentials.assert_called_with(self.USER, self.PWORD)
-
-    def test_get_login__should_call_extract_credentials(self, mock_jwt, mock_db):
-        mock_jwt.extract_credentials.return_value = (self.USER, self.PWORD)
-        get_login(self.BASIC_AUTH_TOKEN)
-
-        mock_jwt.extract_credentials.assert_called_with(self.BASIC_AUTH_TOKEN)
 
     def test_get_login__should_call_create_jwt_token_with_database_response(self, mock_jwt, mock_db):
         user_info = {'user_id': 'sdfasdf', 'role_name': 'lighting'}
@@ -35,14 +27,14 @@ class TestLoginController:
         mock_jwt.generate_refresh_token.return_value = refresh
         mock_db.return_value.__enter__.return_value.validate_credentials.return_value = user_info
         mock_jwt.extract_credentials.return_value = (self.USER, self.PWORD)
-        get_login(self.BASIC_AUTH_TOKEN)
+        get_login(self.USER, self.PWORD)
 
         mock_jwt.create_jwt_token.assert_called_with(user_info, refresh)
 
     def test_get_login__should_return_response_from_jwt_service(self, mock_jwt, mock_db):
         mock_jwt.extract_credentials.return_value = (self.USER, self.PWORD)
         mock_jwt.create_jwt_token.return_value = self.BEARER_TOKEN
-        actual = get_login(self.BASIC_AUTH_TOKEN)
+        actual = get_login(self.USER, self.PWORD)
 
         assert actual == self.BEARER_TOKEN
 
@@ -52,7 +44,7 @@ class TestLoginController:
         refresh = str(uuid.uuid4())
         mock_jwt.generate_refresh_token.return_value = refresh
 
-        get_login(self.BASIC_AUTH_TOKEN)
+        get_login(self.USER, self.PWORD)
 
         mock_db.return_value.__enter__.return_value.insert_refresh_token.assert_called_with(self.USER_ID, refresh)
 
@@ -89,12 +81,12 @@ class TestLoginController:
         assert actual == self.BEARER_TOKEN
 
     def test_get_user_preferences__should_validate_bearer_token(self, mock_jwt, mock_db):
-        get_user_preferences(self.BASIC_AUTH_TOKEN, self.USER_ID)
+        get_user_preferences(self.BEARER_TOKEN, self.USER_ID)
 
-        mock_jwt.is_jwt_valid.assert_called_with(self.BASIC_AUTH_TOKEN)
+        mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
 
     def test_get_user_preferences__should_call_get_preferences_by_user(self, mock_jwt, mock_db):
-        get_user_preferences(self.BASIC_AUTH_TOKEN, self.USER_ID)
+        get_user_preferences(self.BEARER_TOKEN, self.USER_ID)
 
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.assert_called_with(self.USER_ID)
 
@@ -102,7 +94,7 @@ class TestLoginController:
         prefs = {'unit': 'imperial', 'city': 'Des Moines'}
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = prefs
 
-        actual = get_user_preferences(self.BASIC_AUTH_TOKEN, self.USER_ID)
+        actual = get_user_preferences(self.BEARER_TOKEN, self.USER_ID)
 
         assert actual == prefs
 

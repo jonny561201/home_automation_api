@@ -1,4 +1,3 @@
-import base64
 import json
 import os
 import uuid
@@ -53,38 +52,30 @@ class TestAppRoutesIntegration:
         assert actual.status_code == 200
         assert actual.data.decode('UTF-8') == 'Success'
 
-    def test_login__should_return_400_when_no_header(self):
-        actual = self.TEST_CLIENT.get('token')
-
-        assert actual.status_code == 400
-
     def test_login__should_return_401_when_invalid_user(self):
         user_name = 'not_real_user'
         user_pass = 'wrongPass'
-        creds = f'{user_name}:{user_pass}'
-        headers = {'Authorization': base64.b64encode(creds.encode())}
+        request = {'grant_type': 'client_credentials', 'client_id': user_name, 'client_secret': user_pass}
 
-        actual = self.TEST_CLIENT.get('token', headers=headers)
+        actual = self.TEST_CLIENT.post('token', data=json.dumps(request))
 
         assert actual.status_code == 401
 
     def test_login__should_return_401_when_invalid_password(self):
-        user_name = 'Jonny561201'
+        user_name = 'not_real_user'
         user_pass = 'wrongPass'
-        creds = f'{user_name}:{user_pass}'
-        headers = {'Authorization': base64.b64encode(creds.encode())}
+        request = {'grant_type': 'client_credentials', 'client_id': user_name, 'client_secret': user_pass}
 
-        actual = self.TEST_CLIENT.get('token', headers=headers)
+        actual = self.TEST_CLIENT.post('token', data=json.dumps(request))
 
         assert actual.status_code == 401
 
     def test_login__should_return_success_when_user_valid(self):
         user_name = 'Jonny561201'
         user_pass = 'password'
-        creds = f'{user_name}:{user_pass}'
-        headers = {'Authorization': base64.b64encode(creds.encode())}
+        request = {'grant_type': 'client_credentials', 'client_id': user_name, 'client_secret': user_pass}
 
-        actual = self.TEST_CLIENT.get('token', headers=headers)
+        actual = self.TEST_CLIENT.post('token', data=json.dumps(request))
 
         assert actual.status_code == 200
 
@@ -263,7 +254,7 @@ class TestRefreshTokenApp:
         os.environ.pop('SQL_PORT')
 
     def test_get_refreshed_bearer_token__should_return_forbidden_when_token_count_expired(self):
-        request_data = {'refresh_token': self.BAD_TOKEN}
+        request_data = {'refresh_token': self.BAD_TOKEN, 'grant_type': 'refresh_token'}
         actual = self.TEST_CLIENT.post(f'token', data=json.dumps(request_data))
 
         assert actual.status_code == 403

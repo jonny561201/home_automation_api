@@ -4,10 +4,9 @@ from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.utilities import jwt_utils
 
 
-def get_login(basic_token):
-    user_name, pword = jwt_utils.extract_credentials(basic_token)
+def get_login(client_id, client_secret):
     with UserDatabaseManager() as user_database:
-        user_info = user_database.validate_credentials(user_name, pword)
+        user_info = user_database.validate_credentials(client_id, client_secret)
         refresh = jwt_utils.generate_refresh_token()
         user_database.insert_refresh_token(user_info['user_id'], refresh)
         return jwt_utils.create_jwt_token(user_info, refresh)

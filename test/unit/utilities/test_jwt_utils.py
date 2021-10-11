@@ -1,4 +1,3 @@
-import base64
 import uuid
 from datetime import datetime, timedelta
 
@@ -6,10 +5,10 @@ import jwt
 import pytest
 import pytz
 from mock import patch
-from werkzeug.exceptions import Unauthorized, BadRequest
+from werkzeug.exceptions import Unauthorized
 
 from svc.constants.settings_state import Settings
-from svc.utilities.jwt_utils import is_jwt_valid, create_jwt_token, extract_credentials, generate_refresh_token
+from svc.utilities.jwt_utils import is_jwt_valid, create_jwt_token, generate_refresh_token
 
 
 class TestJwt:
@@ -83,38 +82,6 @@ class TestJwt:
         actual = generate_refresh_token()
 
         assert actual == str(refresh)
-
-    def test_extract_credentials__should_return_valid_credentials(self):
-        user = "user"
-        pword = "password"
-        creds = "%s:%s" % (user, pword)
-        encoded_token = base64.b64encode(creds.encode())
-        bearer_token = "Basic %s" % encoded_token.decode('UTF-8')
-
-        actual_user, actual_pass = extract_credentials(bearer_token)
-
-        assert actual_pass == pword
-        assert actual_user == user
-
-    def test_extract_credentials__should_return_valid_credentials_when_missing_basic(self):
-        user = "user"
-        pword = "password"
-        creds = "%s:%s" % (user, pword)
-        encoded_token = base64.b64encode(creds.encode())
-        bearer_token = encoded_token.decode('UTF-8')
-
-        actual_user, actual_pass = extract_credentials(bearer_token)
-
-        assert actual_pass == pword
-        assert actual_user == user
-
-    def test_extract_credentials__should_throw_bad_request_when_no_token(self):
-        with pytest.raises(BadRequest):
-            extract_credentials(None)
-
-    def test_extract_credentials__should(self):
-        with pytest.raises(BadRequest):
-            extract_credentials("")
 
     def test_is_jwt_valid__should_raise_exception_if_secret_is_not_set(self):
         self.SETTINGS.settings = {'DevJwtSecret': ''}
