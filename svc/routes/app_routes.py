@@ -1,6 +1,7 @@
 import json
 
 from flask import Blueprint, request, Response
+from werkzeug.exceptions import Unauthorized
 
 from svc.constants.home_automation import DEFAULT_HEADERS
 from svc.controllers import app_controller
@@ -20,6 +21,8 @@ def get_token():
         token = app_controller.get_login(body['client_id'], body['client_secret'])
     elif body['grant_type'] == 'refresh_token':
         token = app_controller.refresh_bearer_token(body['refresh_token'])
+    else:
+        raise Unauthorized()
     return Response(json.dumps({'bearerToken': token.decode('UTF-8')}), status=200, headers=DEFAULT_HEADERS)
 
 

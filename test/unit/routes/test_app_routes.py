@@ -1,8 +1,9 @@
 import json
-import json
 import uuid
 
+import pytest
 from mock import patch, ANY
+from werkzeug.exceptions import Unauthorized
 
 from svc.routes.app_routes import get_token, get_user_preferences_by_user_id, update_user_preferences_by_user_id, \
     get_user_tasks_by_user_id, delete_user_tasks_by_user_id, insert_user_task_by_user_id, update_user_task_by_user_id
@@ -280,3 +281,8 @@ class TestAppRoutes:
 
         json_actual = json.loads(actual.data)
         assert json_actual['bearerToken'] == self.FAKE_JWT_TOKEN.decode('UTF-8')
+
+    def test_token__should_raise_bad_request_when_wrong_grant_type(self, mock_controller, mock_requests):
+        mock_requests.data = json.dumps({'grant_type': 'bearer'})
+        with pytest.raises(Unauthorized):
+            get_token()
