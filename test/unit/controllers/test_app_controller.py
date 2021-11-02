@@ -64,11 +64,15 @@ class TestLoginController:
 
         mock_db.return_value.__enter__.return_value.insert_refresh_token.assert_called_with(self.USER_ID, refresh, expected_date)
 
-    def test_refresh_bearer_token__should_make_call_to_db_to_generate_new_refresh_token(self, mock_jwt, mock_db):
+    @patch('svc.controllers.app_controller.datetime')
+    def test_refresh_bearer_token__should_make_call_to_db_to_generate_new_refresh_token(self, mock_date, mock_jwt, mock_db):
         old_refresh = str(uuid.uuid4())
+        now = datetime.now()
+        mock_date.now.return_value = now
         refresh_bearer_token(old_refresh)
+        expected_date = now + timedelta(hours=12)
 
-        mock_db.return_value.__enter__.return_value.generate_new_refresh_token.assert_called_with(old_refresh)
+        mock_db.return_value.__enter__.return_value.generate_new_refresh_token.assert_called_with(old_refresh, expected_date)
 
     def test_refresh_bearer_token__should_make_call_to_get_user_info_from_db(self, mock_jwt, mock_db):
         old_refresh = str(uuid.uuid4())
@@ -78,16 +82,20 @@ class TestLoginController:
 
         mock_db.return_value.__enter__.return_value.get_user_info.assert_called_with(self.USER_ID)
 
-    def test_refresh_bearer_token__should_have_jwt_util_create_new_bearer_token(self, mock_jwt, mock_db):
+    @patch('svc.controllers.app_controller.datetime')
+    def test_refresh_bearer_token__should_have_jwt_util_create_new_bearer_token(self, mock_date, mock_jwt, mock_db):
         old_refresh = str(uuid.uuid4())
         new_refresh = str(uuid.uuid4())
+        now = datetime.now()
+        mock_date.now.return_value = now
         user_info = {'first_name': 'Paul', 'last_name': 'Atreides'}
         refresh_data = {'user_id': self.USER_ID, 'refresh_token': new_refresh}
         mock_db.return_value.__enter__.return_value.generate_new_refresh_token.return_value = refresh_data
         mock_db.return_value.__enter__.return_value.get_user_info.return_value = user_info
         refresh_bearer_token(old_refresh)
+        expected_date = now + timedelta(hours=12)
 
-        mock_jwt.create_jwt_token.assert_called_with(user_info, new_refresh)
+        mock_jwt.create_jwt_token.assert_called_with(user_info, new_refresh, expected_date)
 
     def test_refresh_bearer_token__should_return_the_new_bearer_token(self, mock_jwt, mock_db):
         old_refresh = str(uuid.uuid4())

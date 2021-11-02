@@ -151,8 +151,9 @@ class TestRefreshTokenIntegration:
     VALID_TOKEN = str(uuid.uuid4())
     WORN_TOKEN = str(uuid.uuid4())
     EXPIRED_TOKEN = str(uuid.uuid4())
-    EXPIRE = datetime.datetime.now(tz=pytz.timezone('US/Central')) + datetime.timedelta(hours=12)
-    EXPIRED = datetime.datetime.now(tz=pytz.timezone('US/Central')) - datetime.timedelta(minutes=5)
+    NOW = datetime.datetime.now(tz=pytz.timezone('US/Central'))
+    EXPIRE = NOW + datetime.timedelta(hours=12)
+    EXPIRED = NOW - datetime.timedelta(minutes=5)
 
     def setup_method(self):
         os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
@@ -178,7 +179,7 @@ class TestRefreshTokenIntegration:
 
     def test_insert_refresh_token__should_insert_token_to_db(self):
         token = str(uuid.uuid4())
-        expire = datetime.datetime.now(tz=pytz.timezone('US/Central')) + datetime.timedelta(hours=12)
+        expire = self.NOW + datetime.timedelta(hours=12)
         with UserDatabaseManager() as database:
             database.insert_refresh_token(self.USER_ID, token, expire)
 
@@ -191,7 +192,7 @@ class TestRefreshTokenIntegration:
 
     def test_insert_refresh_token__should_delete_existing_tokens_for_a_user(self):
         token = str(uuid.uuid4())
-        expire = datetime.datetime.now(tz=pytz.timezone('US/Central')) + datetime.timedelta(hours=12)
+        expire = self.NOW + datetime.timedelta(hours=12)
         with UserDatabaseManager() as database:
             database.insert_refresh_token(self.USER_ID, token, expire)
 
@@ -203,24 +204,24 @@ class TestRefreshTokenIntegration:
         missing_refresh = str(uuid.uuid4())
         with pytest.raises(Forbidden):
             with UserDatabaseManager() as database:
-                database.generate_new_refresh_token(missing_refresh)
+                database.generate_new_refresh_token(missing_refresh, self.NOW)
 
     def test_generate_new_refresh_token__should_raise_forbidden_when_token_has_expired(self):
         with pytest.raises(Forbidden):
             with UserDatabaseManager() as database:
-                database.generate_new_refresh_token(self.EXPIRED_TOKEN)
+                database.generate_new_refresh_token(self.EXPIRED_TOKEN, self.NOW)
 
     def test_generate_new_refresh_token__should_raise_forbidden_when_token_has_worn_out(self):
         with pytest.raises(Forbidden):
             with UserDatabaseManager() as database:
-                database.generate_new_refresh_token(self.WORN_TOKEN)
+                database.generate_new_refresh_token(self.WORN_TOKEN, self.NOW)
 
     @patch('svc.db.methods.user_credentials.uuid')
     def test_generate_new_refresh_token__should_return_a_valid_token(self, mock_uuid):
         new_refresh = str(uuid.uuid4())
         mock_uuid.uuid4.return_value = new_refresh
         with UserDatabaseManager() as database:
-            actual = database.generate_new_refresh_token(self.VALID_TOKEN)
+            actual = database.generate_new_refresh_token(self.VALID_TOKEN, self.NOW)
             assert actual == {'user_id': self.USER_ID, 'refresh_token': new_refresh}
 
 

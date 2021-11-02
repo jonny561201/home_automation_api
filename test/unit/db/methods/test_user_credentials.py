@@ -23,6 +23,7 @@ class TestUserDatabase:
     ROLE_ID = 'dcba4321'
     SESSION = None
     DATABASE = None
+    NOW = datetime.now(tz=pytz.timezone('US/Central'))
 
     def setup_method(self, _):
         self.SESSION = mock.create_autospec(orm.scoped_session)
@@ -145,7 +146,7 @@ class TestUserDatabase:
         token.count = 1
         token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(minutes=1)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = token
-        self.DATABASE.generate_new_refresh_token(refresh)
+        self.DATABASE.generate_new_refresh_token(refresh, self.NOW)
         self.SESSION.query.assert_called_with(RefreshToken)
         self.SESSION.query.return_value.filter_by.assert_called_with(refresh=refresh)
         self.SESSION.query.return_value.filter_by.return_value.first.assert_called()
@@ -155,7 +156,7 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
 
         with pytest.raises(Forbidden):
-            self.DATABASE.generate_new_refresh_token(refresh)
+            self.DATABASE.generate_new_refresh_token(refresh, self.NOW)
 
     def test_generate_new_refresh_token__should_raise_unauthorized_if_token_has_expired(self):
         refresh = str(uuid.uuid4())
@@ -164,7 +165,7 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = expired_token
 
         with pytest.raises(Forbidden):
-            self.DATABASE.generate_new_refresh_token(refresh)
+            self.DATABASE.generate_new_refresh_token(refresh, self.NOW)
 
     def test_generate_new_refresh_token__should_raise_unauthorized_token_count_has_expired(self):
         refresh = str(uuid.uuid4())
@@ -174,7 +175,7 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = expired_token
 
         with pytest.raises(Forbidden):
-            self.DATABASE.generate_new_refresh_token(refresh)
+            self.DATABASE.generate_new_refresh_token(refresh, self.NOW)
 
     def test_generate_new_refresh_token__should_raise_unauthorized_token_count_is_below_zero(self):
         refresh = str(uuid.uuid4())
@@ -184,7 +185,7 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = expired_token
 
         with pytest.raises(Forbidden):
-            self.DATABASE.generate_new_refresh_token(refresh)
+            self.DATABASE.generate_new_refresh_token(refresh, self.NOW)
 
     @patch('svc.db.methods.user_credentials.uuid')
     def test_generate_new_refresh_token__should_return_a_new_refresh_token(self, mock_uuid):
@@ -196,7 +197,7 @@ class TestUserDatabase:
         token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(minutes=1)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = token
 
-        actual = self.DATABASE.generate_new_refresh_token(refresh)
+        actual = self.DATABASE.generate_new_refresh_token(refresh, self.NOW)
 
         assert actual == {'user_id': self.USER_ID, 'refresh_token': new_refresh}
 
@@ -210,10 +211,10 @@ class TestUserDatabase:
         token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(minutes=1)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = token
 
-        self.DATABASE.generate_new_refresh_token(refresh)
+        self.DATABASE.generate_new_refresh_token(refresh, self.NOW)
 
         assert token.refresh == new_refresh
-        assert token.expire_time > datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=11)
+        assert token.expire_time == self.NOW
 
     @patch('svc.db.methods.user_credentials.uuid')
     def test_generate_new_refresh_token__should_reduce_refresh_count(self, mock_uuid):
@@ -225,7 +226,7 @@ class TestUserDatabase:
         token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(minutes=1)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = token
 
-        self.DATABASE.generate_new_refresh_token(refresh)
+        self.DATABASE.generate_new_refresh_token(refresh, self.NOW)
 
         assert token.count == 9
 

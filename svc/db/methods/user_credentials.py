@@ -1,5 +1,5 @@
 import uuid
-from datetime import time, datetime, timedelta
+from datetime import time, datetime
 
 import pytz
 from sqlalchemy import orm, create_engine
@@ -56,13 +56,13 @@ class UserDatabase:
         token = RefreshToken(refresh=refresh_token, count=10, user_id=user_id, expire_time=expire)
         self.session.add(token)
 
-    def generate_new_refresh_token(self, refresh_token):
+    def generate_new_refresh_token(self, refresh_token, expire):
         token = self.session.query(RefreshToken).filter_by(refresh=refresh_token).first()
         if token is None or token.expire_time < datetime.now(tz=pytz.timezone('US/Central')) or token.count <= 0:
             raise Forbidden
         new_refresh = str(uuid.uuid4())
         token.refresh = new_refresh
-        token.expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=12)
+        token.expire_time = expire
         token.count -= 1
         return {'user_id': token.user_id, 'refresh_token': new_refresh}
 
