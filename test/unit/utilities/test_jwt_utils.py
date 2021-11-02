@@ -59,19 +59,16 @@ class TestJwt:
 
         is_jwt_valid(jwt_token)
 
-    @patch('svc.utilities.jwt_utils.datetime')
-    def test_create_jwt_token__should_return_a_valid_token(self, mock_date):
+    def test_create_jwt_token__should_return_a_valid_token(self):
         refresh = str(uuid.uuid4())
-        now = datetime.now(pytz.timezone('US/Central'))
-        mock_date.now.return_value = now
-        expected_expiration = now + timedelta(hours=8)
-        truncated_expiration = (str(expected_expiration.timestamp() * 1000))[:10]
+        now = datetime.now(pytz.timezone('US/Central')) + timedelta(hours=12)
+        truncated_expiration = (str(now.timestamp() * 1000))[:10]
         expected_id = 12345
         expected_token_body = {'user': expected_id,
                                'refresh_token': refresh,
                                'exp': int(truncated_expiration)}
 
-        actual = create_jwt_token(expected_id, refresh)
+        actual = create_jwt_token(expected_id, refresh, now)
 
         assert jwt.decode(actual, self.JWT_SECRET, algorithms='HS256') == expected_token_body
 
