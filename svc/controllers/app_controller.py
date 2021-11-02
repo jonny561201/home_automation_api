@@ -1,4 +1,7 @@
+from datetime import datetime, timedelta
 import json
+
+import pytz
 
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.utilities import jwt_utils
@@ -8,6 +11,7 @@ def get_login(client_id, client_secret):
     with UserDatabaseManager() as user_database:
         user_info = user_database.validate_credentials(client_id, client_secret)
         refresh = jwt_utils.generate_refresh_token()
+        expire = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(minutes=4)
         user_database.insert_refresh_token(user_info['user_id'], refresh)
         return jwt_utils.create_jwt_token(user_info, refresh)
 

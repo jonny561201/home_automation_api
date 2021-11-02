@@ -1,7 +1,9 @@
 import json
 import uuid
+from datetime import timedelta
 
 import jwt
+import pytz
 from mock import patch, ANY
 
 from svc.controllers.app_controller import get_login, get_user_preferences, save_user_preferences, get_user_tasks, \
@@ -30,6 +32,12 @@ class TestLoginController:
         get_login(self.USER, self.PWORD)
 
         mock_jwt.create_jwt_token.assert_called_with(user_info, refresh)
+
+    @patch('svc.controllers.app_controller.datetime')
+    def test_get_login__should_create_expiration_date(self, mock_date, mock_jwt, mock_db):
+        get_login(self.USER, self.PWORD)
+
+        mock_date.now.assert_called_with(tz=pytz.timezone('US/Central'))
 
     def test_get_login__should_return_response_from_jwt_service(self, mock_jwt, mock_db):
         mock_jwt.extract_credentials.return_value = (self.USER, self.PWORD)
