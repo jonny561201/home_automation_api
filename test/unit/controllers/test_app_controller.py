@@ -1,6 +1,6 @@
 import json
 import uuid
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 import jwt
 import pytz
@@ -23,21 +23,19 @@ class TestLoginController:
 
         mock_db.return_value.__enter__.return_value.validate_credentials.assert_called_with(self.USER, self.PWORD)
 
-    def test_get_login__should_call_create_jwt_token_with_database_response(self, mock_jwt, mock_db):
+    @patch('svc.controllers.app_controller.datetime')
+    def test_get_login__should_call_create_jwt_token_with_database_response(self, mock_date, mock_jwt, mock_db):
         user_info = {'user_id': 'sdfasdf', 'role_name': 'lighting'}
+        now = datetime.now()
+        mock_date.now.return_value = now
         refresh = str(uuid.uuid4())
         mock_jwt.generate_refresh_token.return_value = refresh
         mock_db.return_value.__enter__.return_value.validate_credentials.return_value = user_info
         mock_jwt.extract_credentials.return_value = (self.USER, self.PWORD)
         get_login(self.USER, self.PWORD)
+        expected_date = now + timedelta(hours=12)
 
-        mock_jwt.create_jwt_token.assert_called_with(user_info, refresh)
-
-    @patch('svc.controllers.app_controller.datetime')
-    def test_get_login__should_create_expiration_date(self, mock_date, mock_jwt, mock_db):
-        get_login(self.USER, self.PWORD)
-
-        mock_date.now.assert_called_with(tz=pytz.timezone('US/Central'))
+        mock_jwt.create_jwt_token.assert_called_with(user_info, refresh, expected_date)
 
     def test_get_login__should_return_response_from_jwt_service(self, mock_jwt, mock_db):
         mock_jwt.extract_credentials.return_value = (self.USER, self.PWORD)
@@ -46,15 +44,25 @@ class TestLoginController:
 
         assert actual == self.BEARER_TOKEN
 
-    def test_get_login__should_store_refresh_token_in_db(self, mock_jwt, mock_db):
+    @patch('svc.controllers.app_controller.datetime')
+    def test_get_login__should_create_expiration_date(self, mock_date, mock_jwt, mock_db):
+        get_login(self.USER, self.PWORD)
+
+        mock_date.now.assert_called_with(tz=pytz.timezone('US/Central'))
+
+    @patch('svc.controllers.app_controller.datetime')
+    def test_get_login__should_store_refresh_token_in_db(self, mock_date, mock_jwt, mock_db):
+        now = datetime.now()
+        mock_date.now.return_value = now
         mock_jwt.extract_credentials.return_value = (self.USER, self.PWORD)
         mock_db.return_value.__enter__.return_value.validate_credentials.return_value = {'user_id': self.USER_ID}
         refresh = str(uuid.uuid4())
         mock_jwt.generate_refresh_token.return_value = refresh
+        expected_date = now + timedelta(hours=12)
 
         get_login(self.USER, self.PWORD)
 
-        mock_db.return_value.__enter__.return_value.insert_refresh_token.assert_called_with(self.USER_ID, refresh)
+        mock_db.return_value.__enter__.return_value.insert_refresh_token.assert_called_with(self.USER_ID, refresh, expected_date)
 
     def test_refresh_bearer_token__should_make_call_to_db_to_generate_new_refresh_token(self, mock_jwt, mock_db):
         old_refresh = str(uuid.uuid4())

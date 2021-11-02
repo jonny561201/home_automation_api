@@ -11,9 +11,9 @@ def get_login(client_id, client_secret):
     with UserDatabaseManager() as user_database:
         user_info = user_database.validate_credentials(client_id, client_secret)
         refresh = jwt_utils.generate_refresh_token()
-        expire = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(minutes=4)
-        user_database.insert_refresh_token(user_info['user_id'], refresh)
-        return jwt_utils.create_jwt_token(user_info, refresh)
+        expire = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=12)
+        user_database.insert_refresh_token(user_info['user_id'], refresh, expire)
+        return jwt_utils.create_jwt_token(user_info, refresh, expire)
 
 
 def refresh_bearer_token(old_refresh):
