@@ -130,6 +130,15 @@ class TestUserDatabase:
 
         self.SESSION.add.assert_called()
 
+    def test_insert_refresh_token__should_delete_existing_tokens(self):
+        refresh = str(uuid.uuid4())
+        expire = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=12)
+        self.DATABASE.insert_refresh_token(self.USER_ID, refresh, expire)
+
+        self.SESSION.query.assert_called_with(RefreshToken)
+        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
+        self.SESSION.query.return_value.filter_by.return_value.delete.assert_called()
+
     def test_generate_new_refresh_token__should_query_for_existing_refresh_token(self):
         refresh = str(uuid.uuid4())
         token = RefreshToken()

@@ -51,8 +51,8 @@ class UserDatabase:
                 'first_name': user.user.first_name,
                 'last_name': user.user.last_name}
 
-    #TODO: should delete all existing tokens???
     def insert_refresh_token(self, user_id, refresh_token, expire):
+        self.session.query(RefreshToken).filter_by(user_id=user_id).delete()
         token = RefreshToken(refresh=refresh_token, count=10, user_id=user_id, expire_time=expire)
         self.session.add(token)
 

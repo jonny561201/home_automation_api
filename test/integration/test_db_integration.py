@@ -178,15 +178,16 @@ class TestRefreshTokenIntegration:
 
     def test_insert_refresh_token__should_insert_token_to_db(self):
         token = str(uuid.uuid4())
+        expire = datetime.datetime.now(tz=pytz.timezone('US/Central')) + datetime.timedelta(hours=12)
         with UserDatabaseManager() as database:
-            database.insert_refresh_token(self.USER_ID, token)
+            database.insert_refresh_token(self.USER_ID, token, expire)
 
         with UserDatabaseManager() as database:
             actual = database.session.query(RefreshToken).filter_by(refresh=token).first()
             assert actual.count == 10
             assert actual.user_id == self.USER_ID
             assert actual.refresh == token
-            assert (actual.expire_time - datetime.timedelta(hours=11)) > datetime.datetime.now(tz=pytz.timezone('US/Central'))
+            assert actual.expire_time == expire
 
     def test_generate_new_refresh_token__should_raise_forbidden_when_no_existing_refresh_token(self):
         missing_refresh = str(uuid.uuid4())
