@@ -125,7 +125,8 @@ class TestUserDatabase:
 
     def test_insert_refresh_token__should_call_add_method(self):
         refresh = str(uuid.uuid4())
-        self.DATABASE.insert_refresh_token(self.USER_ID, refresh)
+        expire = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=12)
+        self.DATABASE.insert_refresh_token(self.USER_ID, refresh, expire)
 
         self.SESSION.add.assert_called()
 

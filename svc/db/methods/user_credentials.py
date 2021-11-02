@@ -51,9 +51,9 @@ class UserDatabase:
                 'first_name': user.user.first_name,
                 'last_name': user.user.last_name}
 
-    def insert_refresh_token(self, user_id, refresh_token):
-        expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=12)
-        token = RefreshToken(refresh=refresh_token, count=10, user_id=user_id, expire_time=expire_time)
+    #TODO: should delete all existing tokens???
+    def insert_refresh_token(self, user_id, refresh_token, expire):
+        token = RefreshToken(refresh=refresh_token, count=10, user_id=user_id, expire_time=expire)
         self.session.add(token)
 
     def generate_new_refresh_token(self, refresh_token):
