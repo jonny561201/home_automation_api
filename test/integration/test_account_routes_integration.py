@@ -5,6 +5,7 @@ import uuid
 import jwt
 from sqlalchemy.orm.exc import ObjectDeletedError
 
+from svc.constants.settings_state import Settings
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserCredentials, UserInformation, ChildAccounts, UserPreference
 from svc.manager import app
@@ -23,6 +24,7 @@ class TestAccountRoutesIntegration:
     EMAIL_APP_ID = 'as;kljdfski;hasdf'
 
     def setup_method(self):
+        Settings.get_instance().dev_mode = False
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
         os.environ.update({'SQL_USERNAME': self.db_user, 'SQL_PASSWORD': self.db_pass, 'JWT_SECRET': self.JWT_SECRET,
