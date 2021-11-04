@@ -11,17 +11,17 @@ def get_login(client_id, client_secret):
     with UserDatabaseManager() as user_database:
         user_info = user_database.validate_credentials(client_id, client_secret)
         refresh = jwt_utils.generate_refresh_token()
-        expire = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=12)
+        expire = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=24)
         user_database.insert_refresh_token(user_info['user_id'], refresh, expire)
-        return jwt_utils.create_jwt_token(user_info, refresh, expire)
+        return jwt_utils.create_jwt_token(user_info, refresh)
 
 
 def refresh_bearer_token(old_refresh):
     with UserDatabaseManager() as database:
-        expire = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=12)
+        expire = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=24)
         refresh_data = database.generate_new_refresh_token(old_refresh, expire)
         user_info = database.get_user_info(refresh_data['user_id'])
-        return jwt_utils.create_jwt_token(user_info, refresh_data['refresh_token'], expire)
+        return jwt_utils.create_jwt_token(user_info, refresh_data['refresh_token'])
 
 
 def get_user_preferences(bearer_token, user_id):

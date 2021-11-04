@@ -1,6 +1,8 @@
 import uuid
+from datetime import timedelta, datetime
 
 import jwt
+import pytz
 from jwt import DecodeError, ExpiredSignatureError, InvalidSignatureError
 from werkzeug.exceptions import Unauthorized
 
@@ -13,11 +15,12 @@ def is_jwt_valid(jwt_token):
     _parse_jwt_token(jwt_token)
 
 
-def create_jwt_token(user_info, refresh_token, expire):
+def create_jwt_token(user_info, refresh_token):
+    expire_time = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=12)
     settings = Settings.get_instance()
     return jwt.encode({'user': user_info,
                        'refresh_token': refresh_token,
-                       'exp': expire}, settings.jwt_secret, algorithm='HS256')
+                       'exp': expire_time}, settings.jwt_secret, algorithm='HS256')
 
 
 def generate_refresh_token():
