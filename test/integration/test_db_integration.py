@@ -373,7 +373,7 @@ class TestDbPreferenceIntegration:
 
     def test_insert_preferences_by_user__should_insert_valid_preferences(self):
         city = 'Vienna'
-        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': False}
+        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': False, 'garageDoor': 2}
         with UserDatabaseManager() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
             database.session.commit()
@@ -381,10 +381,11 @@ class TestDbPreferenceIntegration:
 
             assert actual.city == city
             assert actual.is_fahrenheit is True
+            assert actual.garage_door == 2
 
     def test_insert_preferences_by_user__should_not_fail_when_time_is_none(self):
         city = 'Vienna'
-        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': False}
+        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': False, 'garageDoor': 3}
         with UserDatabaseManager() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
             actual = database.session.query(UserPreference).filter_by(user_id=self.USER_ID).first()
@@ -393,7 +394,7 @@ class TestDbPreferenceIntegration:
             assert actual.is_fahrenheit is True
 
     def test_insert_preferences_by_user__should_not_nullify_city_when_missing(self):
-        preference_info = {'isFahrenheit': False, 'isImperial': True}
+        preference_info = {'isFahrenheit': False, 'isImperial': True, 'garagaeDoor': 2}
         with UserDatabaseManager() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
 
@@ -405,7 +406,7 @@ class TestDbPreferenceIntegration:
 
     def test_insert_preferences_by_user__should_not_nullify_is_fahrenheit_when_missing(self):
         city = 'Lisbon'
-        preference_info = {'city': city, 'isImperial': False}
+        preference_info = {'city': city, 'isImperial': False, 'garageDoor': 1}
         with UserDatabaseManager() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
 
@@ -417,7 +418,7 @@ class TestDbPreferenceIntegration:
 
     def test_insert_preferences_by_user__should_not_nullify_is_imperial_when_missing(self):
         city = 'Lisbon'
-        preference_info = {'city': city, 'isFahrenheit': True}
+        preference_info = {'city': city, 'isFahrenheit': True, 'garageDoor': 1}
         with UserDatabaseManager() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
 
@@ -426,6 +427,19 @@ class TestDbPreferenceIntegration:
             assert actual.city == city
             assert actual.is_fahrenheit is True
             assert actual.is_imperial is True
+
+    def test_insert_preferences_by_user__should_not_nullify_garage_door_when_missing(self):
+        city = 'Lisbon'
+        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': True}
+        with UserDatabaseManager() as database:
+            database.insert_preferences_by_user(self.USER_ID, preference_info)
+
+            actual = database.session.query(UserPreference).filter_by(user_id=self.USER_ID).first()
+
+            assert actual.city == city
+            assert actual.is_fahrenheit is True
+            assert actual.is_imperial is True
+            assert actual.garage_door == 1
 
 
 class TestDbSumpIntegration:
