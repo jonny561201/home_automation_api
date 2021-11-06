@@ -87,7 +87,8 @@ class UserDatabase:
                 'measure_unit': 'imperial' if preference.is_imperial else 'metric',
                 'city': preference.city,
                 'is_fahrenheit': preference.is_fahrenheit,
-                'is_imperial': preference.is_imperial}
+                'is_imperial': preference.is_imperial,
+                'garage_door': preference.garage_door}
 
     def insert_preferences_by_user(self, user_id, preference_info):
         if len(preference_info) == 0 or user_id is None:

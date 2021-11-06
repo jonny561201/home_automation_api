@@ -103,6 +103,7 @@ class UserPreference(Base):
     is_fahrenheit = Column(Boolean, nullable=False)
     is_imperial = Column(Boolean, nullable=False)
     city = Column(String, nullable=True)
+    garage_door = Column(SMALLINT, nullable=True)
 
     user = relationship('UserInformation', foreign_keys='UserPreference.user_id')
 

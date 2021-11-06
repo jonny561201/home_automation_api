@@ -331,6 +331,14 @@ class TestUserDatabase:
 
         self.SESSION.query.assert_not_called()
 
+    def test_get_preferences_by_user__should_return_garage_door_state(self):
+        user = TestUserDatabase.__create_database_user()
+        preference = TestUserDatabase.__create_user_preference(user, 'Fake City', True, False)
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = preference
+        actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
+
+        assert actual['garage_door'] == 1
+
     def test_insert_preferences_by_user__should_call_query(self):
         preference_info = {'isFahrenheit': True, 'isImperial': True, 'city': 'Des Moines', 'lightAlarm': {}}
         user_id = str(uuid.uuid4())
@@ -1235,6 +1243,7 @@ class TestUserDatabase:
         preference.alarm_time = datetime.now().time()
         preference.alarm_days = 'MonTueWedThuFri'
         preference.alarm_group_name = 'bedroom'
+        preference.garage_door = 1
 
         return preference
 
