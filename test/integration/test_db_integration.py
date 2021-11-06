@@ -241,7 +241,7 @@ class TestDbPreferenceIntegration:
                            'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
         self.TASK = ScheduleTasks(user_id=self.USER_ID, id=self.TASK_ID, alarm_light_group=self.LIGHT_GROUP, alarm_group_name=self.GROUP_NAME, alarm_days=self.DAYS, alarm_time=datetime.time.fromisoformat(self.LIGHT_TIME), enabled=True)
-        self.USER_PREFERENCES = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city=self.CITY)
+        self.USER_PREFERENCES = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city=self.CITY, garage_door=1)
         with UserDatabaseManager() as database:
             database.session.add(self.USER)
             database.session.add(self.USER_PREFERENCES)
@@ -272,7 +272,7 @@ class TestDbPreferenceIntegration:
             assert actual[0]['task_id'] == self.TASK_ID
             assert actual[0]['enabled'] == True
             assert actual[0]['task_type'] == task_name
-            
+
     def test_get_schedule_task_by_user__should_return_empty_list_when_no_matches(self):
         user_id = str(uuid.uuid4())
         with UserDatabaseManager() as database:
@@ -363,6 +363,7 @@ class TestDbPreferenceIntegration:
             assert response['city'] == self.CITY
             assert response['is_fahrenheit'] is True
             assert response['is_imperial'] is True
+            assert response['garage_door'] == 1
 
     def test_get_preferences_by_user__should_raise_bad_request_when_no_preferences(self):
         with pytest.raises(BadRequest):
