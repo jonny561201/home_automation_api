@@ -459,6 +459,20 @@ class TestDbPreferenceIntegration:
             assert actual.garage_door == self.GARAGE
             assert actual.garage_id == 1
 
+    def test_insert_preferences_by_user__should_set_garage_id_to_null_when_sent_null(self):
+        city = 'Lisbon'
+        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': True, 'garageId': None}
+        with UserDatabaseManager() as database:
+            database.insert_preferences_by_user(self.USER_ID, preference_info)
+
+            actual = database.session.query(UserPreference).filter_by(user_id=self.USER_ID).first()
+
+            assert actual.city == city
+            assert actual.is_fahrenheit is True
+            assert actual.is_imperial is True
+            assert actual.garage_door == self.GARAGE
+            assert actual.garage_id is None
+
 
 class TestDbSumpIntegration:
     DEPTH = 8.0
