@@ -235,13 +235,14 @@ class TestDbPreferenceIntegration:
     LIGHT_TIME = '02:22:22'
     GROUP_NAME = 'secret room'
     DAYS = 'MonTueWedThuFri'
+    GARAGE = 'Jons'
 
     def setup_method(self):
         os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
                            'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
         self.TASK = ScheduleTasks(user_id=self.USER_ID, id=self.TASK_ID, alarm_light_group=self.LIGHT_GROUP, alarm_group_name=self.GROUP_NAME, alarm_days=self.DAYS, alarm_time=datetime.time.fromisoformat(self.LIGHT_TIME), enabled=True)
-        self.USER_PREFERENCES = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city=self.CITY, garage_door=1)
+        self.USER_PREFERENCES = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city=self.CITY, garage_door=self.GARAGE, garage_id=1)
         with UserDatabaseManager() as database:
             database.session.add(self.USER)
             database.session.add(self.USER_PREFERENCES)
@@ -363,7 +364,8 @@ class TestDbPreferenceIntegration:
             assert response['city'] == self.CITY
             assert response['is_fahrenheit'] is True
             assert response['is_imperial'] is True
-            assert response['garage_door'] == 1
+            assert response['garage_door'] == self.GARAGE
+            assert response['garage_id'] == 1
 
     def test_get_preferences_by_user__should_raise_bad_request_when_no_preferences(self):
         with pytest.raises(BadRequest):
@@ -373,7 +375,8 @@ class TestDbPreferenceIntegration:
 
     def test_insert_preferences_by_user__should_insert_valid_preferences(self):
         city = 'Vienna'
-        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': False, 'garageDoor': 2}
+        new_door = 'Kalynns'
+        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': False, 'garageDoor': new_door, 'garageId': 5}
         with UserDatabaseManager() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
             database.session.commit()
@@ -381,7 +384,8 @@ class TestDbPreferenceIntegration:
 
             assert actual.city == city
             assert actual.is_fahrenheit is True
-            assert actual.garage_door == 2
+            assert actual.garage_door == new_door
+            assert actual.garage_id == 5
 
     def test_insert_preferences_by_user__should_not_fail_when_time_is_none(self):
         city = 'Vienna'
@@ -439,7 +443,21 @@ class TestDbPreferenceIntegration:
             assert actual.city == city
             assert actual.is_fahrenheit is True
             assert actual.is_imperial is True
-            assert actual.garage_door == 1
+            assert actual.garage_door == self.GARAGE
+
+    def test_insert_preferences_by_user__should_not_nullify_garage_id_when_missing(self):
+        city = 'Lisbon'
+        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': True}
+        with UserDatabaseManager() as database:
+            database.insert_preferences_by_user(self.USER_ID, preference_info)
+
+            actual = database.session.query(UserPreference).filter_by(user_id=self.USER_ID).first()
+
+            assert actual.city == city
+            assert actual.is_fahrenheit is True
+            assert actual.is_imperial is True
+            assert actual.garage_door == self.GARAGE
+            assert actual.garage_id == 1
 
 
 class TestDbSumpIntegration:

@@ -331,13 +331,21 @@ class TestUserDatabase:
 
         self.SESSION.query.assert_not_called()
 
+    def test_get_preferences_by_user__should_return_garage_id_state(self):
+        user = TestUserDatabase.__create_database_user()
+        preference = TestUserDatabase.__create_user_preference(user, 'Fake City', True, False)
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = preference
+        actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
+
+        assert actual['garage_id'] == 1
+
     def test_get_preferences_by_user__should_return_garage_door_state(self):
         user = TestUserDatabase.__create_database_user()
         preference = TestUserDatabase.__create_user_preference(user, 'Fake City', True, False)
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = preference
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
-        assert actual['garage_door'] == 1
+        assert actual['garage_door'] == 'Jons'
 
     def test_insert_preferences_by_user__should_call_query(self):
         preference_info = {'isFahrenheit': True, 'isImperial': True, 'city': 'Des Moines', 'lightAlarm': {}}
@@ -359,22 +367,27 @@ class TestUserDatabase:
         self.SESSION.query.assert_not_called()
 
     def test_insert_preferences_by_user__should_not_throw_when_city_missing(self):
-        preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon'}
+        preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon', 'garage_id': 1, 'garage_door': 'test'}
         user_id = str(uuid.uuid4())
         self.DATABASE.insert_preferences_by_user(user_id, preference_info)
 
     def test_insert_preferences_by_user__should_not_throw_when_is_fahrenheit_missing(self):
-        preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon'}
+        preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon', 'garage_id': 1, 'garage_door': 'test'}
         user_id = str(uuid.uuid4())
         self.DATABASE.insert_preferences_by_user(user_id, preference_info)
 
     def test_insert_preferences_by_user__should_not_throw_when_is_imperial_missing(self):
-        preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon'}
+        preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon', 'garage_id': 1, 'garage_door': 'test'}
         user_id = str(uuid.uuid4())
         self.DATABASE.insert_preferences_by_user(user_id, preference_info)
 
     def test_insert_preferences_by_user__should_not_throw_when_garage_door(self):
-        preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon'}
+        preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon', 'garage_id': 1, 'garage_door': 'test'}
+        user_id = str(uuid.uuid4())
+        self.DATABASE.insert_preferences_by_user(user_id, preference_info)
+
+    def test_insert_preferences_by_user__should_not_throw_when_garage_id(self):
+        preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon', 'garage_door': 'test'}
         user_id = str(uuid.uuid4())
         self.DATABASE.insert_preferences_by_user(user_id, preference_info)
 
@@ -1248,7 +1261,8 @@ class TestUserDatabase:
         preference.alarm_time = datetime.now().time()
         preference.alarm_days = 'MonTueWedThuFri'
         preference.alarm_group_name = 'bedroom'
-        preference.garage_door = 1
+        preference.garage_id = 1
+        preference.garage_door = 'Jons'
 
         return preference
 
