@@ -631,15 +631,18 @@ class TestDbRoleIntegration:
         self.USER_ROLE = UserRoles(id=self.USER_ROLE_ID, user_id=self.USER_ID, role_id=self.ROLE_ID, role=self.ROLE)
         self.CHILD_USER = UserInformation(id=self.CHILD_USER_ID, first_name='Kalynn', last_name='Dawn')
         self.CHILD_ACCOUNT = ChildAccounts(parent_user_id=self.USER_ID, child_user_id=self.CHILD_USER_ID)
+        self.USER_PREF = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=False)
         with UserDatabaseManager() as database:
             database.session.add(self.ROLE)
             database.session.add_all([self.USER_INFO, self.CHILD_USER])
             database.session.add(self.USER_ROLE)
+            database.session.add(self.USER_PREF)
             database.session.commit()
             database.session.add(self.CHILD_ACCOUNT)
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
+            database.session.delete(self.USER_PREF)
             database.session.delete(self.CHILD_ACCOUNT)
             database.session.delete(self.USER_ROLE)
             database.session.commit()
@@ -685,7 +688,7 @@ class TestDbRoleIntegration:
             database.session.add(device)
 
             with pytest.raises(Unauthorized):
-                database.add_new_device_node(self.USER_ID, str(uuid.uuid4()), node_name)
+                database.add_new_device_node(self.USER_ID, str(uuid.uuid4()), node_name, False)
 
     def test_add_new_device_node__should_insert_a_new_node_into_table(self):
         ip_address = '192.175.7.9'
@@ -695,7 +698,7 @@ class TestDbRoleIntegration:
             device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
             database.session.add(device)
             database.session.commit()
-            database.add_new_device_node(self.USER_ID, device_id, node_name)
+            database.add_new_device_node(self.USER_ID, device_id, node_name, False)
 
             actual = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).first()
             assert actual.node_name == node_name
@@ -709,7 +712,7 @@ class TestDbRoleIntegration:
             device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
             database.session.add(device)
 
-            actual = database.add_new_device_node(self.USER_ID, device_id, node_name)
+            actual = database.add_new_device_node(self.USER_ID, device_id, node_name, False)
             assert actual['availableNodes'] == 1
 
     def test_add_new_device_node__should_set_node_device_to_one_when_first_node(self):
@@ -720,7 +723,7 @@ class TestDbRoleIntegration:
             device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
             database.session.add(device)
             database.session.commit()
-            database.add_new_device_node(self.USER_ID, device_id, node_name)
+            database.add_new_device_node(self.USER_ID, device_id, node_name, False)
 
             actual = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).first()
             assert actual.node_device == 1
@@ -735,7 +738,7 @@ class TestDbRoleIntegration:
             database.session.add(device)
             database.session.add(node)
             database.session.commit()
-            database.add_new_device_node(self.USER_ID, device_id, node_name)
+            database.add_new_device_node(self.USER_ID, device_id, node_name, False)
 
             actuals = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).all()
             assert len(actuals) == 2
@@ -753,7 +756,7 @@ class TestDbRoleIntegration:
             database.session.add(node_one)
             database.session.add(node_two)
             database.session.commit()
-            database.add_new_device_node(self.USER_ID, device_id, node_name)
+            database.add_new_device_node(self.USER_ID, device_id, node_name, False)
 
             actuals = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).all()
             assert len(actuals) == 3
@@ -772,7 +775,20 @@ class TestDbRoleIntegration:
             database.session.add(node_two)
 
             with pytest.raises(BadRequest):
-                database.add_new_device_node(self.USER_ID, device_id, node_name)
+                database.add_new_device_node(self.USER_ID, device_id, node_name, False)
+
+    def test_add_new_device_node__should_update_preference_when_flag_set_to_true(self):
+        device_id = str(uuid.uuid4())
+        node_name = 'Jons New'
+        with UserDatabaseManager() as database:
+            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address='1.1.1.1')
+            database.session.add(device)
+            database.add_new_device_node(self.USER_ID, device_id, node_name, True)
+
+        with UserDatabaseManager() as database:
+            actual = database.session.query(UserPreference).filter_by(user_id=self.USER_ID).first()
+            assert actual.garage_door == node_name
+            assert actual.garage_id == 1
 
     def test_get_user_garage_ip__should_return_garage_ip(self):
         ip_address = '192.175.7.9'
