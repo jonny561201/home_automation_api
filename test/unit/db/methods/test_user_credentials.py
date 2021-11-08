@@ -554,7 +554,7 @@ class TestUserDatabase:
         node_name = 'test name'
         devices = RoleDevices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = devices
-        self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name)
+        self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name, False)
 
         self.SESSION.add.assert_called()
 
@@ -562,7 +562,7 @@ class TestUserDatabase:
         node_name = 'Jons Door'
         devices = RoleDevices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = devices
-        self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name)
+        self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name, True)
 
         self.SESSION.query.assert_any_call(UserPreference)
         self.SESSION.query.return_value.filter_by.assert_any_call(user_id=self.USER_ID)
@@ -573,14 +573,14 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.first.side_effect = [devices, None]
 
         with pytest.raises(Unauthorized):
-            self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, 'Jons Failure')
+            self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, 'Jons Failure', True)
 
     def test_add_new_device_node__should_update_user_preference_door_and_id(self):
         node_name = 'Jons Door'
         pref = UserPreference(user_id=self.USER_ID)
         devices = RoleDevices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
         self.SESSION.query.return_value.filter_by.return_value.first.side_effect = [devices, pref]
-        self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name)
+        self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name, True)
 
         assert pref.garage_door == node_name
         assert pref.garage_id == 2
@@ -589,26 +589,26 @@ class TestUserDatabase:
         node_name = 'test name'
         devices = RoleDevices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = devices
-        self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name)
+        self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name, False)
 
-        self.SESSION.query.return_value.filter_by.assert_any_call(id=self.ROLE_ID)
+        self.SESSION.query.return_value.filter_by.assert_called_with(id=self.ROLE_ID)
 
     def test_add_new_device_node__should_raise_unauthorized_when_device_id_not_match(self):
         node_name = 'test name'
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
         with pytest.raises(Unauthorized):
-            self.DATABASE.add_new_device_node(self.USER_ID, self.USER_ID, node_name)
+            self.DATABASE.add_new_device_node(self.USER_ID, self.USER_ID, node_name, False)
 
     def test_add_new_device_node__should_raise_bad_request_when_user_id_is_none(self):
         with pytest.raises(BadRequest):
-            self.DATABASE.add_new_device_node(None, self.USER_ID, '')
+            self.DATABASE.add_new_device_node(None, self.USER_ID, '', True)
         self.SESSION.query.assert_not_called()
 
     def test_add_new_device_node__should_return_the_number_of_node_positions_open(self):
         node_name = 'test name'
         devices = RoleDevices(max_nodes=2, role_device_nodes=[])
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = devices
-        actual = self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name)
+        actual = self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name, False)
 
         assert actual['availableNodes'] == 1
 

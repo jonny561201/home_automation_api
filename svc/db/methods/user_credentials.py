@@ -197,17 +197,14 @@ class UserDatabase:
         self.session.add(device)
         return str(device_id)
 
-    def add_new_device_node(self, user_id, device_id, node_name):
+    def add_new_device_node(self, user_id, device_id, node_name, preferred):
         self.__validate_property(user_id)
         device = self.session.query(RoleDevices).filter_by(id=device_id).first()
         if device is None:
             raise Unauthorized
         node_size = len(device.role_device_nodes)
-        preference = self.session.query(UserPreference).filter_by(user_id=user_id).first()
-        if preference is None:
-            raise Unauthorized
-        preference.garage_id = node_size + 1
-        preference.garage_door = node_name
+        if preferred:
+            self.__update_preference(node_name, node_size, user_id)
         if node_size >= device.max_nodes:
             raise BadRequest
         node = RoleDeviceNodes(node_name=node_name, role_device_id=device_id, node_device=node_size + 1)
@@ -298,6 +295,13 @@ class UserDatabase:
         pref = self.session.query(UserPreference).filter_by(user_id=user_id).first()
         new_pref = UserPreference(user_id=new_user_id, is_fahrenheit=pref.is_fahrenheit, is_imperial=pref.is_imperial, city=pref.city)
         self.session.add(new_pref)
+
+    def __update_preference(self, node_name, node_size, user_id):
+        preference = self.session.query(UserPreference).filter_by(user_id=user_id).first()
+        if preference is None:
+            raise Unauthorized
+        preference.garage_id = node_size + 1
+        preference.garage_door = node_name
 
     @staticmethod
     def __validate_property(record):
