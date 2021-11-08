@@ -566,7 +566,17 @@ class TestUserDatabase:
 
         self.SESSION.query.assert_any_call(UserPreference)
         self.SESSION.query.return_value.filter_by.assert_any_call(user_id=self.USER_ID)
-        self.SESSION.query.return_value.filter_by.return_value.first.assert_called()
+        assert self.SESSION.query.return_value.filter_by.return_value.first.call_count == 2
+
+    def test_add_new_device_node__should_update_user_preference_door_and_id(self):
+        node_name = 'Jons Door'
+        pref = UserPreference(user_id=self.USER_ID)
+        devices = RoleDevices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
+        self.SESSION.query.return_value.filter_by.return_value.first.side_effect = [devices, pref]
+        self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name)
+
+        assert pref.garage_door == node_name
+        assert pref.garage_id == 2
 
     def test_add_new_device_node__should_query_the_role_devices_by_role_id(self):
         node_name = 'test name'

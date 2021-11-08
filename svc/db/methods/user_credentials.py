@@ -197,18 +197,19 @@ class UserDatabase:
         self.session.add(device)
         return str(device_id)
 
-    # TODO: should validate user_id matches result from db else 401
     def add_new_device_node(self, user_id, device_id, node_name):
         self.__validate_property(user_id)
         device = self.session.query(RoleDevices).filter_by(id=device_id).first()
         if device is None:
             raise Unauthorized
         node_size = len(device.role_device_nodes)
+        preference = self.session.query(UserPreference).filter_by(user_id=user_id).first()
+        preference.garage_id = node_size + 1
+        preference.garage_door = node_name
         if node_size >= device.max_nodes:
             raise BadRequest
         node = RoleDeviceNodes(node_name=node_name, role_device_id=device_id, node_device=node_size + 1)
         self.session.add(node)
-        preference = self.session.query(UserPreference).filter_by(user_id=user_id)
         return {'availableNodes': device.max_nodes - (node_size + 1)}
 
     def get_user_garage_ip(self, user_id):
