@@ -558,13 +558,23 @@ class TestUserDatabase:
 
         self.SESSION.add.assert_called()
 
+    def test_add_new_device_node__should_query_user_preferences_by_user_id(self):
+        node_name = 'Jons Door'
+        devices = RoleDevices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = devices
+        self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name)
+
+        self.SESSION.query.assert_any_call(UserPreference)
+        self.SESSION.query.return_value.filter_by.assert_any_call(user_id=self.USER_ID)
+        self.SESSION.query.return_value.filter_by.return_value.first.assert_called()
+
     def test_add_new_device_node__should_query_the_role_devices_by_role_id(self):
         node_name = 'test name'
         devices = RoleDevices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = devices
         self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name)
 
-        self.SESSION.query.return_value.filter_by.assert_called_with(id=self.ROLE_ID)
+        self.SESSION.query.return_value.filter_by.assert_any_call(id=self.ROLE_ID)
 
     def test_add_new_device_node__should_raise_unauthorized_when_device_id_not_match(self):
         node_name = 'test name'

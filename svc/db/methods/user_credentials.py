@@ -208,6 +208,7 @@ class UserDatabase:
             raise BadRequest
         node = RoleDeviceNodes(node_name=node_name, role_device_id=device_id, node_device=node_size + 1)
         self.session.add(node)
+        preference = self.session.query(UserPreference).filter_by(user_id=user_id)
         return {'availableNodes': device.max_nodes - (node_size + 1)}
 
     def get_user_garage_ip(self, user_id):
