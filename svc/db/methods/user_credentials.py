@@ -204,6 +204,8 @@ class UserDatabase:
             raise Unauthorized
         node_size = len(device.role_device_nodes)
         preference = self.session.query(UserPreference).filter_by(user_id=user_id).first()
+        if preference is None:
+            raise Unauthorized
         preference.garage_id = node_size + 1
         preference.garage_door = node_name
         if node_size >= device.max_nodes:

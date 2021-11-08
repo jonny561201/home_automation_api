@@ -568,6 +568,13 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.assert_any_call(user_id=self.USER_ID)
         assert self.SESSION.query.return_value.filter_by.return_value.first.call_count == 2
 
+    def test_add_new_device_node__should_raise_unauthorized_if_no_user_pref(self):
+        devices = RoleDevices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
+        self.SESSION.query.return_value.filter_by.return_value.first.side_effect = [devices, None]
+
+        with pytest.raises(Unauthorized):
+            self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, 'Jons Failure')
+
     def test_add_new_device_node__should_update_user_preference_door_and_id(self):
         node_name = 'Jons Door'
         pref = UserPreference(user_id=self.USER_ID)
