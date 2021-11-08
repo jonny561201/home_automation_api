@@ -59,21 +59,28 @@ class TestDeviceController:
         request_data = {'deviceId': device_id, 'nodeName': node_name}
         add_node_to_device(self.BEARER_TOKEN, self.USER_ID, self.DEVICE_ID, request_data)
 
-        mock_db.return_value.__enter__.return_value.add_new_device_node.assert_called_with(ANY, ANY, node_name)
+        mock_db.return_value.__enter__.return_value.add_new_device_node.assert_called_with(ANY, ANY, node_name, ANY)
 
     def test_add_node_to_device__should_call_database_to_add_device_id(self, mock_jwt, mock_db):
         node_name = 'im a node name'
         request_data = {'nodeName': node_name}
         add_node_to_device(self.BEARER_TOKEN, self.USER_ID, self.DEVICE_ID, request_data)
 
-        mock_db.return_value.__enter__.return_value.add_new_device_node.assert_called_with(ANY, self.DEVICE_ID, ANY)
+        mock_db.return_value.__enter__.return_value.add_new_device_node.assert_called_with(ANY, self.DEVICE_ID, ANY, ANY)
 
     def test_add_node_to_device__should_call_database_to_add_user_id(self, mock_jwt, mock_db):
         node_name = 'im a node name'
         request_data = {'nodeName': node_name}
         add_node_to_device(self.BEARER_TOKEN, self.USER_ID, self.DEVICE_ID, request_data)
 
-        mock_db.return_value.__enter__.return_value.add_new_device_node.assert_called_with(self.USER_ID, ANY, ANY)
+        mock_db.return_value.__enter__.return_value.add_new_device_node.assert_called_with(self.USER_ID, ANY, ANY, ANY)
+
+    def test_add_node_to_device__should_call_database_to_add_preferred(self, mock_jwt, mock_db):
+        node_name = 'im a node name'
+        request_data = {'nodeName': node_name, 'preferred': False}
+        add_node_to_device(self.BEARER_TOKEN, self.USER_ID, self.DEVICE_ID, request_data)
+
+        mock_db.return_value.__enter__.return_value.add_new_device_node.assert_called_with(self.USER_ID, ANY, ANY, False)
 
     def test_add_node_to_device__should_raise_a_bad_request_when_request_missing_items(self, mock_jwt, mock_db):
         with pytest.raises(BadRequest):

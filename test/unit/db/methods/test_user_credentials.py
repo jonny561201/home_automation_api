@@ -608,7 +608,7 @@ class TestUserDatabase:
         node_name = 'test name'
         devices = RoleDevices(max_nodes=2, role_device_nodes=[])
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = devices
-        actual = self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name, False)
+        actual = self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name, None)
 
         assert actual['availableNodes'] == 1
 

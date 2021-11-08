@@ -17,6 +17,6 @@ def add_node_to_device(bearer_token, user_id, device_id, request_data):
     is_jwt_valid(bearer_token)
     with UserDatabaseManager() as database:
         try:
-            return database.add_new_device_node(user_id, device_id, request_data['nodeName'])
+            return database.add_new_device_node(user_id, device_id, request_data['nodeName'], request_data.get('preferred'))
         except KeyError:
             raise BadRequest
