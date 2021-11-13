@@ -379,6 +379,13 @@ class TestLightApiRequests:
         with pytest.raises(FailedDependency):
             set_light_groups(self.API_KEY, 1, True, brightness)
 
+    def test_set_light_groups__should_call_api_with_no_brightness_when_not_supplied(self, mock_requests):
+        mock_requests.put.return_value = self.__create_response()
+        set_light_groups(self.API_KEY, 1, False, None)
+        expected = json.dumps({'on': False})
+
+        mock_requests.put.assert_called_with(ANY, data=expected)
+
     def test_get_light_group_state__should_call_url(self, mock_requests):
         group_id = '1'
         url = f'{self.BASE_URL}/{self.API_KEY}/groups/{group_id}'
