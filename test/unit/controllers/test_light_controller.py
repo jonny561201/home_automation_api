@@ -67,6 +67,11 @@ class TestLightRequest:
         with pytest.raises(BadRequest):
             set_assigned_light_groups(self.BEARER_TOKEN, request)
 
+    def test_set_assigned_light_groups__should_raise_bad_request_when_on_not_supplied(self, mock_api, mock_jwt, mock_light):
+        request = {'groupId': False}
+        with pytest.raises(BadRequest):
+            set_assigned_light_groups(self.BEARER_TOKEN, request)
+
     def test_set_assigned_light__should_call_is_jwt_valid(self, mock_api, mock_jwt, mock_light):
         request_data = {'lightId': '4', 'on': True, 'brightness': 179}
         set_assigned_light(self.BEARER_TOKEN, request_data)
