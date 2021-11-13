@@ -1,3 +1,5 @@
+from werkzeug.exceptions import BadRequest
+
 from svc.constants.lights_state import LightState
 from svc.utilities import api_utils
 from svc.utilities.jwt_utils import is_jwt_valid
@@ -16,8 +18,10 @@ def set_assigned_light_groups(bearer_token, request):
     is_jwt_valid(bearer_token)
     light_state = LightState.get_instance()
     api_key = light_state.get_light_api_key()
-
-    api_utils.set_light_groups(api_key, request.get('groupId'), request['on'], request.get('brightness'))
+    try:
+        api_utils.set_light_groups(api_key, request['groupId'], request['on'], request.get('brightness'))
+    except KeyError:
+        raise BadRequest()
 
 
 def set_assigned_light(bearer_token, request_data):

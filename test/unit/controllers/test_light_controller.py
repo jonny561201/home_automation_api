@@ -1,4 +1,6 @@
+import pytest
 from mock import patch, ANY
+from werkzeug.exceptions import BadRequest
 
 from svc.constants.settings_state import Settings
 from svc.controllers.light_controller import get_assigned_light_groups, set_assigned_light_groups, set_assigned_light
@@ -59,6 +61,11 @@ class TestLightRequest:
         set_assigned_light_groups(self.BEARER_TOKEN, self.REQUEST)
 
         mock_api.set_light_groups.assert_called_with(ANY, ANY, self.STATE, None)
+
+    def test_set_assigned_light_groups__should_raise_bad_request_when_group_id_not_supplied(self, mock_api, mock_jwt, mock_light):
+        request = {'on': False}
+        with pytest.raises(BadRequest):
+            set_assigned_light_groups(self.BEARER_TOKEN, request)
 
     def test_set_assigned_light__should_call_is_jwt_valid(self, mock_api, mock_jwt, mock_light):
         request_data = {'lightId': '4', 'on': True, 'brightness': 179}
