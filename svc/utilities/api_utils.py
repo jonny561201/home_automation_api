@@ -73,12 +73,11 @@ def get_light_groups(api_key):
     return response.json()
 
 
-# TODO: on may be true and brightness may be zero
-# TODO: brightness may not be supplied
 def set_light_groups(api_key, group_id, on, brightness):
     url = f'{LIGHT_BASE_URL}/{api_key}/groups/{group_id}/action'
-    request = {'on': False if brightness == 0 else True}
-    if brightness != 0:
+    state = False if brightness == 0 else on
+    request = {'on': state}
+    if brightness != 0 and brightness is not None:
         request['bri'] = brightness
         request['ct'] = 2700
 
