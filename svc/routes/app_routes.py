@@ -1,7 +1,6 @@
 import json
 
 from flask import Blueprint, request, Response
-from flask_cors import cross_origin
 from werkzeug.exceptions import Unauthorized
 
 from svc.constants.home_automation import DEFAULT_HEADERS
@@ -16,7 +15,6 @@ def health_check():
 
 
 @APP_BLUEPRINT.route('/token', methods=['POST'])
-@cross_origin(origin='*')
 def get_token():
     body = json.loads(request.data)
     if body['grant_type'] == 'client_credentials':

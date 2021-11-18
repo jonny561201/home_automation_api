@@ -11,7 +11,7 @@ from svc.routes.sump_routes import SUMP_BLUEPRINT
 from svc.routes.thermostat_routes import THERMOSTAT_BLUEPRINT
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.register_blueprint(APP_BLUEPRINT)
 app.register_blueprint(ACCOUNT_BLUEPRINT)
