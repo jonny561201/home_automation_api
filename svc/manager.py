@@ -12,6 +12,7 @@ from svc.routes.thermostat_routes import THERMOSTAT_BLUEPRINT
 
 app = Flask(__name__)
 CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 app.register_blueprint(APP_BLUEPRINT)
 app.register_blueprint(ACCOUNT_BLUEPRINT)
 app.register_blueprint(SUMP_BLUEPRINT)
