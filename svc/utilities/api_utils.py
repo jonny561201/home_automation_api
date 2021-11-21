@@ -10,13 +10,18 @@ from svc.constants.settings_state import Settings
 # TODO: move to settings file
 LIGHT_BASE_URL = 'http://192.168.1.142:80/api'
 SMTP_URL = 'https://api.sendinblue.com/v3/smtp/email'
-WEATHER_URL = 'https://api.openweathermap.org/data/2.5/weather'
+WEATHER_URL = 'https://api.openweathermap.org/data/2.5'
 
 
 def get_weather_by_city(city, unit, app_id):
     args = {'q': city, 'units': unit, 'APPID': app_id}
-    response = requests.get(WEATHER_URL, params=args)
+    response = requests.get(f'{WEATHER_URL}/weather', params=args)
     return response.status_code, response.content
+
+
+def get_forecast_by_coords(coords, unit, app_id):
+    args = {'lat': coords[0], 'lon': coords[1], 'units': unit, 'appid': app_id, 'exclude': 'alerts,current,hourly,minutely'}
+    requests.get(f'{WEATHER_URL}/onecall', params=args)
 
 
 def get_garage_door_status(bearer_token, base_url, garage_id):
