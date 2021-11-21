@@ -2,7 +2,7 @@ import base64
 import json
 
 import requests
-from werkzeug.exceptions import FailedDependency, BadRequest
+from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
 
 from svc.constants.home_automation import Automation
 from svc.constants.settings_state import Settings
@@ -173,6 +173,8 @@ def send_new_account_email(email, password):
 
 
 def __validate_response(response):
+    if response.status_code == 401:
+        raise Unauthorized()
     if response.status_code > 299:
         raise FailedDependency()
 

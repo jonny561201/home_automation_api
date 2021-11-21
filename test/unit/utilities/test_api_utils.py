@@ -5,7 +5,7 @@ from mock import patch, ANY
 from requests import Response, ReadTimeout, ConnectTimeout
 from urllib3 import HTTPConnectionPool
 from urllib3.exceptions import MaxRetryError
-from werkzeug.exceptions import FailedDependency, BadRequest
+from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
 
 from svc.constants.home_automation import Automation
 from svc.constants.settings_state import Settings
@@ -103,6 +103,13 @@ class TestWeatherApiRequests:
         response.status_code = 400
         mock_requests.get.return_value = response
         with pytest.raises(FailedDependency):
+            get_forecast_by_coords(self.COORDS, self.UNIT_PREFERENCE, self.APP_ID)
+
+    def test_get_forecast_by_coords__should_raise_unauthorized(self, mock_requests):
+        response = Response()
+        response.status_code = 401
+        mock_requests.get.return_value = response
+        with pytest.raises(Unauthorized):
             get_forecast_by_coords(self.COORDS, self.UNIT_PREFERENCE, self.APP_ID)
 
 
