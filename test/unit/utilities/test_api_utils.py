@@ -73,42 +73,41 @@ class TestWeatherApiRequests:
         self.RESPONSE._content = expected_content
         mock_requests.get.return_value = self.RESPONSE
 
-        status, content = get_weather_by_city(self.CITY, 'metric', self.APP_ID)
+        content = get_weather_by_city(self.CITY, 'metric', self.APP_ID)
 
-        assert status == 200
         assert content == expected_content
 
+    def test_get_weather_by_city__should_raise_unauthorized(self, mock_requests):
+        self.RESPONSE.status_code = 401
+        mock_requests.get.return_value = self.RESPONSE
+        with pytest.raises(Unauthorized):
+            get_weather_by_city(self.CITY, self.UNIT_PREFERENCE, self.APP_ID)
+
     def test_get_forecast_by_coords__should_make_get_request(self, mock_requests):
-        response = Response()
-        response.status_code = 200
-        response._content = json.dumps({}).encode('UTF-8')
-        mock_requests.get.return_value = response
+        self.RESPONSE._content = json.dumps({}).encode('UTF-8')
+        mock_requests.get.return_value = self.RESPONSE
         get_forecast_by_coords(self.COORDS, self.UNIT_PREFERENCE, self.APP_ID)
 
         mock_requests.get.assert_called_with(f'{self.URL}/onecall', params=self.FORECAST_PARAMS)
 
     def test_get_forecast_by_coords__should_return_the_response_content(self, mock_requests):
         content = {'doesntMatter': 'dumb'}
-        response = Response()
-        response.status_code = 200
-        response._content = json.dumps(content).encode('UTF-8')
-        mock_requests.get.return_value = response
+        self.RESPONSE._content = json.dumps(content).encode('UTF-8')
+        mock_requests.get.return_value = self.RESPONSE
 
         actual = get_forecast_by_coords(self.COORDS, self.UNIT_PREFERENCE, self.APP_ID)
 
         assert actual == content
 
     def test_get_forecast_by_coords__should_raise_failed_dependency_when_bad_response(self, mock_requests):
-        response = Response()
-        response.status_code = 400
-        mock_requests.get.return_value = response
+        self.RESPONSE.status_code = 400
+        mock_requests.get.return_value = self.RESPONSE
         with pytest.raises(FailedDependency):
             get_forecast_by_coords(self.COORDS, self.UNIT_PREFERENCE, self.APP_ID)
 
     def test_get_forecast_by_coords__should_raise_unauthorized(self, mock_requests):
-        response = Response()
-        response.status_code = 401
-        mock_requests.get.return_value = response
+        self.RESPONSE.status_code = 401
+        mock_requests.get.return_value = self.RESPONSE
         with pytest.raises(Unauthorized):
             get_forecast_by_coords(self.COORDS, self.UNIT_PREFERENCE, self.APP_ID)
 

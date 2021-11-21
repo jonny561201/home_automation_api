@@ -16,7 +16,8 @@ WEATHER_URL = 'https://api.openweathermap.org/data/2.5'
 def get_weather_by_city(city, unit, app_id):
     args = {'q': city, 'units': unit, 'APPID': app_id}
     response = requests.get(f'{WEATHER_URL}/weather', params=args)
-    return response.status_code, response.content
+    __validate_response(response)
+    return response.content
 
 
 def get_forecast_by_coords(coords, unit, app_id):
