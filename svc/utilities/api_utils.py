@@ -21,7 +21,8 @@ def get_weather_by_city(city, unit, app_id):
 
 def get_forecast_by_coords(coords, unit, app_id):
     args = {'lat': coords[0], 'lon': coords[1], 'units': unit, 'appid': app_id, 'exclude': 'alerts,current,hourly,minutely'}
-    requests.get(f'{WEATHER_URL}/onecall', params=args)
+    response = requests.get(f'{WEATHER_URL}/onecall', params=args)
+    return response.json()
 
 
 def get_garage_door_status(bearer_token, base_url, garage_id):

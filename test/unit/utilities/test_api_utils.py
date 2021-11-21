@@ -83,6 +83,17 @@ class TestWeatherApiRequests:
 
         mock_requests.get.assert_called_with(f'{self.URL}/onecall', params=self.FORECAST_PARAMS)
 
+    def test_get_forecast_by_coords__should_return_the_response_content(self, mock_requests):
+        content = {'doesntMatter': 'dumb'}
+        response = Response()
+        response.status_code = 200
+        response._content = json.dumps(content).encode('UTF-8')
+        mock_requests.get.return_value = response
+
+        actual = get_forecast_by_coords(self.COORDS, self.UNIT_PREFERENCE, self.APP_ID)
+
+        assert actual == content
+
 
 @patch('svc.utilities.api_utils.requests')
 class TestGarageApiRequests:
