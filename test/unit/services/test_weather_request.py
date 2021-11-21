@@ -10,13 +10,13 @@ class TestWeatherRequest:
     CITY = 'Prague'
     UNIT = 'metric'
     APP_ID = 'abc123'
-    MOCK_RESPONSE = None
     STATUS_OK = 200
     STATUS_BAD = 400
     STATUS_UNAUTHORIZED = 401
+    COORDS = {'lat': 92.00, 'lon': -93.85}
 
     def setup_method(self):
-        self.MOCK_RESPONSE = {'main': {}, 'weather': [{}]}
+        self.MOCK_RESPONSE = {'coord': self.COORDS, 'main': {}, 'weather': [{}]}
 
     def test_get_weather__should_return_temp_data(self, mock_weather, mock_forecast):
         expected_temp = 64.8
@@ -105,3 +105,8 @@ class TestWeatherRequest:
     def test_get_weather__should_make_call_to_get_forecast_data(self, mock_weather, mock_forecast):
         get_weather(self.CITY, self.UNIT, self.APP_ID)
         mock_forecast.assert_called_with(ANY, self.UNIT, self.APP_ID)
+
+    def test_get_weather__should_call_forecast_using_coords_from_weather_call(self, mock_weather, mock_forecast):
+        mock_weather.return_value = self.MOCK_RESPONSE
+        get_weather(self.CITY, self.UNIT, self.APP_ID)
+        mock_forecast.assert_called_with(self.COORDS, ANY, ANY)

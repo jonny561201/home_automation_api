@@ -9,8 +9,8 @@ def get_weather(city, unit, app_id):
     response = {}
     try:
         response = get_weather_by_city(city, unit, app_id)
-        get_forecast_by_coords(None, unit, app_id)
-    except ConnectionError:
+        get_forecast_by_coords(response['coord'], unit, app_id)
+    except (ConnectionError, KeyError):
         logging.info('Weather API connection error!')
 
     return __build_response(response)
