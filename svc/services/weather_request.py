@@ -2,13 +2,14 @@ import logging
 
 from requests.exceptions import ConnectionError
 
-from svc.utilities.api_utils import get_weather_by_city
+from svc.utilities.api_utils import get_weather_by_city, get_forecast_by_coords
 
 
 def get_weather(city, unit, app_id):
     response = {}
     try:
         response = get_weather_by_city(city, unit, app_id)
+        get_forecast_by_coords(None, unit, app_id)
     except ConnectionError:
         logging.info('Weather API connection error!')
 
