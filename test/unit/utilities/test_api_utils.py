@@ -79,6 +79,10 @@ class TestWeatherApiRequests:
         assert content == expected_content
 
     def test_get_forecast_by_coords__should_make_get_request(self, mock_requests):
+        response = Response()
+        response.status_code = 200
+        response._content = json.dumps({}).encode('UTF-8')
+        mock_requests.get.return_value = response
         get_forecast_by_coords(self.COORDS, self.UNIT_PREFERENCE, self.APP_ID)
 
         mock_requests.get.assert_called_with(f'{self.URL}/onecall', params=self.FORECAST_PARAMS)
@@ -93,6 +97,13 @@ class TestWeatherApiRequests:
         actual = get_forecast_by_coords(self.COORDS, self.UNIT_PREFERENCE, self.APP_ID)
 
         assert actual == content
+
+    def test_get_forecast_by_coords__should_raise_failed_dependency_when_bad_response(self, mock_requests):
+        response = Response()
+        response.status_code = 400
+        mock_requests.get.return_value = response
+        with pytest.raises(FailedDependency):
+            get_forecast_by_coords(self.COORDS, self.UNIT_PREFERENCE, self.APP_ID)
 
 
 @patch('svc.utilities.api_utils.requests')

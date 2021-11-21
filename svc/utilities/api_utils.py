@@ -22,6 +22,7 @@ def get_weather_by_city(city, unit, app_id):
 def get_forecast_by_coords(coords, unit, app_id):
     args = {'lat': coords[0], 'lon': coords[1], 'units': unit, 'appid': app_id, 'exclude': 'alerts,current,hourly,minutely'}
     response = requests.get(f'{WEATHER_URL}/onecall', params=args)
+    __validate_response(response)
     return response.json()
 
 
@@ -75,7 +76,7 @@ def get_light_groups(api_key):
         response = requests.get(url)
     except Exception:
         raise FailedDependency()
-    __validate_light_response(response)
+    __validate_response(response)
     return response.json()
 
 
@@ -87,7 +88,7 @@ def set_light_groups(api_key, group_id, on, brightness):
         request['bri'] = brightness
         request['ct'] = 2700
 
-    __validate_light_response(requests.put(url, data=json.dumps(request)))
+    __validate_response(requests.put(url, data=json.dumps(request)))
 
 
 def get_light_group_state(api_key, group_id):
@@ -96,7 +97,7 @@ def get_light_group_state(api_key, group_id):
         response = requests.get(url)
     except Exception:
         raise FailedDependency()
-    __validate_light_response(response)
+    __validate_response(response)
     return response.json()
 
 
@@ -106,7 +107,7 @@ def get_light_group_attributes(api_key, group_id):
         response = requests.get(url)
     except Exception:
         raise FailedDependency()
-    __validate_light_response(response)
+    __validate_response(response)
     return response.json()
 
 
@@ -122,7 +123,7 @@ def get_all_lights(api_key):
         response = requests.get(url)
     except Exception:
         raise FailedDependency()
-    __validate_light_response(response)
+    __validate_response(response)
     return response.json()
 
 
@@ -132,7 +133,7 @@ def get_light_state(api_key, light_id):
         response = requests.get(url)
     except Exception:
         raise FailedDependency()
-    __validate_light_response(response)
+    __validate_response(response)
     return response.json()
 
 
@@ -143,7 +144,7 @@ def set_light_state(api_key, light_id, brightness):
         request['bri'] = brightness
         request['ct'] = 2700
 
-    __validate_light_response(requests.put(url, data=json.dumps(request)))
+    __validate_response(requests.put(url, data=json.dumps(request)))
 
 
 def get_full_state(api_key):
@@ -152,7 +153,7 @@ def get_full_state(api_key):
         response = requests.get(url, timeout=10)
     except Exception:
         raise FailedDependency()
-    __validate_light_response(response)
+    __validate_response(response)
     return response.json()
 
 
@@ -171,7 +172,7 @@ def send_new_account_email(email, password):
     requests.post(SMTP_URL, data=json.dumps(request), headers=headers)
 
 
-def __validate_light_response(response):
+def __validate_response(response):
     if response.status_code > 299:
         raise FailedDependency()
 
