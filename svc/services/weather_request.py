@@ -1,28 +1,18 @@
-import json
 import logging
 
 from requests.exceptions import ConnectionError
-from werkzeug.exceptions import Unauthorized
 
 from svc.utilities.api_utils import get_weather_by_city
 
 
 def get_weather(city, unit, app_id):
-    status_code = None
-    json_response = {}
+    response = {}
     try:
-        status_code, content = get_weather_by_city(city, unit, app_id)
-        json_response = json.loads(content)
+        response = get_weather_by_city(city, unit, app_id)
     except ConnectionError:
         logging.info('Weather API connection error!')
 
-    __validate_response(status_code)
-    return __build_response(json_response)
-
-
-def __validate_response(status_code):
-    if status_code == 401:
-        raise Unauthorized
+    return __build_response(response)
 
 
 def __build_response(response_content):
