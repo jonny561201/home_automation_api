@@ -101,6 +101,21 @@ class TestWeatherRequest:
         assert actual['maxTemp'] == 0.0
         assert actual['description'] == ""
 
+    def test_get_weather__should_return_weather_values_and_default_forecast(self, mock_weather, mock_forecast):
+        temp = 73.23
+        description = 'fake forecast'
+        mock_forecast.return_value = {}
+        mock_weather.return_value = self.WEATHER_RESPONSE
+        self.WEATHER_RESPONSE['main']['temp'] = temp
+        self.WEATHER_RESPONSE['weather'][0]['description'] = description
+
+        actual = get_weather(self.CITY, self.UNIT, self.APP_ID)
+
+        assert actual['temp'] == temp
+        assert actual['minTemp'] == 0.0
+        assert actual['maxTemp'] == 0.0
+        assert actual['description'] == description
+
     def test_get_weather__should_return_default_values_when_throws_connection_error(self, mock_weather, mock_forecast):
         mock_weather.side_effect = ConnectionError()
 
