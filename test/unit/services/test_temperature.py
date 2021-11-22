@@ -64,3 +64,4 @@ class TestTemperatureService:
         get_internal_temp(self.PREFERENCES)
 
         mock_temp.assert_called_with(ANY, self.PREFERENCES['is_fahrenheit'])
+

@@ -17,11 +17,11 @@ def get_weather_by_city(city, unit, app_id):
     args = {'q': city, 'units': unit, 'APPID': app_id}
     response = requests.get(f'{WEATHER_URL}/weather', params=args)
     __validate_response(response)
-    return response.content
+    return response.json()
 
 
 def get_forecast_by_coords(coords, unit, app_id):
-    args = {'lat': coords[0], 'lon': coords[1], 'units': unit, 'appid': app_id, 'exclude': 'alerts,current,hourly,minutely'}
+    args = {'lat': coords['lat'], 'lon': coords['lon'], 'units': unit, 'appid': app_id, 'exclude': 'alerts,current,hourly,minutely'}
     response = requests.get(f'{WEATHER_URL}/onecall', params=args)
     __validate_response(response)
     return response.json()

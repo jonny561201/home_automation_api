@@ -10,7 +10,7 @@ def get_weather(city, unit, app_id):
     try:
         weather = get_weather_by_city(city, unit, app_id)
         forecast = get_forecast_by_coords(weather['coord'], unit, app_id)
-        daily_forecast = forecast['current']['daily'][0]['temp']
+        daily_forecast = forecast['daily'][0]['temp']
         return __build_response(weather, daily_forecast)
     except (ConnectionError, KeyError, IndexError):
         logging.info('Weather API connection error!')

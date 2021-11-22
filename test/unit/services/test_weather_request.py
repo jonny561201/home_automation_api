@@ -18,7 +18,7 @@ class TestWeatherRequest:
 
     def setup_method(self):
         self.WEATHER_RESPONSE = {'coord': self.COORDS, 'main': {}, 'weather': [{}]}
-        self.FORECAST_RESPONSE = {'current': {'daily': []}}
+        self.FORECAST_RESPONSE = {'daily': []}
 
     def test_get_weather__should_return_temp_data(self, mock_weather, mock_forecast):
         expected_temp = 64.8
@@ -37,9 +37,7 @@ class TestWeatherRequest:
         assert actual['temp'] == 0.0
 
     def test_get_weather__should_return_min_temp_value(self, mock_weather, mock_forecast):
-        # min_temp = 12.34
-        # self.WEATHER_RESPONSE['main']['temp_min'] = min_temp
-        self.FORECAST_RESPONSE['current']['daily'].append(self.DAY)
+        self.FORECAST_RESPONSE['daily'].append(self.DAY)
         mock_forecast.return_value = self.FORECAST_RESPONSE
         mock_weather.return_value = self.WEATHER_RESPONSE
 
@@ -56,9 +54,7 @@ class TestWeatherRequest:
         assert actual['minTemp'] == 0.0
 
     def test_get_weather__should_return_max_temp_value(self, mock_weather, mock_forecast):
-        # max_temp = 12.87
-        # self.FORECAST_RESPONSE['main']['temp_max'] = max_temp
-        self.FORECAST_RESPONSE['current']['daily'].append(self.DAY)
+        self.FORECAST_RESPONSE['daily'].append(self.DAY)
         mock_weather.return_value = self.WEATHER_RESPONSE
         mock_forecast.return_value = self.FORECAST_RESPONSE
 

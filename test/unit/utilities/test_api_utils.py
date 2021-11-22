@@ -18,7 +18,7 @@ from svc.utilities.api_utils import get_weather_by_city, get_light_group_attribu
 @patch('svc.utilities.api_utils.requests')
 class TestWeatherApiRequests:
     CITY = 'Des Moines'
-    COORDS = (23.123, -92.28876)
+    COORDS = {'lat': 23.123, 'lon': -92.28876}
     UNIT_PREFERENCE = 'imperial'
     URL = 'https://api.openweathermap.org/data/2.5'
     APP_ID = 'ab30xkd0'
@@ -28,10 +28,10 @@ class TestWeatherApiRequests:
         self.RESPONSE.status_code = 200
         self.RESPONSE_CONTENT = {'main': {}, 'weather': [{}]}
         self.WEATHER_PARAMS = {'q': self.CITY, 'units': self.UNIT_PREFERENCE, 'APPID': self.APP_ID}
-        self.FORECAST_PARAMS = {'lat': self.COORDS[0], 'lon': self.COORDS[1], 'units': self.UNIT_PREFERENCE, 'appid': self.APP_ID, 'exclude': 'alerts,current,hourly,minutely'}
+        self.FORECAST_PARAMS = {'lat': self.COORDS['lat'], 'lon': self.COORDS['lon'], 'units': self.UNIT_PREFERENCE, 'appid': self.APP_ID, 'exclude': 'alerts,current,hourly,minutely'}
 
     def test_get_weather_by_city__should_call_requests_get(self, mock_requests):
-        self.RESPONSE._content = json.dumps(self.RESPONSE_CONTENT)
+        self.RESPONSE._content = json.dumps(self.RESPONSE_CONTENT).encode('UTF-8')
         mock_requests.get.return_value = self.RESPONSE
 
         get_weather_by_city(self.CITY, self.UNIT_PREFERENCE, self.APP_ID)
@@ -40,7 +40,7 @@ class TestWeatherApiRequests:
 
     def test_get_weather_by_city__should_use_provided_city_location_in_url(self, mock_requests):
         city = 'London'
-        self.RESPONSE._content = json.dumps(self.RESPONSE_CONTENT)
+        self.RESPONSE._content = json.dumps(self.RESPONSE_CONTENT).encode('UTF-8')
         mock_requests.get.return_value = self.RESPONSE
 
         get_weather_by_city(city, self.UNIT_PREFERENCE, self.APP_ID)
@@ -50,7 +50,7 @@ class TestWeatherApiRequests:
 
     def test_get_weather_by_city__should_use_provided_app_id_in_url(self, mock_requests):
         app_id = 'fake app id'
-        self.RESPONSE._content = json.dumps(self.RESPONSE_CONTENT)
+        self.RESPONSE._content = json.dumps(self.RESPONSE_CONTENT).encode('UTF-8')
         mock_requests.get.return_value = self.RESPONSE
 
         get_weather_by_city(self.CITY, self.UNIT_PREFERENCE, app_id)
@@ -59,7 +59,7 @@ class TestWeatherApiRequests:
         mock_requests.get.assert_called_with(f'{self.URL}/weather', params=self.WEATHER_PARAMS)
 
     def test_get_weather_by_city__should_call_api_using_unit_preference_in_params(self, mock_requests):
-        self.RESPONSE._content = json.dumps(self.RESPONSE_CONTENT)
+        self.RESPONSE._content = json.dumps(self.RESPONSE_CONTENT).encode('UTF-8')
         mock_requests.get.return_value = self.RESPONSE
         unit = 'metric'
         self.WEATHER_PARAMS['units'] = unit
@@ -69,13 +69,13 @@ class TestWeatherApiRequests:
         mock_requests.get.assert_called_with(f'{self.URL}/weather', params=self.WEATHER_PARAMS)
 
     def test_get_weather_by_city__should_return_status_code_and_content(self, mock_requests):
-        expected_content = json.dumps(self.RESPONSE_CONTENT)
+        expected_content = json.dumps(self.RESPONSE_CONTENT).encode('UTF-8')
         self.RESPONSE._content = expected_content
         mock_requests.get.return_value = self.RESPONSE
 
         content = get_weather_by_city(self.CITY, 'metric', self.APP_ID)
 
-        assert content == expected_content
+        assert content == self.RESPONSE_CONTENT
 
     def test_get_weather_by_city__should_raise_unauthorized(self, mock_requests):
         self.RESPONSE.status_code = 401
