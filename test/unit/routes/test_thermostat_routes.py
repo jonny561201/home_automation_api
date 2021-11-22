@@ -68,3 +68,7 @@ class TestThermostatRoutes:
     def test_get_forecast_data__should_return_success_response(self, mock_controller, mock_request):
         actual = get_forecast_data(self.USER_ID)
         assert actual.status_code == 200
+
+    def test_get_forecast_data__should_return_success_headers(self, mock_controller, mock_request):
+        actual = get_forecast_data(self.USER_ID)
+        assert actual.content_type == 'text/json'
