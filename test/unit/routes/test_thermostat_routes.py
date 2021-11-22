@@ -1,3 +1,5 @@
+import json
+
 import jwt
 from mock import patch, ANY
 
@@ -51,24 +53,35 @@ class TestThermostatRoutes:
         mock_controller.set_user_temperature.assert_called_with(request, ANY)
 
     def test_get_forecast_data__should_call_thermostat_controller_with_user_id(self, mock_controller, mock_request):
+        mock_controller.get_user_forecast.return_value = {}
         mock_request.headers = self.AUTH_HEADER
         get_forecast_data(self.USER_ID)
         mock_controller.get_user_forecast.assert_called_with(self.USER_ID, ANY)
 
     def test_get_forecast_data__should_call_thermostat_controller_with_bearer_token(self, mock_controller, mock_request):
+        mock_controller.get_user_forecast.return_value = {}
         mock_request.headers = self.AUTH_HEADER
         get_forecast_data(self.USER_ID)
         mock_controller.get_user_forecast.assert_called_with(ANY, self.BEARER_TOKEN)
 
     def test_get_forecast_data__should_call_thermostat_controller_with_none_when_no_auth_header(self, mock_controller, mock_request):
+        mock_controller.get_user_forecast.return_value = {}
         mock_request.headers = {}
         get_forecast_data(self.USER_ID)
         mock_controller.get_user_forecast.assert_called_with(self.USER_ID, None)
 
     def test_get_forecast_data__should_return_success_response(self, mock_controller, mock_request):
+        mock_controller.get_user_forecast.return_value = {}
         actual = get_forecast_data(self.USER_ID)
         assert actual.status_code == 200
 
     def test_get_forecast_data__should_return_success_headers(self, mock_controller, mock_request):
+        mock_controller.get_user_forecast.return_value = {}
         actual = get_forecast_data(self.USER_ID)
         assert actual.content_type == 'text/json'
+
+    def test_get_forecast_data__should_return_response_from_controller(self, mock_controller, mock_request):
+        response = {'myResponse': 'content'}
+        mock_controller.get_user_forecast.return_value = response
+        actual = get_forecast_data(self.USER_ID)
+        assert json.loads(actual.data) == response

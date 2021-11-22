@@ -1,3 +1,5 @@
+import json
+
 from flask import Blueprint, request, Response
 
 from svc.constants.home_automation import DEFAULT_HEADERS
@@ -21,5 +23,5 @@ def set_temperature(user_id):
 
 def get_forecast_data(user_id):
     bearer_token = request.headers.get('Authorization')
-    thermostat_controller.get_user_forecast(user_id, bearer_token)
-    return Response(status=200, headers=DEFAULT_HEADERS)
+    forecast = thermostat_controller.get_user_forecast(user_id, bearer_token)
+    return Response(json.dumps(forecast), status=200, headers=DEFAULT_HEADERS)
