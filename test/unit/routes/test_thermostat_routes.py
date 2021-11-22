@@ -54,3 +54,8 @@ class TestThermostatRoutes:
         mock_request.headers = self.AUTH_HEADER
         get_forecast_data(self.USER_ID)
         mock_controller.get_user_forecast.assert_called_with(self.USER_ID, ANY)
+
+    def test_get_forecast_data__should_call_thermostat_controller_with_bearer_token(self, mock_controller, mock_request):
+        mock_request.headers = self.AUTH_HEADER
+        get_forecast_data(self.USER_ID)
+        mock_controller.get_user_forecast.assert_called_with(ANY, self.BEARER_TOKEN)

@@ -20,4 +20,5 @@ def set_temperature(user_id):
 
 
 def get_forecast_data(user_id):
-    thermostat_controller.get_user_forecast(user_id, None)
+    bearer_token = request.headers['Authorization']
+    thermostat_controller.get_user_forecast(user_id, bearer_token)
