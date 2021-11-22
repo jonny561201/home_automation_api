@@ -57,13 +57,16 @@ class TestThermostatRoutesIntegration:
     @patch('svc.controllers.thermostat_controller.get_desired_temp')
     @patch('svc.utilities.api_utils.requests')
     def test_get_temperature__should_return_temperature(self, mock_requests, mock_file):
-        response = Response()
-        response.status_code = 200
-        response._content = json.dumps({'weather': [{'description': 'light drizzle'}],
-                                        'main': {'temp': 23.4, 'temp_min': 21.0, 'temp_max': 25.1}})
+        response_one = Response()
+        response_one.status_code = 200
+        response_one._content = json.dumps({'weather': [{'description': 'light drizzle'}],
+                                        'main': {'temp': 23.4}}).encode()
+        response_two = Response()
+        response_two.status_code = 200
+        response_two._content = json.dumps({'daily': [{'temp': {'min': 21.0, 'max': 25.1}}]}).encode()
         mock_file.return_value = {'desiredTemp': 22.2, 'mode': Automation.HVAC.MODE.HEATING}
 
-        mock_requests.get.return_value = response
+        mock_requests.get.side_effect = [response_two, response_one]
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         headers = {'Authorization': bearer_token}
 
