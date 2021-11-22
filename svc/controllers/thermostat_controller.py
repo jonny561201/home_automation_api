@@ -17,6 +17,10 @@ def get_user_temp(user_id, bearer_token):
         return __create_response(internal_temp, preference['is_fahrenheit'], weather_data)
 
 
+def get_user_forecast(user_id, bearer_token):
+    is_jwt_valid(bearer_token)
+
+
 def set_user_temperature(request, bearer_token):
     is_jwt_valid(bearer_token)
     json_request = json.loads(request.decode('UTF-8'))

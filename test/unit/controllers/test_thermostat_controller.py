@@ -5,7 +5,7 @@ import jwt
 from mock import patch, ANY
 
 from svc.constants.home_automation import Automation
-from svc.controllers.thermostat_controller import get_user_temp, set_user_temperature
+from svc.controllers.thermostat_controller import get_user_temp, set_user_temperature, get_user_forecast
 
 
 @patch('svc.controllers.thermostat_controller.get_desired_temp')
@@ -103,6 +103,10 @@ class TestThermostatGetController:
         actual = get_user_temp(self.USER_ID, self.JWT_TOKEN)
 
         assert actual['desiredTemp'] == self.TEMP_FAHR
+
+    def test_get_user_forecast__should_validate_jwt_token(self, mock_jwt, mock_db, mock_temp, mock_file):
+        get_user_forecast(self.USER_ID, self.JWT_TOKEN)
+        mock_jwt.assert_called_with(self.JWT_TOKEN)
 
 
 @patch('svc.controllers.thermostat_controller.write_desired_temp_to_file')
