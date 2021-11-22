@@ -108,6 +108,10 @@ class TestThermostatGetController:
         get_user_forecast(self.USER_ID, self.JWT_TOKEN)
         mock_jwt.assert_called_with(self.JWT_TOKEN)
 
+    def test_get_user_forecast__should_get_the_preferences_by_user(self, mock_jwt, mock_db, mock_temp, mock_file):
+        get_user_forecast(self.USER_ID, self.JWT_TOKEN)
+        mock_db.return_value.__enter__.return_value.get_preferences_by_user.assert_called_with(self.USER_ID)
+
 
 @patch('svc.controllers.thermostat_controller.write_desired_temp_to_file')
 @patch('svc.controllers.thermostat_controller.convert_to_celsius')
