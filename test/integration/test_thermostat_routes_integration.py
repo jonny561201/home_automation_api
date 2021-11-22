@@ -7,6 +7,7 @@ from mock import patch
 from requests import Response
 
 from svc.constants.home_automation import Automation
+from svc.constants.settings_state import Settings
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, UserPreference
 from svc.manager import app
@@ -24,6 +25,7 @@ class TestThermostatRoutesIntegration:
     DB_NAME = 'garage_door'
 
     def setup_method(self):
+        Settings.get_instance().dev_mode = False
         self.USER_ID = uuid.uuid4()
         self.USER = UserInformation(id=self.USER_ID.hex, first_name='Jon', last_name='Test')
         self.PREFERENCE = UserPreference(user_id=self.USER_ID.hex, city='London', is_fahrenheit=False, is_imperial=False)
@@ -88,4 +90,10 @@ class TestThermostatRoutesIntegration:
         actual = self.TEST_CLIENT.post(url, data=json.dumps(request), headers=headers)
 
         assert actual.status_code == 200
+
+    def test_get_forecast_data__should_return_unauthorized_error_when_invalid_user(self):
+        url = 'thermostat/forecast/' + '3843040'
+        actual = self.TEST_CLIENT.post(url)
+
+        assert actual.status_code == 401
 

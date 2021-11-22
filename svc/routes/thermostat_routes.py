@@ -21,6 +21,7 @@ def set_temperature(user_id):
     return Response(status=200, headers=DEFAULT_HEADERS)
 
 
+@THERMOSTAT_BLUEPRINT.route('/forecast/<user_id>', methods=['POST'])
 def get_forecast_data(user_id):
     bearer_token = request.headers.get('Authorization')
     forecast = thermostat_controller.get_user_forecast(user_id, bearer_token)
