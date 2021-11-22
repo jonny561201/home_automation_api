@@ -112,6 +112,11 @@ class TestThermostatGetController:
         get_user_forecast(self.USER_ID, self.JWT_TOKEN)
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.assert_called_with(self.USER_ID)
 
+    def test_get_user_forecast__should_call_for_external_temp_with_preferences(self, mock_jwt, mock_db, mock_temp, mock_file):
+        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
+        get_user_forecast(self.USER_ID, self.JWT_TOKEN)
+        mock_temp.get_external_temp.assert_called_with(self.PREFERENCE)
+
 
 @patch('svc.controllers.thermostat_controller.write_desired_temp_to_file')
 @patch('svc.controllers.thermostat_controller.convert_to_celsius')

@@ -20,7 +20,8 @@ def get_user_temp(user_id, bearer_token):
 def get_user_forecast(user_id, bearer_token):
     is_jwt_valid(bearer_token)
     with UserDatabaseManager() as database:
-        database.get_preferences_by_user(user_id)
+        preference = database.get_preferences_by_user(user_id)
+        temperature.get_external_temp(preference)
 
 
 def set_user_temperature(request, bearer_token):
