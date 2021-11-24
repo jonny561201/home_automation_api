@@ -96,7 +96,7 @@ class TestThermostatRoutesIntegration:
 
     def test_get_forecast_data__should_return_unauthorized_error_when_invalid_user(self):
         url = 'thermostat/forecast/3843040'
-        actual = self.TEST_CLIENT.post(url)
+        actual = self.TEST_CLIENT.get(url)
 
         assert actual.status_code == 401
 
@@ -116,7 +116,7 @@ class TestThermostatRoutesIntegration:
         response_two._content = json.dumps({'coord': {'lat': 23.232, 'lon': -93.232}}).encode()
         mock_request.get.side_effect = [response_two, response_one]
 
-        actual = self.TEST_CLIENT.post(url, headers=headers)
+        actual = self.TEST_CLIENT.get(url, headers=headers)
         json_actual = json.loads(actual.data)
 
         assert actual.status_code == 200
