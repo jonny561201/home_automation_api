@@ -42,15 +42,6 @@ class TestThermostatGetController:
         assert actual['currentTemp'] == expected_temp
         assert actual['isFahrenheit'] is True
 
-    def test_get_user_temp__should_consolidate_weather_response_with_get_external_temp(self, mock_jwt, mock_db, mock_temp, mock_file):
-        response = {'temp': 56.3, 'description': 'fake desc'}
-        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
-        mock_temp.get_external_temp.return_value = response
-
-        actual = get_user_temp(self.USER_ID, self.JWT_TOKEN)
-
-        assert response.items() <= actual.items()
-
     def test_get_user_temp__should_return_thermostat_temps_in_celsius(self, mock_jwt, mock_db, mock_temp, mock_file):
         self.PREFERENCE['is_fahrenheit'] = False
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
