@@ -1,4 +1,4 @@
-flask==2.1.2
+flask==2.3.2
 PyJWT==1.7.1
 SQLAlchemy==1.3.22
 pytz==2020.4
