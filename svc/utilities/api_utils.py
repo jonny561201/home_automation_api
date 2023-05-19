@@ -1,14 +1,13 @@
-import base64
 import json
 
 import requests
 from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
 
-from svc.constants.home_automation import Automation
 from svc.constants.settings_state import Settings
 
 # TODO: move to settings file
-LIGHT_BASE_URL = 'http://192.168.1.142:80/api'
+LIGHT_BASE_URL = 'http://127.0.0.1:5002/lights'
+# LIGHT_BASE_URL = 'http://192.168.1.142:80/api'
 SMTP_URL = 'https://api.sendinblue.com/v3/smtp/email'
 WEATHER_URL = 'https://api.openweathermap.org/data/2.5'
 
@@ -59,103 +58,44 @@ def update_garage_door_state(bearer_token, base_url, garage_id, request):
     return response.json()
 
 
-def get_light_api_key(username, password):
-    body = {'devicetype': Automation().APP_NAME}
-    auth = base64.b64encode(f'{username}:{password}'.encode('UTF-8')).decode('UTF-8')
-    headers = {'Authorization': 'Basic ' + auth}
-    try:
-        response = requests.post(LIGHT_BASE_URL, data=json.dumps(body), headers=headers, timeout=5)
-        api_key = response.json()[0]['success']['username']
-        return api_key
-    except Exception:
-        raise FailedDependency()
-
-
-def get_light_groups(api_key):
-    url = f'{LIGHT_BASE_URL}/{api_key}/groups'
-    try:
-        response = requests.get(url)
-    except Exception:
-        raise FailedDependency()
-    __validate_response(response)
-    return response.json()
-
-
-def set_light_groups(api_key, group_id, on, brightness):
-    url = f'{LIGHT_BASE_URL}/{api_key}/groups/{group_id}/action'
-    state = False if brightness == 0 else on
-    request = {'on': state}
-    if brightness != 0 and brightness is not None:
-        request['bri'] = brightness
-        request['ct'] = 2700
-
-    __validate_response(requests.put(url, data=json.dumps(request)))
-
-
-def get_light_group_state(api_key, group_id):
-    url = f'{LIGHT_BASE_URL}/{api_key}/groups/{group_id}'
-    try:
-        response = requests.get(url)
-    except Exception:
-        raise FailedDependency()
-    __validate_response(response)
-    return response.json()
-
-
-def get_light_group_attributes(api_key, group_id):
-    url = f'{LIGHT_BASE_URL}/{api_key}/groups/{group_id}'
-    try:
-        response = requests.get(url)
-    except Exception:
-        raise FailedDependency()
-    __validate_response(response)
-    return response.json()
-
-
-def create_light_group(api_key, group_name):
-    url = f'{LIGHT_BASE_URL}/{api_key}/groups'
-    request = {'name': group_name}
-    requests.post(url, data=json.dumps(request))
-
-
-def get_all_lights(api_key):
-    url = f'{LIGHT_BASE_URL}/{api_key}/lights'
-    try:
-        response = requests.get(url)
-    except Exception:
-        raise FailedDependency()
-    __validate_response(response)
-    return response.json()
-
-
-def get_light_state(api_key, light_id):
-    url = f'{LIGHT_BASE_URL}/{api_key}/lights/{light_id}'
-    try:
-        response = requests.get(url)
-    except Exception:
-        raise FailedDependency()
-    __validate_response(response)
-    return response.json()
-
-
-def set_light_state(api_key, light_id, brightness):
-    url = f'{LIGHT_BASE_URL}/{api_key}/lights/{light_id}/state'
-    request = {'on': False if brightness == 0 else True}
-    if brightness != 0:
-        request['bri'] = brightness
-        request['ct'] = 2700
-
-    __validate_response(requests.put(url, data=json.dumps(request)))
-
-
-def get_full_state(api_key):
-    url = f'{LIGHT_BASE_URL}/{api_key}'
+def get_light_groups():
+    url = f'{LIGHT_BASE_URL}/groups'
     try:
         response = requests.get(url, timeout=10)
     except Exception:
         raise FailedDependency()
     __validate_response(response)
     return response.json()
+
+
+def set_light_groups(group_id, on, brightness):
+    url = f'{LIGHT_BASE_URL}/group/state'
+    state = False if brightness == 0 else on
+    request = {'groupId': group_id, 'on': state}
+    if brightness != 0 and brightness is not None:
+        request['brightness'] = brightness
+
+    __validate_response(requests.post(url, data=json.dumps(request)))
+
+
+def create_light_group(group_name):
+    url = f'{LIGHT_BASE_URL}/group/create'
+    request = {'name': group_name}
+    requests.post(url, data=json.dumps(request))
+
+
+def delete_light_group(group_id):
+    url = f'{LIGHT_BASE_URL}/group/{group_id}'
+    requests.delete(url)
+
+
+def set_light_state(light_id, brightness):
+    url = f'{LIGHT_BASE_URL}/light/state'
+    request = {'lightId': light_id, 'on': False if brightness == 0 else True}
+    if brightness != 0:
+        request['brightness'] = brightness
+
+    __validate_response(requests.post(url, data=json.dumps(request)))
 
 
 def send_new_account_email(email, password):

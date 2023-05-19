@@ -97,12 +97,12 @@ class TestLightRequest:
         mock_light.get_instance.return_value.get_light_api_key.return_value = self.API_KEY
         get_assigned_light_groups(self.BEARER_TOKEN)
 
-        mock_api.get_full_state.assert_called_with(self.API_KEY)
+        mock_api.get_light_groups.assert_called_with(self.API_KEY)
 
     def test_get_assigned_light_groups__should_return_mapped_response(self, mock_api, mock_jwt, mock_light):
         brightness = 233
         group_name = 'LivingRoom'
-        mock_api.get_full_state.return_value = {
+        mock_api.get_light_groups.return_value = {
             'groups': {'1': {'action': {'on': True, 'bri': brightness}, 'name': group_name}}, 'lights': {}}
         actual = get_assigned_light_groups(self.BEARER_TOKEN)
 
@@ -113,7 +113,7 @@ class TestLightRequest:
         light_2 = {'name': 'lamp 2', 'state': {'on': False, 'bri': 0}}
         light_3 = {'name': 'lamp 3', 'state': {'on': False, 'bri': 255}}
         lights = {'1': light_1, '2': light_2, '3': light_3}
-        mock_api.get_full_state.return_value = {'groups': {'2': {'action': {}, 'lights': ['1', '3']}}, 'lights': lights}
+        mock_api.get_light_groups.return_value = {'groups': {'2': {'action': {}, 'lights': ['1', '3']}}, 'lights': lights}
 
         actual = get_assigned_light_groups(self.BEARER_TOKEN)
 
