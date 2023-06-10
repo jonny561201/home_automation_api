@@ -12,7 +12,7 @@ class TestState:
     DB_PASS = 'test_pass'
     DB_NAME = 'fake_name'
     EMAIL_APP_ID = 'abc123'
-    FILE_NAME = "test.json"
+    FILE_NAME = 'test.json'
     WEATHER_APP_ID = '345def'
     JWT_SECRET = 'FakeSecret'
     LIGHT_API_KEY = str(uuid.uuid4())
