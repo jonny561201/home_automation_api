@@ -1,4 +1,5 @@
 import os
+import uuid
 
 from svc.constants.settings_state import Settings
 
@@ -14,14 +15,13 @@ class TestState:
     FILE_NAME = "test.json"
     WEATHER_APP_ID = '345def'
     JWT_SECRET = 'FakeSecret'
-    LIGHT_API_USER = 'lightUser'
-    LIGHT_API_PASSWORD = 'lightPass'
+    LIGHT_API_KEY = str(uuid.uuid4())
 
     def setup_method(self):
         os.environ.update({'SQL_USERNAME': self.DB_USER, 'SQL_PASSWORD': self.DB_PASS, 'SQL_PORT': self.DB_PORT,
                            'SQL_DBNAME': self.DB_NAME, 'EMAIL_APP_ID': self.EMAIL_APP_ID, 'WEATHER_APP_ID': self.WEATHER_APP_ID,
-                           'JWT_SECRET': self.JWT_SECRET, 'LIGHT_API_USERNAME': self.LIGHT_API_USER, 'TEMP_FILE_NAME': self.FILE_NAME,
-                           'LIGHT_API_PASSWORD': self.LIGHT_API_PASSWORD, 'USER_ID': self.USER_ID})
+                           'JWT_SECRET': self.JWT_SECRET, 'TEMP_FILE_NAME': self.FILE_NAME, 'USER_ID': self.USER_ID,
+                           'LIGHT_API_KEY': self.LIGHT_API_KEY})
         self.SETTINGS = Settings.get_instance()
 
     def teardown_method(self):
@@ -34,8 +34,7 @@ class TestState:
         os.environ.pop('SQL_PASSWORD')
         os.environ.pop('EMAIL_APP_ID')
         os.environ.pop('WEATHER_APP_ID')
-        os.environ.pop('LIGHT_API_USERNAME')
-        os.environ.pop('LIGHT_API_PASSWORD')
+        os.environ.pop('LIGHT_API_KEY')
 
     def test_db_user__should_return_env_var_value(self):
         self.SETTINGS.dev_mode = False
@@ -65,14 +64,6 @@ class TestState:
         self.SETTINGS.dev_mode = False
         assert self.SETTINGS.jwt_secret == self.JWT_SECRET
 
-    def test_light_api_user__should_return_env_var_value(self):
-        self.SETTINGS.dev_mode = False
-        assert self.SETTINGS.light_api_user == self.LIGHT_API_USER
-
-    def test_light_api_password__should_return_env_var_value(self):
-        self.SETTINGS.dev_mode = False
-        assert self.SETTINGS.light_api_password == self.LIGHT_API_PASSWORD
-
     def test_user_id__should_return_env_var_value(self):
         self.SETTINGS.dev_mode = False
         assert self.SETTINGS.user_id == self.USER_ID
@@ -80,6 +71,10 @@ class TestState:
     def test_file_name__should_return_env_var_value(self):
         self.SETTINGS.dev_mode = False
         assert self.SETTINGS.temp_file_name == self.FILE_NAME
+
+    def test_light_api_key__should_return_env_var_value(self):
+        self.SETTINGS.dev_mode = False
+        assert self.SETTINGS.light_api_key == self.LIGHT_API_KEY
 
     def test_db_user__should_pull_from_dictionary_if_dev_mode(self):
         db_user = 'other_user'
@@ -123,18 +118,6 @@ class TestState:
         self.SETTINGS.settings = {'DevJwtSecret': jwt_secret}
         assert self.SETTINGS.jwt_secret == jwt_secret
 
-    def test_light_api_user__should_pull_from_dictionary_if_dev_mode(self):
-        light_api_user = 'other_light_user'
-        self.SETTINGS.dev_mode = True
-        self.SETTINGS.settings = {'LightApiUser': light_api_user}
-        assert self.SETTINGS.light_api_user == light_api_user
-
-    def test_light_api_password__should_pull_from_dictionary_if_dev_mode(self):
-        light_api_password = 'other_light_password'
-        self.SETTINGS.dev_mode = True
-        self.SETTINGS.settings = {'LightApiPass': light_api_password}
-        assert self.SETTINGS.light_api_password == light_api_password
-
     def test_user_id__should_pull_from_dictionary_if_dev_mode(self):
         user_id = 'other_user_id'
         self.SETTINGS.dev_mode = True
@@ -146,3 +129,9 @@ class TestState:
         self.SETTINGS.dev_mode = True
         self.SETTINGS.settings = {'TempFileName': file_name}
         assert self.SETTINGS.temp_file_name == file_name
+
+    def test_light_api_key__should_pull_from_dictionary_if_dev_mode(self):
+        api_key = str(uuid.uuid4())
+        self.SETTINGS.dev_mode = True
+        self.SETTINGS.settings = {'lightApiKey': api_key}
+        assert self.SETTINGS.light_api_key == api_key

@@ -43,12 +43,8 @@ class Settings:
         return self.settings.get('DevJwtSecret') if self.dev_mode else os.environ.get('JWT_SECRET')
 
     @property
-    def light_api_user(self):
-        return self.settings.get('LightApiUser') if self.dev_mode else os.environ.get('LIGHT_API_USERNAME')
-
-    @property
-    def light_api_password(self):
-        return self.settings.get('LightApiPass') if self.dev_mode else os.environ.get('LIGHT_API_PASSWORD')
+    def light_api_key(self):
+        return self.settings.get('lightApiKey') if self.dev_mode else os.environ.get('LIGHT_API_KEY')
 
     @property
     def user_id(self):
