@@ -82,3 +82,5 @@ class TestLightRequest:
         get_assigned_light_groups(self.BEARER_TOKEN)
 
         mock_api.get_light_groups.assert_called_with(self.API_KEY)
+
+    # TODO: test register unassigned light

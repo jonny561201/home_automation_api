@@ -46,4 +46,6 @@ def register_unassigned_light(bearer_token, request):
     light_id = request.get('lightId')
     switch_type_id = request.get('switchTypeId')
 
-    api_utils.assign_light_group(group_id, light_id, name, switch_type_id)
+    settings = Settings.get_instance()
+    api_key = settings.light_api_key
+    api_utils.assign_light_group(api_key, group_id, light_id, name, switch_type_id)

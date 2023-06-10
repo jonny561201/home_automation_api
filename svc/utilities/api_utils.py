@@ -6,7 +6,7 @@ from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
 from svc.constants.settings_state import Settings
 
 # TODO: move to settings file
-LIGHT_BASE_URL = 'http://127.0.0.1:5002/lights'
+LIGHT_BASE_URL = 'http://127.0.0.1:5002/api/lights'
 # LIGHT_BASE_URL = 'http://192.168.1.142:80/api'
 SMTP_URL = 'https://api.sendinblue.com/v3/smtp/email'
 WEATHER_URL = 'https://api.openweathermap.org/data/2.5'
@@ -58,30 +58,30 @@ def update_garage_door_state(bearer_token, base_url, garage_id, request):
     return response.json()
 
 
-def get_light_groups():
+def get_light_groups(api_key):
     url = f'{LIGHT_BASE_URL}/groups'
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, headers={'LightApiKey': api_key}, timeout=10)
     except Exception:
         raise FailedDependency()
     __validate_response(response)
     return response.json()
 
 
-def set_light_groups(group_id, on, brightness):
+def set_light_groups(api_key, group_id, on, brightness):
     url = f'{LIGHT_BASE_URL}/group/state'
     state = False if brightness == 0 else on
     request = {'groupId': group_id, 'on': state}
     if brightness != 0 and brightness is not None:
         request['brightness'] = brightness
 
-    __validate_response(requests.post(url, data=json.dumps(request)))
+    __validate_response(requests.post(url, data=json.dumps(request), headers={'LightApiKey': api_key}))
 
 
-def create_light_group(group_name):
+def create_light_group(api_key, group_name):
     url = f'{LIGHT_BASE_URL}/group/create'
     request = {'name': group_name}
-    requests.post(url, data=json.dumps(request))
+    requests.post(url, data=json.dumps(request), headers={'LightApiKey': api_key})
 
 
 def delete_light_group(group_id):
@@ -89,13 +89,29 @@ def delete_light_group(group_id):
     requests.delete(url)
 
 
-def set_light_state(light_id, brightness):
+def set_light_state(api_key, light_id, brightness):
     url = f'{LIGHT_BASE_URL}/light/state'
-    request = {'lightId': light_id, 'on': False if brightness == 0 else True}
-    if brightness != 0:
-        request['brightness'] = brightness
+    request = {'lightId': light_id, 'on': False if brightness == 0 else True, 'brightness': brightness}
+    # if brightness != 0:
+    #     request['brightness'] = brightness
 
-    __validate_response(requests.post(url, data=json.dumps(request)))
+    __validate_response(requests.post(url, data=json.dumps(request), headers={'LightApiKey': api_key}))
+
+
+def get_unregistered_lights(api_key):
+    url = f'{LIGHT_BASE_URL}/unregistered'
+    try:
+        response = requests.get(url, headers={'LightApiKey': api_key}, timeout=10)
+        __validate_response(response)
+        return response.json()
+    except Exception:
+        raise FailedDependency()
+
+
+def assign_light_group(api_key, group_id, light_id, name, switch_type):
+    url = f'{LIGHT_BASE_URL}/group/assign'
+    request = {'name': name, 'groupId': group_id, 'lightId': light_id, 'switchTypeId': switch_type}
+    requests.post(url, data=json.dumps(request), headers={'LightApiKey': api_key})
 
 
 def send_new_account_email(email, password):
