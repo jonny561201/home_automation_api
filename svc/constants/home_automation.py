@@ -1,4 +1,7 @@
-DEFAULT_HEADERS = {'Content-Type': 'text/json'}
+DEFAULT_HEADERS = {
+    'Content-Type': 'text/json',
+    'Content-Security-Policy': "default-src 'self'; img-src 'self'; script-src 'self'; media-src 'self'"
+}
 
 class Mode:
     BLOWER = 'blower'
