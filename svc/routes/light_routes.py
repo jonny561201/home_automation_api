@@ -30,3 +30,20 @@ def set_light_state():
     request_data = json.loads(request.data.decode('UTF-8'))
     light_controller.set_assigned_light(bearer_token, request_data)
     return Response(status=200, headers=DEFAULT_HEADERS)
+
+
+@LIGHT_BLUEPRINT.route('/unregistered', methods=['GET'])
+def get_unregistered_devices():
+    bearer_token = request.headers.get('Authorization')
+    lights = light_controller.get_unassigned_lights(bearer_token)
+
+    return Response(json.dumps(lights), status=200, headers=DEFAULT_HEADERS)
+
+
+@LIGHT_BLUEPRINT.route('/register', methods=['POST'])
+def register_unassigned_light():
+    bearer_token = request.headers.get('Authorization')
+    request_data = json.loads(request.data.decode('UTF-8'))
+    light_controller.register_unassigned_light(bearer_token, request_data)
+
+    return Response(status=200, headers=DEFAULT_HEADERS)
