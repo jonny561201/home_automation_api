@@ -91,10 +91,8 @@ function createFile {
     read SQL_DB
     echo -e "Enter SQL_PORT:${WHITE}"
     read SQL_PORT
-    echo -e "Enter LIGHT_API_USERNAME:${WHITE}"
-    read LIGHT_API_USER
-    echo -e "Enter LIGHT_API_PASSWORD:${WHITE}"
-    read LIGHT_API_PASS
+    echo -e "Enter LIGHT_API_KEY:${WHITE}"
+    read LIGHT_API_KEY
     echo -e "Enter WEATHER_APP_ID:${WHITE}"
     read WEATHER_APP
     echo -e "Enter USER_ID:${WHITE}"
@@ -105,8 +103,7 @@ function createFile {
     echo "SQL_PASSWORD=${SQL_PASS}" >> serviceEnvVariables
     echo "SQL_DBNAME=${SQL_DB}" >> serviceEnvVariables
     echo "SQL_PORT=${SQL_PORT}" >> serviceEnvVariables
-    echo "LIGHT_API_USERNAME=${LIGHT_API_USER}" >> serviceEnvVariables
-    echo "LIGHT_API_PASSWORD=${LIGHT_API_PASS}" >> serviceEnvVariables
+    echo "LIGHT_API_KEY=${LIGHT_API_KEY}" >> serviceEnvVariables
     echo "WEATHER_APP_ID=${WEATHER_APP}" >> serviceEnvVariables
     echo "USER_ID=${USER_ID}" >> serviceEnvVariables
     echo "TEMP_FILE_NAME=/home/pi/temperature_settings.json" > serviceEnvVariables
