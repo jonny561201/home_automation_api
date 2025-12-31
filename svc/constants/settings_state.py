@@ -4,67 +4,102 @@ import os
 
 class Settings:
     __instance = None
-    settings = None
-    dev_mode = False
+    _settings = None
 
-    def __init__(self):
+    def __init__(self, test_mode=False, settings=None):
         if Settings.__instance is not None:
             raise Exception
         else:
             Settings.__instance = self
-            Settings.__instance.__get_settings()
-
-    @property
-    def db_user(self):
-        return self.settings.get('DbUser') if self.dev_mode else os.environ.get('SQL_USERNAME')
-
-    @property
-    def db_pass(self):
-        return self.settings.get('DbPass') if self.dev_mode else os.environ.get('SQL_PASSWORD')
-
-    @property
-    def db_port(self):
-        return self.settings.get('DbPort') if self.dev_mode else os.environ.get('SQL_PORT')
-
-    @property
-    def db_name(self):
-        return self.settings.get('DbName') if self.dev_mode else os.environ.get('SQL_DBNAME')
+            if test_mode:
+                self._settings = settings
+            else:
+                Settings.__instance.__load_settings()
+            self.Queue = Queue(self._settings)
+            self.Database = Database(self._settings)
 
     @property
     def email_app_id(self):
-        return self.settings.get('DevEmailAppId') if self.dev_mode else os.environ.get('EMAIL_APP_ID')
+        return self._settings.get('DevEmailAppId') if self._settings is not None else os.environ.get('EMAIL_APP_ID')
 
     @property
     def weather_app_id(self):
-        return self.settings.get('DevWeatherAppId') if self.dev_mode else os.environ.get('WEATHER_APP_ID')
+        return self._settings.get('DevWeatherAppId') if self._settings is not None else os.environ.get('WEATHER_APP_ID')
 
     @property
     def jwt_secret(self):
-        return self.settings.get('DevJwtSecret') if self.dev_mode else os.environ.get('JWT_SECRET')
+        return self._settings.get('DevJwtSecret') if self._settings is not None else os.environ.get('JWT_SECRET')
 
     @property
     def light_api_key(self):
-        return self.settings.get('lightApiKey') if self.dev_mode else os.environ.get('LIGHT_API_KEY')
+        return self._settings.get('lightApiKey') if self._settings is not None else os.environ.get('LIGHT_API_KEY')
 
     @property
     def user_id(self):
-        return self.settings.get('UserId') if self.dev_mode else os.environ.get('USER_ID')
+        return self._settings.get('UserId') if self._settings is not None else os.environ.get('USER_ID')
 
     @property
     def temp_file_name(self):
-        return self.settings.get('TempFileName') if self.dev_mode else os.environ.get('TEMP_FILE_NAME')
+        return self._settings.get('TempFileName') if self._settings is not None else os.environ.get('TEMP_FILE_NAME')
 
     @staticmethod
-    def get_instance():
+    def get_instance(test_mode=False, settings=None):
         if Settings.__instance is None:
-            Settings.__instance = Settings()
+            Settings.__instance = Settings(test_mode, settings)
         return Settings.__instance
 
-    def __get_settings(self):
+    def __load_settings(self):
         try:
             file_path = os.path.join(os.path.dirname(__file__), '..', '..', 'settings.json')
             with open(file_path, "r") as reader:
-                self.settings = json.loads(reader.read())
-                self.dev_mode = self.settings.get("Development", False)
+                self._settings = json.loads(reader.read())
         except Exception:
-            self.settings = {}
+            self._settings = {}
+
+
+class Database:
+
+    def __init__(self, settings):
+        self._settings = settings.get('Database') if settings is not None else None
+
+    @property
+    def user(self):
+        return self._settings.get('User') if self._settings is not None else os.environ.get('SQL_USERNAME')
+
+    @property
+    def password(self):
+        return self._settings.get('Pass') if self._settings is not None else os.environ.get('SQL_PASSWORD')
+
+    @property
+    def name(self):
+        return self._settings.get('Name') if self._settings is not None else os.environ.get('SQL_DBNAME')
+
+    @property
+    def port(self):
+        return self._settings.get('Port') if self._settings is not None else os.environ.get('SQL_PORT')
+
+
+class Queue:
+
+    def __init__(self, settings):
+        self._settings = settings.get('Queue') if settings is not None else None
+
+    @property
+    def user_name(self):
+        return self._settings.get('User') if self._settings is not None else os.environ.get('QUEUE_USER_NAME')
+
+    @property
+    def password(self):
+        return self._settings.get('Password') if self._settings is not None else os.environ.get('QUEUE_PASSWORD')
+
+    @property
+    def host(self):
+        return self._settings.get('Host') if self._settings is not None else os.environ.get('QUEUE_HOST')
+
+    @property
+    def port(self):
+        return self._settings.get('Port') if self._settings is not None else os.environ.get('QUEUE_PORT')
+
+    @property
+    def vhost(self):
+        return self._settings.get('VHost') if self._settings is not None else os.environ.get('QUEUE_VHOST')
