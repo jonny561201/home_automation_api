@@ -25,7 +25,7 @@ class TestThermostatRoutesIntegration:
     DB_NAME = 'garage_door'
 
     def setup_method(self):
-        Settings.get_instance().dev_mode = False
+        Settings.get_instance(True, None)
         self.USER_ID = uuid.uuid4()
         self.USER = UserInformation(id=str(self.USER_ID), first_name='Jon', last_name='Test')
         self.PREFERENCE = UserPreference(user_id=str(self.USER_ID), city='London', is_fahrenheit=False, is_imperial=False)
@@ -49,8 +49,7 @@ class TestThermostatRoutesIntegration:
         os.environ.pop('SQL_PORT')
 
     def test_get_temperature__should_return_unauthorized_error_when_invalid_user(self):
-        url = 'thermostat/temperature/' + '890234890234'
-        actual = self.TEST_CLIENT.get(url)
+        actual = self.TEST_CLIENT.get('thermostat/temperature/890234890234')
 
         assert actual.status_code == 401
 
@@ -70,15 +69,13 @@ class TestThermostatRoutesIntegration:
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         headers = {'Authorization': bearer_token}
 
-        url = 'thermostat/temperature/' + str(self.USER_ID)
-        actual = self.TEST_CLIENT.get(url, headers=headers)
+        actual = self.TEST_CLIENT.get(f'thermostat/temperature/{str(self.USER_ID)}', headers=headers)
 
         assert actual.status_code == 200
         assert {'currentTemp', 'mode', 'minThermostatTemp', 'maxThermostatTemp', 'isFahrenheit', 'desiredTemp'} == set(json.loads(actual.data))
 
     def test_set_temperature__should_return_unauthorized_error_when_invalid_user(self):
-        url = 'thermostat/temperature/' + '3843040'
-        actual = self.TEST_CLIENT.post(url)
+        actual = self.TEST_CLIENT.post('thermostat/temperature/3843040')
 
         assert actual.status_code == 401
 
@@ -88,14 +85,13 @@ class TestThermostatRoutesIntegration:
         headers = {'Authorization': bearer_token}
         request = {'desiredTemp': 23.7, 'mode': Automation.HVAC.MODE.HEATING, 'isFahrenheit': True}
 
-        url = 'thermostat/temperature/' + str(self.USER_ID)
+        url = f'thermostat/temperature/{str(self.USER_ID)}'
         actual = self.TEST_CLIENT.post(url, data=json.dumps(request), headers=headers)
 
         assert actual.status_code == 200
 
     def test_get_forecast_data__should_return_unauthorized_error_when_invalid_user(self):
-        url = 'thermostat/forecast/3843040'
-        actual = self.TEST_CLIENT.get(url)
+        actual = self.TEST_CLIENT.get('thermostat/forecast/3843040')
 
         assert actual.status_code == 401
 
