@@ -23,7 +23,7 @@ class TestAppRoutesIntegration:
     CITY = 'Prague'
 
     def setup_method(self):
-        Settings.get_instance().dev_mode = False
+        Settings.get_instance(True, None)
         os.environ.update({'SQL_USERNAME': self.db_user, 'SQL_PASSWORD': self.db_pass, 'JWT_SECRET': self.JWT_SECRET,
                            'SQL_DBNAME': self.db_name, 'SQL_PORT': self.db_port})
         flask_app = app
@@ -225,7 +225,7 @@ class TestRefreshTokenApp:
     EXPIRED_TIME = datetime.now(tz=pytz.timezone('US/Central')) - timedelta(hours=1)
 
     def setup_method(self):
-        Settings.get_instance().dev_mode = False
+        Settings.get_instance(True, None)
         os.environ.update({'SQL_USERNAME': self.db_user, 'SQL_PASSWORD': self.db_pass, 'JWT_SECRET': self.JWT_SECRET,
                            'SQL_DBNAME': self.db_name, 'SQL_PORT': self.db_port})
         flask_app = app
