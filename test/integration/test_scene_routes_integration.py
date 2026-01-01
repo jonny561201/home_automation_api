@@ -23,8 +23,7 @@ class TestSceneRoutes:
     DB_NAME = 'garage_door'
 
     def setup_method(self):
-        settings = Settings.get_instance()
-        settings.dev_mode = False
+        Settings.get_instance(True, None)
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
         self.BEAR_TOKEN = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
