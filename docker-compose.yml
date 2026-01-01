@@ -2,7 +2,7 @@ version: "3"
 services:
   postgres_db:
     image: "postgres:11.2-alpine"
-    container_name: "postgres-test"
+    container_name: "postgres-home-automation"
     ports:
     - "5432:5432"
     environment:
