@@ -60,6 +60,7 @@ class RoleDevices(Base):
 
     id = Column(UUID, nullable=False, primary_key=True, server_default=sqlalchemy.text("gen_random_uuid()"))
     ip_address = Column(INET, nullable=False)
+    ip_port = Column(Integer)
     max_nodes = Column(SMALLINT, nullable=False)
     user_role_id = Column(UUID, ForeignKey(UserRoles.id))
 

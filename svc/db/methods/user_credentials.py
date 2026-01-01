@@ -221,7 +221,9 @@ class UserDatabase:
         self.__validate_property(user_id)
         user_role = self.session.query(UserRoles).filter_by(user_id=user_id).first()
         self.__validate_property(user_role)
-        return user_role.role_devices.ip_address
+        if user_role.role_devices.ip_port is None:
+            return user_role.role_devices.ip_address
+        return f'{user_role.role_devices.ip_address}:{user_role.role_devices.ip_port}'
 
     def get_user_child_accounts(self, user_id):
         self.__validate_property(user_id)

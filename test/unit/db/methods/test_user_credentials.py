@@ -629,12 +629,22 @@ class TestUserDatabase:
 
     def test_get_user_garage_ip__should_return_ip_address_of_user(self):
         ip_address = '1.1.1.1'
-        device = RoleDevices(ip_address=ip_address)
+        device = RoleDevices(ip_address=ip_address, ip_port=None)
         role = UserRoles(user_id=self.USER_ID, role_devices=device, role=Roles(role_name='doesntMatter'))
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = role
         actual = self.DATABASE.get_user_garage_ip(self.USER_ID)
 
         assert actual == ip_address
+
+    def test_get_user_garage_ip__should_return_ip_address_and_port_if_available(self):
+        ip_address = '1.1.1.1'
+        ip_port = 5001
+        device = RoleDevices(ip_address=ip_address, ip_port=ip_port)
+        role = UserRoles(user_id=self.USER_ID, role_devices=device, role=Roles(role_name='doesntMatter'))
+        self.SESSION.query.return_value.filter_by.return_value.first.return_value = role
+        actual = self.DATABASE.get_user_garage_ip(self.USER_ID)
+
+        assert actual == f'{ip_address}:{ip_port}'
 
     def test_create_child_account__should_raise_bad_request_when_user_id_is_none(self):
         with pytest.raises(BadRequest):
