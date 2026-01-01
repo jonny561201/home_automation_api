@@ -8,7 +8,7 @@ from requests import Response
 
 from svc.constants.settings_state import Settings
 from svc.db.methods.user_credentials import UserDatabaseManager
-from svc.db.models.user_information_model import UserInformation, Roles, UserRoles, RoleDevices
+from svc.db.models.user_information_model import UserInformation, Roles, UserRoles, RoleDevices, RoleDeviceNodes
 from svc.manager import app
 
 
@@ -28,14 +28,14 @@ class TestGarageDoorRoutesIntegration:
 
     def setup_method(self):
         flask_app = app
-        Settings.get_instance().dev_mode = False
+        Settings.get_instance(True, None)
         self.TEST_CLIENT = flask_app.test_client()
         os.environ.update({'JWT_SECRET': self.JWT_SECRET, 'SQL_USERNAME': self.DB_USER, 'SQL_PASSWORD': self.DB_PASS,
                            'SQL_DBNAME': self.DB_NAME, 'SQL_PORT': self.DB_PORT})
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
         self.ROLE = Roles(id=self.ROLE_ID, role_desc="fake desc", role_name='garage_door')
         self.USER_ROLE = UserRoles(id=self.USER_ROLE_ID, user_id=self.USER_ID, role_id=self.ROLE_ID)
-        self.DEVICE = RoleDevices(id=self.DEVICE_ID, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address='1.1.1.1')
+        self.DEVICE = RoleDevices(id=self.DEVICE_ID, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address='1.1.1.1', ip_port=5001)
         with UserDatabaseManager() as database:
             database.session.add(self.ROLE)
             database.session.add(self.USER_INFO)
@@ -48,6 +48,7 @@ class TestGarageDoorRoutesIntegration:
         with UserDatabaseManager() as database:
             database.session.delete(self.ROLE)
             database.session.delete(self.USER_INFO)
+            database.session.query(RoleDeviceNodes).delete()
             database.session.query(RoleDevices).delete()
         os.environ.pop('JWT_SECRET')
         os.environ.pop('SQL_USERNAME')
