@@ -15,8 +15,8 @@ class UserDatabaseManager:
     db_session = None
 
     def __enter__(self):
-        settings = Settings.get_instance()
-        connection = f'postgresql://{settings.db_user}:{settings.db_pass}@localhost:{settings.db_port}/{settings.db_name}'
+        settings = Settings.get_instance().Database
+        connection = f'postgresql://{settings.user}:{settings.password}@localhost:{settings.port}/{settings.name}'
 
         db_engine = create_engine(connection)
         session = orm.sessionmaker(bind=db_engine)
