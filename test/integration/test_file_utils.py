@@ -7,7 +7,7 @@ from svc.utilities.file_utils import write_desired_temp_to_file
 
 class TestFileUtils:
     def setup_method(self):
-        Settings.get_instance().dev_mode = True
+        Settings.get_instance(True, {'TempFileName': 'test.json'})
 
     def test_write_desired_temp_to_file__should_default_is_auto_to_false(self):
         file_name = Settings.get_instance().temp_file_name
