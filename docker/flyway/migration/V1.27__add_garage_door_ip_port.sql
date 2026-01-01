@@ -1,0 +1,1 @@
+ALTER TABLE role_devices ADD COLUMN ip_port INTEGER CHECK (ip_port BETWEEN 1 AND 65535);
