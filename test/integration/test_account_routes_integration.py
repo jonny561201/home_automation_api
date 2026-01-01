@@ -24,7 +24,9 @@ class TestAccountRoutesIntegration:
     EMAIL_APP_ID = 'as;kljdfski;hasdf'
 
     def setup_method(self):
-        Settings.get_instance(True, None)
+        settings = Settings.get_instance()
+        settings._settings = None
+        settings.Database._settings = None
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
         os.environ.update({'SQL_USERNAME': self.db_user, 'SQL_PASSWORD': self.db_pass, 'JWT_SECRET': self.JWT_SECRET,
