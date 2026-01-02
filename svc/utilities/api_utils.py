@@ -3,7 +3,7 @@ import json
 import requests
 from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
 
-from svc.constants.home_automation import JSON_TYPE
+from svc.constants.home_automation import Mime
 from svc.config.settings_state import Settings
 
 # TODO: move to settings file
@@ -119,8 +119,8 @@ def send_new_account_email(email, password):
     settings = Settings.get_instance()
     headers = {
         'api-key': settings.email_app_id,
-        'content-type': JSON_TYPE,
-        'accept': JSON_TYPE}
+        'content-type': Mime.JSON,
+        'accept': Mime.JSON}
     request = {
         'sender': {'name': 'Home Automation', 'email': 'senderalex@example.com'},
         'to': [{'email': email, 'name': 'Your Name'}],

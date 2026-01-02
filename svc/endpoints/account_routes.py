@@ -2,7 +2,7 @@ import json
 
 from flask import Blueprint, request, Response
 
-from svc.constants.home_automation import JSON_TYPE
+from svc.constants.home_automation import Mime
 from svc.controllers import account_controller
 
 ACCOUNT_BLUEPRINT = Blueprint('account_routes', __name__, url_prefix='/account')
@@ -12,32 +12,32 @@ ACCOUNT_BLUEPRINT = Blueprint('account_routes', __name__, url_prefix='/account')
 def update_user_password(user_id):
     bearer_token = request.headers.get('Authorization')
     account_controller.change_password(bearer_token, user_id,  request.data)
-    return Response(status=200, mimetype=JSON_TYPE)
+    return Response(status=200, mimetype=Mime.JSON)
 
 
 @ACCOUNT_BLUEPRINT.route('/userId/<user_id>/createChildAccount', methods=['POST'])
 def post_child_account_by_user(user_id):
     bearer_token = request.headers.get('Authorization')
     child_accounts = account_controller.create_child_account_by_user(bearer_token, user_id, request.data)
-    return Response(json.dumps(child_accounts), status=200, mimetype=JSON_TYPE)
+    return Response(json.dumps(child_accounts), status=200, mimetype=Mime.JSON)
 
 
 @ACCOUNT_BLUEPRINT.route('/userId/<user_id>/childAccounts', methods=['GET'])
 def get_child_accounts_by_user_id(user_id):
     bearer_token = request.headers.get('Authorization')
     child_accounts = account_controller.get_child_accounts_by_user(bearer_token, user_id)
-    return Response(json.dumps(child_accounts), status=200, mimetype=JSON_TYPE)
+    return Response(json.dumps(child_accounts), status=200, mimetype=Mime.JSON)
 
 
 @ACCOUNT_BLUEPRINT.route('/userId/<user_id>/roles', methods=['GET'])
 def get_roles_by_user_id(user_id):
     bearer_token = request.headers.get('Authorization')
     roles = account_controller.get_roles(bearer_token, user_id)
-    return Response(json.dumps(roles), status=200, mimetype=JSON_TYPE)
+    return Response(json.dumps(roles), status=200, mimetype=Mime.JSON)
 
 
 @ACCOUNT_BLUEPRINT.route('/userId/<user_id>/childUserId/<child_user_id>', methods=['DELETE'])
 def delete_child_account_by_user_id(user_id, child_user_id):
     bearer_token = request.headers.get('Authorization')
     account_controller.delete_child_account(bearer_token, user_id, child_user_id)
-    return Response(status=200, mimetype=JSON_TYPE)
+    return Response(status=200, mimetype=Mime.JSON)

@@ -1,4 +1,5 @@
-JSON_TYPE = 'application/json'
+class Mime:
+    JSON = 'application/json'
 
 class Mode:
     BLOWER = 'blower'
