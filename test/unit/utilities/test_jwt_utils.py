@@ -18,8 +18,8 @@ class TestJwt:
     def setup_method(self):
         self.JWT_BODY = {'fakeBody': 'valueValue'}
         self.SETTINGS = Settings.get_instance()
-        self.SETTINGS.dev_mode = True
-        self.SETTINGS.settings = {'DevJwtSecret': self.JWT_SECRET}
+        self.SETTINGS._dev_mode = True
+        self.SETTINGS._settings = {'DevJwtSecret': self.JWT_SECRET}
 
     def test_is_jwt_valid__should_not_fail_if_it_can_be_decrypted(self):
         jwt_token = jwt.encode(self.JWT_BODY, self.JWT_SECRET, algorithm='HS256').decode('UTF-8')

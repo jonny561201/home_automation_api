@@ -4,6 +4,7 @@ import uuid
 
 import jwt
 
+from constants.settings_state import Settings
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserRoles, UserInformation, Roles, RoleDevices, RoleDeviceNodes
 from svc.manager import app
@@ -26,6 +27,9 @@ class TestDeviceRoutesIntegration:
     ROLE = None
 
     def setup_method(self):
+        settings = Settings.get_instance()
+        settings._settings = None
+        settings.Database._settings = None
         os.environ.update({'JWT_SECRET': self.JWT_SECRET, 'SQL_USERNAME': self.DB_USER, 'SQL_PASSWORD': self.DB_PASS,
                            'SQL_DBNAME': self.DB_NAME, 'SQL_PORT': self.DB_PORT})
         flask_app = app

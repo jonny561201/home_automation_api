@@ -27,8 +27,10 @@ class TestGarageDoorRoutesIntegration:
     DEVICE_ID = str(uuid.uuid4())
 
     def setup_method(self):
+        settings = Settings.get_instance()
+        settings._settings = None
+        settings.Database._settings = None
         flask_app = app
-        Settings.get_instance(True, None)
         self.TEST_CLIENT = flask_app.test_client()
         os.environ.update({'JWT_SECRET': self.JWT_SECRET, 'SQL_USERNAME': self.DB_USER, 'SQL_PASSWORD': self.DB_PASS,
                            'SQL_DBNAME': self.DB_NAME, 'SQL_PORT': self.DB_PORT})

@@ -23,7 +23,9 @@ class TestAppRoutesIntegration:
     CITY = 'Prague'
 
     def setup_method(self):
-        Settings.get_instance(True, None)
+        settings = Settings.get_instance()
+        settings._settings = None
+        settings.Database._settings = None
         os.environ.update({'SQL_USERNAME': self.db_user, 'SQL_PASSWORD': self.db_pass, 'JWT_SECRET': self.JWT_SECRET,
                            'SQL_DBNAME': self.db_name, 'SQL_PORT': self.db_port})
         flask_app = app

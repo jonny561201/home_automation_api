@@ -20,8 +20,8 @@ class TestLightRequest:
     def setup_method(self):
         self.REQUEST = {'on': self.STATE, 'groupId': self.GROUP_ID}
         self.SETTINGS = Settings.get_instance()
-        self.SETTINGS.dev_mode = True
-        self.SETTINGS.settings = {'lightApiKey': self.API_KEY}
+        self.SETTINGS._dev_mode = True
+        self.SETTINGS._settings = {'lightApiKey': self.API_KEY}
 
     def test_set_assigned_light_groups__should_call_is_jwt_valid(self, mock_api, mock_jwt, mock_setting):
         set_assigned_light_groups(self.BEARER_TOKEN, self.REQUEST)

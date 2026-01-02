@@ -25,7 +25,7 @@ class TestThermostatRoutesIntegration:
     DB_NAME = 'garage_door'
 
     def setup_method(self):
-        Settings.get_instance(True, None)
+        Settings.get_instance()
         self.USER_ID = uuid.uuid4()
         self.USER = UserInformation(id=str(self.USER_ID), first_name='Jon', last_name='Test')
         self.PREFERENCE = UserPreference(user_id=str(self.USER_ID), city='London', is_fahrenheit=False, is_imperial=False)
