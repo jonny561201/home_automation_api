@@ -15,27 +15,27 @@ class Settings:
 
     @property
     def email_app_id(self):
-        return self._settings.get('EmailAppId') if self._settings is not None else os.environ.get('EMAIL_APP_ID')
+        return os.environ.get('EMAIL_APP_ID') if os.environ.get('EMAIL_APP_ID') is not None else self._settings.get('EmailAppId')
 
     @property
     def weather_app_id(self):
-        return self._settings.get('WeatherAppId') if self._settings is not None else os.environ.get('WEATHER_APP_ID')
+        return os.environ.get('WEATHER_APP_ID') if os.environ.get('WEATHER_APP_ID') is not None else self._settings.get('WeatherAppId')
 
     @property
     def jwt_secret(self):
-        return self._settings.get('JwtSecret') if self._settings is not None else os.environ.get('JWT_SECRET')
+        return os.environ.get('JWT_SECRET') if os.environ.get('JWT_SECRET') is not None else self._settings.get('JwtSecret')
 
     @property
     def light_api_key(self):
-        return self._settings.get('LightApiKey') if self._settings is not None else os.environ.get('LIGHT_API_KEY')
+        return os.environ.get('LIGHT_API_KEY') if os.environ.get('LIGHT_API_KEY') is not None else self._settings.get('LightApiKey')
 
     @property
     def user_id(self):
-        return self._settings.get('UserId') if self._settings is not None else os.environ.get('USER_ID')
+        return os.environ.get('USER_ID') if os.environ.get('USER_ID') is not None else  self._settings.get('UserId')
 
     @property
     def temp_file_name(self):
-        return self._settings.get('TempFileName') if self._settings is not None else os.environ.get('TEMP_FILE_NAME')
+        return os.environ.get('TEMP_FILE_NAME') if os.environ.get('TEMP_FILE_NAME') is not None else self._settings.get('TempFileName')
 
     @property
     def allowed_origins(self):
