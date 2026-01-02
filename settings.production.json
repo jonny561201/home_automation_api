@@ -1,0 +1,18 @@
+{
+  "Environment": "prod",
+  "Database": {
+    "Port": "5432",
+    "Name": "garage_door"
+  },
+  "UserId": "e97febc0-fd10-11e9-8f0b-362b9e155667",
+  "TempFileName": "temperatureFile.json",
+  "Queue": {
+    "Port": 123,
+    "Host": "localhost",
+    "VHost": "/"
+  },
+  "AllowedOrigins": [
+    "https://www.soaringleafsolutions.com",
+    "https://jonny561201.github.io/home-automation-ui"
+  ]
+}
