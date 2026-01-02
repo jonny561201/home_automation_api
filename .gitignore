@@ -6,4 +6,6 @@
 **.pyc
 **.DS_Store
 variables.sh
+
 settings.json
+test.json
