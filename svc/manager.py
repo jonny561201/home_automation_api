@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 
+from svc.config.settings_state import Settings
 from svc.endpoints.account_routes import ACCOUNT_BLUEPRINT
 from svc.endpoints.app_routes import APP_BLUEPRINT
 from svc.endpoints.device_routes import DEVICES_BLUEPRINT
@@ -11,7 +12,9 @@ from svc.endpoints.sump_routes import SUMP_BLUEPRINT
 from svc.endpoints.thermostat_routes import THERMOSTAT_BLUEPRINT
 
 app = Flask(__name__)
-CORS(app)
+
+CORS(app, origins=Settings.get_instance().allowed_origins)
+
 app.register_blueprint(APP_BLUEPRINT)
 app.register_blueprint(ACCOUNT_BLUEPRINT)
 app.register_blueprint(SUMP_BLUEPRINT)
