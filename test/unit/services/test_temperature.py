@@ -14,8 +14,7 @@ class TestTemperatureService:
     APP_ID = 'fake app id'
 
     def setup_method(self):
-        self.SETTINGS = Settings.get_instance()
-        self.SETTINGS._settings = {'DevWeatherAppId': self.APP_ID}
+        Settings.get_instance()._settings = {'WeatherAppId': self.APP_ID}
         self.PREFERENCES = {'city': self.CITY, 'temp_unit': self.UNIT, 'is_fahrenheit': True}
 
     def test_get_external_weather__should_call_get_weather_with_city(self, mock_weather, mock_file, mock_temp):
