@@ -57,7 +57,7 @@ class Database:
 
     @property
     def password(self):
-        return self._settings.get('Pass') if self._settings is not None else os.environ.get('SQL_PASSWORD')
+        return self._settings.get('Password') if self._settings is not None else os.environ.get('SQL_PASSWORD')
 
     @property
     def name(self):
