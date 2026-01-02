@@ -1,4 +1,3 @@
-import os
 import uuid
 
 import jwt
@@ -6,34 +5,25 @@ from flask import json
 from mock import patch
 from requests import Response
 
-from svc.constants.home_automation import Automation
 from svc.config.settings_state import Settings
+from svc.constants.home_automation import Automation
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, UserPreference
 from svc.manager import app
 
 
 class TestThermostatRoutesIntegration:
-    TEST_CLIENT = None
     JWT_SECRET = 'fake_secret'
-    USER_ID = None
-    USER = None
-    PREFERENCE = None
-    DB_USER = 'postgres'
-    DB_PASS = 'password'
-    DB_PORT = '5432'
-    DB_NAME = 'garage_door'
 
     def setup_method(self):
-        Settings.get_instance()
+        settings = {'User': 'postgres', 'Password': 'password', 'Name': 'garage_door', 'Port': '5432'}
+        Settings.get_instance().Database._settings = settings
+        Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET}
         self.USER_ID = uuid.uuid4()
         self.USER = UserInformation(id=str(self.USER_ID), first_name='Jon', last_name='Test')
         self.PREFERENCE = UserPreference(user_id=str(self.USER_ID), city='London', is_fahrenheit=False, is_imperial=False)
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
-        os.environ.update({'JWT_SECRET': self.JWT_SECRET, 'SQL_USERNAME': self.DB_USER,
-                           'SQL_PASSWORD': self.DB_PASS, 'SQL_DBNAME': self.DB_NAME,
-                           'SQL_PORT': self.DB_PORT})
         with UserDatabaseManager() as database:
             database.session.add(self.USER)
             database.session.add(self.PREFERENCE)
@@ -42,11 +32,6 @@ class TestThermostatRoutesIntegration:
         with UserDatabaseManager() as database:
             database.session.delete(self.PREFERENCE)
             database.session.delete(self.USER)
-        os.environ.pop('JWT_SECRET')
-        os.environ.pop('SQL_USERNAME')
-        os.environ.pop('SQL_PASSWORD')
-        os.environ.pop('SQL_DBNAME')
-        os.environ.pop('SQL_PORT')
 
     def test_get_temperature__should_return_unauthorized_error_when_invalid_user(self):
         actual = self.TEST_CLIENT.get('thermostat/temperature/890234890234')
@@ -99,8 +84,6 @@ class TestThermostatRoutesIntegration:
     def test_get_forecast_data__should_return_successfully(self, mock_request):
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         headers = {'Authorization': bearer_token}
-        url = f'thermostat/forecast/{str(self.USER_ID)}'
-
         response_one = Response()
         response_two = Response()
         response_one.status_code = 200
@@ -111,7 +94,7 @@ class TestThermostatRoutesIntegration:
         response_two._content = json.dumps({'coord': {'lat': 23.232, 'lon': -93.232}}).encode()
         mock_request.get.side_effect = [response_two, response_one]
 
-        actual = self.TEST_CLIENT.get(url, headers=headers)
+        actual = self.TEST_CLIENT.get(f'thermostat/forecast/{str(self.USER_ID)}', headers=headers)
         json_actual = json.loads(actual.data)
 
         assert actual.status_code == 200

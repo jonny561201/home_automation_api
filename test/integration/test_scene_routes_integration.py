@@ -1,5 +1,4 @@
 import json
-import os
 import uuid
 
 import jwt
@@ -11,26 +10,20 @@ from svc.manager import app
 
 
 class TestSceneRoutes:
-    TEST_CLIENT = None
     USER_ID = str(uuid.uuid4())
     SCENE_ID = str(uuid.uuid4())
     SCENE_NAME = 'movie timez'
     GROUP_NAME = 'livin in the room'
     JWT_SECRET = 'fakeKey'
-    DB_USER = 'postgres'
-    DB_PASS = 'password'
-    DB_PORT = '5432'
-    DB_NAME = 'garage_door'
 
     def setup_method(self):
-        Settings.get_instance()
+        settings = {'User': 'postgres', 'Password': 'password', 'Name': 'garage_door', 'Port': '5432'}
+        Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET}
+        Settings.get_instance().Database._settings = settings
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
         self.BEAR_TOKEN = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         self.HEADER = {'Authorization': 'Bearer ' + self.BEAR_TOKEN.decode('UTF-8')}
-        os.environ.update({'JWT_SECRET': self.JWT_SECRET, 'SQL_USERNAME': self.DB_USER,
-                           'SQL_PASSWORD': self.DB_PASS, 'SQL_DBNAME': self.DB_NAME,
-                           'SQL_PORT': self.DB_PORT})
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
         self.SCENE = Scenes(name=self.SCENE_NAME, user_id=self.USER_ID, id=self.SCENE_ID)
         self.DETAIL = SceneDetails(light_group='2', light_group_name=self.GROUP_NAME, light_brightness=45, scene_id=self.SCENE_ID)
@@ -46,11 +39,6 @@ class TestSceneRoutes:
             database.session.commit()
             database.session.query(Scenes).delete()
             database.session.delete(self.USER_INFO)
-        os.environ.pop('JWT_SECRET')
-        os.environ.pop('SQL_USERNAME')
-        os.environ.pop('SQL_PASSWORD')
-        os.environ.pop('SQL_DBNAME')
-        os.environ.pop('SQL_PORT')
 
     def test_get_scenes_by_user__should_return_success_response(self):
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')

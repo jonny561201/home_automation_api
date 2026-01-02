@@ -1,5 +1,4 @@
 import json
-import os
 import uuid
 
 import jwt
@@ -11,27 +10,17 @@ from svc.manager import app
 
 
 class TestDeviceRoutesIntegration:
-    TEST_CLIENT = None
     USER_ID = str(uuid.uuid4())
     ROLE_ID = str(uuid.uuid4())
     USER_ROLE_ID = str(uuid.uuid4())
     DEVICE_ID = str(uuid.uuid4())
     ROLE_NAME = 'made_up_role'
     JWT_SECRET = 'fakeSecret'
-    DB_USER = 'postgres'
-    DB_PASS = 'password'
-    DB_PORT = '5432'
-    DB_NAME = 'garage_door'
-    USER_ROLE = None
-    USER_INFO = None
-    ROLE = None
 
     def setup_method(self):
-        settings = Settings.get_instance()
-        settings._settings = None
-        settings.Database._settings = None
-        os.environ.update({'JWT_SECRET': self.JWT_SECRET, 'SQL_USERNAME': self.DB_USER, 'SQL_PASSWORD': self.DB_PASS,
-                           'SQL_DBNAME': self.DB_NAME, 'SQL_PORT': self.DB_PORT})
+        settings = {'User': 'postgres', 'Password': 'password', 'Name': 'garage_door', 'Port': '5432'}
+        Settings.get_instance().Database._settings = settings
+        Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET}
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
@@ -50,11 +39,6 @@ class TestDeviceRoutesIntegration:
             database.session.delete(self.USER_INFO)
             database.session.query(RoleDeviceNodes).delete()
             database.session.query(RoleDevices).delete()
-        os.environ.pop('JWT_SECRET')
-        os.environ.pop('SQL_USERNAME')
-        os.environ.pop('SQL_PASSWORD')
-        os.environ.pop('SQL_DBNAME')
-        os.environ.pop('SQL_PORT')
 
     def test_add_device_by_user_id__should_return_unauthorized(self):
         post_body = '{}'

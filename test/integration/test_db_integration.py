@@ -1,21 +1,20 @@
-import os
-import uuid
 import datetime
+import uuid
 
 import pytest
 import pytz
 from mock import patch
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
+from svc.config.settings_state import Settings
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, \
     UserCredentials, Roles, UserPreference, UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts, ScheduleTasks, \
     ScheduledTaskTypes, Scenes, SceneDetails, RefreshToken
 
-DB_USER = 'postgres'
-DB_PASS = 'password'
-DB_PORT = '5432'
-DB_NAME = 'garage_door'
+
+settings = {'User': 'postgres', 'Password': 'password', 'Name': 'garage_door', 'Port': '5432'}
+Settings.get_instance().Database._settings = settings
 
 
 class TestDbValidateIntegration:
@@ -29,8 +28,6 @@ class TestDbValidateIntegration:
     LAST = 'Test'
 
     def setup_method(self):
-        os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
-                           'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
         self.ROLE = Roles(role_name=self.ROLE_NAME, id=str(uuid.uuid4()), role_desc='doesnt matter')
         self.USER_ROLE = UserRoles(id=self.USER_ROLE_ID, role_id=self.ROLE.id, user_id=self.USER_ID, role=self.ROLE)
         self.USER = UserInformation(id=self.USER_ID, first_name=self.FIRST, last_name=self.LAST)
@@ -48,10 +45,6 @@ class TestDbValidateIntegration:
             database.session.delete(self.USER_LOGIN)
             database.session.commit()
             database.session.delete(self.ROLE)
-        os.environ.pop('SQL_USERNAME')
-        os.environ.pop('SQL_PASSWORD')
-        os.environ.pop('SQL_DBNAME')
-        os.environ.pop('SQL_PORT')
 
     def test_validate_credentials__should_return_user_id_when_user_exists(self):
         with UserDatabaseManager() as database:
@@ -156,8 +149,6 @@ class TestRefreshTokenIntegration:
     EXPIRED = NOW - datetime.timedelta(minutes=5)
 
     def setup_method(self):
-        os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
-                           'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
         self.USER = UserInformation(id=self.USER_ID, first_name=self.FIRST, last_name=self.LAST)
         self.VALID_REFRESH = RefreshToken(refresh=self.VALID_TOKEN, user_id=self.USER_ID, count=10, expire_time=self.EXPIRE)
         self.EXPIRED_REFRESH = RefreshToken(refresh=self.EXPIRED_TOKEN, user_id=self.USER_ID, count=10, expire_time=self.EXPIRED)
@@ -172,10 +163,6 @@ class TestRefreshTokenIntegration:
         with UserDatabaseManager() as database:
             database.session.query(RefreshToken).delete()
             database.session.delete(self.USER)
-        os.environ.pop('SQL_USERNAME')
-        os.environ.pop('SQL_PASSWORD')
-        os.environ.pop('SQL_DBNAME')
-        os.environ.pop('SQL_PORT')
 
     def test_insert_refresh_token__should_insert_token_to_db(self):
         token = str(uuid.uuid4())
@@ -238,8 +225,7 @@ class TestDbPreferenceIntegration:
     GARAGE = 'Jons'
 
     def setup_method(self):
-        os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
-                           'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
+
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
         self.TASK = ScheduleTasks(user_id=self.USER_ID, id=self.TASK_ID, alarm_light_group=self.LIGHT_GROUP, alarm_group_name=self.GROUP_NAME, alarm_days=self.DAYS, alarm_time=datetime.time.fromisoformat(self.LIGHT_TIME), enabled=True)
         self.USER_PREFERENCES = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city=self.CITY, garage_door=self.GARAGE, garage_id=1)
@@ -252,10 +238,6 @@ class TestDbPreferenceIntegration:
             database.session.query(ScheduleTasks).delete()
             database.session.delete(self.USER_PREFERENCES)
             database.session.delete(self.USER)
-        os.environ.pop('SQL_USERNAME')
-        os.environ.pop('SQL_PASSWORD')
-        os.environ.pop('SQL_DBNAME')
-        os.environ.pop('SQL_PORT')
 
     def test_get_schedule_task_by_user__should_return_task(self):
         with UserDatabaseManager() as database:
@@ -483,8 +465,7 @@ class TestDbSumpIntegration:
     DATE = datetime.datetime.now()
 
     def setup_method(self):
-        os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
-                           'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
+
         self.FIRST_USER = UserInformation(id=self.FIRST_USER_ID, first_name='Jon', last_name='Test')
         self.SECOND_USER = UserInformation(id=self.SECOND_USER_ID, first_name='Dylan', last_name='Fake')
         self.CHILD_USER = UserInformation(id=self.CHILD_USER_ID, first_name='Kalynn', last_name='Dawn')
@@ -513,10 +494,6 @@ class TestDbSumpIntegration:
             database.session.delete(self.SECOND_USER)
             database.session.delete(self.FIRST_USER)
             database.session.delete(self.CHILD_USER)
-        os.environ.pop('SQL_USERNAME')
-        os.environ.pop('SQL_PASSWORD')
-        os.environ.pop('SQL_DBNAME')
-        os.environ.pop('SQL_PORT')
 
     def test_get_current_sump_level_by_user__should_return_valid_sump_level(self):
         with UserDatabaseManager() as database:
@@ -584,8 +561,6 @@ class TestDbPasswordIntegration:
     USER_ID = str(uuid.uuid4())
 
     def setup_method(self):
-        os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
-                           'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
         self.USER_INFO = UserInformation(first_name='test', last_name='Tester', id=self.USER_ID)
         self.USER_CREDS = UserCredentials(id=str(uuid.uuid4()), user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
         with UserDatabaseManager() as database:
@@ -595,10 +570,6 @@ class TestDbPasswordIntegration:
     def teardown_method(self):
         with UserDatabaseManager() as database:
             database.session.delete(self.USER_CREDS)
-        os.environ.pop('SQL_USERNAME')
-        os.environ.pop('SQL_PASSWORD')
-        os.environ.pop('SQL_DBNAME')
-        os.environ.pop('SQL_PORT')
 
     def test_change_user_password__should_raise_exception_with_mismatched_password(self):
         mismatched_pass = 'this wont match'
@@ -624,8 +595,6 @@ class TestDbRoleIntegration:
     ROLE_NAME = "lighting"
 
     def setup_method(self):
-        os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
-                           'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='steve', last_name='rogers')
         self.ROLE = Roles(id=self.ROLE_ID, role_desc="lighting", role_name=self.ROLE_NAME)
         self.USER_ROLE = UserRoles(id=self.USER_ROLE_ID, user_id=self.USER_ID, role_id=self.ROLE_ID, role=self.ROLE)
@@ -650,10 +619,6 @@ class TestDbRoleIntegration:
             database.session.delete(self.CHILD_USER)
             database.session.delete(self.ROLE)
             database.session.query(RoleDeviceNodes).delete()
-        os.environ.pop('SQL_USERNAME')
-        os.environ.pop('SQL_PASSWORD')
-        os.environ.pop('SQL_DBNAME')
-        os.environ.pop('SQL_PORT')
 
     def test_add_new_device__should_raise_unauthorized_when_no_role_found(self):
         role_name = 'garage_door'
@@ -823,8 +788,6 @@ class TestUserDuplication:
     UPDATED_DEVICE_ID = str(uuid.uuid4())
 
     def setup_method(self):
-        os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
-                           'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
         self.PREFERENCE = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city=self.CITY)
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
         self.ROLE = Roles(id=self.ROLE_ID, role_desc="lighting", role_name=self.ROLE_NAME)
@@ -859,10 +822,6 @@ class TestUserDuplication:
             database.session.query(UserInformation).filter_by(id=self.USER_ID).delete()
             database.session.query(UserInformation).filter_by(id=self.CHILD_USER_ID).delete()
             database.session.query(Roles).filter_by(id=self.ROLE_ID).delete()
-        os.environ.pop('SQL_USERNAME')
-        os.environ.pop('SQL_PASSWORD')
-        os.environ.pop('SQL_DBNAME')
-        os.environ.pop('SQL_PORT')
 
     def test_create_child_account__should_duplicate_existing_record(self, mock_uuid):
         mock_uuid.uuid4.side_effect = [self.UPDATED_USER_ID, uuid.uuid4(), uuid.uuid4()]
@@ -1006,8 +965,6 @@ class TestUserScenes:
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
         self.SCENE = Scenes(name=self.SCENE_NAME, user_id=self.USER_ID, id=self.SCENE_ID)
         self.DETAIL = SceneDetails(light_group='2', light_group_name=self.GROUP_NAME, light_brightness=45, scene_id=self.SCENE_ID)
-        os.environ.update({'SQL_USERNAME': DB_USER, 'SQL_PASSWORD': DB_PASS,
-                           'SQL_DBNAME': DB_NAME, 'SQL_PORT': DB_PORT})
         with UserDatabaseManager() as database:
             database.session.add(self.USER_INFO)
             database.session.commit()
@@ -1020,10 +977,6 @@ class TestUserScenes:
             database.session.commit()
             database.session.query(Scenes).delete()
             database.session.delete(self.USER_INFO)
-        os.environ.pop('SQL_USERNAME')
-        os.environ.pop('SQL_PASSWORD')
-        os.environ.pop('SQL_DBNAME')
-        os.environ.pop('SQL_PORT')
 
     def test_get_scenes_by_user__should_return_records(self):
         with UserDatabaseManager() as database:
