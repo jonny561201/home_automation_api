@@ -47,7 +47,7 @@ class TestJwt:
             is_jwt_valid(jwt_token)
 
     def test_is_jwt_valid__should_raise_unauthorized_if_token_is_invalid_string(self):
-        self.SETTINGS.dev_mode = False
+        self.SETTINGS._dev_mode = False
         jwt_token = 'abc123'
 
         with pytest.raises(Unauthorized):
@@ -84,7 +84,7 @@ class TestJwt:
         assert actual == str(refresh)
 
     def test_is_jwt_valid__should_raise_exception_if_secret_is_not_set(self):
-        self.SETTINGS.settings = {'DevJwtSecret': ''}
+        self.SETTINGS._settings = {'DevJwtSecret': ''}
         jwt_body = {'fakeBody': 'valueValue'}
         jwt_secret = 'testSecret'
         jwt_token = jwt.encode(jwt_body, jwt_secret, algorithm='HS256').decode('UTF-8')

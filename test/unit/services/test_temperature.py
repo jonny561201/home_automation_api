@@ -15,7 +15,6 @@ class TestTemperatureService:
 
     def setup_method(self):
         self.SETTINGS = Settings.get_instance()
-        self.SETTINGS._dev_mode = True
         self.SETTINGS._settings = {'DevWeatherAppId': self.APP_ID}
         self.PREFERENCES = {'city': self.CITY, 'temp_unit': self.UNIT, 'is_fahrenheit': True}
 

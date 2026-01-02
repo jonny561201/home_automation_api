@@ -586,7 +586,6 @@ class TestEmailApiRequests:
 
     def setup_method(self):
         self.SETTINGS = Settings.get_instance()
-        self.SETTINGS._dev_mode = True
         self.SETTINGS._settings = {'DevEmailAppId': self.API_KEY}
 
     def test_send_new_account_email__should_pass_api_key_to_header_in_requests(self, mock_request):
