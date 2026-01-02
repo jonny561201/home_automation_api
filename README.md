@@ -47,3 +47,4 @@
     * will start/stop a postgres docker container
     * will execute flyway against postgres database
 6. Stand up application by executing `python app.py`
+   * For local development use `python local_app.py` as you cannot install GPI library on non-raspberry pi devices
