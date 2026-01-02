@@ -5,7 +5,7 @@
     "Name": "garage_door"
   },
   "UserId": "e97febc0-fd10-11e9-8f0b-362b9e155667",
-  "TempFileName": "temperatureFile.json",
+  "TempFileName": "/home/pi/temperature_settings.json",
   "Queue": {
     "Port": 123,
     "Host": "localhost",
