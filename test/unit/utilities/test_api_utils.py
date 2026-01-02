@@ -16,10 +16,11 @@ class TestWeatherApiRequests:
     CITY = 'Des Moines'
     COORDS = {'lat': 23.123, 'lon': -92.28876}
     UNIT_PREFERENCE = 'imperial'
-    URL = 'https://api.openweathermap.org/data/2.5'
+    URL = 'https://test.weather.api'
     APP_ID = 'ab30xkd0'
 
     def setup_method(self):
+        Settings.get_instance().BaseUrls._settings = {'Weather': self.URL}
         self.RESPONSE = Response()
         self.RESPONSE.status_code = 200
         self.RESPONSE_CONTENT = {'main': {}, 'weather': [{}]}
@@ -271,10 +272,11 @@ class TestGarageApiRequests:
 class TestLightApiRequests:
     USERNAME = 'fake username'
     PASSWORD = 'fake password'
-    BASE_URL = 'http://127.0.0.1:5002/api/lights'
+    BASE_URL = 'http://lights.test.api'
     API_KEY = 'fake api key'
 
     def test_get_light_groups__should_call_groups_url(self, mock_requests):
+        Settings.get_instance().BaseUrls._settings = {'Lights': self.BASE_URL}
         expected_url = f'{self.BASE_URL}/groups'
         mock_requests.get.return_value = self.__create_response()
         get_light_groups(self.API_KEY)
@@ -580,9 +582,11 @@ class TestEmailApiRequests:
     EMAIL = 'test@test.com'
     PASSWORD = 'fakePassword'
     API_KEY = 'asdjfhv323240'
+    URL = 'https://test.email.api'
 
     def setup_method(self):
         Settings.get_instance()._settings = {'EmailAppId': self.API_KEY}
+        Settings.get_instance().BaseUrls._settings = {'Email': self.URL}
 
     def test_send_new_account_email__should_pass_api_key_to_header_in_requests(self, mock_request):
         expected_header = {'api-key': self.API_KEY, 'content-type': 'application/json', 'accept': 'application/json'}
@@ -591,10 +595,9 @@ class TestEmailApiRequests:
         mock_request.post.assert_called_with(ANY, data=ANY, headers=expected_header)
 
     def test_send_new_account_email__should_call_url_in_post_method(self, mock_request):
-        expected_url = 'https://api.sendinblue.com/v3/smtp/email'
         send_new_account_email(self.EMAIL, self.PASSWORD)
 
-        mock_request.post.assert_called_with(expected_url, data=ANY, headers=ANY)
+        mock_request.post.assert_called_with(self.URL, data=ANY, headers=ANY)
 
     def test_send_new_account_email__should_make_call_to_post_request_with_correct_body(self, mock_request):
         expected_data = {
