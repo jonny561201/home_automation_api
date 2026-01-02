@@ -6,15 +6,10 @@ import pytz
 from mock import patch
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
-from svc.config.settings_state import Settings
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, \
     UserCredentials, Roles, UserPreference, UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts, ScheduleTasks, \
     ScheduledTaskTypes, Scenes, SceneDetails, RefreshToken
-
-
-settings = {'User': 'postgres', 'Password': 'password', 'Name': 'garage_door', 'Port': '5432'}
-Settings.get_instance().Database._settings = settings
 
 
 class TestDbValidateIntegration:

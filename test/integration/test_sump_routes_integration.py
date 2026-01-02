@@ -15,9 +15,7 @@ class TestSumpRoutes:
     JWT_SECRET = 'fakeKey'
 
     def setup_method(self):
-        settings = {'User': 'postgres', 'Password': 'password', 'Name': 'garage_door', 'Port': '5432'}
         Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET}
-        Settings.get_instance().Database._settings = settings
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
         self.BEAR_TOKEN = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')

@@ -16,8 +16,6 @@ class TestThermostatRoutesIntegration:
     JWT_SECRET = 'fake_secret'
 
     def setup_method(self):
-        settings = {'User': 'postgres', 'Password': 'password', 'Name': 'garage_door', 'Port': '5432'}
-        Settings.get_instance().Database._settings = settings
         Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET}
         self.USER_ID = uuid.uuid4()
         self.USER = UserInformation(id=str(self.USER_ID), first_name='Jon', last_name='Test')

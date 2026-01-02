@@ -21,8 +21,6 @@ class TestGarageDoorRoutesIntegration:
     DEVICE_ID = str(uuid.uuid4())
 
     def setup_method(self):
-        settings = {'User': 'postgres', 'Password': 'password', 'Name': 'garage_door', 'Port': '5432'}
-        Settings.get_instance().Database._settings = settings
         Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET}
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()

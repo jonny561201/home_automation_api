@@ -19,8 +19,6 @@ class TestAccountRoutesIntegration:
     EMAIL_APP_ID = 'as;kljdfski;hasdf'
 
     def setup_method(self):
-        settings = {'User': 'postgres', 'Password': 'password', 'Name': 'garage_door', 'Port': '5432'}
-        Settings.get_instance().Database._settings = settings
         Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET, 'EmailAppId': self.EMAIL_APP_ID}
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
