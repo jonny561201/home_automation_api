@@ -15,27 +15,27 @@ class Settings:
 
     @property
     def email_app_id(self):
-        return os.environ.get('EMAIL_APP_ID') if os.environ.get('EMAIL_APP_ID') is not None else self._settings.get('EmailAppId')
+        return _get_setting('EMAIL_APP_ID', 'EmailAppId', self._settings)
 
     @property
     def weather_app_id(self):
-        return os.environ.get('WEATHER_APP_ID') if os.environ.get('WEATHER_APP_ID') is not None else self._settings.get('WeatherAppId')
+        return _get_setting('WEATHER_APP_ID', 'WeatherAppId', self._settings)
 
     @property
     def jwt_secret(self):
-        return os.environ.get('JWT_SECRET') if os.environ.get('JWT_SECRET') is not None else self._settings.get('JwtSecret')
+        return _get_setting('JWT_SECRET', 'JwtSecret', self._settings)
 
     @property
     def light_api_key(self):
-        return os.environ.get('LIGHT_API_KEY') if os.environ.get('LIGHT_API_KEY') is not None else self._settings.get('LightApiKey')
+        return _get_setting('LIGHT_API_KEY', 'LightApiKey', self._settings)
 
     @property
     def user_id(self):
-        return os.environ.get('USER_ID') if os.environ.get('USER_ID') is not None else  self._settings.get('UserId')
+        return _get_setting('USER_ID', 'UserId', self._settings)
 
     @property
     def temp_file_name(self):
-        return os.environ.get('TEMP_FILE_NAME') if os.environ.get('TEMP_FILE_NAME') is not None else self._settings.get('TempFileName')
+        return _get_setting('TEMP_FILE_NAME', 'TempFileName', self._settings)
 
     @property
     def allowed_origins(self):
@@ -57,19 +57,19 @@ class Database:
 
     @property
     def user(self):
-        return os.environ.get('SQL_USERNAME') if os.environ.get('SQL_USERNAME') is not None else self._settings.get('User')
+        return _get_setting('SQL_USERNAME', 'User', self._settings)
 
     @property
     def password(self):
-        return os.environ.get('SQL_PASSWORD') if os.environ.get('SQL_PASSWORD') is not None else self._settings.get('Password')
+        return _get_setting('SQL_PASSWORD', 'Password', self._settings)
 
     @property
     def name(self):
-        return os.environ.get('SQL_DBNAME') if os.environ.get('SQL_DBNAME') is not None else self._settings.get('Name')
+        return _get_setting('SQL_DBNAME', 'Name', self._settings)
 
     @property
     def port(self):
-        return os.environ.get('SQL_PORT') if os.environ.get('SQL_PORT') is not None else self._settings.get('Port')
+        return _get_setting('SQL_PORT', 'Port', self._settings)
 
 
 class Queue:
@@ -79,20 +79,25 @@ class Queue:
 
     @property
     def user_name(self):
-        return os.environ.get('QUEUE_USER_NAME') if os.environ.get('QUEUE_USER_NAME') is not None else self._settings.get('User')
+        return _get_setting('QUEUE_USER_NAME', 'User', self._settings)
 
     @property
     def password(self):
-        return os.environ.get('QUEUE_PASSWORD') if os.environ.get('QUEUE_PASSWORD') is not None else self._settings.get('Password')
+        return _get_setting('QUEUE_PASSWORD', 'Password', self._settings)
 
     @property
     def host(self):
-        return os.environ.get('QUEUE_HOST') if os.environ.get('QUEUE_HOST') is not None else self._settings.get('Host')
+        return _get_setting('QUEUE_HOST', 'Host', self._settings)
 
     @property
     def port(self):
-        return os.environ.get('QUEUE_PORT') if os.environ.get('QUEUE_PORT') is not None else self._settings.get('Port')
+        return _get_setting('QUEUE_PORT', 'Port', self._settings)
 
     @property
     def vhost(self):
-        return os.environ.get('QUEUE_VHOST') if os.environ.get('QUEUE_VHOST') is not None else self._settings.get('VHost')
+        return _get_setting('QUEUE_VHOST', 'VHost', self._settings)
+
+
+def _get_setting(env_var, setting_key, settings):
+    env_var_value = os.environ.get(env_var)
+    return env_var_value if env_var_value is not None else settings.get(setting_key)
