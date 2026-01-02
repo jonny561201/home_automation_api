@@ -6,6 +6,7 @@ from svc.config.settings_state import Settings
 class TestSettings:
     db_settings = {'User': 'other_user', 'Password': 'other_pass', 'Port': '1234', 'Name': 'other_name'}
     q_settings = {'Host': 'localhost', 'Port': 564, 'VHost': '/', 'User': 'guest', 'Password': 'fake+pass'}
+    urls = {'Lights': 'http://lights.api', 'Weather': 'http://weather.api', 'Email': 'http://email.com'}
     test_settings = {
         'Environment': 'Testing',
         'EmailAppId': '098zyx',
@@ -22,6 +23,7 @@ class TestSettings:
         self.SETTINGS._settings = self.test_settings
         self.SETTINGS.Database._settings = self.db_settings
         self.SETTINGS.Queue._settings = self.q_settings
+        self.SETTINGS.BaseUrls._settings = self.urls
 
     def test_environment__should_pull_from_settings(self):
         assert self.SETTINGS.environment == self.test_settings['Environment']
@@ -74,3 +76,12 @@ class TestSettings:
 
     def test_allowed_origins__should_pull_from_settings(self):
         assert self.SETTINGS.allowed_origins == self.test_settings['AllowedOrigins']
+
+    def test_base_url_lights__should_pull_from_settings(self):
+        assert self.SETTINGS.BaseUrls.lights == self.urls['Lights']
+
+    def test_base_url_weather__should_pull_from_settings(self):
+        assert self.SETTINGS.BaseUrls.weather == self.urls['Weather']
+
+    def test_base_url_email__should_pull_from_settings(self):
+        assert self.SETTINGS.BaseUrls.email == self.urls['Email']

@@ -12,6 +12,7 @@ class Settings:
         self.__load_settings()
         self.Queue = Queue(self._settings)
         self.Database = Database(self._settings)
+        self.BaseUrls = BaseUrls(self._settings)
 
     @property
     def environment(self):
@@ -97,6 +98,23 @@ class Queue:
     @property
     def vhost(self):
         return _get_setting('QUEUE_VHOST', 'VHost', self._settings)
+
+class BaseUrls:
+
+    def __init__(self, settings):
+        self._settings = settings.get('BaseURls') if settings is not None else {}
+
+    @property
+    def lights(self):
+        return self._settings.get('Lights')
+
+    @property
+    def weather(self):
+        return self._settings.get('Weather')
+
+    @property
+    def email(self):
+        return self._settings.get('Email')
 
 
 def _get_setting(env_var, setting_key, settings):
