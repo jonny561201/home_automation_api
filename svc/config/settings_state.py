@@ -37,6 +37,10 @@ class Settings:
     def temp_file_name(self):
         return self._settings.get('TempFileName') if self._settings is not None else os.environ.get('TEMP_FILE_NAME')
 
+    @property
+    def allowed_origins(self):
+        return self._settings.get('AllowedOrigins') if self._settings is not None else []
+
     def __load_settings(self):
         try:
             file_path = os.path.join(os.path.dirname(__file__), '..', '..', 'settings.json')
