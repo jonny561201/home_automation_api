@@ -36,16 +36,16 @@ class TestSettingsEnvVars:
         os.environ.pop('QUEUE_PORT')
         os.environ.pop('QUEUE_VHOST')
 
-    def test_db_user__should_return_value(self):
+    def test_database_user__should_return_value(self):
         assert self.SETTINGS.Database.user == self.ENV_VARS['SQL_USERNAME']
 
-    def test_db_pass__should_return_value(self):
+    def test_database_pass__should_return_value(self):
         assert self.SETTINGS.Database.password == self.ENV_VARS['SQL_PASSWORD']
 
-    def test_db_port__should_return_value(self):
+    def test_database_port__should_return_value(self):
         assert self.SETTINGS.Database.port == self.ENV_VARS['SQL_PORT']
 
-    def test_db_name__should_return_value(self):
+    def test_database_name__should_return_value(self):
         assert self.SETTINGS.Database.name == self.ENV_VARS['SQL_DBNAME']
 
     def test_email_app_id__should_return_value(self):
@@ -80,3 +80,23 @@ class TestSettingsEnvVars:
 
     def test_queue_port__should_return_value(self):
         assert self.SETTINGS.Queue.port == self.ENV_VARS['QUEUE_PORT']
+
+    def test_queue_port__should_favor_environment_variables_above_settings(self):
+        self.SETTINGS.Queue._settings = {'Port': '9999'}
+        assert self.SETTINGS.Queue.port == self.ENV_VARS['QUEUE_PORT']
+
+    def test_queue_user__should_favor_environment_variables_above_settings(self):
+        self.SETTINGS.Queue._settings = {'User': 'other_user'}
+        assert self.SETTINGS.Queue.user_name == self.ENV_VARS['QUEUE_USER_NAME']
+
+    def test_queue_password__should_favor_environment_variables_above_settings(self):
+        self.SETTINGS.Queue._settings = {'Password': 'IveChangedThis'}
+        assert self.SETTINGS.Queue.password == self.ENV_VARS['QUEUE_PASSWORD']
+
+    def test_queue_host__should_favor_environment_variables_above_settings(self):
+        self.SETTINGS.Queue._settings = {'Host': 'ImANewHost'}
+        assert self.SETTINGS.Queue.host == self.ENV_VARS['QUEUE_HOST']
+
+    def test_queue_vhost__should_favor_environment_variables_above_settings(self):
+        self.SETTINGS.Queue._settings = {'VHost': 'ImANewHost'}
+        assert self.SETTINGS.Queue.vhost == self.ENV_VARS['QUEUE_VHOST']

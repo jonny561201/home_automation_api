@@ -79,20 +79,20 @@ class Queue:
 
     @property
     def user_name(self):
-        return self._settings.get('User') if self._settings is not None else os.environ.get('QUEUE_USER_NAME')
+        return os.environ.get('QUEUE_USER_NAME') if os.environ.get('QUEUE_USER_NAME') is not None else self._settings.get('User')
 
     @property
     def password(self):
-        return self._settings.get('Password') if self._settings is not None else os.environ.get('QUEUE_PASSWORD')
+        return os.environ.get('QUEUE_PASSWORD') if os.environ.get('QUEUE_PASSWORD') is not None else self._settings.get('Password')
 
     @property
     def host(self):
-        return self._settings.get('Host') if self._settings is not None else os.environ.get('QUEUE_HOST')
+        return os.environ.get('QUEUE_HOST') if os.environ.get('QUEUE_HOST') is not None else self._settings.get('Host')
 
     @property
     def port(self):
-        return self._settings.get('Port') if self._settings is not None else os.environ.get('QUEUE_PORT')
+        return os.environ.get('QUEUE_PORT') if os.environ.get('QUEUE_PORT') is not None else self._settings.get('Port')
 
     @property
     def vhost(self):
-        return self._settings.get('VHost') if self._settings is not None else os.environ.get('QUEUE_VHOST')
+        return os.environ.get('QUEUE_VHOST') if os.environ.get('QUEUE_VHOST') is not None else self._settings.get('VHost')
