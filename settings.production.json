@@ -13,6 +13,7 @@
   },
   "AllowedOrigins": [
     "https://www.soaringleafsolutions.com",
+    "https://soaringleafsolutions.com",
     "https://jonny561201.github.io/home-automation-ui"
   ]
 }
