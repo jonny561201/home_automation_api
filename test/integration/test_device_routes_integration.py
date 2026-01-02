@@ -58,7 +58,7 @@ class TestDeviceRoutesIntegration:
 
     def test_add_device_by_user_id__should_return_unauthorized(self):
         post_body = '{}'
-        actual = self.TEST_CLIENT.post('devices/userId/' + self.USER_ID + '/devices', headers={}, data=post_body)
+        actual = self.TEST_CLIENT.post(f'devices/userId/{self.USER_ID}/devices', headers={}, data=post_body)
         assert actual.status_code == 401
 
     def test_add_device_by_user_id__should_return_device_id_when_user_with_correct_role(self):
@@ -66,7 +66,7 @@ class TestDeviceRoutesIntegration:
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         post_body = json.dumps({'roleName': self.ROLE_NAME, 'ipAddress': ip_address})
         header = {'Authorization': bearer_token}
-        actual = self.TEST_CLIENT.post('devices/userId/' + self.USER_ID + '/devices', headers=header, data=post_body)
+        actual = self.TEST_CLIENT.post(f'devices/userId/{self.USER_ID}/devices', headers=header, data=post_body)
 
         assert json.loads(actual.data)['deviceId'] is not None
 
@@ -75,7 +75,7 @@ class TestDeviceRoutesIntegration:
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         post_body = json.dumps({'roleName': self.ROLE_NAME, 'ipAddress': ip_address})
         header = {'Authorization': bearer_token}
-        actual = self.TEST_CLIENT.post('devices/userId/' + self.USER_ID + '/devices', headers=header, data=post_body)
+        actual = self.TEST_CLIENT.post(f'devices/userId/{self.USER_ID}/devices', headers=header, data=post_body)
 
         assert actual.status_code == 200
 
@@ -85,7 +85,7 @@ class TestDeviceRoutesIntegration:
 
     def test_add_device_node_by_user_id__should_return_unauthorized(self):
         post_body = '{}'
-        actual = self.TEST_CLIENT.post('devices/userId/' + self.USER_ID + '/devices/' + self.DEVICE_ID + '/node', headers={}, data=post_body)
+        actual = self.TEST_CLIENT.post(f'devices/userId/{self.USER_ID}/devices/{self.DEVICE_ID}/node', headers={}, data=post_body)
         assert actual.status_code == 401
 
     def test_add_device_node_by_user_id__should_return_success_when_adding_node(self):
@@ -96,7 +96,7 @@ class TestDeviceRoutesIntegration:
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         post_body = json.dumps({'nodeName': node_name})
         header = {'Authorization': bearer_token}
-        actual = self.TEST_CLIENT.post('devices/userId/' + self.USER_ID + '/devices/' + self.DEVICE_ID + '/node', headers=header, data=post_body)
+        actual = self.TEST_CLIENT.post(f'devices/userId/{self.USER_ID}/devices/{self.DEVICE_ID}/node', headers=header, data=post_body)
 
         assert actual.status_code == 200
 
