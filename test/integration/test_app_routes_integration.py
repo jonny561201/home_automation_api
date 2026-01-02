@@ -1,5 +1,4 @@
 import json
-import os
 import uuid
 from datetime import datetime, timedelta
 
@@ -14,20 +13,14 @@ from svc.manager import app
 
 
 class TestAppRoutesIntegration:
-    db_user = 'postgres'
-    db_pass = 'password'
-    db_port = '5432'
-    db_name = 'garage_door'
     JWT_SECRET = 'testSecret'
     USER_ID = str(uuid.uuid4())
     CITY = 'Prague'
 
     def setup_method(self):
-        settings = Settings.get_instance()
-        settings._settings = None
-        settings.Database._settings = None
-        os.environ.update({'SQL_USERNAME': self.db_user, 'SQL_PASSWORD': self.db_pass, 'JWT_SECRET': self.JWT_SECRET,
-                           'SQL_DBNAME': self.db_name, 'SQL_PORT': self.db_port})
+        settings = {'User': 'postgres', 'Password': 'password', 'Name': 'garage_door', 'Port': '5432'}
+        Settings.get_instance().Database._settings = settings
+        Settings.get_instance()._settings = {'DevJwtSecret': self.JWT_SECRET}
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
@@ -42,11 +35,6 @@ class TestAppRoutesIntegration:
             database.session.query(ScheduleTasks).delete()
             database.session.delete(self.PREFERENCE)
             database.session.delete(self.USER)
-        os.environ.pop('JWT_SECRET')
-        os.environ.pop('SQL_USERNAME')
-        os.environ.pop('SQL_PASSWORD')
-        os.environ.pop('SQL_DBNAME')
-        os.environ.pop('SQL_PORT')
 
     def test_health_check__should_return_success(self):
         actual = self.TEST_CLIENT.get('healthCheck')
@@ -215,11 +203,6 @@ class TestAppRoutesIntegration:
 
 
 class TestRefreshTokenApp:
-    db_user = 'postgres'
-    db_pass = 'password'
-    db_port = '5432'
-    db_name = 'garage_door'
-    JWT_SECRET = 'testSecret'
     USER_ID = str(uuid.uuid4())
     BAD_TOKEN = str(uuid.uuid4())
     GOOD_TOKEN = str(uuid.uuid4())
@@ -227,9 +210,9 @@ class TestRefreshTokenApp:
     EXPIRED_TIME = datetime.now(tz=pytz.timezone('US/Central')) - timedelta(hours=1)
 
     def setup_method(self):
-        Settings.get_instance(True, None)
-        os.environ.update({'SQL_USERNAME': self.db_user, 'SQL_PASSWORD': self.db_pass, 'JWT_SECRET': self.JWT_SECRET,
-                           'SQL_DBNAME': self.db_name, 'SQL_PORT': self.db_port})
+        settings = {'User': 'postgres', 'Password': 'password', 'Name': 'garage_door', 'Port': '5432'}
+        Settings.get_instance().Database._settings = settings
+        Settings.get_instance()._settings = {'DevJwtSecret': 'testSecret'}
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
         self.GOOD_REFRESH = RefreshToken(id=str(uuid.uuid4()), user_id=self.USER_ID, refresh=self.GOOD_TOKEN, count=1, expire_time=self.FUTURE_TIME)
@@ -249,12 +232,6 @@ class TestRefreshTokenApp:
             database.session.query(RefreshToken).delete()
             database.session.query(ScheduleTasks).delete()
             database.session.delete(self.USER_CREDS)
-        os.environ.pop('JWT_SECRET')
-        os.environ.pop('SQL_USERNAME')
-        os.environ.pop('SQL_PASSWORD')
-        os.environ.pop('SQL_DBNAME')
-        os.environ.pop('SQL_PORT')
-
     def test_get_refreshed_bearer_token__should_return_forbidden_when_token_count_expired(self):
         request_data = {'refresh_token': self.BAD_TOKEN, 'grant_type': 'refresh_token'}
         actual = self.TEST_CLIENT.post(f'token', data=json.dumps(request_data))
