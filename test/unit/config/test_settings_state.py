@@ -14,10 +14,12 @@ class TestSettings:
         'TempFileName': 'other_file_name',
         'lightApiKey': (str(uuid.uuid4()))
     }
-    SETTINGS = Settings.get_instance()
-    SETTINGS._settings = test_settings
-    SETTINGS.Database._settings = db_settings
-    SETTINGS.Queue._settings = q_settings
+
+    def setup_method(self):
+        self.SETTINGS = Settings.get_instance()
+        self.SETTINGS._settings = self.test_settings
+        self.SETTINGS.Database._settings = self.db_settings
+        self.SETTINGS.Queue._settings = self.q_settings
 
     def test_db_user__should_pull_from_file(self):
         assert self.SETTINGS.Database.user == self.db_settings['User']
