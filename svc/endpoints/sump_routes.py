@@ -2,7 +2,7 @@ import json
 
 from flask import Blueprint, request, Response
 
-from svc.constants.home_automation import DEFAULT_HEADERS
+from svc.constants.home_automation import JSON_TYPE
 from svc.controllers.sump_controller import get_sump_level, save_current_level
 
 SUMP_BLUEPRINT = Blueprint('sump_pump_blueprint', __name__, url_prefix='/sumpPump')
@@ -12,7 +12,7 @@ SUMP_BLUEPRINT = Blueprint('sump_pump_blueprint', __name__, url_prefix='/sumpPum
 def get_current_sump_level(user_id):
     bearer_token = request.headers.get('Authorization')
     depth = get_sump_level(user_id, bearer_token)
-    return Response(json.dumps(depth), status=200, headers=DEFAULT_HEADERS)
+    return Response(json.dumps(depth), status=200, mimetype=JSON_TYPE)
 
 
 @SUMP_BLUEPRINT.route('/user/<user_id>/currentDepth', methods=['POST'])

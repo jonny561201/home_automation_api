@@ -1,6 +1,4 @@
-DEFAULT_HEADERS = {
-    'Content-Type': 'text/json',
-}
+JSON_TYPE = 'application/json'
 
 class Mode:
     BLOWER = 'blower'
