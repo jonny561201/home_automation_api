@@ -31,6 +31,17 @@
     * `LightApiPass` password for dresden raspberry pi app
     * `DevWeatherAppId` app id for Open Weather free account
     * `DevJwtSecret` jwt secret for encoding/decoding jwts 
+    * `Database` object to be created for persistent storage
+      * `Port` database port
+      * `DbName` database name
+      * `User` database username
+      * `Password` database password
+    * `Queue` object to be created for rabbitmq connection
+      * `Host` rabbitmq host
+      * `VHost` rabbitmq host
+      * `Port` rabbitmq port
+      * `User` rabbitmq username
+      * `Password` rabbitmq password
 4. Provide any corresponding test coverage in directories `/test/integration` and `/test/unit`
 5. Prior to committing code execute `./run_all_tests.sh`
     * will start/stop a postgres docker container
