@@ -57,19 +57,19 @@ class Database:
 
     @property
     def user(self):
-        return self._settings.get('User') if self._settings is not None else os.environ.get('SQL_USERNAME')
+        return os.environ.get('SQL_USERNAME') if os.environ.get('SQL_USERNAME') is not None else self._settings.get('User')
 
     @property
     def password(self):
-        return self._settings.get('Password') if self._settings is not None else os.environ.get('SQL_PASSWORD')
+        return os.environ.get('SQL_PASSWORD') if os.environ.get('SQL_PASSWORD') is not None else self._settings.get('Password')
 
     @property
     def name(self):
-        return self._settings.get('Name') if self._settings is not None else os.environ.get('SQL_DBNAME')
+        return os.environ.get('SQL_DBNAME') if os.environ.get('SQL_DBNAME') is not None else self._settings.get('Name')
 
     @property
     def port(self):
-        return self._settings.get('Port') if self._settings is not None else os.environ.get('SQL_PORT')
+        return os.environ.get('SQL_PORT') if os.environ.get('SQL_PORT') is not None else self._settings.get('Port')
 
 
 class Queue:

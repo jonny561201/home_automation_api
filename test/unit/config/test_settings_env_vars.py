@@ -48,6 +48,22 @@ class TestSettingsEnvVars:
     def test_database_name__should_return_value(self):
         assert self.SETTINGS.Database.name == self.ENV_VARS['SQL_DBNAME']
 
+    def test_database_user__should_favor_environment_variables_above_settings(self):
+        self.SETTINGS.Database._settings = {'User': 'ImANewUser'}
+        assert self.SETTINGS.Database.user == self.ENV_VARS['SQL_USERNAME']
+
+    def test_database_password__should_favor_environment_variables_above_settings(self):
+        self.SETTINGS.Database._settings = {'Password': 'ImANewPassword'}
+        assert self.SETTINGS.Database.password == self.ENV_VARS['SQL_PASSWORD']
+
+    def test_database_name__should_favor_environment_variables_above_settings(self):
+        self.SETTINGS.Database._settings = {'Name': 'IAmANewDBName'}
+        assert self.SETTINGS.Database.name == self.ENV_VARS['SQL_DBNAME']
+
+    def test_database_port__should_favor_environment_variables_above_settings(self):
+        self.SETTINGS.Database._settings = {'Port': '1234'}
+        assert self.SETTINGS.Database.port == self.ENV_VARS['SQL_PORT']
+
     def test_email_app_id__should_return_value(self):
         assert self.SETTINGS.email_app_id == self.ENV_VARS['EMAIL_APP_ID']
 
