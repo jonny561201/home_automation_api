@@ -11,7 +11,7 @@ APP_BLUEPRINT = Blueprint('app_routes', __name__)
 
 @APP_BLUEPRINT.route('/healthCheck')
 def health_check():
-    return "Success"
+    return Response("Success", status=200)
 
 
 @APP_BLUEPRINT.route('/token', methods=['POST'])

@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 
+from svc.config.security_headers_middleware import add_security_headers
 from svc.config.settings_state import Settings
 from svc.endpoints.account_routes import ACCOUNT_BLUEPRINT
 from svc.endpoints.app_routes import APP_BLUEPRINT
@@ -23,3 +24,5 @@ app.register_blueprint(GARAGE_BLUEPRINT)
 app.register_blueprint(LIGHT_BLUEPRINT)
 app.register_blueprint(DEVICES_BLUEPRINT)
 app.register_blueprint(SCENE_BLUEPRINT)
+app.after_request(add_security_headers)
+
