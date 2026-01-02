@@ -2,25 +2,15 @@ import json
 import os
 
 from constants.settings_base import SettingsBase
+from constants.singleton import Singleton
 
 
+@Singleton
 class Settings(SettingsBase):
-    __instance = None
     _settings = None
 
     def __init__(self):
-        if Settings.__instance is not None:
-            raise Exception
-        else:
-            Settings.__instance = self
-            Settings.__instance.__load_settings()
-            super().__init__(self._settings)
-
-    @staticmethod
-    def get_instance():
-        if Settings.__instance is None:
-            Settings.__instance = Settings()
-        return Settings.__instance
+        super().__init__(self._settings)
 
     def __load_settings(self):
         try:
