@@ -2,11 +2,11 @@ import json
 
 from mock import patch, ANY
 
-from svc.routes.device_routes import add_device_by_user_id, add_device_node_by_user_id
+from svc.endpoints.device_routes import add_device_by_user_id, add_device_node_by_user_id
 
 
-@patch('svc.routes.device_routes.devices_controller')
-@patch('svc.routes.device_routes.request')
+@patch('svc.endpoints.device_routes.devices_controller')
+@patch('svc.endpoints.device_routes.request')
 class TestDeviceRoutes:
     USER_ID = '1234abcd'
     BEARER_TOKEN = 'IMAFAKEBEARERTOKEN'

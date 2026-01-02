@@ -5,12 +5,12 @@ import pytest
 from mock import patch, ANY
 from werkzeug.exceptions import Unauthorized
 
-from svc.routes.app_routes import get_token, get_user_preferences_by_user_id, update_user_preferences_by_user_id, \
+from svc.endpoints.app_routes import get_token, get_user_preferences_by_user_id, update_user_preferences_by_user_id, \
     get_user_tasks_by_user_id, delete_user_tasks_by_user_id, insert_user_task_by_user_id, update_user_task_by_user_id
 
 
-@patch('svc.routes.app_routes.request')
-@patch('svc.routes.app_routes.app_controller')
+@patch('svc.endpoints.app_routes.request')
+@patch('svc.endpoints.app_routes.app_controller')
 class TestAppRoutes:
     USER = 'user_name'
     USER_ID = '123bac34'

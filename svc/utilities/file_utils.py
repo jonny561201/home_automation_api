@@ -3,7 +3,7 @@ import os
 from glob import glob
 
 from svc.constants.home_automation import Automation
-from config.settings_state import Settings
+from svc.config.settings_state import Settings
 
 
 def write_desired_temp_to_file(metric_temp, mode):

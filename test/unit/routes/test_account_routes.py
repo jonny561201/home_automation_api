@@ -4,12 +4,12 @@ import pytest
 from mock import patch, ANY
 from werkzeug.exceptions import Unauthorized
 
-from svc.routes.account_routes import update_user_password, post_child_account_by_user, get_child_accounts_by_user_id, \
+from svc.endpoints.account_routes import update_user_password, post_child_account_by_user, get_child_accounts_by_user_id, \
     get_roles_by_user_id, delete_child_account_by_user_id
 
 
-@patch('svc.routes.account_routes.request')
-@patch('svc.routes.account_routes.account_controller')
+@patch('svc.endpoints.account_routes.request')
+@patch('svc.endpoints.account_routes.account_controller')
 class TestAppRoutes:
     USER_ID = '123bac34'
     FAKE_JWT_TOKEN = 'fakeJwtToken'.encode('UTF-8')

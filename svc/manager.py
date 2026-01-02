@@ -1,14 +1,14 @@
 from flask import Flask
 from flask_cors import CORS
 
-from svc.routes.account_routes import ACCOUNT_BLUEPRINT
-from svc.routes.app_routes import APP_BLUEPRINT
-from svc.routes.device_routes import DEVICES_BLUEPRINT
-from svc.routes.garage_door_routes import GARAGE_BLUEPRINT
-from svc.routes.light_routes import LIGHT_BLUEPRINT
-from svc.routes.scene_routes import SCENE_BLUEPRINT
-from svc.routes.sump_routes import SUMP_BLUEPRINT
-from svc.routes.thermostat_routes import THERMOSTAT_BLUEPRINT
+from svc.endpoints.account_routes import ACCOUNT_BLUEPRINT
+from svc.endpoints.app_routes import APP_BLUEPRINT
+from svc.endpoints.device_routes import DEVICES_BLUEPRINT
+from svc.endpoints.garage_door_routes import GARAGE_BLUEPRINT
+from svc.endpoints.light_routes import LIGHT_BLUEPRINT
+from svc.endpoints.scene_routes import SCENE_BLUEPRINT
+from svc.endpoints.sump_routes import SUMP_BLUEPRINT
+from svc.endpoints.thermostat_routes import THERMOSTAT_BLUEPRINT
 
 app = Flask(__name__)
 CORS(app)

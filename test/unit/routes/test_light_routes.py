@@ -2,11 +2,11 @@ import json
 
 from mock import patch
 
-from svc.routes.light_routes import get_assigned_light_groups, set_assigned_light_group, set_light_state
+from svc.endpoints.light_routes import get_assigned_light_groups, set_assigned_light_group, set_light_state
 
 
-@patch('svc.routes.light_routes.request')
-@patch('svc.routes.light_routes.light_controller')
+@patch('svc.endpoints.light_routes.request')
+@patch('svc.endpoints.light_routes.light_controller')
 class TestLightRoutes:
 
     def test_get_assigned_light_groups__should_call_get_assigned_lights(self, mock_controller, mock_request):

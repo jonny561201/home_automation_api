@@ -1,7 +1,7 @@
 import json
 
 from svc.constants.home_automation import Automation
-from config.settings_state import Settings
+from svc.config.settings_state import Settings
 from svc.utilities.file_utils import write_desired_temp_to_file
 
 

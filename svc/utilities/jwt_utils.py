@@ -6,7 +6,7 @@ import pytz
 from jwt import DecodeError, ExpiredSignatureError, InvalidSignatureError
 from werkzeug.exceptions import Unauthorized
 
-from config.settings_state import Settings
+from svc.config.settings_state import Settings
 
 
 def is_jwt_valid(jwt_token):

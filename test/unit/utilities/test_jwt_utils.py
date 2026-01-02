@@ -7,7 +7,7 @@ import pytz
 from mock import patch
 from werkzeug.exceptions import Unauthorized
 
-from config.settings_state import Settings
+from svc.config.settings_state import Settings
 from svc.utilities.jwt_utils import is_jwt_valid, create_jwt_token, generate_refresh_token
 
 

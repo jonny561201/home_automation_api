@@ -2,7 +2,7 @@ import pytest
 from mock import patch, ANY
 from werkzeug.exceptions import BadRequest
 
-from config.settings_state import Settings
+from svc.config.settings_state import Settings
 from svc.controllers.light_controller import get_assigned_light_groups, set_assigned_light_groups, set_assigned_light
 
 

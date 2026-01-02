@@ -3,11 +3,11 @@ import uuid
 
 from mock import patch, ANY
 
-from svc.routes.scene_routes import get_scenes_by_user, delete_scene_by_user
+from svc.endpoints.scene_routes import get_scenes_by_user, delete_scene_by_user
 
 
-@patch('svc.routes.scene_routes.request')
-@patch('svc.routes.scene_routes.scene_controller')
+@patch('svc.endpoints.scene_routes.request')
+@patch('svc.endpoints.scene_routes.scene_controller')
 class TestSceneRoutes:
     USER_ID = str(uuid.uuid4())
     SCENE_ID = str(uuid.uuid4())

@@ -3,11 +3,11 @@ import json
 import jwt
 from mock import patch, ANY
 
-from svc.routes.thermostat_routes import get_temperature, set_temperature, get_forecast_data
+from svc.endpoints.thermostat_routes import get_temperature, set_temperature, get_forecast_data
 
 
-@patch('svc.routes.thermostat_routes.request')
-@patch('svc.routes.thermostat_routes.thermostat_controller')
+@patch('svc.endpoints.thermostat_routes.request')
+@patch('svc.endpoints.thermostat_routes.thermostat_controller')
 class TestThermostatRoutes:
     JWT_TOKEN = jwt.encode({}, 'JWT_SECRET', algorithm='HS256').decode('UTF-8')
     BEARER_TOKEN = "Bearer " + JWT_TOKEN

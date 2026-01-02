@@ -7,7 +7,7 @@ from mock import patch
 from requests import Response
 
 from svc.constants.home_automation import Automation
-from config.settings_state import Settings
+from svc.config.settings_state import Settings
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, UserPreference
 from svc.manager import app

@@ -6,11 +6,11 @@ import jwt
 from flask import json
 from mock import patch
 
-from svc.routes.garage_door_routes import get_garage_door_status, update_garage_door_state, toggle_garage_door
+from svc.endpoints.garage_door_routes import get_garage_door_status, update_garage_door_state, toggle_garage_door
 
 
-@patch('svc.routes.garage_door_routes.garage_door_controller')
-@patch('svc.routes.garage_door_routes.request')
+@patch('svc.endpoints.garage_door_routes.garage_door_controller')
+@patch('svc.endpoints.garage_door_routes.request')
 class TestAppRoutes:
     GARAGE_ID = 3
     USER_ID = str(uuid.uuid4())

@@ -3,7 +3,7 @@ from functools import partial
 
 import pika
 
-from config.settings_state import Settings
+from svc.config.settings_state import Settings
 from utilities.event_client import MyThread
 
 
