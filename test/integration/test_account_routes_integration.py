@@ -5,7 +5,7 @@ import uuid
 import jwt
 from sqlalchemy.orm.exc import ObjectDeletedError
 
-from svc.constants.settings_state import Settings
+from config.settings_state import Settings
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserCredentials, UserInformation, ChildAccounts, UserPreference
 from svc.manager import app

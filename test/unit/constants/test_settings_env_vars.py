@@ -1,7 +1,7 @@
 import os
 import uuid
 
-from constants.settings_state import Settings
+from config.settings_state import Settings
 
 
 class TestSettingsEnvVars:

@@ -4,7 +4,7 @@ import uuid
 
 import jwt
 
-from svc.constants.settings_state import Settings
+from config.settings_state import Settings
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import Scenes, SceneDetails, UserInformation
 from svc.manager import app

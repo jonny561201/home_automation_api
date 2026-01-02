@@ -3,7 +3,7 @@ import os
 import jwt
 from mock import patch
 
-from svc.constants.settings_state import Settings
+from config.settings_state import Settings
 from svc.manager import app
 
 

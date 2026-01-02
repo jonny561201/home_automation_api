@@ -1,6 +1,6 @@
 from werkzeug.exceptions import BadRequest
 
-from constants.settings_state import Settings
+from config.settings_state import Settings
 from svc.utilities import api_utils
 from svc.utilities.jwt_utils import is_jwt_valid
 

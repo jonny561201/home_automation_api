@@ -1,6 +1,6 @@
 import uuid
 
-from svc.constants.settings_state import Settings
+from config.settings_state import Settings
 
 
 class TestSettings:

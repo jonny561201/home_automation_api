@@ -3,7 +3,7 @@ import json
 import requests
 from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
 
-from svc.constants.settings_state import Settings
+from config.settings_state import Settings
 
 # TODO: move to settings file
 LIGHT_BASE_URL = 'http://127.0.0.1:5002/api/lights'

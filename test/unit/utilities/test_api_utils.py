@@ -3,12 +3,9 @@ import json
 import pytest
 from mock import patch, ANY
 from requests import Response, ReadTimeout, ConnectTimeout
-from urllib3 import HTTPConnectionPool
-from urllib3.exceptions import MaxRetryError
 from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
 
-from svc.constants.home_automation import Automation
-from svc.constants.settings_state import Settings
+from config.settings_state import Settings
 from svc.utilities.api_utils import get_weather_by_city, create_light_group, set_light_groups, set_light_state, \
     get_light_groups, get_garage_door_status, toggle_garage_door_state, update_garage_door_state, \
     send_new_account_email, get_forecast_by_coords

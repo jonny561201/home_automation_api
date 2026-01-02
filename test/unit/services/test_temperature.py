@@ -1,6 +1,6 @@
 from mock import patch, ANY
 
-from svc.constants.settings_state import Settings
+from config.settings_state import Settings
 from svc.services.temperature import get_external_temp, get_internal_temp
 
 

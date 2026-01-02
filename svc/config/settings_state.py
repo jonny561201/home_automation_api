@@ -1,7 +1,7 @@
 import json
 import os
 
-from constants.singleton import Singleton
+from config.singleton import Singleton
 
 
 @Singleton

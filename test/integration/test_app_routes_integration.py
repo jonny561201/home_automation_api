@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import jwt
 import pytz
 
-from svc.constants.settings_state import Settings
+from config.settings_state import Settings
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, UserPreference, ScheduleTasks, ScheduledTaskTypes, \
     RefreshToken, UserCredentials
