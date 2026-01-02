@@ -5,31 +5,19 @@ from constants.settings_state import Settings
 
 
 class TestSettingsEnvVars:
-    USER_ID = 'sdf234'
-    DB_PORT = '5231'
-    DB_USER = 'test_user'
-    DB_PASS = 'test_pass'
-    DB_NAME = 'fake_name'
-    EMAIL_APP_ID = 'abc123'
-    FILE_NAME = 'test.json'
-    WEATHER_APP_ID = '345def'
-    JWT_SECRET = 'FakeSecret'
-    LIGHT_API_KEY = str(uuid.uuid4())
-    Q_USER = 'queue_user'
-    Q_PASS = 'queue_pass'
-    Q_HOST = 'localhost'
-    Q_PORT = '5642'
-    Q_VHOST = 'vhost'
-    SETTINGS = None
+    ENV_VARS = {'SQL_USERNAME': 'test_user', 'SQL_PASSWORD': 'test_pass', 'SQL_PORT': '5231',
+                'SQL_DBNAME': 'fake_name', 'EMAIL_APP_ID': 'abc123', 'WEATHER_APP_ID': '345def',
+                'JWT_SECRET': 'FakeSecret', 'TEMP_FILE_NAME': 'test.json', 'USER_ID': 'sdf234',
+                'LIGHT_API_KEY': str(uuid.uuid4()), 'QUEUE_USER_NAME': 'queue_user', 'QUEUE_PASSWORD': 'queue_pass',
+                'QUEUE_HOST': 'localhost', 'QUEUE_PORT': '5642', 'QUEUE_VHOST': 'vhost'
+                }
 
     def setup_method(self):
-        os.environ.update({'SQL_USERNAME': self.DB_USER, 'SQL_PASSWORD': self.DB_PASS, 'SQL_PORT': self.DB_PORT,
-                           'SQL_DBNAME': self.DB_NAME, 'EMAIL_APP_ID': self.EMAIL_APP_ID, 'WEATHER_APP_ID': self.WEATHER_APP_ID,
-                           'JWT_SECRET': self.JWT_SECRET, 'TEMP_FILE_NAME': self.FILE_NAME, 'USER_ID': self.USER_ID,
-                           'LIGHT_API_KEY': self.LIGHT_API_KEY, 'QUEUE_USER_NAME': self.Q_USER, 'QUEUE_PASSWORD': self.Q_PASS,
-                           'QUEUE_HOST': self.Q_HOST, 'QUEUE_PORT': self.Q_PORT, 'QUEUE_VHOST': self.Q_VHOST
-        })
-        self.SETTINGS = Settings.get_instance(True)
+        os.environ.update(self.ENV_VARS)
+        self.SETTINGS = Settings.get_instance()
+        self.SETTINGS._settings = None
+        self.SETTINGS.Database._settings = None
+        self.SETTINGS.Queue._settings = None
 
     def teardown_method(self):
         os.environ.pop('USER_ID')
@@ -49,46 +37,46 @@ class TestSettingsEnvVars:
         os.environ.pop('QUEUE_VHOST')
 
     def test_db_user__should_return_value(self):
-        assert self.SETTINGS.Database.user == self.DB_USER
+        assert self.SETTINGS.Database.user == self.ENV_VARS['SQL_USERNAME']
 
     def test_db_pass__should_return_value(self):
-        assert self.SETTINGS.Database.password == self.DB_PASS
+        assert self.SETTINGS.Database.password == self.ENV_VARS['SQL_PASSWORD']
 
     def test_db_port__should_return_value(self):
-        assert self.SETTINGS.Database.port == self.DB_PORT
+        assert self.SETTINGS.Database.port == self.ENV_VARS['SQL_PORT']
 
     def test_db_name__should_return_value(self):
-        assert self.SETTINGS.Database.name == self.DB_NAME
+        assert self.SETTINGS.Database.name == self.ENV_VARS['SQL_DBNAME']
 
     def test_email_app_id__should_return_value(self):
-        assert self.SETTINGS.email_app_id == self.EMAIL_APP_ID
+        assert self.SETTINGS.email_app_id == self.ENV_VARS['EMAIL_APP_ID']
 
     def test_weather_app_id__should_return_value(self):
-        assert self.SETTINGS.weather_app_id == self.WEATHER_APP_ID
+        assert self.SETTINGS.weather_app_id == self.ENV_VARS['WEATHER_APP_ID']
 
     def test_jwt_secret__should_return_value(self):
-        assert self.SETTINGS.jwt_secret == self.JWT_SECRET
+        assert self.SETTINGS.jwt_secret == self.ENV_VARS['JWT_SECRET']
 
     def test_user_id__should_return_value(self):
-        assert self.SETTINGS.user_id == self.USER_ID
+        assert self.SETTINGS.user_id == self.ENV_VARS['USER_ID']
 
     def test_file_name__should_return_value(self):
-        assert self.SETTINGS.temp_file_name == self.FILE_NAME
+        assert self.SETTINGS.temp_file_name == self.ENV_VARS['TEMP_FILE_NAME']
 
     def test_light_api_key__should_return_value(self):
-        assert self.SETTINGS.light_api_key == self.LIGHT_API_KEY
+        assert self.SETTINGS.light_api_key == self.ENV_VARS['LIGHT_API_KEY']
 
     def test_queue_user_name__should_return_value(self):
-        assert self.SETTINGS.Queue.user_name == self.Q_USER
+        assert self.SETTINGS.Queue.user_name == self.ENV_VARS['QUEUE_USER_NAME']
 
     def test_queue_password__should_return_value(self):
-        assert self.SETTINGS.Queue.password == self.Q_PASS
+        assert self.SETTINGS.Queue.password == self.ENV_VARS['QUEUE_PASSWORD']
 
     def test_queue_host__should_return_value(self):
-        assert self.SETTINGS.Queue.host == self.Q_HOST
+        assert self.SETTINGS.Queue.host == self.ENV_VARS['QUEUE_HOST']
 
     def test_queue_vhost__should_return_value(self):
-        assert self.SETTINGS.Queue.vhost == self.Q_VHOST
+        assert self.SETTINGS.Queue.vhost == self.ENV_VARS['QUEUE_VHOST']
 
     def test_queue_port__should_return_value(self):
-        assert self.SETTINGS.Queue.port == self.Q_PORT
+        assert self.SETTINGS.Queue.port == self.ENV_VARS['QUEUE_PORT']
