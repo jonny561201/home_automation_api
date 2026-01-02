@@ -73,9 +73,6 @@ class TestSettingsEnvVars:
     def test_jwt_secret__should_return_value(self):
         assert self.SETTINGS.jwt_secret == self.ENV_VARS['JWT_SECRET']
 
-    def test_user_id__should_return_value(self):
-        assert self.SETTINGS.user_id == self.ENV_VARS['USER_ID']
-
     def test_file_name__should_return_value(self):
         assert self.SETTINGS.temp_file_name == self.ENV_VARS['TEMP_FILE_NAME']
 
@@ -93,10 +90,6 @@ class TestSettingsEnvVars:
     def test_jwt_secret__should_favor_environment_variables_above_settings(self):
         self.SETTINGS._settings = {'JwtSecret': '1234'}
         assert self.SETTINGS.jwt_secret == self.ENV_VARS['JWT_SECRET']
-
-    def test_user_id__should_favor_environment_variables_above_settings(self):
-        self.SETTINGS._settings = {'UserId': '1234'}
-        assert self.SETTINGS.user_id == self.ENV_VARS['USER_ID']
 
     def test_light_api_key__should_favor_environment_variables_above_settings(self):
         self.SETTINGS._settings = {'LightApiKey': '1234'}

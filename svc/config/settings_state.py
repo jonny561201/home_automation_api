@@ -34,10 +34,6 @@ class Settings:
         return _get_setting('LIGHT_API_KEY', 'LightApiKey', self._settings)
 
     @property
-    def user_id(self):
-        return _get_setting('USER_ID', 'UserId', self._settings)
-
-    @property
     def temp_file_name(self):
         return _get_setting('TEMP_FILE_NAME', 'TempFileName', self._settings)
 

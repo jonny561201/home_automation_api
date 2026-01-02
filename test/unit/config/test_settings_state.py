@@ -51,9 +51,6 @@ class TestSettings:
     def test_jwt_secret__should_pull_from_settings(self):
         assert self.SETTINGS.jwt_secret == self.test_settings['JwtSecret']
 
-    def test_user_id__should_pull_from_settings(self):
-        assert self.SETTINGS.user_id == self.test_settings['UserId']
-
     def test_file_name__should_pull_from_settings(self):
         assert self.SETTINGS.temp_file_name == self.test_settings['TempFileName']
 
