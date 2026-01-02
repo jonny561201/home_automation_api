@@ -15,19 +15,19 @@ class Settings:
 
     @property
     def email_app_id(self):
-        return self._settings.get('DevEmailAppId') if self._settings is not None else os.environ.get('EMAIL_APP_ID')
+        return self._settings.get('EmailAppId') if self._settings is not None else os.environ.get('EMAIL_APP_ID')
 
     @property
     def weather_app_id(self):
-        return self._settings.get('DevWeatherAppId') if self._settings is not None else os.environ.get('WEATHER_APP_ID')
+        return self._settings.get('WeatherAppId') if self._settings is not None else os.environ.get('WEATHER_APP_ID')
 
     @property
     def jwt_secret(self):
-        return self._settings.get('DevJwtSecret') if self._settings is not None else os.environ.get('JWT_SECRET')
+        return self._settings.get('JwtSecret') if self._settings is not None else os.environ.get('JWT_SECRET')
 
     @property
     def light_api_key(self):
-        return self._settings.get('lightApiKey') if self._settings is not None else os.environ.get('LIGHT_API_KEY')
+        return self._settings.get('LightApiKey') if self._settings is not None else os.environ.get('LIGHT_API_KEY')
 
     @property
     def user_id(self):
