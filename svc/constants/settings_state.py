@@ -10,6 +10,7 @@ class Settings(SettingsBase):
     _settings = None
 
     def __init__(self):
+        self.__load_settings()
         super().__init__(self._settings)
 
     def __load_settings(self):
