@@ -7,5 +7,5 @@
 **.DS_Store
 variables.sh
 
-settings.json
+settings.local.json
 test.json

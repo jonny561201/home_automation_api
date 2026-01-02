@@ -7,6 +7,7 @@ class TestSettings:
     db_settings = {'User': 'other_user', 'Password': 'other_pass', 'Port': '1234', 'Name': 'other_name'}
     q_settings = {'Host': 'localhost', 'Port': 564, 'VHost': '/', 'User': 'guest', 'Password': 'fake+pass'}
     test_settings = {
+        'Environment': 'Testing',
         'EmailAppId': '098zyx',
         'WeatherAppId': '435hadsf',
         'JwtSecret': 'other_secret',
@@ -21,6 +22,13 @@ class TestSettings:
         self.SETTINGS._settings = self.test_settings
         self.SETTINGS.Database._settings = self.db_settings
         self.SETTINGS.Queue._settings = self.q_settings
+
+    def test_environment__should_pull_from_settings(self):
+        assert self.SETTINGS.environment == self.test_settings['Environment']
+
+    def test_environment__should_default_to_local(self):
+        self.SETTINGS._settings = {}
+        assert self.SETTINGS.environment == 'local'
 
     def test_db_user__should_pull_from_settings(self):
         assert self.SETTINGS.Database.user == self.db_settings['User']

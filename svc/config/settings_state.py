@@ -14,6 +14,10 @@ class Settings:
         self.Database = Database(self._settings)
 
     @property
+    def environment(self):
+        return self._settings.get('Environment', 'local')
+
+    @property
     def email_app_id(self):
         return _get_setting('EMAIL_APP_ID', 'EmailAppId', self._settings)
 
@@ -43,7 +47,8 @@ class Settings:
 
     def __load_settings(self):
         try:
-            file_path = os.path.join(os.path.dirname(__file__), '..', '..', 'settings.json')
+            environment = os.environ.get('PYTHON_ENVIRONMENT', 'local')
+            file_path = os.path.join(os.path.dirname(__file__), '..', '..', f'settings.{environment}.json')
             with open(file_path, "r") as reader:
                 self._settings = json.loads(reader.read())
         except Exception:

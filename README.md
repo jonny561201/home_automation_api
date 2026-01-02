@@ -25,8 +25,8 @@
     * install production dependencies: `pip install -Ur requirements.txt`
     * install test dependencies: `pip install -Ur test_requirements.txt`
 2. Install docker desktop for linux containers
-3. Create `settings.json` file to substitute test environment variables
-    * `Development` boolean flag to use settings file
+3. Create `settings.local.json` file to create local test values for keys
+    * `Environment` flag to know what environment you are in based on PYTHON_ENVIRONMENT env var
     * `LightApiUser` username for dresden raspberry pi app
     * `LightApiPass` password for dresden raspberry pi app
     * `DevWeatherAppId` app id for Open Weather free account
