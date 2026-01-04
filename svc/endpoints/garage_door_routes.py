@@ -1,5 +1,4 @@
 from flask import Response, Blueprint
-from flask import json
 from flask import request
 
 from svc.constants.home_automation import Mime
@@ -19,7 +18,7 @@ def get_garage_door_status(user_id, garage_id):
 def update_garage_door_state(user_id, garage_id):
     bearer_token = request.headers.get('Authorization')
     updated_state = garage_door_controller.update_state(bearer_token, user_id, garage_id, request.data)
-    return Response(json.dumps(updated_state), status=200, mimetype=Mime.JSON)
+    return Response(updated_state.to_json(), status=200, mimetype=Mime.JSON)
 
 
 @GARAGE_BLUEPRINT.route('/<garage_id>/user/<user_id>/toggle', methods=['GET'])
