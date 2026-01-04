@@ -6,6 +6,7 @@ import jwt
 from flask import json
 from mock import patch
 
+from models.garage import GarageStatus, Coordinates
 from svc.endpoints.garage_door_routes import get_garage_door_status, update_garage_door_state, toggle_garage_door
 
 
@@ -13,6 +14,8 @@ from svc.endpoints.garage_door_routes import get_garage_door_status, update_gara
 @patch('svc.endpoints.garage_door_routes.request')
 class TestAppRoutes:
     GARAGE_ID = 3
+    COORDINATES = Coordinates(latitude=19.00, longitude=-99.00)
+    STATUS = GarageStatus(isGarageOpen=True, statusDuration=datetime.now(), coordinates=COORDINATES)
     USER_ID = str(uuid.uuid4())
     JWT_SECRET = 'fake_jwt_secret'
     JWT_TOKEN = jwt.encode({}, JWT_SECRET, algorithm='HS256').decode('UTF-8')
@@ -25,7 +28,7 @@ class TestAppRoutes:
 
     def test_garage_door_status__should_call_get_status(self, mock_request, mock_controller):
         mock_request.headers = {'Authorization': self.JWT_TOKEN}
-        mock_controller.get_status.return_value = {}
+        mock_controller.get_status.return_value = self.STATUS
 
         get_garage_door_status(self.USER_ID, self.GARAGE_ID)
 
@@ -33,14 +36,14 @@ class TestAppRoutes:
 
     def test_garage_door_status__should_return_success_status_code(self, mock_request, mock_controller):
         mock_request.headers = {'Authorization': self.JWT_TOKEN}
-        mock_controller.get_status.return_value = {}
+        mock_controller.get_status.return_value = self.STATUS
         actual = get_garage_door_status(self.USER_ID, self.GARAGE_ID)
 
         assert actual.status_code == 200
 
     def test_garage_door_status__should_return_success_header(self, mock_request, mock_controller):
         mock_request.headers = {'Authorization': self.JWT_TOKEN}
-        mock_controller.get_status.return_value = {}
+        mock_controller.get_status.return_value = self.STATUS
         expected_headers = 'application/json'
 
         actual = get_garage_door_status(self.USER_ID, self.GARAGE_ID)
@@ -49,12 +52,11 @@ class TestAppRoutes:
 
     def test_garage_door_status__should_return_response_body(self, mock_request, mock_controller):
         mock_request.headers = {'Authorization': self.JWT_TOKEN}
-        expected_body = {"isGarageOpen": True, "statusDuration": datetime.now()}
-        mock_controller.get_status.return_value = expected_body
+        mock_controller.get_status.return_value = self.STATUS
 
         actual = get_garage_door_status(self.USER_ID, self.GARAGE_ID)
 
-        assert actual.data.decode('UTF-8') == json.dumps(expected_body)
+        assert actual.data.decode('UTF-8') == self.STATUS.to_json()
 
     def test_update_garage_door_state__should_call_update_state(self, mock_request, mock_controller):
         expected_data = '{"garageDoorOpen": "True"}'.encode()

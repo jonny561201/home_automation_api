@@ -12,7 +12,7 @@ GARAGE_BLUEPRINT = Blueprint('garage_blueprint', __name__, url_prefix='/garageDo
 def get_garage_door_status(user_id, garage_id):
     bearer_token = request.headers.get('Authorization')
     status = garage_door_controller.get_status(bearer_token, user_id, garage_id)
-    return Response(json.dumps(status), status=200, mimetype=Mime.JSON)
+    return Response(status.to_json(), status=200, mimetype=Mime.JSON)
 
 
 @GARAGE_BLUEPRINT.route('/<garage_id>/user/<user_id>/state', methods=['POST'])

@@ -3,6 +3,7 @@ import json
 import requests
 from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
 
+from svc.models.garage import GarageStatus
 from svc.constants.home_automation import Mime
 from svc.config.settings_state import Settings
 
@@ -24,18 +25,17 @@ def get_forecast_by_coords(coords, unit, app_id):
 
 
 def get_garage_door_status(bearer_token, base_url, garage_id):
-    header = {'Authorization': 'Bearer ' + bearer_token}
-    url = f'{base_url}/garageDoor/{garage_id}/status'
+    header = {'Authorization': f'Bearer {bearer_token}'}
     try:
-        response = requests.get(url, headers=header, timeout=5)
+        response = requests.get(f'{base_url}/garageDoor/{garage_id}/status', headers=header, timeout=5)
     except Exception:
         raise FailedDependency()
     __validate_garage_response(response)
-    return response.json()
+    return GarageStatus.from_json(response.text)
 
 
 def toggle_garage_door_state(bearer_token, base_url, garage_id):
-    header = {'Authorization': 'Bearer ' + bearer_token}
+    header = {'Authorization': f'Bearer {bearer_token}'}
     url = f'{base_url}/garageDoor/{garage_id}/toggle'
     try:
         response = requests.get(url, headers=header, timeout=5)
@@ -45,7 +45,7 @@ def toggle_garage_door_state(bearer_token, base_url, garage_id):
 
 
 def update_garage_door_state(bearer_token, base_url, garage_id, request):
-    header = {'Authorization': 'Bearer ' + bearer_token}
+    header = {'Authorization': f'Bearer {bearer_token}'}
     url = f'{base_url}/garageDoor/{garage_id}/state'
     try:
         response = requests.post(url, headers=header, data=request, timeout=5)
