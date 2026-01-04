@@ -5,7 +5,7 @@ import pytz
 from sqlalchemy import orm, create_engine
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
-from svc.models.scenes import LightDetail, LightScene
+from svc.models.scenes import LightDetail, LightScene, LightScenes
 from svc.config.settings_state import Settings
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
     AverageSumpPumpLevel, RoleDevices, UserRoles, RoleDeviceNodes, ChildAccounts, UserInformation, ScheduleTasks, \
@@ -268,8 +268,8 @@ class UserDatabase:
         self.__validate_property(user_id)
         scenes = self.session.query(Scenes).filter_by(user_id=user_id).all()
         if scenes is None:
-            return []
-        return [LightScene(name=scene.name, lights=self.__create_light_scenes(scene.details)) for scene in scenes]
+            return LightScenes(scenes=[])
+        return LightScenes(scenes=[LightScene(name=scene.name, lights=self.__create_light_scenes(scene.details)) for scene in scenes])
 
     def delete_scene_by_user(self, user_id, scene_id):
         self.__validate_property(user_id)
@@ -279,7 +279,7 @@ class UserDatabase:
 
     @staticmethod
     def __create_light_scenes(light_details):
-        return [LightDetail(group_id=detail.light_group, group_name=detail.light_group_name, brightness=detail.light_brightness) for detail in light_details]
+        return [LightDetail(groupId=detail.light_group, groupName=detail.light_group_name, brightness=detail.light_brightness) for detail in light_details]
 
     def __duplicate_roles(self, new_user_id, user_role):
         role_id = str(uuid.uuid4())

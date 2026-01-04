@@ -44,8 +44,8 @@ class TestSceneRoutes:
         actual = self.TEST_CLIENT.get(f'scenes/userId/{self.USER_ID}', headers=headers)
 
         assert actual.status_code == 200
-        assert json.loads(actual.data)[0]['name'] == self.SCENE_NAME
-        assert json.loads(actual.data)[0]['lights'][0]['group_name'] == self.GROUP_NAME
+        assert json.loads(actual.data)['scenes'][0]['name'] == self.SCENE_NAME
+        assert json.loads(actual.data)['scenes'][0]['lights'][0]['groupName'] == self.GROUP_NAME
 
     def test_get_scenes_by_user__should_return_unauthorized_with_no_header(self):
         url = f'scenes/userId/{self.USER_ID}'
