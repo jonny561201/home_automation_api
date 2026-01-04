@@ -5,6 +5,7 @@ import pytz
 from sqlalchemy import orm, create_engine
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
+from svc.models.device import DeviceNode, DoorDeviceDetails
 from svc.models.scenes import LightDetail, LightScene, LightScenes
 from svc.config.settings_state import Settings
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
@@ -210,13 +211,9 @@ class UserDatabase:
             raise BadRequest
         node = RoleDeviceNodes(node_name=node_name, role_device_id=device_id, node_device=node_size + 1)
         self.session.add(node)
-        return {
-            'availableNodes': device.max_nodes - (node_size + 1),
-            'device': {
-                'doorId': node.node_device,
-                'doorName': node.node_name
-            }
-        }
+
+        door_device = DoorDeviceDetails(doorId=node.node_device, doorName=node.node_name)
+        return DeviceNode(availableNodes=device.max_nodes - (node_size + 1), device=door_device)
 
     def get_user_garage_ip(self, user_id):
         self.__validate_property(user_id)

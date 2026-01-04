@@ -611,7 +611,7 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = devices
         actual = self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name, None)
 
-        assert actual['availableNodes'] == 1
+        assert actual.availableNodes == 1
 
     def test_get_user_garage_ip__should_query_device_by_user_id(self):
         self.DATABASE.get_user_garage_ip(self.USER_ID)

@@ -22,4 +22,4 @@ def add_device_node_by_user_id(user_id, device_id):
     bearer_token = request.headers.get('Authorization')
     request_data = json.loads(request.data.decode('UTF-8'))
     remaining_devices = devices_controller.add_node_to_device(bearer_token, user_id, device_id, request_data)
-    return Response(json.dumps(remaining_devices), status=200, mimetype=Mime.JSON)
+    return Response(remaining_devices.to_json(), status=200, mimetype=Mime.JSON)

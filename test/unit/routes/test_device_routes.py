@@ -2,6 +2,7 @@ import json
 
 from mock import patch, ANY
 
+from svc.models.device import DeviceNode, DoorDeviceDetails
 from svc.models.device import Device
 from svc.endpoints.device_routes import add_device_by_user_id, add_device_node_by_user_id
 
@@ -15,6 +16,7 @@ class TestDeviceRoutes:
 
     def setup_method(self, _):
         self.DEVICE = Device(deviceId=self.DEVICE_ID)
+        self.NODE = DeviceNode(availableNodes=1, device=DoorDeviceDetails(doorId=1, doorName='Test Door'))
 
     def test_add_device_by_user_id__should_pass_bearer_token_to_controller(self, mock_request, mock_controller):
         mock_controller.add_device_to_role.return_value = self.DEVICE
@@ -65,14 +67,14 @@ class TestDeviceRoutes:
     def test_add_device_node_by_user_id__should_pass_bearer_token_to_controller(self, mock_request, mock_controller):
         mock_request.headers = {'Authorization': self.BEARER_TOKEN}
         mock_request.data = json.dumps({}).encode()
-        mock_controller.add_node_to_device.return_value = {}
+        mock_controller.add_node_to_device.return_value = self.NODE
         add_device_node_by_user_id(self.USER_ID, self.DEVICE_ID)
 
         mock_controller.add_node_to_device.assert_called_with(self.BEARER_TOKEN, ANY, ANY, ANY)
 
     def test_add_device_node_by_user_id__should_pass_the_decoded_body_to_the_controller(self, mock_request, mock_controller):
         request_data = {'test': 'test'}
-        mock_controller.add_node_to_device.return_value = {}
+        mock_controller.add_node_to_device.return_value = self.NODE
         mock_request.data = json.dumps(request_data).encode('UTF-8')
         add_device_node_by_user_id(self.USER_ID, self.DEVICE_ID)
 
@@ -80,7 +82,7 @@ class TestDeviceRoutes:
 
     def test_add_device_node_by_user_id__should_pass_the_device_id_to_the_controller(self, mock_request, mock_controller):
         request_data = {'test': 'test'}
-        mock_controller.add_node_to_device.return_value = {}
+        mock_controller.add_node_to_device.return_value = self.NODE
         mock_request.data = json.dumps(request_data).encode('UTF-8')
         add_device_node_by_user_id(self.USER_ID, self.DEVICE_ID)
 
@@ -88,7 +90,7 @@ class TestDeviceRoutes:
 
     def test_add_device_node_by_user_id__should_pass_the_user_id_to_the_controller(self, mock_request, mock_controller):
         request_data = {'test': 'test'}
-        mock_controller.add_node_to_device.return_value = {}
+        mock_controller.add_node_to_device.return_value = self.NODE
         mock_request.data = json.dumps(request_data).encode('UTF-8')
         add_device_node_by_user_id(self.USER_ID, self.DEVICE_ID)
 
@@ -96,22 +98,21 @@ class TestDeviceRoutes:
 
     def test_add_device_node_by_user_id__should_return_success_status_code(self, mock_request, mock_controller):
         mock_request.data = json.dumps({}).encode()
-        mock_controller.add_node_to_device.return_value = {}
+        mock_controller.add_node_to_device.return_value = self.NODE
         actual = add_device_node_by_user_id(self.USER_ID, self.DEVICE_ID)
 
         assert actual.status_code == 200
 
     def test_add_device_node_by_user_id__should_return_default_headers(self, mock_request, mock_controller):
         mock_request.data = json.dumps({}).encode()
-        mock_controller.add_node_to_device.return_value = {}
+        mock_controller.add_node_to_device.return_value = self.NODE
         actual = add_device_node_by_user_id(self.USER_ID, self.DEVICE_ID)
 
         assert actual.content_type == 'application/json'
 
     def test_add_device_node_by_user_id__should_return_controller_response(self, mock_request, mock_controller):
-        response = {'response': 'Test'}
         mock_request.data = json.dumps({}).encode()
-        mock_controller.add_node_to_device.return_value = response
+        mock_controller.add_node_to_device.return_value = self.NODE
         actual = add_device_node_by_user_id(self.USER_ID, self.DEVICE_ID)
 
-        assert json.loads(actual.data.decode('UTF-8')) == response
+        assert actual.data.decode('UTF-8') == self.NODE.to_json()
