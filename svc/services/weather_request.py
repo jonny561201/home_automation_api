@@ -2,7 +2,7 @@ import logging
 
 from requests.exceptions import ConnectionError
 
-from models.thermostat import DailyForecast
+from svc.models.thermostat import DailyForecast
 from svc.utilities.api_utils import get_weather_by_city, get_forecast_by_coords
 
 

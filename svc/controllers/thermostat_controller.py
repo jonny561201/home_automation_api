@@ -1,6 +1,6 @@
 import json
 
-from models.thermostat import ThermostatState
+from svc.models.thermostat import ThermostatState
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.services import temperature
 from svc.utilities.conversion_utils import convert_to_celsius, convert_to_fahrenheit

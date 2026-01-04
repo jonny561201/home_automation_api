@@ -5,7 +5,7 @@ import pytz
 from sqlalchemy import orm, create_engine
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
-from models.scenes import LightDetail, LightScene
+from svc.models.scenes import LightDetail, LightScene
 from svc.config.settings_state import Settings
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
     AverageSumpPumpLevel, RoleDevices, UserRoles, RoleDeviceNodes, ChildAccounts, UserInformation, ScheduleTasks, \
