@@ -17,11 +17,11 @@ services:
   flyway:
     image: "boxfuse/flyway:5.2.4"
     container_name: "flyway-home"
-    command: > 
-      -url=jdbc:postgresql://postgres_db:5432/garage_door 
-      -user=postgres 
-      -password=password 
-      -connectRetries=20 
+    command: >
+      -url=jdbc:postgresql://postgres_db:5432/garage_door
+      -user=postgres
+      -password=password
+      -connectRetries=20
       -locations=filesystem:/flyway/sql,filesystem:/flyway/testdata
       migrate
     volumes:
@@ -34,11 +34,13 @@ services:
     image: rabbitmq:3-management
     container_name: "rabbitmq-home"
     ports:
-      - "5672:5672"    # RabbitMQ main port for messaging
-      - "15672:15672"  # Management UI port
+      - "5672:5672"
+      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: user
       RABBITMQ_DEFAULT_PASS: password
     volumes:
-      - rabbitmq-data:/var/lib/rabbitmq
-    restart: unless-stopped
+      - rabbitmq_data:/var/lib/rabbitmq
+
+volumes:
+  rabbitmq_data:
