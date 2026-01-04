@@ -7,6 +7,7 @@ from mock import mock, patch
 from sqlalchemy import orm
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
+from models.scenes import LightScenes
 from svc.db.methods.user_credentials import UserDatabase
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
     AverageSumpPumpLevel, Roles, UserInformation, UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts, ScheduleTasks, \
@@ -1243,14 +1244,14 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [scene]
         actual = self.DATABASE.get_scenes_by_user(self.USER_ID)
 
-        assert actual[0].name == scene_name
-        assert actual[0].lights[0].groupName == room_name
+        assert actual.scenes[0].name == scene_name
+        assert actual.scenes[0].lights[0].groupName == room_name
 
     def test_get_scenes_by_user__should_return_empty_list_when_query_returns_none(self):
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = None
         actual = self.DATABASE.get_scenes_by_user(self.USER_ID)
 
-        assert actual == []
+        assert actual.to_dict() == LightScenes(scenes=[]).to_dict()
 
     def test_get_scenes_by_user__should_raise_bad_request_when_user_id_is_none(self):
         with pytest.raises(BadRequest):
