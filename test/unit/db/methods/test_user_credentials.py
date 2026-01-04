@@ -1243,8 +1243,8 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [scene]
         actual = self.DATABASE.get_scenes_by_user(self.USER_ID)
 
-        assert actual[0]['name'] == scene_name
-        assert actual[0]['lights'][0]['group_name'] == room_name
+        assert actual[0].name == scene_name
+        assert actual[0].lights[0].group_name == room_name
 
     def test_get_scenes_by_user__should_return_empty_list_when_query_returns_none(self):
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = None
