@@ -29,3 +29,16 @@ services:
       - ./docker/flyway/local_testdata:/flyway/testdata
     depends_on:
     - postgres_db
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: "rabbitmq-home"
+    ports:
+      - "5672:5672"    # RabbitMQ main port for messaging
+      - "15672:15672"  # Management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    restart: unless-stopped
