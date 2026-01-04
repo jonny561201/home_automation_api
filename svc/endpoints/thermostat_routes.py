@@ -1,8 +1,5 @@
-import json
-
 from flask import Blueprint, request, Response
 
-from models.thermostat import DailyForecast
 from svc.constants.home_automation import Mime
 from svc.controllers import thermostat_controller
 
