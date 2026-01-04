@@ -27,14 +27,14 @@ class TestWeatherRequest:
 
         actual = get_weather(self.CITY, self.UNIT, self.APP_ID)
 
-        assert actual['temp'] == expected_temp
+        assert actual.temp == expected_temp
 
     def test_get_weather__should_return_default_temp_value_of_zero(self, mock_weather, mock_forecast):
         mock_weather.return_value = self.WEATHER_RESPONSE
 
         actual = get_weather(self.CITY, self.UNIT, self.APP_ID)
 
-        assert actual['temp'] == 0.0
+        assert actual.temp == 0.0
 
     def test_get_weather__should_return_min_temp_value(self, mock_weather, mock_forecast):
         self.FORECAST_RESPONSE['daily'].append(self.DAY)
@@ -43,7 +43,7 @@ class TestWeatherRequest:
 
         actual = get_weather(self.CITY, self.UNIT, self.APP_ID)
 
-        assert actual['minTemp'] == self.DAY['temp']['min']
+        assert actual.minTemp == self.DAY['temp']['min']
 
     def test_get_weather__should_return_default_min_temp_value(self, mock_weather, mock_forecast):
         mock_weather.return_value = self.WEATHER_RESPONSE
@@ -51,7 +51,7 @@ class TestWeatherRequest:
 
         actual = get_weather(self.CITY, self.UNIT, self.APP_ID)
 
-        assert actual['minTemp'] == 0.0
+        assert actual.minTemp == 0.0
 
     def test_get_weather__should_return_max_temp_value(self, mock_weather, mock_forecast):
         self.FORECAST_RESPONSE['daily'].append(self.DAY)
@@ -60,7 +60,7 @@ class TestWeatherRequest:
 
         actual = get_weather(self.CITY, self.UNIT, self.APP_ID)
 
-        assert actual['maxTemp'] == self.DAY['temp']['max']
+        assert actual.maxTemp == self.DAY['temp']['max']
 
     def test_get_weather__should_return_default_max_temp_value(self, mock_weather, mock_forecast):
         mock_weather.return_value = self.WEATHER_RESPONSE
@@ -68,7 +68,7 @@ class TestWeatherRequest:
 
         actual = get_weather(self.CITY, self.UNIT, self.APP_ID)
 
-        assert actual['maxTemp'] == 0.0
+        assert actual.maxTemp == 0.0
 
     def test_get_weather__should_return_weather_description(self, mock_weather, mock_forecast):
         forecast_description = 'fake forecast'
@@ -77,14 +77,14 @@ class TestWeatherRequest:
 
         actual = get_weather(self.CITY, self.UNIT, self.APP_ID)
 
-        assert actual['description'] == forecast_description
+        assert actual.description == forecast_description
 
     def test_get_weather__should_return_default_weather_description(self, mock_weather, mock_forecast):
         mock_weather.return_value = self.WEATHER_RESPONSE
 
         actual = get_weather(self.CITY, self.UNIT, self.APP_ID)
 
-        assert actual['description'] == ""
+        assert actual.description == ""
 
     def test_get_weather__should_return_default_values_when_not_ok_status_returned(self, mock_weather, mock_forecast):
         mock_weather.return_value = {}
@@ -92,10 +92,10 @@ class TestWeatherRequest:
 
         actual = get_weather(self.CITY, self.UNIT, self.APP_ID)
 
-        assert actual['temp'] == 0.0
-        assert actual['minTemp'] == 0.0
-        assert actual['maxTemp'] == 0.0
-        assert actual['description'] == ""
+        assert actual.temp == 0.0
+        assert actual.minTemp == 0.0
+        assert actual.maxTemp == 0.0
+        assert actual.description == ""
 
     def test_get_weather__should_return_weather_values_and_default_forecast(self, mock_weather, mock_forecast):
         temp = 73.23
@@ -107,20 +107,20 @@ class TestWeatherRequest:
 
         actual = get_weather(self.CITY, self.UNIT, self.APP_ID)
 
-        assert actual['temp'] == temp
-        assert actual['minTemp'] == 0.0
-        assert actual['maxTemp'] == 0.0
-        assert actual['description'] == description
+        assert actual.temp == temp
+        assert actual.minTemp == 0.0
+        assert actual.maxTemp == 0.0
+        assert actual.description == description
 
     def test_get_weather__should_return_default_values_when_throws_connection_error(self, mock_weather, mock_forecast):
         mock_weather.side_effect = ConnectionError()
 
         actual = get_weather(self.CITY, self.UNIT, self.APP_ID)
 
-        assert actual['temp'] == 0.0
-        assert actual['minTemp'] == 0.0
-        assert actual['maxTemp'] == 0.0
-        assert actual['description'] == ""
+        assert actual.temp == 0.0
+        assert actual.minTemp == 0.0
+        assert actual.maxTemp == 0.0
+        assert actual.description == ""
         
     def test_get_weather__should_make_call_to_get_forecast_data(self, mock_weather, mock_forecast):
         get_weather(self.CITY, self.UNIT, self.APP_ID)

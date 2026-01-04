@@ -10,3 +10,12 @@ class ThermostatState:
     maxThermostatTemp: float
     mode: str
     desiredTemp: float
+
+
+@dataclass_json
+@dataclass
+class DailyForecast:
+    temp: float
+    minTemp: float
+    maxTemp: float
+    description: str

@@ -2,6 +2,7 @@ import logging
 
 from requests.exceptions import ConnectionError
 
+from models.thermostat import DailyForecast
 from svc.utilities.api_utils import get_weather_by_city, get_forecast_by_coords
 
 
@@ -22,6 +23,6 @@ def __build_response(weather, daily_forecast):
     current_temp = main.get('temp', 0.0)
     min_temp = daily_forecast.get('min', 0.0)
     max_temp = daily_forecast.get('max', 0.0)
-    forecast_desc = next(iter(weather.get('weather', {})), {}).get('description', '')
+    description = next(iter(weather.get('weather', {})), {}).get('description', '')
 
-    return {'temp': current_temp, 'minTemp': min_temp, 'maxTemp': max_temp, 'description': forecast_desc}
+    return DailyForecast(temp=current_temp, minTemp=min_temp, maxTemp=max_temp, description=description)
