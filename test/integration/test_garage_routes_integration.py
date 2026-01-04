@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 import jwt
 from flask import json
@@ -51,7 +52,7 @@ class TestGarageDoorRoutesIntegration:
 
     def test_get_garage_door_status__should_return_success_with_valid_jwt(self, mock_request):
         response = Response()
-        response._content = json.dumps({'testResponse': 'found it!'}).encode()
+        response._content = json.dumps({'isGarageOpen': False, 'statusDuration': datetime.now().isoformat(), 'coordinates': {'latitude': 1.12, 'longitude': -12.93}}).encode()
         response.status_code = 200
         mock_request.get.return_value = response
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
@@ -73,7 +74,7 @@ class TestGarageDoorRoutesIntegration:
     def test_update_garage_door_state__should_return_success(self, mock_request):
         post_body = {'garageDoorOpen': True}
         response = Response()
-        response._content = json.dumps({'testResponse': 'found it!'}).encode()
+        response._content = json.dumps({'isGarageOpen': False, 'statusDuration': datetime.now().isoformat(), 'coordinates': {'latitude': 1.12, 'longitude': -12.93}}).encode()
         response.status_code = 200
         mock_request.post.return_value = response
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
