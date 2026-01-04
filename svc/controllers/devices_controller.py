@@ -1,5 +1,6 @@
 from werkzeug.exceptions import BadRequest
 
+from svc.models.device import Device
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.utilities.jwt_utils import is_jwt_valid
 
@@ -8,7 +9,8 @@ def add_device_to_role(bearer_token, user_id, request_data):
     is_jwt_valid(bearer_token)
     with UserDatabaseManager() as database:
         try:
-            return database.add_new_role_device(user_id, request_data['roleName'], request_data['ipAddress'])
+            device_id = database.add_new_role_device(user_id, request_data['roleName'], request_data['ipAddress'])
+            return Device(deviceId=device_id)
         except KeyError:
             raise BadRequest
 

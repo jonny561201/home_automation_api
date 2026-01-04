@@ -13,8 +13,8 @@ DEVICES_BLUEPRINT = Blueprint('devices_routes', __name__, url_prefix='/devices')
 def add_device_by_user_id(user_id):
     bearer_token = request.headers.get('Authorization')
     request_data = json.loads(request.data.decode('UTF-8'))
-    device_id = devices_controller.add_device_to_role(bearer_token, user_id, request_data)
-    return Response(json.dumps({'deviceId': device_id}), status=200, mimetype=Mime.JSON)
+    device = devices_controller.add_device_to_role(bearer_token, user_id, request_data)
+    return Response(device.to_json(), status=200, mimetype=Mime.JSON)
 
 
 @DEVICES_BLUEPRINT.route('/userId/<user_id>/devices/<device_id>/node', methods=['POST'])

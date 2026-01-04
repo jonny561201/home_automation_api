@@ -2,6 +2,7 @@ import pytest
 from mock import patch, ANY
 from werkzeug.exceptions import BadRequest
 
+from svc.models.device import Device
 from svc.controllers.devices_controller import add_device_to_role, add_node_to_device
 
 
@@ -45,7 +46,7 @@ class TestDeviceController:
         request_data = {'roleName': 'fakeName', 'ipAddress': '1.1.1.1'}
         actual = add_device_to_role(self.BEARER_TOKEN, self.USER_ID, request_data)
 
-        assert actual == device_id
+        assert actual == Device(deviceId=device_id)
 
     def test_add_node_to_device__should_call_is_jwt_valid(self, mock_jwt, mock_db):
         request_data = {'deviceId': 'fake', 'nodeName': 'fake'}
