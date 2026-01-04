@@ -6,7 +6,6 @@ from mock import patch, ANY
 from requests import Response, ReadTimeout, ConnectTimeout
 from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
 
-from models.garage import GarageStatus, GarageState
 from svc.config.settings_state import Settings
 from svc.utilities.api_utils import get_weather_by_city, create_light_group, set_light_groups, set_light_state, \
     get_light_groups, get_garage_door_status, toggle_garage_door_state, update_garage_door_state, \

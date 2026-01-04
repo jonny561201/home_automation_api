@@ -2,6 +2,7 @@ import json
 
 from mock import patch
 
+from models.sump import SumpLevel
 from svc.endpoints.sump_routes import get_current_sump_level, save_current_level_by_user
 
 
@@ -11,7 +12,7 @@ def test_get_current_sump_level__should_call_controller(mock_controller, mock_re
     bearer_token = 'test123'
     mock_request.headers = {'Authorization': bearer_token}
     user_id = 'fakeuserid'
-    mock_controller.return_value = {'fake': 123}
+    mock_controller.return_value = SumpLevel(currentDepth=1.12, averageDepth=1.23, warningLevel=1)
 
     get_current_sump_level(user_id)
 
@@ -22,20 +23,20 @@ def test_get_current_sump_level__should_call_controller(mock_controller, mock_re
 @patch('svc.endpoints.sump_routes.get_sump_level')
 def test_get_current_sump_level__should_return_valid_response(mock_controller, mock_request):
     user_id = 'fakeuserid'
-    expected_depth = {'currentDepth': 1234}
+    expected_depth = SumpLevel(currentDepth=1.12, averageDepth=1.23, warningLevel=1)
     mock_controller.return_value = expected_depth
 
     actual = get_current_sump_level(user_id)
     json_actual = json.loads(actual.data)
 
-    assert json_actual == expected_depth
+    assert json_actual == expected_depth.to_dict()
 
 
 @patch('svc.endpoints.sump_routes.request')
 @patch('svc.endpoints.sump_routes.get_sump_level')
 def test_get_current_sump_level__should_return_success_status(mock_controller, mock_request):
     user_id = 'fakeuserid'
-    expected_depth = {'currentDepth': 1234}
+    expected_depth = SumpLevel(currentDepth=1.12, averageDepth=1.23, warningLevel=1)
     mock_controller.return_value = expected_depth
 
     actual = get_current_sump_level(user_id)

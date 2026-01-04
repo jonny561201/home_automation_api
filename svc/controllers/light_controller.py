@@ -7,16 +7,14 @@ from svc.utilities.jwt_utils import is_jwt_valid
 
 def get_assigned_light_groups(bearer_token):
     is_jwt_valid(bearer_token)
-    settings = Settings.get_instance()
-    api_key = settings.light_api_key
+    api_key = Settings.get_instance().light_api_key
 
     return api_utils.get_light_groups(api_key)
 
 
 def set_assigned_light_groups(bearer_token, request):
     is_jwt_valid(bearer_token)
-    settings = Settings.get_instance()
-    api_key = settings.light_api_key
+    api_key = Settings.get_instance().light_api_key
     try:
         api_utils.set_light_groups(api_key, request['groupId'], request['on'], request.get('brightness'))
     except KeyError:
@@ -25,16 +23,14 @@ def set_assigned_light_groups(bearer_token, request):
 
 def set_assigned_light(bearer_token, request_data):
     is_jwt_valid(bearer_token)
-    settings = Settings.get_instance()
-    api_key = settings.light_api_key
+    api_key = Settings.get_instance().light_api_key
 
     api_utils.set_light_state(api_key, request_data.get('lightId'), request_data.get('brightness'))
 
 
 def get_unassigned_lights(bearer_token):
     is_jwt_valid(bearer_token)
-    settings = Settings.get_instance()
-    api_key = settings.light_api_key
+    api_key = Settings.get_instance().light_api_key
 
     return api_utils.get_unregistered_lights(api_key)
 
