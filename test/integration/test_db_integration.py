@@ -674,7 +674,7 @@ class TestDbRoleIntegration:
             database.session.add(device)
 
             actual = database.add_new_device_node(self.USER_ID, device_id, node_name, False)
-            assert actual['availableNodes'] == 1
+            assert actual.availableNodes == 1
 
     def test_add_new_device_node__should_set_node_device_to_one_when_first_node(self):
         ip_address = '192.175.7.9'
