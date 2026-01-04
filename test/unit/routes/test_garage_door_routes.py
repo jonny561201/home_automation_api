@@ -14,15 +14,15 @@ from svc.endpoints.garage_door_routes import get_garage_door_status, update_gara
 @patch('svc.endpoints.garage_door_routes.request')
 class TestAppRoutes:
     GARAGE_ID = 3
-    STATE = GarageState(isGarageOpen=False)
-    COORDINATES = Coordinates(latitude=19.00, longitude=-99.00)
-    STATUS = GarageStatus(isGarageOpen=True, statusDuration=datetime.now(), coordinates=COORDINATES)
     USER_ID = str(uuid.uuid4())
     JWT_SECRET = 'fake_jwt_secret'
     JWT_TOKEN = jwt.encode({}, JWT_SECRET, algorithm='HS256').decode('UTF-8')
 
     def setup_method(self, _):
         os.environ.update({'JWT_SECRET': self.JWT_SECRET})
+        self.STATE = GarageState(isGarageOpen=False)
+        self.COORDINATES = Coordinates(latitude=19.00, longitude=-99.00)
+        self.STATUS = GarageStatus(isGarageOpen=True, statusDuration=datetime.now(), coordinates=self.COORDINATES)
 
     def teardown_method(self, _):
         os.environ.pop('JWT_SECRET')

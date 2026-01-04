@@ -14,7 +14,9 @@ class TestThermostatRoutes:
     BEARER_TOKEN = "Bearer " + JWT_TOKEN
     AUTH_HEADER = {"Authorization": BEARER_TOKEN}
     USER_ID = 'test'
-    DAILY_FORECAST = DailyForecast(temp=12.0, minTemp=5.6, maxTemp=15.2, description='sunny')
+
+    def setup_method(self):
+        self.DAILY_FORECAST = DailyForecast(temp=12.0, minTemp=5.6, maxTemp=15.2, description='sunny')
 
     def test_get_temperature__should_call_thermostat_controller(self, mock_controller, mock_request):
         get_temperature(self.USER_ID)

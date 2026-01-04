@@ -13,8 +13,10 @@ class TestSceneRoutes:
     USER_ID = str(uuid.uuid4())
     SCENE_ID = str(uuid.uuid4())
     BEARER_TOKEN = 'im a bearer token'
-    SCENE = LightScene(name='test', lights=[(LightDetail(groupId=1, groupName='test light', brightness=75))])
-    SCENES = LightScenes(scenes=[SCENE])
+
+    def setup_method(self):
+        self.SCENE = LightScene(name='test', lights=[(LightDetail(groupId=1, groupName='test light', brightness=75))])
+        self.SCENES = LightScenes(scenes=[self.SCENE])
 
     def test_get_scenes_by_user__should_call_controller_with_bearer_token(self, mock_controller, mock_request):
         mock_controller.get_created_scenes.return_value = self.SCENES
