@@ -3,7 +3,7 @@ import json
 import jwt
 from mock import patch, ANY
 
-from models.thermostat import ThermostatState
+from models.thermostat import ThermostatState, DailyForecast
 from svc.endpoints.thermostat_routes import get_temperature, set_temperature, get_forecast_data
 
 
@@ -14,6 +14,7 @@ class TestThermostatRoutes:
     BEARER_TOKEN = "Bearer " + JWT_TOKEN
     AUTH_HEADER = {"Authorization": BEARER_TOKEN}
     USER_ID = 'test'
+    DAILY_FORECAST = DailyForecast(temp=12.0, minTemp=5.6, maxTemp=15.2, description='sunny')
 
     def test_get_temperature__should_call_thermostat_controller(self, mock_controller, mock_request):
         get_temperature(self.USER_ID)
@@ -54,35 +55,34 @@ class TestThermostatRoutes:
         mock_controller.set_user_temperature.assert_called_with(request, ANY)
 
     def test_get_forecast_data__should_call_thermostat_controller_with_user_id(self, mock_controller, mock_request):
-        mock_controller.get_user_forecast.return_value = {}
+        mock_controller.get_user_forecast.return_value = self.DAILY_FORECAST
         mock_request.headers = self.AUTH_HEADER
         get_forecast_data(self.USER_ID)
         mock_controller.get_user_forecast.assert_called_with(self.USER_ID, ANY)
 
     def test_get_forecast_data__should_call_thermostat_controller_with_bearer_token(self, mock_controller, mock_request):
-        mock_controller.get_user_forecast.return_value = {}
+        mock_controller.get_user_forecast.return_value = self.DAILY_FORECAST
         mock_request.headers = self.AUTH_HEADER
         get_forecast_data(self.USER_ID)
         mock_controller.get_user_forecast.assert_called_with(ANY, self.BEARER_TOKEN)
 
     def test_get_forecast_data__should_call_thermostat_controller_with_none_when_no_auth_header(self, mock_controller, mock_request):
-        mock_controller.get_user_forecast.return_value = {}
+        mock_controller.get_user_forecast.return_value = self.DAILY_FORECAST
         mock_request.headers = {}
         get_forecast_data(self.USER_ID)
         mock_controller.get_user_forecast.assert_called_with(self.USER_ID, None)
 
     def test_get_forecast_data__should_return_success_response(self, mock_controller, mock_request):
-        mock_controller.get_user_forecast.return_value = {}
+        mock_controller.get_user_forecast.return_value = self.DAILY_FORECAST
         actual = get_forecast_data(self.USER_ID)
         assert actual.status_code == 200
 
     def test_get_forecast_data__should_return_success_headers(self, mock_controller, mock_request):
-        mock_controller.get_user_forecast.return_value = {}
+        mock_controller.get_user_forecast.return_value = self.DAILY_FORECAST
         actual = get_forecast_data(self.USER_ID)
         assert actual.content_type == 'application/json'
 
     def test_get_forecast_data__should_return_response_from_controller(self, mock_controller, mock_request):
-        response = {'myResponse': 'content'}
-        mock_controller.get_user_forecast.return_value = response
+        mock_controller.get_user_forecast.return_value = self.DAILY_FORECAST
         actual = get_forecast_data(self.USER_ID)
-        assert json.loads(actual.data) == response
+        assert json.loads(actual.data) == self.DAILY_FORECAST.to_dict()

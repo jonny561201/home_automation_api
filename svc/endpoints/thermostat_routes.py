@@ -2,6 +2,7 @@ import json
 
 from flask import Blueprint, request, Response
 
+from models.thermostat import DailyForecast
 from svc.constants.home_automation import Mime
 from svc.controllers import thermostat_controller
 
@@ -26,4 +27,4 @@ def set_temperature(user_id):
 def get_forecast_data(user_id):
     bearer_token = request.headers.get('Authorization')
     forecast = thermostat_controller.get_user_forecast(user_id, bearer_token)
-    return Response(json.dumps(forecast), status=200, mimetype=Mime.JSON)
+    return Response(forecast.to_json(), status=200, mimetype=Mime.JSON)
