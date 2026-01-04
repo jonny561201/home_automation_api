@@ -1,5 +1,6 @@
 import json
 
+from models.thermostat import ThermostatState
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.services import temperature
 from svc.utilities.conversion_utils import convert_to_celsius, convert_to_fahrenheit
@@ -33,11 +34,14 @@ def set_user_temperature(request, bearer_token):
 def __create_response(internal_temp, is_fahren):
     state = get_desired_temp()
     desired_temp = __convert_desired_temp(is_fahren, internal_temp, state)
-    response = {'currentTemp': internal_temp, 'isFahrenheit': is_fahren,
-                'minThermostatTemp': 50.0 if is_fahren else 10.0,
-                'maxThermostatTemp': 90.0 if is_fahren else 32.0,
-                'mode': state['mode'], 'desiredTemp': desired_temp}
-    return response
+    return ThermostatState(
+        currentTemp=internal_temp,
+        isFahrenheit=is_fahren,
+        minThermostatTemp=50.0 if is_fahren else 10.0,
+        maxThermostatTemp=90.0 if is_fahren else 32.0,
+        mode=state['mode'],
+        desiredTemp=desired_temp
+    )
 
 
 def __convert_desired_temp(is_fahren, internal_temp, state):

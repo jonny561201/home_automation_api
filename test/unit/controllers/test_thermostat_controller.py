@@ -39,8 +39,8 @@ class TestThermostatGetController:
 
         actual = get_user_temp(self.USER_ID, self.JWT_TOKEN)
 
-        assert actual['currentTemp'] == expected_temp
-        assert actual['isFahrenheit'] is True
+        assert actual.currentTemp == expected_temp
+        assert actual.isFahrenheit is True
 
     def test_get_user_temp__should_return_thermostat_temps_in_celsius(self, mock_jwt, mock_db, mock_temp, mock_file):
         self.PREFERENCE['is_fahrenheit'] = False
@@ -48,8 +48,8 @@ class TestThermostatGetController:
 
         actual = get_user_temp(self.USER_ID, self.JWT_TOKEN)
 
-        assert actual['minThermostatTemp'] == 10.0
-        assert actual['maxThermostatTemp'] == 32.0
+        assert actual.minThermostatTemp == 10.0
+        assert actual.maxThermostatTemp == 32.0
 
     def test_get_user_temp__should_return_thermostat_temps_in_fahrenheit(self, mock_jwt, mock_db, mock_temp, mock_file):
         self.PREFERENCE['is_fahrenheit'] = True
@@ -57,15 +57,15 @@ class TestThermostatGetController:
 
         actual = get_user_temp(self.USER_ID, self.JWT_TOKEN)
 
-        assert actual['minThermostatTemp'] == 50.0
-        assert actual['maxThermostatTemp'] == 90.0
+        assert actual.minThermostatTemp == 50.0
+        assert actual.maxThermostatTemp == 90.0
 
     def test_get_user_temp__should_return_the_hvac_mode(self, mock_jwt, mock_db, mock_temp, mock_file):
         mock_file.return_value = {'desiredTemp': 22.2, 'mode': Automation.HVAC.MODE.HEATING}
 
         actual = get_user_temp(self.USER_ID, self.JWT_TOKEN)
 
-        assert actual['mode'] == Automation.HVAC.MODE.HEATING
+        assert actual.mode == Automation.HVAC.MODE.HEATING
 
     def test_get_user_temp__should_return_the_hvac_desired_temp_in_fahrenheit(self, mock_jwt, mock_db, mock_temp, mock_file):
         mock_file.return_value = {'desiredTemp': self.TEMP_CEL, 'mode': Automation.HVAC.MODE.COOLING}
@@ -74,7 +74,7 @@ class TestThermostatGetController:
 
         actual = get_user_temp(self.USER_ID, self.JWT_TOKEN)
 
-        assert actual['desiredTemp'] == self.TEMP_FAHR
+        assert actual.desiredTemp == self.TEMP_FAHR
 
     def test_get_user_temp__should_return_the_hvac_desired_temp_in_celsius(self, mock_jwt, mock_db, mock_temp, mock_file):
         mock_file.return_value = {'desiredTemp': self.TEMP_CEL, 'mode': Automation.HVAC.MODE.HEATING}
@@ -83,7 +83,7 @@ class TestThermostatGetController:
 
         actual = get_user_temp(self.USER_ID, self.JWT_TOKEN)
 
-        assert actual['desiredTemp'] == self.TEMP_CEL
+        assert actual.desiredTemp == self.TEMP_CEL
 
     def test_get_user_temp__should_return_the_hvac_internal_temp_when_desired_temp_not_set(self, mock_jwt, mock_db, mock_temp, mock_file):
         mock_file.return_value = {'desiredTemp': None, 'mode': Automation.HVAC.MODE.HEATING}
@@ -93,7 +93,7 @@ class TestThermostatGetController:
 
         actual = get_user_temp(self.USER_ID, self.JWT_TOKEN)
 
-        assert actual['desiredTemp'] == self.TEMP_FAHR
+        assert actual.desiredTemp == self.TEMP_FAHR
 
     def test_get_user_forecast__should_validate_jwt_token(self, mock_jwt, mock_db, mock_temp, mock_file):
         get_user_forecast(self.USER_ID, self.JWT_TOKEN)

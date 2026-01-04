@@ -11,7 +11,8 @@ THERMOSTAT_BLUEPRINT = Blueprint('thermostat_blueprint', __name__, url_prefix='/
 @THERMOSTAT_BLUEPRINT.route('/temperature/<user_id>', methods=['GET'])
 def get_temperature(user_id):
     bearer_token = request.headers.get('Authorization')
-    return thermostat_controller.get_user_temp(user_id, bearer_token)
+    temp = thermostat_controller.get_user_temp(user_id, bearer_token)
+    return Response(temp.to_json(), status=200, mimetype=Mime.JSON)
 
 
 @THERMOSTAT_BLUEPRINT.route('/temperature/<user_id>', methods=['POST'])

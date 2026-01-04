@@ -3,6 +3,7 @@ import json
 import jwt
 from mock import patch, ANY
 
+from models.thermostat import ThermostatState
 from svc.endpoints.thermostat_routes import get_temperature, set_temperature, get_forecast_data
 
 
@@ -26,12 +27,12 @@ class TestThermostatRoutes:
         mock_controller.get_user_temp.assert_called_with(self.USER_ID, self.BEARER_TOKEN)
 
     def test_get_temperature__should_return_response_from_controller(self, mock_controller, mock_request):
-        expected_temp = {'currentTemp': 34.12}
+        expected_temp = ThermostatState(currentTemp=12.0, isFahrenheit=False, minThermostatTemp=50.0, maxThermostatTemp=90.0, mode='test', desiredTemp=71.0)
         mock_controller.get_user_temp.return_value = expected_temp
 
         actual = get_temperature(self.USER_ID)
 
-        assert actual == expected_temp
+        assert json.loads(actual.data) == expected_temp.to_dict()
 
     def test_set_temperature__should_call_thermostat_controller(self, mock_controller, mock_request):
         set_temperature(self.USER_ID)
