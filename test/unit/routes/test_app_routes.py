@@ -95,7 +95,7 @@ class TestAppRoutes:
     def test_update_user_preferences_by_user_id__should_return_success_content(self, mock_controller, mock_requests):
         actual = update_user_preferences_by_user_id(self.USER_ID)
 
-        assert actual.content_type == 'text/json'
+        assert actual.content_type == 'application/json'
 
     def test_get_user_tasks_by_user_id__should_call_app_controller_with_user_id(self, mock_controller, mock_requests):
         response = {'test_data': 'task'}
@@ -132,7 +132,7 @@ class TestAppRoutes:
         mock_controller.get_user_tasks.return_value = response
         actual = get_user_tasks_by_user_id(self.USER_ID, None)
 
-        assert actual.content_type == 'text/json'
+        assert actual.content_type == 'application/json'
 
     def test_get_user_tasks_by_user_id__should_return_serialize_data_from_controller(self, mock_controller, mock_requests):
         response = {'test_data': 'task'}
@@ -170,7 +170,7 @@ class TestAppRoutes:
         task_id = 'asjkdhflkjasd'
         actual = delete_user_tasks_by_user_id(self.USER_ID, task_id)
 
-        assert actual.content_type == 'text/json'
+        assert actual.content_type == 'application/json'
 
     def test_insert_user_task_by_user_id__should_call_app_controller_with_bearer_token(self, mock_controller, mock_requests):
         mock_requests.headers = {'Authorization': self.FAKE_JWT_TOKEN}
@@ -203,7 +203,7 @@ class TestAppRoutes:
         mock_controller.insert_user_task.return_value = {}
         actual = insert_user_task_by_user_id(self.USER_ID)
 
-        assert actual.content_type == 'text/json'
+        assert actual.content_type == 'application/json'
 
     def test_insert_user_task_by_user_id__should_return_response_data(self, mock_controller, mock_requests):
         response = {'test': 'my fake response'}
@@ -243,7 +243,7 @@ class TestAppRoutes:
         mock_controller.update_user_task.return_value = {}
         actual = update_user_task_by_user_id(self.USER_ID)
 
-        assert actual.content_type == 'text/json'
+        assert actual.content_type == 'application/json'
 
     def test_update_user_task_by_user_id__should_return_response_data(self, mock_controller, mock_requests):
         response = {'test': 'my fake response'}
@@ -272,7 +272,7 @@ class TestAppRoutes:
         mock_controller.refresh_bearer_token.return_value = self.FAKE_JWT_TOKEN
         actual = get_token()
 
-        assert actual.content_type == 'text/json'
+        assert actual.content_type == 'application/json'
 
     def test_token__should_return_response_data(self, mock_controller, mock_requests):
         mock_requests.data = json.dumps({'grant_type': 'refresh_token', 'refresh_token': str(uuid.uuid4())})

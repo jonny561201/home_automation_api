@@ -47,7 +47,7 @@ class TestDeviceRoutes:
         mock_request.data = json.dumps({}).encode('UTF-8')
         actual = add_device_by_user_id(self.USER_ID)
 
-        assert actual.content_type == 'text/json'
+        assert actual.content_type == 'application/json'
 
     def test_add_device_by_user_id__should_return_device_id(self, mock_request, mock_controller):
         device_id = 'fake_device_id'
@@ -102,7 +102,7 @@ class TestDeviceRoutes:
         mock_controller.add_node_to_device.return_value = {}
         actual = add_device_node_by_user_id(self.USER_ID, self.DEVICE_ID)
 
-        assert actual.content_type == 'text/json'
+        assert actual.content_type == 'application/json'
 
     def test_add_device_node_by_user_id__should_return_controller_response(self, mock_request, mock_controller):
         response = {'response': 'Test'}

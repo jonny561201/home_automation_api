@@ -47,7 +47,7 @@ class TestSceneRoutes:
         mock_request.headers = {'Authorization': self.BEARER_TOKEN}
         actual = get_scenes_by_user(self.USER_ID)
 
-        assert actual.content_type == 'text/json'
+        assert actual.content_type == 'application/json'
 
     def test_get_scenes_by_user__should_return_response_from_controller(self, mock_controller, mock_request):
         mock_controller.get_created_scenes.return_value = self.RESPONSE
@@ -96,5 +96,5 @@ class TestSceneRoutes:
         mock_request.headers = {'Authorization': self.BEARER_TOKEN}
         actual = delete_scene_by_user(self.USER_ID, self.SCENE_ID)
 
-        assert actual.content_type == 'text/json'
+        assert actual.content_type == 'application/json'
 

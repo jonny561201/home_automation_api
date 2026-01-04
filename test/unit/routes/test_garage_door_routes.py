@@ -41,7 +41,7 @@ class TestAppRoutes:
     def test_garage_door_status__should_return_success_header(self, mock_request, mock_controller):
         mock_request.headers = {'Authorization': self.JWT_TOKEN}
         mock_controller.get_status.return_value = {}
-        expected_headers = 'text/json'
+        expected_headers = 'application/json'
 
         actual = get_garage_door_status(self.USER_ID, self.GARAGE_ID)
 
@@ -77,7 +77,7 @@ class TestAppRoutes:
         mock_request.headers = {'Authorization': self.JWT_TOKEN}
         mock_request.data = '{"garageDoorOpen": "True"}'.encode()
         mock_controller.update_state.return_value = {}
-        expected_headers = 'text/json'
+        expected_headers = 'application/json'
 
         actual = update_garage_door_state(self.USER_ID, self.GARAGE_ID)
 
@@ -108,7 +108,7 @@ class TestAppRoutes:
         assert actual.status_code == 200
 
     def test_toggle_garage_door__should_return_success_headers(self, mock_request, mock_controller):
-        expected_headers = 'text/json'
+        expected_headers = 'application/json'
         mock_request.headers = {'Authorization': self.JWT_TOKEN}
         actual = toggle_garage_door(self.USER_ID, self.GARAGE_ID)
 

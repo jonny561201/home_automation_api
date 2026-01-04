@@ -41,7 +41,7 @@ class TestAppRoutes:
     def test_update_user_password__should_return_success_content(self, mock_controller, mock_request):
         actual = update_user_password(self.USER_ID)
 
-        assert actual.content_type == 'text/json'
+        assert actual.content_type == 'application/json'
 
     def test_post_child_account_by_user__should_call_controller_with_bearer_token(self, mock_controller, mock_request):
         mock_request.headers = {'Authorization': self.FAKE_JWT_TOKEN}
@@ -75,7 +75,7 @@ class TestAppRoutes:
     def test_post_child_account_by_user__should_return_success_headers(self, mock_controller, mock_request):
         mock_controller.create_child_account_by_user.return_value = {}
         actual = post_child_account_by_user(self.USER_ID)
-        assert actual.content_type == 'text/json'
+        assert actual.content_type == 'application/json'
 
     def test_post_child_account_by_user__should_return_controller_response(self, mock_controller, mock_request):
         response = {'test': 'fake data'}
@@ -103,7 +103,7 @@ class TestAppRoutes:
     def test_get_child_accounts_by_user_id__should_return_success_headers(self, mock_controller, mock_request):
         mock_controller.get_child_accounts_by_user.return_value = {}
         actual = get_child_accounts_by_user_id(self.USER_ID)
-        assert actual.content_type == 'text/json'
+        assert actual.content_type == 'application/json'
 
     def test_get_child_accounts_by_user_id__should_return_response_from_controller(self, mock_controller, mock_request):
         response = {'test': 'test data'}
@@ -148,7 +148,7 @@ class TestAppRoutes:
         mock_controller.get_roles.return_value = {}
         actual = get_roles_by_user_id(self.USER_ID)
 
-        assert actual.content_type == 'text/json'
+        assert actual.content_type == 'application/json'
 
     def test_get_roles_by_user_id__should_return_data_from_the_controller(self, mock_controller, mock_request):
         response = {'data': 'doesnt matter'}
@@ -197,4 +197,4 @@ class TestAppRoutes:
         mock_request.headers = {}
         actual = delete_child_account_by_user_id(self.USER_ID, child_user_id)
 
-        assert actual.content_type == 'text/json'
+        assert actual.content_type == 'application/json'
