@@ -3,7 +3,7 @@ import json
 import jwt
 from mock import patch, ANY
 
-from models.thermostat import ThermostatState, DailyForecast
+from svc.models.thermostat import ThermostatState, DailyForecast
 from svc.endpoints.thermostat_routes import get_temperature, set_temperature, get_forecast_data
 
 

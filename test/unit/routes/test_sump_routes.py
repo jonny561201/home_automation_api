@@ -2,7 +2,7 @@ import json
 
 from mock import patch
 
-from models.sump import SumpLevel
+from svc.models.sump import SumpLevel
 from svc.endpoints.sump_routes import get_current_sump_level, save_current_level_by_user
 
 

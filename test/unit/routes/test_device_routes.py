@@ -2,7 +2,7 @@ import json
 
 from mock import patch, ANY
 
-from models.device import Device
+from svc.models.device import Device
 from svc.endpoints.device_routes import add_device_by_user_id, add_device_node_by_user_id
 
 

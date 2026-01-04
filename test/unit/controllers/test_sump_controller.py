@@ -3,7 +3,7 @@ import uuid
 
 from mock import patch
 
-from models.sump import SumpLevel
+from svc.models.sump import SumpLevel
 from svc.controllers.sump_controller import get_sump_level, save_current_level
 
 

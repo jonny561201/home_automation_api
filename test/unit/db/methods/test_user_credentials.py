@@ -7,7 +7,7 @@ from mock import mock, patch
 from sqlalchemy import orm
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
-from models.scenes import LightScenes
+from svc.models.scenes import LightScenes
 from svc.db.methods.user_credentials import UserDatabase
 from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
     AverageSumpPumpLevel, Roles, UserInformation, UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts, ScheduleTasks, \

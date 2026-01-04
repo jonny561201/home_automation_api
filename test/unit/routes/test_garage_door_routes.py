@@ -6,7 +6,7 @@ import jwt
 from flask import json
 from mock import patch
 
-from models.garage import GarageStatus, Coordinates, GarageState
+from svc.models.garage import GarageStatus, Coordinates, GarageState
 from svc.endpoints.garage_door_routes import get_garage_door_status, update_garage_door_state, toggle_garage_door
 
 

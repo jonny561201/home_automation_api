@@ -6,7 +6,7 @@ import pytz
 from mock import patch
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
-from models.scenes import LightScenes
+from svc.models.scenes import LightScenes
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, \
     UserCredentials, Roles, UserPreference, UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts, ScheduleTasks, \

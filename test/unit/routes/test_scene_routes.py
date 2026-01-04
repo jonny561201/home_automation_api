@@ -3,7 +3,7 @@ import uuid
 
 from mock import patch, ANY
 
-from models.scenes import LightScene, LightDetail, LightScenes
+from svc.models.scenes import LightScene, LightDetail, LightScenes
 from svc.endpoints.scene_routes import get_scenes_by_user, delete_scene_by_user
 
 
