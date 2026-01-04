@@ -3,7 +3,7 @@ import json
 import requests
 from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
 
-from svc.models.garage import GarageStatus
+from svc.models.garage import GarageStatus, GarageState
 from svc.constants.home_automation import Mime
 from svc.config.settings_state import Settings
 
@@ -36,9 +36,8 @@ def get_garage_door_status(bearer_token, base_url, garage_id):
 
 def toggle_garage_door_state(bearer_token, base_url, garage_id):
     header = {'Authorization': f'Bearer {bearer_token}'}
-    url = f'{base_url}/garageDoor/{garage_id}/toggle'
     try:
-        response = requests.get(url, headers=header, timeout=5)
+        response = requests.get(f'{base_url}/garageDoor/{garage_id}/toggle', headers=header, timeout=5)
     except Exception:
         raise BadRequest(description='Garage node returned a failure')
     __validate_garage_response(response)
@@ -46,13 +45,12 @@ def toggle_garage_door_state(bearer_token, base_url, garage_id):
 
 def update_garage_door_state(bearer_token, base_url, garage_id, request):
     header = {'Authorization': f'Bearer {bearer_token}'}
-    url = f'{base_url}/garageDoor/{garage_id}/state'
     try:
-        response = requests.post(url, headers=header, data=request, timeout=5)
+        response = requests.post(f'{base_url}/garageDoor/{garage_id}/state', headers=header, data=request, timeout=5)
     except Exception:
         raise BadRequest(description='Garage node returned a failure')
     __validate_garage_response(response)
-    return response.json()
+    return GarageState.from_json(response.text)
 
 
 def get_light_groups(api_key):
