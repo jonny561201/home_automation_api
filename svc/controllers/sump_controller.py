@@ -13,8 +13,7 @@ def get_sump_level(user_id, bearer_token):
         average_data = database.get_average_sump_level_by_user(user_id)
         preferences = database.get_preferences_by_user(user_id)
 
-        sump_level = __map_response(current_data, average_data, preferences['is_imperial'])
-        return sump_level
+        return __map_response(current_data, average_data, preferences['is_imperial'])
 
 
 def save_current_level(user_id, bearer_token, request):
