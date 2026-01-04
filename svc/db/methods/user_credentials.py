@@ -170,7 +170,7 @@ class UserDatabase:
         select_user_id = user_id if child_account is None else child_account.parent_user_id
         average = self.session.query(AverageSumpPumpLevel).filter_by(user_id=select_user_id).order_by(AverageSumpPumpLevel.id.desc()).first()
         self.__validate_property(average)
-        return {'latestDate': str(average.create_day), 'averageDepth': float(average.distance)}
+        return {'latestDate': average.create_day, 'averageDepth': float(average.distance)}
 
     def insert_current_sump_level(self, user_id, depth_info):
         self.__validate_property(user_id)

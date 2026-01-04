@@ -3,6 +3,7 @@ import uuid
 
 from mock import patch
 
+from models.sump import SumpLevel
 from svc.controllers.sump_controller import get_sump_level, save_current_level
 
 
@@ -28,7 +29,7 @@ def test_get_sump_level__should_return_response_with_distance(mock_database, moc
 
     actual = get_sump_level(user_id, bearer_token)
 
-    assert actual == {'currentDepth': distance, 'depthUnit': 'cm', 'warningLevel': 0, 'averageDepth': distance, 'testItem': 123}
+    assert actual == SumpLevel(currentDepth=distance, depthUnit='cm', warningLevel=0, averageDepth=distance)
 
 
 @patch('svc.controllers.sump_controller.is_jwt_valid')
@@ -44,7 +45,7 @@ def test_get_sump_level__should_return_response_with_distance_converted_to_imper
 
     actual = get_sump_level(user_id, bearer_token)
 
-    assert actual == {'currentDepth': 1.0, 'depthUnit': 'in', 'warningLevel': 0, 'averageDepth': 2.0, 'testItem': 123}
+    assert actual == SumpLevel(currentDepth=1.0, depthUnit='in', warningLevel=0, averageDepth=2.0)
 
 
 @patch('svc.controllers.sump_controller.is_jwt_valid')

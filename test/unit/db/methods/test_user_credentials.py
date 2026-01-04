@@ -424,7 +424,7 @@ class TestUserDatabase:
 
         actual = self.DATABASE.get_average_sump_level_by_user(self.USER_ID)
 
-        assert actual['latestDate'] == str(date)
+        assert actual['latestDate'] == date
         assert actual['averageDepth'] == expected_depth
 
     def test_get_average_sump_level_by_user__should_raise_bad_request_error_when_no_records(self):

@@ -516,12 +516,12 @@ class TestDbSumpIntegration:
     def test_get_average_sump_level_by_user__should_return_latest_record_for_single_user(self):
         with UserDatabaseManager() as database:
             actual = database.get_average_sump_level_by_user(self.FIRST_USER_ID)
-            assert actual == {'averageDepth': self.DEPTH, 'latestDate': str(self.DAY)}
+            assert actual == {'averageDepth': self.DEPTH, 'latestDate': self.DAY}
 
     def test_get_average_sump_level_by_user__should_return_parent_records_for_child(self):
         with UserDatabaseManager() as database:
             actual = database.get_average_sump_level_by_user(self.CHILD_USER_ID)
-            assert actual == {'averageDepth': self.DEPTH, 'latestDate': str(self.DAY)}
+            assert actual == {'averageDepth': self.DEPTH, 'latestDate': self.DAY}
 
     def test_get_average_sump_level_by_user__should_raise_bad_request_when_user_not_found(self):
         with UserDatabaseManager() as database:

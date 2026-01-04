@@ -1,5 +1,6 @@
 import json
 
+from models.sump import SumpLevel
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.utilities.conversion_utils import convert_to_imperial
 from svc.utilities.jwt_utils import is_jwt_valid
@@ -12,10 +13,8 @@ def get_sump_level(user_id, bearer_token):
         average_data = database.get_average_sump_level_by_user(user_id)
         preferences = database.get_preferences_by_user(user_id)
 
-        __convert_distance(average_data, current_data, preferences['is_imperial'])
-        current_data.update(average_data)
-
-        return current_data
+        sump_level = __map_response(current_data, average_data, preferences['is_imperial'])
+        return sump_level
 
 
 def save_current_level(user_id, bearer_token, request):
@@ -25,9 +24,11 @@ def save_current_level(user_id, bearer_token, request):
         database.insert_current_sump_level(user_id, depth_info)
 
 
-def __convert_distance(average_data, current_data, is_imperial):
-    current_distance = convert_to_imperial(current_data['currentDepth'], is_imperial)
-    average_distance = convert_to_imperial(average_data['averageDepth'], is_imperial)
-    current_data['currentDepth'] = current_distance
-    average_data['averageDepth'] = average_distance
-    current_data['depthUnit'] = 'in' if is_imperial else 'cm'
+def __map_response(current_data, average_data, is_imperial):
+    return SumpLevel(
+        currentDepth=convert_to_imperial(current_data.get('currentDepth'), is_imperial),
+        averageDepth=convert_to_imperial(average_data.get('averageDepth'), is_imperial),
+        depthUnit='in' if is_imperial else 'cm',
+        warningLevel=current_data.get('warningLevel'),
+        latest_date=average_data.get('latestDate')
+    )
