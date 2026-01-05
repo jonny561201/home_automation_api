@@ -5,7 +5,7 @@ import pytz
 from sqlalchemy import orm, create_engine
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
-from svc.models.app import Preference
+from svc.models.app import Preference, Task, Tasks
 from svc.models.device import DeviceNode, DoorDeviceDetails
 from svc.models.scenes import LightDetail, LightScene, LightScenes
 from svc.config.settings_state import Settings
@@ -135,8 +135,8 @@ class UserDatabase:
         self.__validate_property(user_id)
         tasks = self.session.query(ScheduleTasks).filter_by(user_id=user_id).all()
         if task_type is not None:
-            return [self.__create_scheduled_task(task) for task in tasks if task.task_type.activity_name == task_type.lower()]
-        return [self.__create_scheduled_task(task) for task in tasks]
+            return Tasks(tasks=[self.__create_scheduled_task(task) for task in tasks if task.task_type.activity_name == task_type.lower()])
+        return Tasks(tasks=[self.__create_scheduled_task(task) for task in tasks])
 
     def insert_schedule_task_by_user(self, user_id, task):
         self.__validate_property(user_id)
@@ -153,7 +153,7 @@ class UserDatabase:
         except KeyError:
             raise BadRequest
         new_tasks = self.session.query(ScheduleTasks).filter_by(user_id=user_id).all()
-        return [self.__create_scheduled_task(task) for task in new_tasks]
+        return Tasks(tasks=[self.__create_scheduled_task(task) for task in new_tasks])
 
     def get_current_sump_level_by_user(self, user_id):
         self.__validate_property(user_id)
@@ -316,9 +316,9 @@ class UserDatabase:
         alarm_time = None if task.alarm_time is None else task.alarm_time.isoformat()
         hvac_start = None if task.hvac_start is None else task.hvac_start.isoformat()
         hvac_stop = None if task.hvac_stop is None else task.hvac_stop.isoformat()
-        return {'alarm_group_name': task.alarm_group_name, 'alarm_light_group': task.alarm_light_group, 'task_id': str(task.id), 'enabled': task.enabled,
-                'alarm_days': task.alarm_days, 'alarm_time': alarm_time, 'task_type': task.task_type.activity_name, 'hvac_mode': task.hvac_mode,
-                'hvac_start': hvac_start, 'hvac_stop': hvac_stop, 'hvac_start_temp': task.hvac_start_temp, 'hvac_stop_temp': task.hvac_stop_temp}
+        return Task(alarmDays=task.alarm_days, alarmTime=alarm_time, alarmGroupName=task.alarm_group_name, alarmLightGroup=task.alarm_light_group,
+                    hvacMode=task.hvac_mode, hvacStart=hvac_start, hvacStop=hvac_stop, hvacStartTemp=task.hvac_start_temp, hvacStopTemp=task.hvac_stop_temp,
+                    taskId=str(task.id), enabled=task.enabled, taskType=task.task_type.activity_name)
 
     @staticmethod
     def __create_role(role_devices, role_name):

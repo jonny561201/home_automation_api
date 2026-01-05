@@ -6,6 +6,7 @@ import pytz
 from mock import patch
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
+from svc.models.app import Tasks
 from svc.models.scenes import LightScenes
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, \
@@ -244,19 +245,19 @@ class TestDbPreferenceIntegration:
 
         with UserDatabaseManager() as database:
             actual = database.get_schedule_tasks_by_user(self.USER_ID, None)
-            assert actual[0]['alarm_light_group'] == self.LIGHT_GROUP
-            assert actual[0]['alarm_group_name'] == self.GROUP_NAME
-            assert actual[0]['alarm_days'] == self.DAYS
-            assert actual[0]['alarm_time'] == self.LIGHT_TIME
-            assert actual[0]['task_id'] == self.TASK_ID
-            assert actual[0]['enabled'] == True
-            assert actual[0]['task_type'] == task_name
+            assert actual.tasks[0].alarmLightGroup == self.LIGHT_GROUP
+            assert actual.tasks[0].alarmGroupName == self.GROUP_NAME
+            assert actual.tasks[0].alarmDays == self.DAYS
+            assert actual.tasks[0].alarmTime == self.LIGHT_TIME
+            assert actual.tasks[0].taskId == self.TASK_ID
+            assert actual.tasks[0].enabled == True
+            assert actual.tasks[0].taskType == task_name
 
     def test_get_schedule_task_by_user__should_return_empty_list_when_no_matches(self):
         user_id = str(uuid.uuid4())
         with UserDatabaseManager() as database:
             actual = database.get_schedule_tasks_by_user(user_id, None)
-            assert actual == []
+            assert actual == Tasks([])
 
     def test_insert_schedule_task_by_user__should_insert_task(self):
         task = {'alarmTime': self.LIGHT_TIME, 'alarmLightGroup': self.LIGHT_GROUP, 'alarmGroupName': self.GROUP_NAME, 'alarmDays': self.DAYS, 'enabled': False, 'taskType': 'turn on'}

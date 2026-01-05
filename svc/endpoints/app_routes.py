@@ -45,7 +45,7 @@ def update_user_preferences_by_user_id(user_id):
 def get_user_tasks_by_user_id(user_id, task_type):
     bearer_token = request.headers.get('Authorization')
     tasks = app_controller.get_user_tasks(bearer_token, user_id, task_type)
-    return Response(json.dumps(tasks), status=200, mimetype=Mime.JSON)
+    return Response(tasks.to_json(), status=200, mimetype=Mime.JSON)
 
 
 @APP_BLUEPRINT.route('/userId/<user_id>/tasks/<task_id>', methods=['DELETE'])
@@ -59,11 +59,11 @@ def delete_user_tasks_by_user_id(user_id, task_id):
 def insert_user_task_by_user_id(user_id):
     bearer_token = request.headers.get('Authorization')
     updated_tasks = app_controller.insert_user_task(bearer_token, user_id, request.data)
-    return Response(json.dumps(updated_tasks), status=200, mimetype=Mime.JSON)
+    return Response(updated_tasks.to_json(), status=200, mimetype=Mime.JSON)
 
 
 @APP_BLUEPRINT.route('/userId/<user_id>/tasks/update', methods=['POST'])
 def update_user_task_by_user_id(user_id):
     bearer_token = request.headers.get('Authorization')
     task = app_controller.update_user_task(bearer_token, user_id, request.data)
-    return Response(json.dumps(task), status=200, mimetype=Mime.JSON)
+    return Response(task.to_json(), status=200, mimetype=Mime.JSON)

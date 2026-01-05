@@ -835,7 +835,7 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [new_task]
         actual = self.DATABASE.insert_schedule_task_by_user(self.USER_ID, task)
 
-        assert actual[0]['task_id'] == str(task_id)
+        assert actual[0].taskId == str(task_id)
 
     def test_insert_schedule_task_by_user__should_query_for_scheduled_task_type(self):
         task_type = 'all on'
@@ -882,16 +882,16 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task]
         actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID, None)
 
-        assert actual[0]['alarm_group_name'] == group_name
-        assert actual[0]['alarm_light_group'] == group_id
-        assert actual[0]['alarm_days'] == days
-        assert actual[0]['alarm_time'] == group_time
-        assert actual[0]['task_id'] == id
-        assert actual[0]['hvac_mode'] == mode
-        assert actual[0]['hvac_start'] == hvac_start
-        assert actual[0]['hvac_stop'] == hvac_stop
-        assert actual[0]['hvac_start_temp'] == hvac_start_temp
-        assert actual[0]['hvac_stop_temp'] == hvac_stop_temp
+        assert actual.tasks[0].alarmGroupName == group_name
+        assert actual.tasks[0].alarmLightGroup == group_id
+        assert actual.tasks[0].alarmDays == days
+        assert actual.tasks[0].alarmTime == group_time
+        assert actual.tasks[0].taskId == id
+        assert actual.tasks[0].hvacMode == mode
+        assert actual.tasks[0].hvacStart == hvac_start
+        assert actual.tasks[0].hvacStop == hvac_stop
+        assert actual.tasks[0].hvacStartTemp == hvac_start_temp
+        assert actual.tasks[0].hvacStopTemp == hvac_stop_temp
 
     def test_get_schedule_tasks_by_user_id__should_return_matching_type_when_type_supplied(self):
         days = 'Sat'
@@ -911,8 +911,8 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task_one, task_two]
         actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID, task_type)
 
-        assert len(actual) == 1
-        assert actual[0]['task_type'] == task_type
+        assert len(actual.tasks) == 1
+        assert actual.tasks[0].taskType == task_type
 
     def test_get_schedule_tasks_by_user_id__should_return_matching_type_case_insensitive_when_type_supplied(self):
         days = 'Sat'
@@ -932,8 +932,8 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task_one, task_two]
         actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID, 'HVAC')
 
-        assert len(actual) == 1
-        assert actual[0]['task_type'] == task_type
+        assert len(actual.tasks) == 1
+        assert actual.tasks[0].taskType == task_type
 
     def test_get_schedule_tasks_by_user_id__should_return_task_activity_type(self):
         activity = 'turn all on'
@@ -942,7 +942,7 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task]
         actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID, None)
 
-        assert actual[0]['task_type'] == activity
+        assert actual.tasks[0].taskType == activity
 
     def test_get_schedule_tasks_by_user_id__should_return_none_when_no_alarm_time(self):
         activity = 'turn all on'
@@ -951,7 +951,7 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task]
         actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID, None)
 
-        assert actual[0]['alarm_time'] is None
+        assert actual.tasks[0].alarmTime is None
 
     def test_get_schedule_tasks_by_user_id__should_return_none_when_no_hvac_start_time(self):
         activity = 'turn all on'
@@ -960,7 +960,7 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task]
         actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID, None)
 
-        assert actual[0]['hvac_start'] is None
+        assert actual.tasks[0].hvacStart is None
 
     def test_get_schedule_tasks_by_user_id__should_return_none_when_no_hvac_stop_time(self):
         activity = 'turn all on'
@@ -969,7 +969,7 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task]
         actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID, None)
 
-        assert actual[0]['hvac_stop'] is None
+        assert actual.tasks[0].hvacStop is None
 
     def test_update_schedule_task_by_user_id__should_query_for_user(self):
         task_id = 'asd123'
@@ -1201,7 +1201,7 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = ScheduleTasks(task_type=ScheduledTaskTypes())
         actual = self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
-        assert actual['task_id'] == str(new_task_id)
+        assert actual.taskId == str(new_task_id)
 
     def test_update_schedule_task_by_user_id__should_return_task_type_with_response(self):
         task_type = 'turn on'
@@ -1209,7 +1209,7 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = ScheduleTasks(task_type=ScheduledTaskTypes(activity_name=task_type))
         actual = self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
-        assert actual['task_type'] == task_type
+        assert actual.taskType == task_type
 
     def test_delete_schedule_task_by_user__should_query_for_existing_record(self):
         task_id = str(uuid.uuid4())
