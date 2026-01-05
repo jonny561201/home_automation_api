@@ -14,7 +14,7 @@ def get_user_temp(user_id, bearer_token):
         preference = database.get_preferences_by_user(user_id)
         internal_temp = temperature.get_internal_temp(preference)
 
-        return __create_response(internal_temp, preference['is_fahrenheit'])
+        return __create_response(internal_temp, preference.isFahrenheit)
 
 
 def get_user_forecast(user_id, bearer_token):

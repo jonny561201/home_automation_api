@@ -337,13 +337,13 @@ class TestDbPreferenceIntegration:
         with UserDatabaseManager() as database:
             response = database.get_preferences_by_user(self.USER_ID)
 
-            assert response['temp_unit'] == 'fahrenheit'
-            assert response['measure_unit'] == 'imperial'
-            assert response['city'] == self.CITY
-            assert response['is_fahrenheit'] is True
-            assert response['is_imperial'] is True
-            assert response['garage_door'] == self.GARAGE
-            assert response['garage_id'] == 1
+            assert response.tempUnit == 'fahrenheit'
+            assert response.measureUnit == 'imperial'
+            assert response.city == self.CITY
+            assert response.isFahrenheit is True
+            assert response.isImperial is True
+            assert response.garageDoor == self.GARAGE
+            assert response.garageId == 1
 
     def test_get_preferences_by_user__should_raise_bad_request_when_no_preferences(self):
         with pytest.raises(BadRequest):

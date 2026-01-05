@@ -263,7 +263,7 @@ class TestUserDatabase:
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
-        assert actual['temp_unit'] is 'celsius'
+        assert actual.tempUnit is 'celsius'
 
     def test_get_preferences_by_user__should_return_user_temp_preferences_with_fahrenheit(self):
         user = TestUserDatabase.__create_database_user()
@@ -272,7 +272,7 @@ class TestUserDatabase:
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
-        assert actual['temp_unit'] is 'fahrenheit'
+        assert actual.tempUnit is 'fahrenheit'
 
     def test_get_preferences_by_user__should_return_user_city_preferences(self):
         city = 'London'
@@ -282,7 +282,7 @@ class TestUserDatabase:
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
-        assert actual['city'] == city
+        assert actual.city == city
 
     def test_get_preferences_by_user__should_return_is_fahrenheit_preferences(self):
         user = TestUserDatabase.__create_database_user()
@@ -291,7 +291,7 @@ class TestUserDatabase:
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
-        assert actual['is_fahrenheit'] is True
+        assert actual.isFahrenheit is True
 
     def test_get_preferences_by_user__should_return_is_imperial_preferences(self):
         user = TestUserDatabase.__create_database_user()
@@ -300,7 +300,7 @@ class TestUserDatabase:
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
-        assert actual['is_imperial'] is True
+        assert actual.isImperial is True
 
     def test_get_preferences_by_user__should_return_measure_unit_preferences(self):
         user = TestUserDatabase.__create_database_user()
@@ -309,7 +309,7 @@ class TestUserDatabase:
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
-        assert actual['measure_unit'] == 'imperial'
+        assert actual.measureUnit == 'imperial'
 
     def test_get_preferences_by_user__should_return_measure_unit_preferences_for_metric(self):
         user = TestUserDatabase.__create_database_user()
@@ -318,7 +318,7 @@ class TestUserDatabase:
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
-        assert actual['measure_unit'] == 'metric'
+        assert actual.measureUnit == 'metric'
 
     def test_get_preferences_by_user__should_throw_bad_request_when_no_preferences(self):
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
@@ -338,7 +338,7 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = preference
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
-        assert actual['garage_id'] == 1
+        assert actual.garageId == 1
 
     def test_get_preferences_by_user__should_return_garage_door_state(self):
         user = TestUserDatabase.__create_database_user()
@@ -346,7 +346,7 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.first.return_value = preference
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
-        assert actual['garage_door'] == 'Jons'
+        assert actual.garageDoor == 'Jons'
 
     def test_insert_preferences_by_user__should_call_query(self):
         preference_info = {'isFahrenheit': True, 'isImperial': True, 'city': 'Des Moines', 'lightAlarm': {}}

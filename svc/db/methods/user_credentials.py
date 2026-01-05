@@ -5,6 +5,7 @@ import pytz
 from sqlalchemy import orm, create_engine
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
+from svc.models.app import Preference
 from svc.models.device import DeviceNode, DoorDeviceDetails
 from svc.models.scenes import LightDetail, LightScene, LightScenes
 from svc.config.settings_state import Settings
@@ -85,14 +86,10 @@ class UserDatabase:
         self.__validate_property(user_id)
         preference = self.session.query(UserPreference).filter_by(user_id=user_id).first()
         self.__validate_property(preference)
-        return {'temp_unit': 'fahrenheit' if preference.is_fahrenheit else 'celsius',
-                'measure_unit': 'imperial' if preference.is_imperial else 'metric',
-                'city': preference.city,
-                'is_fahrenheit': preference.is_fahrenheit,
-                'is_imperial': preference.is_imperial,
-                'garage_id': preference.garage_id,
-                'garage_door': preference.garage_door
-                }
+        return Preference(isFahrenheit=preference.is_fahrenheit, isImperial=preference.is_imperial, city=preference.city,
+                          measureUnit='imperial' if preference.is_imperial else 'metric',
+                          garageDoor=preference.garage_door, garageId=preference.garage_id,
+                          tempUnit='fahrenheit' if preference.is_fahrenheit else 'celsius')
 
     def insert_preferences_by_user(self, user_id, preference_info):
         if len(preference_info) == 0 or user_id is None:

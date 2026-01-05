@@ -5,6 +5,7 @@ import pytest
 from mock import patch, ANY
 from werkzeug.exceptions import Unauthorized
 
+from svc.models.app import Preference
 from svc.endpoints.app_routes import get_token, get_user_preferences_by_user_id, update_user_preferences_by_user_id, \
     get_user_tasks_by_user_id, delete_user_tasks_by_user_id, insert_user_task_by_user_id, update_user_task_by_user_id
 
@@ -16,6 +17,9 @@ class TestAppRoutes:
     USER_ID = '123bac34'
     PWORD = 'password'
     FAKE_JWT_TOKEN = 'fakeJwtToken'.encode('UTF-8')
+
+    def setup_method(self):
+        self.PREFERENCES = Preference(isImperial=False, isFahrenheit=False, city='New York', tempUnit='Celsius', measureUnit='cm', garageId=1, garageDoor='Kals')
 
     def test_token__should_respond_with_success_status_code(self, mock_controller, mock_request):
         mock_request.data = json.dumps({'grant_type': 'client_credentials', 'client_id': self.USER, 'client_secret': self.PWORD})
@@ -42,28 +46,27 @@ class TestAppRoutes:
         mock_controller.get_login.assert_called_with(self.USER, self.PWORD)
 
     def test_get_user_preferences_by_user_id__should_call_app_controller_with_user_id(self, mock_controller, mock_requests):
-        mock_controller.get_user_preferences.return_value = {}
+        mock_controller.get_user_preferences.return_value = self.PREFERENCES
         get_user_preferences_by_user_id(self.USER_ID)
 
         mock_controller.get_user_preferences.assert_called_with(ANY, self.USER_ID)
 
     def test_get_user_preferences_by_user_id__should_call_app_controller_with_bearer_token(self, mock_controller, mock_requests):
         mock_requests.headers = {'Authorization': self.FAKE_JWT_TOKEN}
-        mock_controller.get_user_preferences.return_value = {}
+        mock_controller.get_user_preferences.return_value = self.PREFERENCES
         get_user_preferences_by_user_id(self.USER_ID)
 
         mock_controller.get_user_preferences.assert_called_with(self.FAKE_JWT_TOKEN, ANY)
 
     def test_get_user_preferences_by_user_id__should_return_preference_response(self, mock_controller, mock_requests):
-        expected_response = {'unit': 'metric', 'city': 'London'}
-        mock_controller.get_user_preferences.return_value = expected_response
+        mock_controller.get_user_preferences.return_value = self.PREFERENCES
 
         actual = get_user_preferences_by_user_id(self.USER_ID)
 
-        assert json.loads(actual.data) == expected_response
+        assert json.loads(actual.data) == self.PREFERENCES.to_dict()
 
     def test_get_user_preferences_by_user_id__should_return_success_status_code(self, mock_controller, mock_requests):
-        mock_controller.get_user_preferences.return_value = {}
+        mock_controller.get_user_preferences.return_value = self.PREFERENCES
 
         actual = get_user_preferences_by_user_id(self.USER_ID)
 

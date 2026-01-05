@@ -30,7 +30,7 @@ def get_token():
 def get_user_preferences_by_user_id(user_id):
     bearer_token = request.headers.get('Authorization')
     preferences = app_controller.get_user_preferences(bearer_token, user_id)
-    return Response(json.dumps(preferences), status=200)
+    return Response(preferences.to_json(), status=200)
 
 
 @APP_BLUEPRINT.route('/userId/<user_id>/preferences/update', methods=['POST'])

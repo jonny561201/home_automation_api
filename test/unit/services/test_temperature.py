@@ -1,5 +1,6 @@
 from mock import patch, ANY
 
+from svc.models.app import Preference
 from svc.config.settings_state import Settings
 from svc.services.temperature import get_external_temp, get_internal_temp
 
@@ -15,7 +16,7 @@ class TestTemperatureService:
 
     def setup_method(self):
         Settings.get_instance()._settings = {'WeatherAppId': self.APP_ID}
-        self.PREFERENCES = {'city': self.CITY, 'temp_unit': self.UNIT, 'is_fahrenheit': True}
+        self.PREFERENCES = Preference(isFahrenheit=True, isImperial=True, tempUnit=self.UNIT, city=self.CITY, garageId=1, garageDoor='Jons', measureUnit='in')
 
     def test_get_external_weather__should_call_get_weather_with_city(self, mock_weather, mock_file, mock_temp):
         get_external_temp(self.PREFERENCES)
@@ -28,7 +29,7 @@ class TestTemperatureService:
         mock_weather.assert_called_with(ANY, "metric", ANY)
 
     def test_get_external_weather__should_call_get_weather_with_imperial_unit(self, mock_weather, mock_file, mock_temp):
-        self.PREFERENCES['temp_unit'] = 'fahrenheit'
+        self.PREFERENCES.tempUnit = 'fahrenheit'
         get_external_temp(self.PREFERENCES)
 
         mock_weather.assert_called_with(ANY, "imperial", ANY)
@@ -61,5 +62,5 @@ class TestTemperatureService:
     def test_get_internal_temp__should_call_get_user_temperature_with_preference_fahrenheit(self, mock_weather, mock_file, mock_temp):
         get_internal_temp(self.PREFERENCES)
 
-        mock_temp.assert_called_with(ANY, self.PREFERENCES['is_fahrenheit'])
+        mock_temp.assert_called_with(ANY, self.PREFERENCES.isFahrenheit)
 
