@@ -29,7 +29,7 @@ class TestSettings:
         assert self.SETTINGS.environment == self.test_settings['Environment']
 
     def test_environment__should_default_to_local(self):
-        self.SETTINGS._settings = {}
+        self.SETTINGS._settings = None
         assert self.SETTINGS.environment == 'local'
 
     def test_db_user__should_pull_from_settings(self):

@@ -16,7 +16,7 @@ class Settings:
 
     @property
     def environment(self):
-        return self._settings.get('Environment', 'local')
+        return self._settings.get('Environment', 'local') if self._settings is not None else 'local'
 
     @property
     def email_app_id(self):
