@@ -5,7 +5,7 @@ pika==1.3.2
 psycopg2==2.8.6
 PyJWT==1.7.1
 pytz==2020.4
-requests==2.25.1
+requests==2.31.0
 RPi.GPIO==0.7.0
 SQLAlchemy==1.3.22
 uwsgi==2.0.19.1
