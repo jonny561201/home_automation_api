@@ -1,11 +1,12 @@
 import json
 import uuid
+from datetime import datetime
 
 import pytest
 from mock import patch, ANY
 from werkzeug.exceptions import Unauthorized
 
-from svc.models.app import Preference, Tasks
+from svc.models.app import Preference, Tasks, Task
 from svc.endpoints.app_routes import get_token, get_user_preferences_by_user_id, update_user_preferences_by_user_id, \
     get_user_tasks_by_user_id, delete_user_tasks_by_user_id, insert_user_task_by_user_id, update_user_task_by_user_id
 
@@ -244,11 +245,11 @@ class TestAppRoutes:
         assert actual.content_type == 'application/json'
 
     def test_update_user_task_by_user_id__should_return_response_data(self, mock_controller, mock_requests):
-        response = {'test': 'my fake response'}
-        mock_controller.update_user_task.return_value = response
+        task = Task(taskId='1', taskType='activity', enabled=True, hvacMode='auto', alarmDays='M', hvacStopTemp=68, hvacStartTemp=72, alarmGroupName='Test', alarmLightGroup='1')
+        mock_controller.update_user_task.return_value = task
         actual = update_user_task_by_user_id(self.USER_ID)
 
-        assert json.loads(actual.data) == response
+        assert json.loads(actual.data) == task.to_dict()
 
     def test_token__should_call_app_controller_with_old_refresh_token(self, mock_controller, mock_requests):
         old_refresh = str(uuid.uuid4())

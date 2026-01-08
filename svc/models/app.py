@@ -26,15 +26,15 @@ class Task:
     alarmDays: str
     alarmGroupName: str
     alarmLightGroup: str
-    alarmTime: Optional[date]
+    enabled: bool
     hvacMode: str
-    hvacStart: Optional[date]
-    hvacStop: Optional[date]
     hvacStartTemp: int
     hvacStopTemp: int
     taskId: str #GUID
-    enabled: bool
     taskType: str
+    alarmTime: Optional[date] = None
+    hvacStart: Optional[date] = None
+    hvacStop: Optional[date] = None
 
 
 @dataclass_json
