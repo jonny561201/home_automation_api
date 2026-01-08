@@ -835,7 +835,7 @@ class TestUserDatabase:
         self.SESSION.query.return_value.filter_by.return_value.all.return_value = [new_task]
         actual = self.DATABASE.insert_schedule_task_by_user(self.USER_ID, task)
 
-        assert actual[0].taskId == str(task_id)
+        assert actual.tasks[0].taskId == str(task_id)
 
     def test_insert_schedule_task_by_user__should_query_for_scheduled_task_type(self):
         task_type = 'all on'
