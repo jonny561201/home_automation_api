@@ -23,8 +23,7 @@ function startVirtualEnv {
     if [[ ! -d "/home/pi/home_automation_api/venv" ]]; then
       echo -e "${YELLOW}----------Creating VirtualEnv----------${WHITE}"
       pushd "/home/pi/home_automation_api"
-      pip3 install virtualenv
-      python3 -m virtualenv venv
+      python3 -m venv venv
       popd
     fi
       echo -e "${YELLOW}---------------starting VirtualEnv---------------${WHITE}"
@@ -38,8 +37,8 @@ function installDependencies {
 
 function stopService {
     echo -e "${YELLOW}---------------Stopping Service---------------${WHITE}"
-    sudo systemctl stop ${HOME_AUTO_SERVICE_FILE}
-    sudo rm /lib/systemd/system/${HOME_AUTO_SERVICE_FILE}
+    sudo systemctl stop ${HOME_AUTO_SERVICE_FILE} || true
+    sudo rm /lib/systemd/system/${HOME_AUTO_SERVICE_FILE} || true
 }
 
 function copyServiceFile {
