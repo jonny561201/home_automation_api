@@ -23,7 +23,7 @@ def get_token():
         token = app_controller.refresh_bearer_token(body['refresh_token'])
     else:
         raise Unauthorized()
-    return Response(json.dumps({'bearerToken': token.decode('UTF-8')}), status=200, mimetype=Mime.JSON)
+    return Response(json.dumps({'bearerToken': token}), status=200, mimetype=Mime.JSON)
 
 
 @APP_BLUEPRINT.route('/userId/<user_id>/preferences', methods=['GET'])

@@ -1,14 +1,13 @@
 import json
 import uuid
-from datetime import datetime
 
 import pytest
 from mock import patch, ANY
 from werkzeug.exceptions import Unauthorized
 
-from svc.models.app import Preference, Tasks, Task
 from svc.endpoints.app_routes import get_token, get_user_preferences_by_user_id, update_user_preferences_by_user_id, \
     get_user_tasks_by_user_id, delete_user_tasks_by_user_id, insert_user_task_by_user_id, update_user_task_by_user_id
+from svc.models.app import Preference, Tasks, Task
 
 
 @patch('svc.endpoints.app_routes.request')
@@ -17,7 +16,7 @@ class TestAppRoutes:
     USER = 'user_name'
     USER_ID = '123bac34'
     PWORD = 'password'
-    FAKE_JWT_TOKEN = 'fakeJwtToken'.encode('UTF-8')
+    FAKE_JWT_TOKEN = 'fakeJwtToken'
 
     def setup_method(self):
         self.TASK = Task(taskId='1', taskType='x', enabled=True, hvacMode='auto', alarmDays='M', hvacStopTemp=68, hvacStartTemp=72, alarmGroupName='Test', alarmLightGroup='1')
@@ -39,7 +38,7 @@ class TestAppRoutes:
         actual = get_token()
         json_actual = json.loads(actual.data)
 
-        assert json_actual['bearerToken'] == self.FAKE_JWT_TOKEN.decode('UTF-8')
+        assert json_actual['bearerToken'] == self.FAKE_JWT_TOKEN
 
     def test_token__should_call_get_login(self, mock_controller, mock_request):
         mock_request.data = json.dumps({'grant_type': 'client_credentials', 'client_id': self.USER, 'client_secret': self.PWORD})
@@ -278,7 +277,7 @@ class TestAppRoutes:
         actual = get_token()
 
         json_actual = json.loads(actual.data)
-        assert json_actual['bearerToken'] == self.FAKE_JWT_TOKEN.decode('UTF-8')
+        assert json_actual['bearerToken'] == self.FAKE_JWT_TOKEN
 
     def test_token__should_raise_bad_request_when_wrong_grant_type(self, mock_controller, mock_requests):
         mock_requests.data = json.dumps({'grant_type': 'bearer'})
