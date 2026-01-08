@@ -20,6 +20,7 @@ class TestAppRoutes:
     FAKE_JWT_TOKEN = 'fakeJwtToken'.encode('UTF-8')
 
     def setup_method(self):
+        self.TASK = Task(taskId='1', taskType='x', enabled=True, hvacMode='auto', alarmDays='M', hvacStopTemp=68, hvacStartTemp=72, alarmGroupName='Test', alarmLightGroup='1')
         self.PREFERENCES = Preference(isImperial=False, isFahrenheit=False, city='York', tempUnit='Celsius', measureUnit='cm', garageId=1, garageDoor='Kals')
         self.TASKS = Tasks(tasks=[])
 
@@ -173,13 +174,13 @@ class TestAppRoutes:
 
     def test_insert_user_task_by_user_id__should_call_app_controller_with_bearer_token(self, mock_controller, mock_requests):
         mock_requests.headers = {'Authorization': self.FAKE_JWT_TOKEN}
-        mock_controller.insert_user_task.return_value = {}
+        mock_controller.insert_user_task.return_value = self.TASKS
         insert_user_task_by_user_id(self.USER_ID)
 
         mock_controller.insert_user_task.assert_called_with(self.FAKE_JWT_TOKEN, ANY, ANY)
 
     def test_insert_user_task_by_user_id__should_call_app_controller_with_user_id(self, mock_controller, mock_requests):
-        mock_controller.insert_user_task.return_value = {}
+        mock_controller.insert_user_task.return_value = self.TASKS
         insert_user_task_by_user_id(self.USER_ID)
 
         mock_controller.insert_user_task.assert_called_with(ANY, self.USER_ID, ANY)
@@ -187,39 +188,38 @@ class TestAppRoutes:
     def test_insert_user_task_by_user_id__should_call_app_controller_with_request_data(self, mock_controller, mock_requests):
         data = {'test_data': 'asdfasd'}
         mock_requests.data = data
-        mock_controller.insert_user_task.return_value = {}
+        mock_controller.insert_user_task.return_value = self.TASKS
         insert_user_task_by_user_id(self.USER_ID)
 
         mock_controller.insert_user_task.assert_called_with(ANY, ANY, data)
 
     def test_insert_user_task_by_user_id__should_return_success_status_code(self, mock_controller, mock_requests):
-        mock_controller.insert_user_task.return_value = {}
+        mock_controller.insert_user_task.return_value = self.TASKS
         actual = insert_user_task_by_user_id(self.USER_ID)
 
         assert actual.status_code == 200
 
     def test_insert_user_task_by_user_id__should_return_success_content_type(self, mock_controller, mock_requests):
-        mock_controller.insert_user_task.return_value = {}
+        mock_controller.insert_user_task.return_value = self.TASKS
         actual = insert_user_task_by_user_id(self.USER_ID)
 
         assert actual.content_type == 'application/json'
 
     def test_insert_user_task_by_user_id__should_return_response_data(self, mock_controller, mock_requests):
-        response = {'test': 'my fake response'}
-        mock_controller.insert_user_task.return_value = response
+        mock_controller.insert_user_task.return_value = self.TASKS
         actual = insert_user_task_by_user_id(self.USER_ID)
 
-        assert json.loads(actual.data) == response
+        assert json.loads(actual.data) == self.TASKS.to_dict()
 
     def test_update_user_task_by_user_id__should_call_app_controller_with_bearer_token(self, mock_controller, mock_requests):
         mock_requests.headers = {'Authorization': self.FAKE_JWT_TOKEN}
-        mock_controller.update_user_task.return_value = {}
+        mock_controller.update_user_task.return_value = self.TASK
         update_user_task_by_user_id(self.USER_ID)
 
         mock_controller.update_user_task.assert_called_with(self.FAKE_JWT_TOKEN, ANY, ANY)
 
     def test_update_user_task_by_user_id__should_call_app_controller_with_user_id(self, mock_controller, mock_requests):
-        mock_controller.update_user_task.return_value = {}
+        mock_controller.update_user_task.return_value = self.TASK
         update_user_task_by_user_id(self.USER_ID)
 
         mock_controller.update_user_task.assert_called_with(ANY, self.USER_ID, ANY)
@@ -227,29 +227,28 @@ class TestAppRoutes:
     def test_update_user_task_by_user_id_should_call_app_controller_with_request_data(self, mock_controller, mock_requests):
         data = {'test_data': 'asdfasd'}
         mock_requests.data = data
-        mock_controller.update_user_task.return_value = {}
+        mock_controller.update_user_task.return_value = self.TASK
         update_user_task_by_user_id(self.USER_ID)
 
         mock_controller.update_user_task.assert_called_with(ANY, ANY, data)
 
     def test_update_user_task_by_user_id__should_return_success_status_code(self, mock_controller, mock_requests):
-        mock_controller.update_user_task.return_value = {}
+        mock_controller.update_user_task.return_value = self.TASK
         actual = update_user_task_by_user_id(self.USER_ID)
 
         assert actual.status_code == 200
 
     def test_update_user_task_by_user_id__should_return_success_content_type(self, mock_controller, mock_requests):
-        mock_controller.update_user_task.return_value = {}
+        mock_controller.update_user_task.return_value = self.TASK
         actual = update_user_task_by_user_id(self.USER_ID)
 
         assert actual.content_type == 'application/json'
 
     def test_update_user_task_by_user_id__should_return_response_data(self, mock_controller, mock_requests):
-        task = Task(taskId='1', taskType='activity', enabled=True, hvacMode='auto', alarmDays='M', hvacStopTemp=68, hvacStartTemp=72, alarmGroupName='Test', alarmLightGroup='1')
-        mock_controller.update_user_task.return_value = task
+        mock_controller.update_user_task.return_value = self.TASK
         actual = update_user_task_by_user_id(self.USER_ID)
 
-        assert json.loads(actual.data) == task.to_dict()
+        assert json.loads(actual.data) == self.TASK.to_dict()
 
     def test_token__should_call_app_controller_with_old_refresh_token(self, mock_controller, mock_requests):
         old_refresh = str(uuid.uuid4())
