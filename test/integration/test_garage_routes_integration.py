@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 
 import jwt
-from flask import json
+import json
 from mock import patch
 from requests import Response
 

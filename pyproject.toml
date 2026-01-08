@@ -15,7 +15,7 @@ urls = { "repository" = "https://github.com/jonny561201/home_automation_api" }
 requires-python = ">=3.9"
 dependencies = [
     "dataclasses-json==0.6.7",
-    "flask==2.1.2",
+    "flask==3.0.2",
     "flask_cors==3.0.9",
     "psycopg2==2.9.7",
     "PyJWT==2.10.1",
