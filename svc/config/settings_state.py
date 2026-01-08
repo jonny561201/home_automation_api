@@ -1,7 +1,7 @@
 import json
 import os
 
-from config.singleton import Singleton
+from svc.config.singleton import Singleton
 
 
 @Singleton
