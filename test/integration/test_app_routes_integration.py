@@ -1,9 +1,9 @@
 import json
 import uuid
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 import jwt
-import pytz
 
 from svc.config.settings_state import Settings
 from svc.db.methods.user_credentials import UserDatabaseManager
@@ -204,8 +204,8 @@ class TestRefreshTokenApp:
     USER_ID = str(uuid.uuid4())
     BAD_TOKEN = str(uuid.uuid4())
     GOOD_TOKEN = str(uuid.uuid4())
-    FUTURE_TIME = datetime.now(tz=pytz.timezone('US/Central')) + timedelta(hours=12)
-    EXPIRED_TIME = datetime.now(tz=pytz.timezone('US/Central')) - timedelta(hours=1)
+    FUTURE_TIME = datetime.now(tz=ZoneInfo('US/Central')) + timedelta(hours=12)
+    EXPIRED_TIME = datetime.now(tz=ZoneInfo('US/Central')) - timedelta(hours=1)
 
     def setup_method(self):
         settings = {'User': 'postgres', 'Password': 'password', 'Name': 'garage_door', 'Port': '5432'}
