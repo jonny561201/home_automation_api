@@ -1,7 +1,7 @@
 import uuid
 from datetime import time, datetime
 
-import pytz
+from zoneinfo import ZoneInfo
 from sqlalchemy import orm, create_engine
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
@@ -61,7 +61,7 @@ class UserDatabase:
 
     def generate_new_refresh_token(self, refresh_token, expire):
         token = self.session.query(RefreshToken).filter_by(refresh=refresh_token).first()
-        if token is None or token.expire_time < datetime.now(tz=pytz.timezone('US/Central')) or token.count <= 0:
+        if token is None or token.expire_time < datetime.now(tz=ZoneInfo('US/Central')) or token.count <= 0:
             raise Forbidden
         new_refresh = str(uuid.uuid4())
         token.refresh = new_refresh

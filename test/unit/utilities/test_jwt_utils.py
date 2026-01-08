@@ -3,8 +3,8 @@ from datetime import datetime, timedelta
 
 import jwt
 import pytest
-import pytz
 from mock import patch
+from zoneinfo import ZoneInfo
 from werkzeug.exceptions import Unauthorized
 
 from svc.config.settings_state import Settings
@@ -61,7 +61,7 @@ class TestJwt:
     @patch('svc.utilities.jwt_utils.datetime')
     def test_create_jwt_token__should_return_a_valid_token(self, mock_date):
         refresh = str(uuid.uuid4())
-        now = datetime.now(pytz.timezone('US/Central'))
+        now = datetime.now(tz=ZoneInfo('US/Central'))
         mock_date.now.return_value = now
         expected_expiration = now + timedelta(hours=12)
         truncated_expiration = (str(expected_expiration.timestamp() * 1000))[:10]

@@ -3,8 +3,8 @@ import uuid
 from datetime import timedelta, datetime
 
 import jwt
-import pytz
 from mock import patch, ANY
+from zoneinfo import ZoneInfo
 
 from svc.controllers.app_controller import get_login, get_user_preferences, save_user_preferences, get_user_tasks, \
     delete_user_task, insert_user_task, update_user_task, refresh_bearer_token
@@ -45,7 +45,7 @@ class TestLoginController:
     def test_get_login__should_create_expiration_date(self, mock_date, mock_jwt, mock_db):
         get_login(self.USER, self.PWORD)
 
-        mock_date.now.assert_called_with(tz=pytz.timezone('US/Central'))
+        mock_date.now.assert_called_with(tz=ZoneInfo('US/Central'))
 
     @patch('svc.controllers.app_controller.datetime')
     def test_get_login__should_store_refresh_token_in_db(self, mock_date, mock_jwt, mock_db):
