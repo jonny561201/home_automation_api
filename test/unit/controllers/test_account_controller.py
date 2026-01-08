@@ -13,7 +13,7 @@ from svc.controllers.account_controller import change_password, get_roles, creat
 @patch('svc.controllers.account_controller.UserDatabaseManager')
 @patch('svc.controllers.account_controller.jwt_utils')
 class TestAccountController:
-    BEARER_TOKEN = jwt.encode({}, 'fake_jwt_secret', algorithm='HS256').decode('UTF-8')
+    BEARER_TOKEN = jwt.encode({}, 'fake_jwt_secret', algorithm='HS256')
     USER = 'user_name'
     PASSWORD = 'password'
     USER_ID = 'fake_user_id'

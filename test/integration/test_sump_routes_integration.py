@@ -19,7 +19,7 @@ class TestSumpRoutes:
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
         self.BEAR_TOKEN = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
-        self.HEADER = {'Authorization': 'Bearer ' + self.BEAR_TOKEN.decode('UTF-8')}
+        self.HEADER = {'Authorization': 'Bearer ' + self.BEAR_TOKEN}
 
     def test_get_current_sump_level__should_return_not_found_when_user_does_not_exist(self):
         user_id = uuid.uuid4().hex

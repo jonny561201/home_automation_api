@@ -16,7 +16,7 @@ class TestAppRoutes:
     GARAGE_ID = 3
     USER_ID = str(uuid.uuid4())
     JWT_SECRET = 'fake_jwt_secret'
-    JWT_TOKEN = jwt.encode({}, JWT_SECRET, algorithm='HS256').decode('UTF-8')
+    JWT_TOKEN = jwt.encode({}, JWT_SECRET, algorithm='HS256')
 
     def setup_method(self, _):
         os.environ.update({'JWT_SECRET': self.JWT_SECRET})

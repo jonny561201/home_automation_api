@@ -15,7 +15,7 @@ class TestGarageController:
     JWT_SECRET = 'fake_jwt_secret'
     SUCCESS_STATE = 200
     FAILURE_STATUS = 500
-    JWT_TOKEN = jwt.encode({}, JWT_SECRET, algorithm='HS256').decode('UTF-8')
+    JWT_TOKEN = jwt.encode({}, JWT_SECRET, algorithm='HS256')
 
     def setup_method(self):
         os.environ.update({'JWT_SECRET': self.JWT_SECRET})

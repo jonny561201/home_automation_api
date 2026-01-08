@@ -13,7 +13,7 @@ from svc.controllers.app_controller import get_login, get_user_preferences, save
 @patch('svc.controllers.app_controller.UserDatabaseManager')
 @patch('svc.controllers.app_controller.jwt_utils')
 class TestLoginController:
-    BEARER_TOKEN = jwt.encode({}, 'fake_jwt_secret', algorithm='HS256').decode('UTF-8')
+    BEARER_TOKEN = jwt.encode({}, 'fake_jwt_secret', algorithm='HS256')
     USER = 'user_name'
     PWORD = 'password'
     USER_ID = str(uuid.uuid4())

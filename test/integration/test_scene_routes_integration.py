@@ -21,7 +21,7 @@ class TestSceneRoutes:
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
         self.BEAR_TOKEN = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
-        self.HEADER = {'Authorization': 'Bearer ' + self.BEAR_TOKEN.decode('UTF-8')}
+        self.HEADER = {'Authorization': 'Bearer ' + self.BEAR_TOKEN}
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
         self.SCENE = Scenes(name=self.SCENE_NAME, user_id=self.USER_ID, id=self.SCENE_ID)
         self.DETAIL = SceneDetails(light_group='2', light_group_name=self.GROUP_NAME, light_brightness=45, scene_id=self.SCENE_ID)

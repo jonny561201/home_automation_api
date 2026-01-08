@@ -1,8 +1,8 @@
 import datetime
 import uuid
+from zoneinfo import ZoneInfo
 
 import pytest
-import pytz
 from mock import patch
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
@@ -141,7 +141,7 @@ class TestRefreshTokenIntegration:
     VALID_TOKEN = str(uuid.uuid4())
     WORN_TOKEN = str(uuid.uuid4())
     EXPIRED_TOKEN = str(uuid.uuid4())
-    NOW = datetime.datetime.now(tz=pytz.timezone('US/Central'))
+    NOW = datetime.datetime.now(tz=ZoneInfo('US/Central'))
     EXPIRE = NOW + datetime.timedelta(hours=12)
     EXPIRED = NOW - datetime.timedelta(minutes=5)
 

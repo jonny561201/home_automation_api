@@ -10,7 +10,7 @@ from svc.endpoints.thermostat_routes import get_temperature, set_temperature, ge
 @patch('svc.endpoints.thermostat_routes.request')
 @patch('svc.endpoints.thermostat_routes.thermostat_controller')
 class TestThermostatRoutes:
-    JWT_TOKEN = jwt.encode({}, 'JWT_SECRET', algorithm='HS256').decode('UTF-8')
+    JWT_TOKEN = jwt.encode({}, 'JWT_SECRET', algorithm='HS256')
     BEARER_TOKEN = "Bearer " + JWT_TOKEN
     AUTH_HEADER = {"Authorization": BEARER_TOKEN}
     USER_ID = 'test'
