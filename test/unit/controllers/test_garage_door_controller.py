@@ -102,3 +102,4 @@ class TestGarageController:
         toggle_door(self.JWT_TOKEN, self.USER_ID, self.GARAGE_ID)
 
         mock_util.toggle_garage_door_state.assert_called_with(self.JWT_TOKEN, expected_url, self.GARAGE_ID)
+

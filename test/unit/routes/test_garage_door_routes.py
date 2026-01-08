@@ -115,3 +115,4 @@ class TestAppRoutes:
         actual = toggle_garage_door(self.USER_ID, self.GARAGE_ID)
 
         assert actual.content_type == expected_headers
+

@@ -90,3 +90,4 @@ class TestJwt:
 
         with pytest.raises(Unauthorized):
             is_jwt_valid(jwt_token)
+
