@@ -2,6 +2,7 @@ import json
 import uuid
 
 import jwt
+from sqlalchemy import delete
 
 from svc.config.settings_state import Settings
 from svc.db.methods.user_credentials import UserDatabaseManager
@@ -31,12 +32,11 @@ class TestDeviceRoutesIntegration:
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
-            database.session.delete(self.USER_ROLE)
-        with UserDatabaseManager() as database:
-            database.session.delete(self.ROLE)
-            database.session.delete(self.USER_INFO)
-            database.session.query(RoleDeviceNodes).delete()
-            database.session.query(RoleDevices).delete()
+            database.session.execute(delete(RoleDeviceNodes).where(RoleDeviceNodes.role_device_id == self.DEVICE_ID))
+            database.session.execute(delete(RoleDevices).where(RoleDevices.user_role_id == self.USER_ROLE_ID))
+            database.session.execute(delete(UserRoles).where(UserRoles.id == self.USER_ROLE_ID))
+            database.session.execute(delete(Roles).where(Roles.id == self.ROLE_ID))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 
     def test_add_device_by_user_id__should_return_unauthorized(self):
         post_body = '{}'

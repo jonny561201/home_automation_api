@@ -15,7 +15,7 @@ class UserInformation(Base):
     last_name = Column(String, nullable=False)
     email = Column(String, nullable=True)
 
-    child_accounts = relationship("ChildAccounts", cascade='delete', primaryjoin="and_(ChildAccounts.parent_user_id == UserInformation.id)", viewonly=True)
+    child_accounts = relationship("ChildAccounts", primaryjoin="and_(ChildAccounts.parent_user_id == UserInformation.id)", viewonly=True)
 
 
 class RefreshToken(Base):
@@ -148,8 +148,8 @@ class UserCredentials(Base):
     password = Column(String, nullable=False)
     user_id = Column(UUID, ForeignKey(UserInformation.id))
 
-    user = relationship('UserInformation', cascade='delete', foreign_keys='UserCredentials.user_id')
-    user_roles = relationship("UserRoles", cascade='delete', secondaryjoin="and_(UserRoles.user_id == UserInformation.id)", secondary='user_information', viewonly=True)
+    user = relationship('UserInformation', foreign_keys='UserCredentials.user_id')
+    user_roles = relationship("UserRoles", secondaryjoin="and_(UserRoles.user_id == UserInformation.id)", secondary='user_information', viewonly=True)
 
 
 class DailySumpPumpLevel(Base):

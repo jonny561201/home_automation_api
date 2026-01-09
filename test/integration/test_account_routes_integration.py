@@ -2,7 +2,7 @@ import json
 import uuid
 
 import jwt
-from sqlalchemy.orm.exc import ObjectDeletedError
+from sqlalchemy import delete
 
 from svc.config.settings_state import Settings
 from svc.db.methods.user_credentials import UserDatabaseManager
@@ -16,6 +16,8 @@ class TestAccountRoutesIntegration:
     PASSWORD = 'SuperSafePassword'
     USER_ID = str(uuid.uuid4())
     CHILD_USER_ID = str(uuid.uuid4())
+    CHILD_CRED_ID = str(uuid.uuid4())
+    PARENT_USER_ID = str(uuid.uuid4())
     EMAIL_APP_ID = 'as;kljdfski;hasdf'
 
     def setup_method(self):
@@ -25,8 +27,8 @@ class TestAccountRoutesIntegration:
         self.USER_PREF = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city='Atlanta')
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
         self.CHILD_USER = UserInformation(id=self.CHILD_USER_ID, first_name='Dylan', last_name='Test')
-        self.USER_CRED = UserCredentials(id=str(uuid.uuid4()), user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
-        self.CHILD_USER_CRED = UserCredentials(id=str(uuid.uuid4()), user_name='Steve Rogers', password='', user_id=self.CHILD_USER_ID)
+        self.USER_CRED = UserCredentials(id=self.PARENT_USER_ID, user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
+        self.CHILD_USER_CRED = UserCredentials(id=self.CHILD_CRED_ID, user_name='Steve Rogers', password='', user_id=self.CHILD_USER_ID)
         self.CHILD_ACCOUNT = ChildAccounts(parent_user_id=self.USER_ID, child_user_id=self.CHILD_USER_ID)
 
         with UserDatabaseManager() as database:
@@ -40,16 +42,12 @@ class TestAccountRoutesIntegration:
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
-            database.session.query(ChildAccounts).delete()
-            database.session.delete(self.USER_PREF)
-            # database.session.delete(self.USER)
-            database.session.delete(self.USER_CRED)
-            try:
-                database.session.delete(self.CHILD_USER_CRED)
-                # database.session.delete(self.CHILD_USER)
-
-            except ObjectDeletedError:
-                print('Child user credentials already deleted!')
+            database.session.execute(delete(ChildAccounts))
+            database.session.execute(delete(UserPreference).where(UserPreference.user_id == self.USER_ID))
+            database.session.execute(delete(UserCredentials).where(UserCredentials.id == self.PARENT_USER_ID))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
+            database.session.execute(delete(UserCredentials).where(UserCredentials.id == self.CHILD_CRED_ID))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == self.CHILD_USER_ID))
 
     def test_update_user_password__should_return_401_when_unauthorized(self):
         bearer_token = jwt.encode({}, 'bad secret', algorithm='HS256')
@@ -122,4 +120,3 @@ class TestAccountRoutesIntegration:
         actual = self.TEST_CLIENT.delete(f'account/userId/{self.USER_ID}/childUserId/{self.CHILD_USER_ID}', headers=headers)
 
         assert actual.status_code == 200
-

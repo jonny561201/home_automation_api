@@ -4,6 +4,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 from mock import patch
+from sqlalchemy import delete
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
 from svc.models.app import Tasks
@@ -15,17 +16,19 @@ from svc.db.models.user_information_model import UserInformation, DailySumpPumpL
 
 
 class TestDbValidateIntegration:
-    CRED_ID = str(uuid.uuid4())
-    USER_ID = str(uuid.uuid4())
-    USER_ROLE_ID = str(uuid.uuid4())
     USER_NAME = 'Jonny'
     PASSWORD = 'fakePass'
     ROLE_NAME = 'garage_door'
     FIRST = 'Jon'
     LAST = 'Test'
+    CRED_ID = str(uuid.uuid4())
+    USER_ID = str(uuid.uuid4())
+    USER_ROLE_ID = str(uuid.uuid4())
+    ROLE_ID = str(uuid.uuid4())
+    DEVICE_ID = str(uuid.uuid4())
 
     def setup_method(self):
-        self.ROLE = Roles(role_name=self.ROLE_NAME, id=str(uuid.uuid4()), role_desc='doesnt matter')
+        self.ROLE = Roles(role_name=self.ROLE_NAME, id=self.ROLE_ID, role_desc='doesnt matter')
         self.USER_ROLE = UserRoles(id=self.USER_ROLE_ID, role_id=self.ROLE.id, user_id=self.USER_ID, role=self.ROLE)
         self.USER = UserInformation(id=self.USER_ID, first_name=self.FIRST, last_name=self.LAST)
         self.USER_LOGIN = UserCredentials(id=self.CRED_ID, user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
@@ -37,11 +40,12 @@ class TestDbValidateIntegration:
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
-            database.session.query(RoleDeviceNodes).delete()
-            database.session.query(RoleDevices).delete()
-            database.session.delete(self.USER_LOGIN)
-            database.session.commit()
-            database.session.delete(self.ROLE)
+            database.session.execute(delete(RoleDeviceNodes).where(RoleDeviceNodes.role_device_id == self.DEVICE_ID))
+            database.session.execute(delete(RoleDevices).where(RoleDevices.id == self.DEVICE_ID))
+            database.session.execute(delete(UserRoles).where(UserRoles.id == self.USER_ROLE_ID))
+            database.session.execute(delete(Roles).where(Roles.id == self.ROLE_ID))
+            database.session.execute(delete(UserCredentials).where(UserCredentials.id == self.CRED_ID))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 
     def test_validate_credentials__should_return_user_id_when_user_exists(self):
         with UserDatabaseManager() as database:
@@ -64,15 +68,14 @@ class TestDbValidateIntegration:
     def test_validate_credentials__should_return_role_device_data(self):
         ip_address = '0.1.2.3'
         node_name = 'test_node'
-        device_id = str(uuid.uuid4())
         with UserDatabaseManager() as database:
-            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=1, ip_address=ip_address)
-            node = RoleDeviceNodes(role_device_id=device_id, node_name=node_name, node_device=1)
+            device = RoleDevices(id=self.DEVICE_ID, user_role_id=self.USER_ROLE_ID, max_nodes=1, ip_address=ip_address)
+            node = RoleDeviceNodes(role_device_id=self.DEVICE_ID, node_name=node_name, node_device=1)
             database.session.add(device)
             database.session.add(node)
             actual = database.validate_credentials(self.USER_NAME, self.PASSWORD)
 
-            assert actual['roles'] == [{'ip_address': ip_address, 'role_name': self.ROLE_NAME, 'device_id': device_id,
+            assert actual['roles'] == [{'ip_address': ip_address, 'role_name': self.ROLE_NAME, 'device_id': self.DEVICE_ID,
                                         'devices': [{'node_device': 1, 'node_name': node_name}]}]
 
     def test_validate_credentials__should_raise_unauthorized_when_user_does_not_exist(self):
@@ -97,15 +100,14 @@ class TestDbValidateIntegration:
     def test_get_user_info__should_return_role_device_data(self):
         ip_address = '0.1.2.3'
         node_name = 'test_node'
-        device_id = str(uuid.uuid4())
         with UserDatabaseManager() as database:
-            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=1, ip_address=ip_address)
-            node = RoleDeviceNodes(role_device_id=device_id, node_name=node_name, node_device=1)
+            device = RoleDevices(id=self.DEVICE_ID, user_role_id=self.USER_ROLE_ID, max_nodes=1, ip_address=ip_address)
+            node = RoleDeviceNodes(role_device_id=self.DEVICE_ID, node_name=node_name, node_device=1)
             database.session.add(device)
             database.session.add(node)
             actual = database.get_user_info(self.USER_ID)
 
-            assert actual['roles'] == [{'ip_address': ip_address, 'role_name': self.ROLE_NAME, 'device_id': device_id,
+            assert actual['roles'] == [{'ip_address': ip_address, 'role_name': self.ROLE_NAME, 'device_id': self.DEVICE_ID,
                                         'devices': [{'node_device': 1, 'node_name': node_name}]}]
 
     def test_get_user_info__should_raise_unauthorized_when_user_not_found(self):
@@ -117,15 +119,14 @@ class TestDbValidateIntegration:
     def test_get_roles_by_user__should_return_role_device_data(self):
         ip_address = '0.1.2.3'
         node_name = 'test_node'
-        device_id = str(uuid.uuid4())
         with UserDatabaseManager() as database:
-            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=1, ip_address=ip_address)
-            node = RoleDeviceNodes(role_device_id=device_id, node_name=node_name, node_device=1)
+            device = RoleDevices(id=self.DEVICE_ID, user_role_id=self.USER_ROLE_ID, max_nodes=1, ip_address=ip_address)
+            node = RoleDeviceNodes(role_device_id=self.DEVICE_ID, node_name=node_name, node_device=1)
             database.session.add(device)
             database.session.add(node)
             actual = database.get_roles_by_user(self.USER_ID)
 
-            assert actual['roles'] == [{'ip_address': ip_address, 'role_name': self.ROLE_NAME, 'device_id': device_id,
+            assert actual['roles'] == [{'ip_address': ip_address, 'role_name': self.ROLE_NAME, 'device_id': self.DEVICE_ID,
                                         'devices': [{'node_device': 1, 'node_name': node_name}]}]
 
     def test_get_roles_by_user__should_raise_bad_request_when_missing_user(self):
@@ -158,8 +159,8 @@ class TestRefreshTokenIntegration:
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
-            database.session.query(RefreshToken).delete()
-            database.session.delete(self.USER)
+            database.session.execute(delete(RefreshToken))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 
     def test_insert_refresh_token__should_insert_token_to_db(self):
         token = str(uuid.uuid4())
@@ -232,9 +233,9 @@ class TestDbPreferenceIntegration:
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
-            database.session.query(ScheduleTasks).delete()
-            database.session.delete(self.USER_PREFERENCES)
-            database.session.delete(self.USER)
+            database.session.execute(delete(ScheduleTasks))
+            database.session.execute(delete(UserPreference).where(UserPreference.user_id == self.USER_ID))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 
     def test_get_schedule_task_by_user__should_return_task(self):
         with UserDatabaseManager() as database:
@@ -482,15 +483,16 @@ class TestDbSumpIntegration:
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
-            database.session.delete(self.FIRST_SUMP_DAILY)
-            database.session.delete(self.SECOND_SUMP_DAILY)
-            database.session.delete(self.THIRD_SUMP_DAILY)
-            database.session.delete(self.FIRST_SUMP_AVG)
-            database.session.delete(self.SECOND_SUMP_AVG)
-            database.session.delete(self.CHILD_ACCOUNT)
-            database.session.delete(self.SECOND_USER)
-            database.session.delete(self.FIRST_USER)
-            database.session.delete(self.CHILD_USER)
+            database.session.execute(delete(DailySumpPumpLevel).where(DailySumpPumpLevel.id == 88))
+            database.session.execute(delete(DailySumpPumpLevel).where(DailySumpPumpLevel.id == 99))
+            database.session.execute(delete(DailySumpPumpLevel).where(DailySumpPumpLevel.id == 100))
+            database.session.execute(delete(AverageSumpPumpLevel).where(AverageSumpPumpLevel.id == 34))
+            database.session.execute(delete(AverageSumpPumpLevel).where(AverageSumpPumpLevel.id == 35))
+
+            database.session.execute(delete(ChildAccounts).where(ChildAccounts.child_user_id == self.CHILD_USER_ID))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == self.FIRST_USER_ID))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == self.SECOND_USER_ID))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == self.CHILD_USER_ID))
 
     def test_get_current_sump_level_by_user__should_return_valid_sump_level(self):
         with UserDatabaseManager() as database:
@@ -556,17 +558,19 @@ class TestDbPasswordIntegration:
     USER_NAME = 'JonsUser'
     PASSWORD = 'BESTESTPASSWORDEVA'
     USER_ID = str(uuid.uuid4())
+    USER_CRED_ID = str(uuid.uuid4())
 
     def setup_method(self):
         self.USER_INFO = UserInformation(first_name='test', last_name='Tester', id=self.USER_ID)
-        self.USER_CREDS = UserCredentials(id=str(uuid.uuid4()), user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
+        self.USER_CREDS = UserCredentials(id=self.USER_CRED_ID, user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
         with UserDatabaseManager() as database:
             database.session.add(self.USER_INFO)
             database.session.add(self.USER_CREDS)
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
-            database.session.delete(self.USER_CREDS)
+            database.session.execute(delete(UserCredentials).where(UserCredentials.id == self.USER_CRED_ID))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 
     def test_change_user_password__should_raise_exception_with_mismatched_password(self):
         mismatched_pass = 'this wont match'
@@ -608,14 +612,15 @@ class TestDbRoleIntegration:
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
-            database.session.delete(self.USER_PREF)
-            database.session.delete(self.CHILD_ACCOUNT)
-            database.session.delete(self.USER_ROLE)
-            database.session.commit()
-            database.session.delete(self.USER_INFO)
-            database.session.delete(self.CHILD_USER)
-            database.session.delete(self.ROLE)
-            database.session.query(RoleDeviceNodes).delete()
+            database.session.execute(delete(RoleDeviceNodes))
+            database.session.execute(delete(RoleDevices))
+            database.session.execute(delete(UserPreference).where(UserPreference.user_id == self.USER_ID))
+            database.session.execute(delete(ChildAccounts).where(ChildAccounts.child_user_id == self.CHILD_USER_ID))
+            database.session.execute(delete(UserRoles).where(UserRoles.id == self.USER_ROLE_ID))
+
+            database.session.execute(delete(Roles).where(Roles.id == self.ROLE_ID))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == self.CHILD_USER_ID))
 
     def test_add_new_device__should_raise_unauthorized_when_no_role_found(self):
         role_name = 'garage_door'
@@ -804,21 +809,22 @@ class TestUserDuplication:
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
-            database.session.query(RoleDevices).filter_by(user_role_id=self.USER_ROLE_ID).delete()
-            database.session.query(RoleDevices).filter_by(id=self.UPDATED_DEVICE_ID).delete()
-            database.session.query(UserPreference).filter_by(user_id=str(self.USER_ID)).delete()
-            database.session.query(UserPreference).filter_by(user_id=str(self.UPDATED_USER_ID)).delete()
-            database.session.query(UserRoles).filter_by(user_id=str(self.UPDATED_USER_ID)).delete()
-            database.session.query(UserRoles).filter_by(user_id=self.USER_ID).delete()
-            database.session.commit()
-            database.session.query(ChildAccounts).delete()
-            database.session.query(UserCredentials).filter_by(user_id=self.USER_ID).delete()
-            database.session.query(UserCredentials).filter_by(user_id=self.CHILD_USER_ID).delete()
-            database.session.query(UserCredentials).filter_by(user_id=str(self.UPDATED_USER_ID)).delete()
-            database.session.query(UserInformation).filter_by(id=str(self.UPDATED_USER_ID)).delete()
-            database.session.query(UserInformation).filter_by(id=self.USER_ID).delete()
-            database.session.query(UserInformation).filter_by(id=self.CHILD_USER_ID).delete()
-            database.session.query(Roles).filter_by(id=self.ROLE_ID).delete()
+            database.session.execute(delete(RoleDevices).where(RoleDevices.user_role_id == self.USER_ROLE_ID))
+            database.session.execute(delete(RoleDevices).where(RoleDevices.id == self.UPDATED_DEVICE_ID))
+
+            database.session.execute(delete(UserPreference).where(UserPreference.user_id == self.USER_ID))
+            database.session.execute(delete(UserPreference).where(UserPreference.user_id == str(self.UPDATED_USER_ID)))
+            database.session.execute(delete(UserRoles).where(UserRoles.user_id == str(self.UPDATED_USER_ID)))
+            database.session.execute(delete(UserRoles).where(UserRoles.user_id == self.USER_ID))
+
+            database.session.execute(delete(ChildAccounts))
+            database.session.execute(delete(UserCredentials).where(UserCredentials.user_id == self.USER_ID))
+            database.session.execute(delete(UserCredentials).where(UserCredentials.user_id == self.CHILD_USER_ID))
+            database.session.execute(delete(UserCredentials).where(UserCredentials.user_id == str(self.UPDATED_USER_ID)))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == str(self.UPDATED_USER_ID)))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == self.CHILD_USER_ID))
+            database.session.execute(delete(Roles).where(Roles.id == self.ROLE_ID))
 
     def test_create_child_account__should_duplicate_existing_record(self, mock_uuid):
         mock_uuid.uuid4.side_effect = [self.UPDATED_USER_ID, uuid.uuid4(), uuid.uuid4()]
@@ -970,10 +976,9 @@ class TestUserScenes:
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
-            database.session.query(SceneDetails).delete()
-            database.session.commit()
-            database.session.query(Scenes).delete()
-            database.session.delete(self.USER_INFO)
+            database.session.execute(delete(SceneDetails).where(SceneDetails.scene_id == self.SCENE_ID))
+            database.session.execute(delete(Scenes).where(Scenes.id == self.SCENE_ID))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 
     def test_get_scenes_by_user__should_return_records(self):
         with UserDatabaseManager() as database:

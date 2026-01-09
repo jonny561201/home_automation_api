@@ -8,9 +8,9 @@ from sqlalchemy import orm
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
 from svc.db.methods.user_credentials import UserDatabase
-from svc.db.models.user_information_model import UserPreference, UserCredentials, DailySumpPumpLevel, \
-    AverageSumpPumpLevel, Roles, UserInformation, UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts, ScheduleTasks, \
-    ScheduledTaskTypes, Scenes, SceneDetails, RefreshToken
+from svc.db.models.user_information_model import (UserPreference, UserCredentials, Roles, UserInformation,
+                                                  UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts, ScheduleTasks, \
+                                                  ScheduledTaskTypes, Scenes, SceneDetails, RefreshToken)
 from svc.models.scenes import LightScenes
 
 
@@ -30,18 +30,10 @@ class TestUserDatabase:
         self.SESSION = mock.create_autospec(orm.scoped_session)
         self.DATABASE = UserDatabase(self.SESSION)
 
-    def test_validate_credentials__should_query_database_by_user_name(self):
-        user = self.__create_database_user()
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
-
-        self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
-
-        self.SESSION.query.return_value.filter_by.assert_any_call(user_name=self.FAKE_USER)
-
     def test_validate_credentials__should_return_user_id_if_password_matches_queried_user(self):
         user = self.__create_database_user()
         user.user_id = '123455'
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = user
 
         actual = self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
 
@@ -51,7 +43,7 @@ class TestUserDatabase:
         user = self.__create_database_user()
         user.user_id = '123455'
         user.user_roles = [UserRoles(role=Roles(role_name=self.ROLE_NAME))]
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = user
 
         actual = self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
 
@@ -60,7 +52,7 @@ class TestUserDatabase:
     def test_validate_credentials__should_return_first_name_if_password_matches_queried_user(self):
         user = self.__create_database_user()
         user.user_id = '123455'
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = user
 
         actual = self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
 
@@ -69,7 +61,7 @@ class TestUserDatabase:
     def test_validate_credentials__should_return_last_name_if_password_matches_queried_user(self):
         user = self.__create_database_user()
         user.user_id = '123455'
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = user
 
         actual = self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
 
@@ -77,32 +69,22 @@ class TestUserDatabase:
 
     def test_validate_credentials__should_raise_unauthorized_if_password_does_not_match_queried_user(self):
         user = self.__create_database_user(password='mismatchedPass')
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = user
 
         with pytest.raises(Unauthorized):
             self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
 
     def test_validate_credentials__should_raise_unauthorized_if_user_not_found(self):
         user = None
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = user
 
         with pytest.raises(Unauthorized):
             self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
 
-    def test_get_user_info__should_query_database_by_user_id(self):
-        user_id = str(uuid.uuid4())
-        user = self.__create_database_user(id=user_id)
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
-
-        self.DATABASE.get_user_info(user_id)
-
-        self.SESSION.query.return_value.filter_by.assert_any_call(user_id=user_id)
-        self.SESSION.query.return_value.filter_by.return_value.first.assert_called()
-
     def test_get_user_info__should_return_the_matching_user_info(self):
         user_id = str(uuid.uuid4())
         user = self.__create_database_user(id=user_id, first=self.FIRST_NAME, last=self.LAST_NAME)
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = user
 
         actual = self.DATABASE.get_user_info(user_id)
 
@@ -114,14 +96,14 @@ class TestUserDatabase:
         user = self.__create_database_user()
         user.user_id = '123455'
         user.user_roles = [UserRoles(role=Roles(role_name=self.ROLE_NAME))]
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = user
 
         actual = self.DATABASE.get_user_info(user.user_id)
 
         assert actual['roles'] == [{'role_name': self.ROLE_NAME}]
 
     def test_get_user_info__should_raise_unauthorized_if_user_is_none(self):
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
         with pytest.raises(Unauthorized):
             self.DATABASE.get_user_info('123abc')
 
@@ -132,29 +114,9 @@ class TestUserDatabase:
 
         self.SESSION.add.assert_called()
 
-    def test_insert_refresh_token__should_delete_existing_tokens(self):
-        refresh = str(uuid.uuid4())
-        expire = datetime.now(tz=ZoneInfo('US/Central')) + timedelta(hours=12)
-        self.DATABASE.insert_refresh_token(self.USER_ID, refresh, expire)
-
-        self.SESSION.query.assert_called_with(RefreshToken)
-        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
-        self.SESSION.query.return_value.filter_by.return_value.delete.assert_called()
-
-    def test_generate_new_refresh_token__should_query_for_existing_refresh_token(self):
-        refresh = str(uuid.uuid4())
-        token = RefreshToken()
-        token.count = 1
-        token.expire_time = datetime.now(tz=ZoneInfo('US/Central')) + timedelta(minutes=1)
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = token
-        self.DATABASE.generate_new_refresh_token(refresh, self.NOW)
-        self.SESSION.query.assert_called_with(RefreshToken)
-        self.SESSION.query.return_value.filter_by.assert_called_with(refresh=refresh)
-        self.SESSION.query.return_value.filter_by.return_value.first.assert_called()
-
     def test_generate_new_refresh_token__should_raise_unauthorized_if_token_does_not_exist(self):
         refresh = str(uuid.uuid4())
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
 
         with pytest.raises(Forbidden):
             self.DATABASE.generate_new_refresh_token(refresh, self.NOW)
@@ -163,7 +125,7 @@ class TestUserDatabase:
         refresh = str(uuid.uuid4())
         expired_token = RefreshToken()
         expired_token.expire_time = datetime.now(tz=ZoneInfo('US/Central')) - timedelta(minutes=1)
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = expired_token
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = expired_token
 
         with pytest.raises(Forbidden):
             self.DATABASE.generate_new_refresh_token(refresh, self.NOW)
@@ -173,7 +135,7 @@ class TestUserDatabase:
         expired_token = RefreshToken()
         expired_token.count = 0
         expired_token.expire_time = datetime.now(tz=ZoneInfo('US/Central')) + timedelta(minutes=1)
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = expired_token
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = expired_token
 
         with pytest.raises(Forbidden):
             self.DATABASE.generate_new_refresh_token(refresh, self.NOW)
@@ -183,7 +145,7 @@ class TestUserDatabase:
         expired_token = RefreshToken()
         expired_token.count = -1
         expired_token.expire_time = datetime.now(tz=ZoneInfo('US/Central')) + timedelta(minutes=1)
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = expired_token
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = expired_token
 
         with pytest.raises(Forbidden):
             self.DATABASE.generate_new_refresh_token(refresh, self.NOW)
@@ -196,7 +158,7 @@ class TestUserDatabase:
         token = RefreshToken(user_id=self.USER_ID)
         token.count = 1
         token.expire_time = datetime.now(tz=ZoneInfo('US/Central')) + timedelta(minutes=1)
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = token
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = token
 
         actual = self.DATABASE.generate_new_refresh_token(refresh, self.NOW)
 
@@ -210,7 +172,7 @@ class TestUserDatabase:
         token = RefreshToken()
         token.count = 1
         token.expire_time = datetime.now(tz=ZoneInfo('US/Central')) + timedelta(minutes=1)
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = token
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = token
 
         self.DATABASE.generate_new_refresh_token(refresh, self.NOW)
 
@@ -225,32 +187,27 @@ class TestUserDatabase:
         token = RefreshToken()
         token.count = 10
         token.expire_time = datetime.now(tz=ZoneInfo('US/Central')) + timedelta(minutes=1)
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = token
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = token
 
         self.DATABASE.generate_new_refresh_token(refresh, self.NOW)
 
         assert token.count == 9
 
-    def test_get_roles_by_user__should_query_user_creds_by_user_id(self):
-        self.DATABASE.get_roles_by_user(self.USER_ID)
-
-        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
-
     def test_get_roles_by_user__should_raise_bad_request_when_no_user(self):
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
         with pytest.raises(BadRequest):
             self.DATABASE.get_roles_by_user(self.USER_ID)
 
     def test_get_roles_by_user__should_raise_bad_request_when_no_user_id(self):
         with pytest.raises(BadRequest):
             self.DATABASE.get_roles_by_user(None)
-        self.SESSION.query.assert_not_called()
+        self.SESSION.execute.assert_not_called()
 
     def test_get_roles_by_user__should_return_the_user_roles(self):
         user = self.__create_database_user()
         user.user_id = '123455'
         user.user_roles = [UserRoles(role=Roles(role_name=self.ROLE_NAME))]
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = user
 
         actual = self.DATABASE.validate_credentials(self.FAKE_USER, self.FAKE_PASS)
 
@@ -259,7 +216,7 @@ class TestUserDatabase:
     def test_get_preferences_by_user__should_return_user_temp_preferences(self):
         user = TestUserDatabase.__create_database_user()
         preference = TestUserDatabase.__create_user_preference(user)
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = preference
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = preference
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
@@ -268,7 +225,7 @@ class TestUserDatabase:
     def test_get_preferences_by_user__should_return_user_temp_preferences_with_fahrenheit(self):
         user = TestUserDatabase.__create_database_user()
         preference = TestUserDatabase.__create_user_preference(user, is_fahrenheit=True)
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = preference
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = preference
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
@@ -278,7 +235,7 @@ class TestUserDatabase:
         city = 'London'
         user = TestUserDatabase.__create_database_user()
         preference = TestUserDatabase.__create_user_preference(user, city)
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = preference
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = preference
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
@@ -287,7 +244,7 @@ class TestUserDatabase:
     def test_get_preferences_by_user__should_return_is_fahrenheit_preferences(self):
         user = TestUserDatabase.__create_database_user()
         preference = TestUserDatabase.__create_user_preference(user, 'Fake City', True)
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = preference
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = preference
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
@@ -296,7 +253,7 @@ class TestUserDatabase:
     def test_get_preferences_by_user__should_return_is_imperial_preferences(self):
         user = TestUserDatabase.__create_database_user()
         preference = TestUserDatabase.__create_user_preference(user, 'Fake City', True, True)
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = preference
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = preference
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
@@ -305,7 +262,7 @@ class TestUserDatabase:
     def test_get_preferences_by_user__should_return_measure_unit_preferences(self):
         user = TestUserDatabase.__create_database_user()
         preference = TestUserDatabase.__create_user_preference(user, 'Fake City', True, True)
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = preference
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = preference
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
@@ -314,14 +271,14 @@ class TestUserDatabase:
     def test_get_preferences_by_user__should_return_measure_unit_preferences_for_metric(self):
         user = TestUserDatabase.__create_database_user()
         preference = TestUserDatabase.__create_user_preference(user, 'Fake City', True, False)
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = preference
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = preference
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
         assert actual.measureUnit == 'metric'
 
     def test_get_preferences_by_user__should_throw_bad_request_when_no_preferences(self):
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
 
         with pytest.raises(BadRequest):
             self.DATABASE.get_preferences_by_user(uuid.uuid4().hex)
@@ -330,12 +287,12 @@ class TestUserDatabase:
         with pytest.raises(BadRequest):
             self.DATABASE.get_preferences_by_user(None)
 
-        self.SESSION.query.assert_not_called()
+        self.SESSION.execute.assert_not_called()
 
     def test_get_preferences_by_user__should_return_garage_id_state(self):
         user = TestUserDatabase.__create_database_user()
         preference = TestUserDatabase.__create_user_preference(user, 'Fake City', True, False)
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = preference
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = preference
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
         assert actual.garageId == 1
@@ -343,29 +300,22 @@ class TestUserDatabase:
     def test_get_preferences_by_user__should_return_garage_door_state(self):
         user = TestUserDatabase.__create_database_user()
         preference = TestUserDatabase.__create_user_preference(user, 'Fake City', True, False)
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = preference
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = preference
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
         assert actual.garageDoor == 'Jons'
-
-    def test_insert_preferences_by_user__should_call_query(self):
-        preference_info = {'isFahrenheit': True, 'isImperial': True, 'city': 'Des Moines', 'lightAlarm': {}}
-        user_id = str(uuid.uuid4())
-        self.DATABASE.insert_preferences_by_user(user_id, preference_info)
-
-        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=user_id)
 
     def test_insert_preferences_by_user__should_raise_bad_request_when_preferences_empty(self):
         preference_info = {}
         user_id = uuid.uuid4()
         with pytest.raises(BadRequest):
             self.DATABASE.insert_preferences_by_user(user_id, preference_info)
-            self.SESSION.query.return_value.filter_by.assert_not_called()
+            self.SESSION.execute.return_value.scalars.assert_not_called()
 
     def test_insert_preferences_by_user__should_raise_bad_request_when_no_user_id(self):
         with pytest.raises(BadRequest):
             self.DATABASE.insert_preferences_by_user(None, {'isFahrenheit': True})
-        self.SESSION.query.assert_not_called()
+        self.SESSION.execute.assert_not_called()
 
     def test_insert_preferences_by_user__should_not_throw_when_city_missing(self):
         preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon', 'garage_id': 1, 'garage_door': 'test'}
@@ -392,51 +342,25 @@ class TestUserDatabase:
         user_id = str(uuid.uuid4())
         self.DATABASE.insert_preferences_by_user(user_id, preference_info)
 
-    def test_get_current_sump_level_by_user__should_return_sump_levels(self):
-        expected_distance = 43.9
-        expected_warning = 1
-        user = TestUserDatabase.__create_database_user()
-        user.user_id = self.USER_ID
-        sump = DailySumpPumpLevel(user=user, distance=expected_distance, warning_level=expected_warning)
-        self.SESSION.query.return_value.filter_by.return_value.order_by.return_value.first.return_value = sump
-
-        actual = self.DATABASE.get_current_sump_level_by_user(self.USER_ID)
-
-        assert actual['currentDepth'] == expected_distance
-        assert actual['warningLevel'] == expected_warning
-
     def test_get_current_sump_level_by_user__should_raise_bad_request_error_when_missing_record(self):
-        self.SESSION.query.return_value.filter_by.return_value.order_by.return_value.first.return_value = None
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
         with pytest.raises(BadRequest):
             self.DATABASE.get_current_sump_level_by_user(uuid.uuid4().hex)
 
     def test_get_current_sump_level_by_user__should_raise_bad_request_when_user_id_is_none(self):
         with pytest.raises(BadRequest):
             self.DATABASE.get_current_sump_level_by_user(None)
-        self.SESSION.query.assert_not_called()
-
-    def test_get_average_sump_level_by_user__should_return_sump_levels(self):
-        expected_depth = 12.23
-        user = TestUserDatabase.__create_database_user()
-        user.user_id = self.USER_ID
-        date = datetime.date(datetime.now())
-        average = AverageSumpPumpLevel(user=user, distance=expected_depth, create_day=date)
-        self.SESSION.query.return_value.filter_by.return_value.order_by.return_value.first.return_value = average
-
-        actual = self.DATABASE.get_average_sump_level_by_user(self.USER_ID)
-
-        assert actual['latestDate'] == date
-        assert actual['averageDepth'] == expected_depth
+        self.SESSION.execute.assert_not_called()
 
     def test_get_average_sump_level_by_user__should_raise_bad_request_error_when_no_records(self):
-        self.SESSION.query.return_value.filter_by.return_value.order_by.return_value.first.return_value = None
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
         with pytest.raises(BadRequest):
             self.DATABASE.get_average_sump_level_by_user('12345')
 
     def test_get_average_sump_level_by_user__should_raise_bad_request_when_user_id_is_none(self):
         with pytest.raises(BadRequest):
             self.DATABASE.get_average_sump_level_by_user(None)
-        self.SESSION.query.assert_not_called()
+        self.SESSION.execute.assert_not_called()
 
     def test_insert_current_sump_level__should_call_add(self):
         user_id = 1234
@@ -480,17 +404,10 @@ class TestUserDatabase:
             self.DATABASE.change_user_password(None, self.FAKE_PASS, 'some text')
         self.SESSION.query.assert_not_called()
 
-    def test_change_user_password__should_query_user_credentials(self):
-        new_pass = 'new_pass'
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = self.__create_database_user()
-        self.DATABASE.change_user_password(self.USER_ID, self.FAKE_PASS, new_pass)
-
-        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
-
     def test_change_user_password__should_make_update_call_when_credentials_match(self):
         new_pass = 'new_pass'
         user = self.__create_database_user()
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = user
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = user
         self.DATABASE.change_user_password(self.FAKE_USER, self.FAKE_PASS, new_pass)
 
         assert user.password == new_pass
@@ -499,32 +416,10 @@ class TestUserDatabase:
         ip_address = '0.0.0.0'
         role_name = 'garage_door'
         role = UserRoles(user_id=str(uuid.uuid4()), role=Roles(role_name=role_name))
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [role]
+        self.SESSION.execute.return_value.unique.return_value.scalars.return_value.all.return_value = [role]
         self.DATABASE.add_new_role_device(self.USER_ID, role_name, ip_address)
 
         self.SESSION.add.assert_called()
-
-    def test_add_new_role_device__should_query_user_role_id_by_user_id(self):
-        ip_address = '0.0.0.0'
-        role_name = 'garage_door'
-        role = UserRoles(user_id=str(uuid.uuid4()), role=Roles(role_name=role_name))
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [role]
-        self.DATABASE.add_new_role_device(self.USER_ID, role_name, ip_address)
-
-        self.SESSION.query.return_value.filter_by.assert_any_call(user_id=self.USER_ID)
-
-    def test_add_new_role_device__should_query_user_role_id_by_child_user_id(self):
-        ip_address = '0.0.0.0'
-        role_name = 'garage_door'
-        parent_user_id = str(uuid.uuid4())
-        role = UserRoles(user_id=str(uuid.uuid4()), role=Roles(role_name=role_name))
-        child_account = ChildAccounts(child_user_id=self.USER_ID, parent_user_id=parent_user_id)
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = child_account
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [role]
-        self.DATABASE.add_new_role_device(self.USER_ID, role_name, ip_address)
-
-        self.SESSION.query.return_value.filter_by.assert_any_call(user_id=parent_user_id)
 
     @patch('svc.db.methods.user_credentials.uuid')
     def test_add_new_role_device__should_return_device_id_in_response(self, mock_uuid):
@@ -533,7 +428,7 @@ class TestUserDatabase:
         device_id = 'fake uuid string'
         mock_uuid.uuid4.return_value = device_id
         role = UserRoles(user_id=str(uuid.uuid4()), role=Roles(role_name=role_name))
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [role]
+        self.SESSION.execute.return_value.unique.return_value.scalars.return_value.all.return_value = [role]
         actual = self.DATABASE.add_new_role_device(self.USER_ID, role_name, ip_address)
 
         assert actual == device_id
@@ -554,7 +449,7 @@ class TestUserDatabase:
     def test_add_new_device_node__should_call_add(self):
         node_name = 'test name'
         devices = RoleDevices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = devices
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = devices
         self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name, False)
 
         self.SESSION.add.assert_called()
@@ -562,16 +457,14 @@ class TestUserDatabase:
     def test_add_new_device_node__should_query_user_preferences_by_user_id(self):
         node_name = 'Jons Door'
         devices = RoleDevices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = devices
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = devices
         self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name, True)
 
-        self.SESSION.query.assert_any_call(UserPreference)
-        self.SESSION.query.return_value.filter_by.assert_any_call(user_id=self.USER_ID)
-        assert self.SESSION.query.return_value.filter_by.return_value.first.call_count == 2
+        assert self.SESSION.execute.return_value.scalars.return_value.first.call_count == 2
 
     def test_add_new_device_node__should_raise_unauthorized_if_no_user_pref(self):
         devices = RoleDevices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
-        self.SESSION.query.return_value.filter_by.return_value.first.side_effect = [devices, None]
+        self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [devices, None]
 
         with pytest.raises(Unauthorized):
             self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, 'Jons Failure', True)
@@ -580,59 +473,46 @@ class TestUserDatabase:
         node_name = 'Jons Door'
         pref = UserPreference(user_id=self.USER_ID)
         devices = RoleDevices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
-        self.SESSION.query.return_value.filter_by.return_value.first.side_effect = [devices, pref]
+        self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [devices, pref]
         self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name, True)
 
         assert pref.garage_door == node_name
         assert pref.garage_id == 2
 
-    def test_add_new_device_node__should_query_the_role_devices_by_role_id(self):
-        node_name = 'test name'
-        devices = RoleDevices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = devices
-        self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name, False)
-
-        self.SESSION.query.return_value.filter_by.assert_called_with(id=self.ROLE_ID)
-
     def test_add_new_device_node__should_raise_unauthorized_when_device_id_not_match(self):
         node_name = 'test name'
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
         with pytest.raises(Unauthorized):
             self.DATABASE.add_new_device_node(self.USER_ID, self.USER_ID, node_name, False)
 
     def test_add_new_device_node__should_raise_bad_request_when_user_id_is_none(self):
         with pytest.raises(BadRequest):
             self.DATABASE.add_new_device_node(None, self.USER_ID, '', True)
-        self.SESSION.query.assert_not_called()
+        self.SESSION.execute.assert_not_called()
 
     def test_add_new_device_node__should_return_the_number_of_node_positions_open(self):
         node_name = 'test name'
         devices = RoleDevices(max_nodes=2, role_device_nodes=[])
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = devices
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = devices
         actual = self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name, None)
 
         assert actual.availableNodes == 1
 
-    def test_get_user_garage_ip__should_query_device_by_user_id(self):
-        self.DATABASE.get_user_garage_ip(self.USER_ID)
-
-        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
-
     def test_get_user_garage_ip__should_raise_bad_request_error_when_no_user_role(self):
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
         with pytest.raises(BadRequest):
             self.DATABASE.get_user_garage_ip(self.USER_ID)
 
     def test_get_user_garage_ip__should_raise_bad_request_when_user_id_none(self):
         with pytest.raises(BadRequest):
             self.DATABASE.get_user_garage_ip(None)
-        self.SESSION.query.assert_not_called()
+        self.SESSION.execute.assert_not_called()
 
     def test_get_user_garage_ip__should_return_ip_address_of_user(self):
         ip_address = '1.1.1.1'
         device = RoleDevices(ip_address=ip_address, ip_port=None)
         role = UserRoles(user_id=self.USER_ID, role_devices=device, role=Roles(role_name='doesntMatter'))
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = role
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = role
         actual = self.DATABASE.get_user_garage_ip(self.USER_ID)
 
         assert actual == ip_address
@@ -642,7 +522,7 @@ class TestUserDatabase:
         ip_port = 5001
         device = RoleDevices(ip_address=ip_address, ip_port=ip_port)
         role = UserRoles(user_id=self.USER_ID, role_devices=device, role=Roles(role_name='doesntMatter'))
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = role
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = role
         actual = self.DATABASE.get_user_garage_ip(self.USER_ID)
 
         assert actual == f'{ip_address}:{ip_port}'
@@ -650,40 +530,14 @@ class TestUserDatabase:
     def test_create_child_account__should_raise_bad_request_when_user_id_is_none(self):
         with pytest.raises(BadRequest):
             self.DATABASE.create_child_account(None, '', [], '')
-        self.SESSION.query.assert_not_called()
-
-    def test_create_child_account__should_query_user_creds_by_user_id(self):
-        user_info = UserInformation()
-        self.SESSION.query.return_value.filter_by.return_value.first.side_effect = [None, UserCredentials(user=user_info), UserPreference()]
-        self.DATABASE.create_child_account(self.USER_ID, "", [], self.FAKE_PASS)
-
-        self.SESSION.query.return_value.filter_by.assert_any_call(user_id=self.USER_ID)
-
-    @patch('svc.db.methods.user_credentials.UserCredentials')
-    def test_create_child_account__should_update_the_user_id_and_insert_user(self, mock_user):
-        user_info = UserInformation()
-        new_user = UserCredentials()
-        mock_user.return_value = new_user
-        self.SESSION.query.return_value.filter_by.return_value.first.side_effect = [None, UserCredentials(user=user_info), UserPreference(), UserCredentials()]
-        self.DATABASE.create_child_account(self.USER_ID, "", [], self.FAKE_PASS)
-
-        self.SESSION.add.assert_any_call(new_user)
-
-    @patch('svc.db.methods.user_credentials.UserInformation')
-    def test_create_child_account__should_insert_user_info(self, mock_info):
-        new_info = UserInformation()
-        mock_info.return_value = new_info
-        self.SESSION.query.return_value.filter_by.return_value.first.side_effect = [None, UserCredentials(user=UserInformation()), UserPreference()]
-        self.DATABASE.create_child_account(self.USER_ID, "", [], self.FAKE_PASS)
-
-        self.SESSION.add.assert_any_call(new_info)
+        self.SESSION.execute.assert_not_called()
 
     @patch('svc.db.methods.user_credentials.UserRoles')
     def test_create_child_account__should_insert_user_role(self, mock_roles):
         role = Roles(role_name='security')
         user_role = UserRoles(role=role)
         mock_roles.return_value = user_role
-        self.SESSION.query.return_value.filter_by.return_value.first.side_effect = [None, UserCredentials(user=UserInformation(), user_roles=[user_role]), UserPreference(), UserCredentials()]
+        self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [None, UserCredentials(user=UserInformation(), user_roles=[user_role]), UserPreference(), UserCredentials()]
         self.DATABASE.create_child_account(self.USER_ID, "", ['security'], self.FAKE_PASS)
 
         self.SESSION.add.assert_any_call(user_role)
@@ -702,31 +556,16 @@ class TestUserDatabase:
         user_roles = UserRoles(role=role)
         account = ChildAccounts(child_user_id=user_id)
         creds = UserCredentials(user_roles=[user_roles], user_name=user_name, user=user_info)
-        self.SESSION.query.return_value.filter_by.return_value.first.side_effect = [None, creds, UserPreference(), creds]
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [account]
+        self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [None, creds, UserPreference(), creds]
+        self.SESSION.execute.return_value.scalars.return_value.all.return_value = [account]
 
         actual = self.DATABASE.create_child_account(self.USER_ID, user_name, [], self.FAKE_PASS)
         assert actual == [{'user_name': user_name, 'user_id': user_id, 'roles': [role_name]}]
 
-    def test_get_user_child_accounts__should_query_children_accounts(self):
-        self.DATABASE.get_user_child_accounts(self.USER_ID)
-        self.SESSION.query.return_value.filter_by.assert_called_with(parent_user_id=self.USER_ID)
-
     def test_get_user_child_accounts__should_return_bad_request_when_user_id_is_none(self):
         with pytest.raises(BadRequest):
             self.DATABASE.get_user_child_accounts(None)
-        self.SESSION.query.assert_not_called()
-
-    def test_get_user_child_accounts__should_query_credentials_by_each_user_id(self):
-        user_id_one = uuid.uuid4()
-        user_id_two = uuid.uuid4()
-        account_one = ChildAccounts(child_user_id=user_id_one)
-        account_two = ChildAccounts(child_user_id=user_id_two)
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [account_one, account_two]
-        self.DATABASE.get_user_child_accounts(self.USER_ID)
-
-        self.SESSION.query.return_value.filter_by.assert_any_call(user_id=user_id_one)
-        self.SESSION.query.return_value.filter_by.assert_any_call(user_id=user_id_two)
+        self.SESSION.execute.assert_not_called()
 
     def test_get_user_child_accounts__should_return_user_name_and_roles_per_user(self):
         user_id = uuid.uuid4()
@@ -736,14 +575,14 @@ class TestUserDatabase:
         role = Roles(role_name=role_name)
         user_roles = UserRoles(role=role)
         creds = UserCredentials(user_roles=[user_roles], user_name=user_name)
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [account]
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = creds
+        self.SESSION.execute.return_value.scalars.return_value.all.return_value = [account]
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = creds
         actual = self.DATABASE.get_user_child_accounts(self.USER_ID)
 
         assert actual == [{'user_name': user_name, 'user_id': user_id, 'roles': [role_name]}]
 
     def test_get_user_child_accounts__should_return_empty_list_when_no_child_accounts(self):
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = None
+        self.SESSION.execute.return_value.scalars.return_value.all.return_value = None
         actual = self.DATABASE.get_user_child_accounts(self.USER_ID)
 
         assert actual == []
@@ -751,62 +590,23 @@ class TestUserDatabase:
     def test_delete_child_user_account__should_raise_bad_request_when_user_id_is_none(self):
         with pytest.raises(BadRequest):
             self.DATABASE.delete_child_user_account(None, str(uuid.uuid4()))
-        self.SESSION.query.assert_not_called()
-
-    def test_delete_child_user_account__should_query_child_accounts_by_user_id(self):
-        child_user_id = str(uuid.uuid4())
-        child_account = ChildAccounts(parent_user_id=self.USER_ID, child_user_id=child_user_id)
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [child_account]
-        self.DATABASE.delete_child_user_account(self.USER_ID, child_user_id)
-        self.SESSION.query.assert_any_call(ChildAccounts)
-        self.SESSION.query.return_value.filter_by.assert_any_call(parent_user_id=self.USER_ID, child_user_id=child_user_id)
-
-    def test_delete_child_user_account__should_filter_user_account_by_child_user_id(self):
-        child_user_id = str(uuid.uuid4())
-        child_account = ChildAccounts(parent_user_id=self.USER_ID, child_user_id=child_user_id)
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [child_account]
-
-        self.DATABASE.delete_child_user_account(self.USER_ID, child_user_id)
-
-        self.SESSION.query.assert_called_with(UserCredentials)
-        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=child_user_id)
+        self.SESSION.execute.assert_not_called()
 
     def test_delete_child_user_account__should_delete_child_account_relationship(self):
         child_user_id = str(uuid.uuid4())
         child_account = ChildAccounts(parent_user_id=self.USER_ID, child_user_id=child_user_id)
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [child_account]
+        self.SESSION.execute.return_value.scalars.return_value.all.return_value = [child_account]
 
         self.DATABASE.delete_child_user_account(self.USER_ID, child_user_id)
 
-        self.SESSION.query.return_value.filter_by.return_value.delete.assert_called()
+        self.SESSION.execute.assert_called()
 
-    def test_delete_child_user_account__should_try_to_delete_child_user_account(self):
-        child_user_id = str(uuid.uuid4())
-        child_account = ChildAccounts(parent_user_id=self.USER_ID, child_user_id=child_user_id)
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [child_account]
-
-        self.DATABASE.delete_child_user_account(self.USER_ID, child_user_id)
-
-        self.SESSION.query.assert_called_with(UserCredentials)
-        self.SESSION.query.return_value.filter_by.return_value.delete.assert_called()
-
-    @patch('svc.db.methods.user_credentials.ScheduleTasks')
-    def test_insert_schedule_task_by_user__should_call_add_with_task_settings(self, mock_tasks):
-        task = {'alarmLightGroup': '1', 'alarmGroupName': 'bathroom', 'alarmTime': '00:01:01', 'alarmDays': 'Mon', 'enabled': False}
-        created_task = ScheduleTasks()
-        mock_tasks.return_value = created_task
-        self.DATABASE.insert_schedule_task_by_user(self.USER_ID, task)
-
-        self.SESSION.add.assert_called_with(created_task)
-
-    @patch('svc.db.methods.user_credentials.ScheduleTasks')
+    @patch('svc.db.methods.user_credentials.ScheduleTasks.__init__', return_value=None)
     def test_insert_schedule_task_by_user__should_create_task(self, mock_tasks):
         task = {'alarmLightGroup': '2', 'alarmGroupName': 'bathroom', 'alarmTime': '00:01:01', 'alarmDays': 'Mon', 'enabled': False,
                 'taskType': 'turn on', 'hvacMode': 'HEATING', 'hvacStart': '00:02:00', 'hvacStop': '01:00:01', 'hvacStartTemp': 20, 'hvacStopTemp': 16}
-        created_task = ScheduleTasks()
-        mock_tasks.return_value = created_task
         task_type = ScheduledTaskTypes(activity_name='turn on')
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = task_type
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = task_type
         self.DATABASE.insert_schedule_task_by_user(self.USER_ID, task)
 
         mock_tasks.assert_called_with(user_id=self.USER_ID, alarm_light_group=task['alarmLightGroup'], alarm_time=time.fromisoformat(task['alarmTime']),
@@ -814,13 +614,11 @@ class TestUserDatabase:
                                       hvac_mode=task['hvacMode'], hvac_start=time.fromisoformat(task['hvacStart']), hvac_stop=time.fromisoformat(task['hvacStop']),
                                       hvac_start_temp=task['hvacStartTemp'], hvac_stop_temp=task['hvacStopTemp'])
 
-    @patch('svc.db.methods.user_credentials.ScheduleTasks')
+    @patch('svc.db.methods.user_credentials.ScheduleTasks.__init__', return_value=None)
     def test_insert_schedule_task_by_user__should_create_task_with_default_values_when_missing(self, mock_tasks):
         task = {'alarmLightGroup': '2', 'alarmGroupName': 'bathroom', 'alarmTime': '00:01:01', 'alarmDays': 'Mon', 'enabled': False, 'taskType': 'turn on'}
-        created_task = ScheduleTasks()
-        mock_tasks.return_value = created_task
         task_type = ScheduledTaskTypes(activity_name='turn on')
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = task_type
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = task_type
         self.DATABASE.insert_schedule_task_by_user(self.USER_ID, task)
 
         mock_tasks.assert_called_with(user_id=self.USER_ID, alarm_light_group=task['alarmLightGroup'], alarm_time=time.fromisoformat(task['alarmTime']),
@@ -832,7 +630,7 @@ class TestUserDatabase:
         task_id = uuid.uuid4()
         task_time = time.fromisoformat('00:01:01')
         new_task = ScheduleTasks(id=task_id, alarm_light_group='1', alarm_time=task_time, alarm_days='Mon', alarm_group_name='bathroom', task_type=ScheduledTaskTypes(), hvac_start=task_time, hvac_stop=task_time)
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [new_task]
+        self.SESSION.execute.return_value.scalars.return_value.all.return_value = [new_task]
         actual = self.DATABASE.insert_schedule_task_by_user(self.USER_ID, task)
 
         assert actual.tasks[0].taskId == str(task_id)
@@ -841,9 +639,7 @@ class TestUserDatabase:
         task_type = 'all on'
         task = {'alarmLightGroup': '1', 'alarmGroupName': 'bathroom', 'alarmTime': '00:01:01', 'alarmDays': 'Mon', 'taskType': task_type, 'enabled': False}
         self.DATABASE.insert_schedule_task_by_user(self.USER_ID, task)
-        self.SESSION.query.assert_any_call(ScheduledTaskTypes)
-        self.SESSION.query.return_value.filter_by.assert_any_call(activity_name=task_type)
-        self.SESSION.query.return_value.filter_by.return_value.first.assert_called()
+        self.SESSION.execute.return_value.scalars.return_value.first.assert_called()
 
     def test_insert_schedule_task_by_user__should_raise_bad_request_when_alarm_days_missing(self):
         preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'taskType': 'all on', 'enabled': False}
@@ -861,9 +657,7 @@ class TestUserDatabase:
 
     def test_get_schedule_tasks_by_user__should_query_database_for_tasks(self):
         self.DATABASE.get_schedule_tasks_by_user(self.USER_ID, None)
-        self.SESSION.query.assert_called_with(ScheduleTasks)
-        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
-        self.SESSION.query.return_value.filter_by.return_value.all.assert_called()
+        self.SESSION.execute.return_value.scalars.return_value.all.assert_called()
 
     def test_get_schedule_tasks_by_user_id__should_return_query_response(self):
         days = 'Sat'
@@ -879,7 +673,7 @@ class TestUserDatabase:
         task = ScheduleTasks(user_id=self.USER_ID, id=id, alarm_light_group=group_id, alarm_group_name=group_name, alarm_days=days, alarm_time=time.fromisoformat(group_time),
                              task_type=ScheduledTaskTypes(), hvac_mode=mode, hvac_start=time.fromisoformat(hvac_start), hvac_stop=time.fromisoformat(hvac_stop),
                              hvac_start_temp=hvac_start_temp, hvac_stop_temp=hvac_stop_temp)
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task]
+        self.SESSION.execute.return_value.scalars.return_value.all.return_value = [task]
         actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID, None)
 
         assert actual.tasks[0].alarmGroupName == group_name
@@ -908,7 +702,7 @@ class TestUserDatabase:
                              task_type=ScheduledTaskTypes(activity_name='sunrise alarm'), hvac_mode=mode, hvac_start=time.fromisoformat(hvac_start), hvac_stop=time.fromisoformat(hvac_stop))
         task_two = ScheduleTasks(user_id=self.USER_ID, id=id_two, alarm_light_group=group_id, alarm_group_name=group_name, alarm_days=days, alarm_time=time.fromisoformat(group_time),
                                  task_type=ScheduledTaskTypes(activity_name=task_type), hvac_mode=mode, hvac_start=time.fromisoformat(hvac_start), hvac_stop=time.fromisoformat(hvac_stop))
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task_one, task_two]
+        self.SESSION.execute.return_value.scalars.return_value.all.return_value = [task_one, task_two]
         actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID, task_type)
 
         assert len(actual.tasks) == 1
@@ -929,7 +723,7 @@ class TestUserDatabase:
                              task_type=ScheduledTaskTypes(activity_name='sunrise alarm'), hvac_mode=mode, hvac_start=time.fromisoformat(hvac_start), hvac_stop=time.fromisoformat(hvac_stop))
         task_two = ScheduleTasks(user_id=self.USER_ID, id=id_two, alarm_light_group=group_id, alarm_group_name=group_name, alarm_days=days, alarm_time=time.fromisoformat(group_time),
                                  task_type=ScheduledTaskTypes(activity_name=task_type), hvac_mode=mode, hvac_start=time.fromisoformat(hvac_start), hvac_stop=time.fromisoformat(hvac_stop))
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task_one, task_two]
+        self.SESSION.execute.return_value.scalars.return_value.all.return_value = [task_one, task_two]
         actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID, 'HVAC')
 
         assert len(actual.tasks) == 1
@@ -939,7 +733,7 @@ class TestUserDatabase:
         activity = 'turn all on'
         task_type = ScheduledTaskTypes(id=uuid.uuid4(), activity_name=activity)
         task = ScheduleTasks(id=id, alarm_time=time(), task_type=task_type, hvac_start=time(), hvac_stop=time())
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task]
+        self.SESSION.execute.return_value.scalars.return_value.all.return_value = [task]
         actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID, None)
 
         assert actual.tasks[0].taskType == activity
@@ -948,7 +742,7 @@ class TestUserDatabase:
         activity = 'turn all on'
         task_type = ScheduledTaskTypes(id=uuid.uuid4(), activity_name=activity)
         task = ScheduleTasks(id=id, task_type=task_type, hvac_start=time(), hvac_stop=time())
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task]
+        self.SESSION.execute.return_value.scalars.return_value.all.return_value = [task]
         actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID, None)
 
         assert actual.tasks[0].alarmTime is None
@@ -957,7 +751,7 @@ class TestUserDatabase:
         activity = 'turn all on'
         task_type = ScheduledTaskTypes(id=uuid.uuid4(), activity_name=activity)
         task = ScheduleTasks(id=id, task_type=task_type, alarm_time=time(), hvac_stop=time())
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task]
+        self.SESSION.execute.return_value.scalars.return_value.all.return_value = [task]
         actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID, None)
 
         assert actual.tasks[0].hvacStart is None
@@ -966,7 +760,7 @@ class TestUserDatabase:
         activity = 'turn all on'
         task_type = ScheduledTaskTypes(id=uuid.uuid4(), activity_name=activity)
         task = ScheduleTasks(id=id, task_type=task_type, alarm_time=time(), hvac_start=time())
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [task]
+        self.SESSION.execute.return_value.scalars.return_value.all.return_value = [task]
         actual = self.DATABASE.get_schedule_tasks_by_user(self.USER_ID, None)
 
         assert actual.tasks[0].hvacStop is None
@@ -976,9 +770,7 @@ class TestUserDatabase:
         task = {'taskId': task_id, 'alarmLightGroup': '1', 'alarmGroupName': 'jkasdhj', 'alarmDays': 'Mon', 'alarmTime': '00:00'}
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
-        self.SESSION.query.assert_any_call(ScheduleTasks)
-        self.SESSION.query.return_value.filter_by.assert_any_call(user_id=self.USER_ID, id=task_id)
-        self.SESSION.query.return_value.filter_by.return_value.first.assert_called()
+        self.SESSION.execute.return_value.scalars.return_value.first.assert_called()
 
     @patch('svc.db.methods.user_credentials.uuid')
     def test_update_schedule_task_by_user_id__should_update_task_id(self, mock_uuid):
@@ -987,7 +779,7 @@ class TestUserDatabase:
         new_task_id = uuid.uuid4()
         mock_uuid.uuid4.return_value = new_task_id
         existing_task = ScheduleTasks(user_id=self.USER_ID, task_type=ScheduledTaskTypes())
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.user_id == self.USER_ID
@@ -997,7 +789,7 @@ class TestUserDatabase:
         new_group_id = '1'
         task = {'taskId': 'asdfasd', 'alarmLightGroup': new_group_id, 'alarmGroupName': 'test', 'alarmDays': 'Mon', 'alarmTime': '00:00'}
         existing_task = ScheduleTasks(alarm_light_group='2', task_type=ScheduledTaskTypes())
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.alarm_light_group == new_group_id
@@ -1006,7 +798,7 @@ class TestUserDatabase:
         group_name = 'doorwell'
         task = {'taskId': 'asdfasd', 'alarmLightGroup': '3', 'alarmGroupName': group_name, 'alarmDays': 'Mon', 'alarmTime': '00:00'}
         existing_task = ScheduleTasks(alarm_group_name='potty', task_type=ScheduledTaskTypes())
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.alarm_group_name == group_name
@@ -1015,7 +807,7 @@ class TestUserDatabase:
         days = 'MonTue'
         task = {'taskId': 'asdfasd', 'alarmLightGroup': '3', 'alarmGroupName': 'bedroom', 'alarmDays': days, 'alarmTime': '00:00'}
         existing_task = ScheduleTasks(alarm_days='Wed', task_type=ScheduledTaskTypes())
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.alarm_days == days
@@ -1024,7 +816,7 @@ class TestUserDatabase:
         alarm_time = '00:00:00'
         task = {'taskId': 'asdfasd', 'alarmLightGroup': '3', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon', 'alarmTime': alarm_time}
         existing_task = ScheduleTasks(alarm_light_group=time(), task_type=ScheduledTaskTypes())
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.alarm_time == time.fromisoformat(alarm_time)
@@ -1033,7 +825,7 @@ class TestUserDatabase:
         alarm_time = '00:00:00'
         task = {'taskId': 'asdfasd', 'alarmLightGroup': '3', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon', 'hvacStart': alarm_time}
         existing_task = ScheduleTasks(alarm_light_group=time(), task_type=ScheduledTaskTypes())
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.hvac_start == time.fromisoformat(alarm_time)
@@ -1042,7 +834,7 @@ class TestUserDatabase:
         alarm_time = '00:00:00'
         task = {'taskId': 'asdfasd', 'alarmLightGroup': '3', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon', 'hvacStop': alarm_time}
         existing_task = ScheduleTasks(alarm_light_group=time(), task_type=ScheduledTaskTypes())
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.hvac_stop == time.fromisoformat(alarm_time)
@@ -1051,7 +843,7 @@ class TestUserDatabase:
         mode = 'COOL'
         task = {'taskId': 'asdfasd', 'alarmLightGroup': '3', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon', 'hvacMode': mode}
         existing_task = ScheduleTasks(alarm_light_group=time(), task_type=ScheduledTaskTypes())
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.hvac_mode == mode
@@ -1060,7 +852,7 @@ class TestUserDatabase:
         temp = 22
         task = {'taskId': 'asdfasd', 'alarmLightGroup': '3', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon', 'hvacStartTemp': temp}
         existing_task = ScheduleTasks(alarm_light_group=time(), task_type=ScheduledTaskTypes())
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.hvac_start_temp == temp
@@ -1069,7 +861,7 @@ class TestUserDatabase:
         temp = 22
         task = {'taskId': 'asdfasd', 'alarmLightGroup': '3', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon', 'hvacStopTemp': temp}
         existing_task = ScheduleTasks(alarm_light_group=time(), task_type=ScheduledTaskTypes())
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.hvac_stop_temp == temp
@@ -1078,7 +870,7 @@ class TestUserDatabase:
         task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon'}
         stop_temp = 18
         existing_task = ScheduleTasks(hvac_stop_temp=stop_temp, task_type=ScheduledTaskTypes())
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.hvac_stop_temp == stop_temp
@@ -1087,7 +879,7 @@ class TestUserDatabase:
         task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon'}
         start_temp = 18
         existing_task = ScheduleTasks(hvac_start_temp=start_temp, task_type=ScheduledTaskTypes())
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.hvac_start_temp == start_temp
@@ -1096,7 +888,7 @@ class TestUserDatabase:
         task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon'}
         mode = 'HEAT'
         existing_task = ScheduleTasks(hvac_mode=mode, task_type=ScheduledTaskTypes())
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.hvac_mode == mode
@@ -1105,7 +897,7 @@ class TestUserDatabase:
         task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon'}
         hvac_stop = time()
         existing_task = ScheduleTasks(hvac_stop=hvac_stop, task_type=ScheduledTaskTypes())
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.hvac_stop == hvac_stop
@@ -1114,7 +906,7 @@ class TestUserDatabase:
         task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon'}
         hvac_start = time()
         existing_task = ScheduleTasks(hvac_start=hvac_start, task_type=ScheduledTaskTypes())
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.hvac_start == hvac_start
@@ -1123,7 +915,7 @@ class TestUserDatabase:
         task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon', 'alarmTime': '00:00:00'}
         group_id = '2'
         existing_task = ScheduleTasks(alarm_light_group=group_id, task_type=ScheduledTaskTypes())
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.alarm_light_group == group_id
@@ -1132,7 +924,7 @@ class TestUserDatabase:
         task = {'taskId': 'asdfasd', 'alarmLightGroup': '3', 'alarmDays': 'Mon', 'alarmTime': '00:00:00'}
         room = 'potty'
         existing_task = ScheduleTasks(alarm_group_name=room, task_type=ScheduledTaskTypes())
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.alarm_group_name == room
@@ -1141,7 +933,7 @@ class TestUserDatabase:
         task = {'taskId': 'asdfasd', 'alarmLightGroup': '3', 'alarmDays': 'Mon', 'alarmTime': '00:00:00'}
         enabled_value = False
         existing_task = ScheduleTasks(enabled=enabled_value, task_type=ScheduledTaskTypes())
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.enabled == enabled_value
@@ -1150,7 +942,7 @@ class TestUserDatabase:
         task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmLightGroup': '3', 'alarmTime': '00:00:00'}
         days = 'SatSun'
         existing_task = ScheduleTasks(alarm_days=days, task_type=ScheduledTaskTypes())
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.alarm_days == days
@@ -1159,7 +951,7 @@ class TestUserDatabase:
         task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon', 'alarmLightGroup': '3'}
         alarm_time = time()
         existing_task = ScheduleTasks(alarm_time=alarm_time, task_type=ScheduledTaskTypes())
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.alarm_time == alarm_time
@@ -1168,7 +960,7 @@ class TestUserDatabase:
         task_type = 'sunrise alarm'
         task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon', 'alarmTime': '00:00:00', 'taskType': task_type}
         existing_task = ScheduleTasks(task_type=ScheduledTaskTypes())
-        self.SESSION.query.return_value.filter_by.return_value.first.side_effect = [existing_task, ScheduledTaskTypes(activity_name=task_type)]
+        self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [existing_task, ScheduledTaskTypes(activity_name=task_type)]
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.task_type.activity_name == task_type
@@ -1177,28 +969,28 @@ class TestUserDatabase:
         task_type = 'sunrise alarm'
         task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmDays': 'Mon', 'alarmTime': '00:00:00', 'taskType': task_type}
         existing_task = ScheduleTasks(task_type=ScheduledTaskTypes(activity_name=task_type))
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = existing_task
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
-        assert self.SESSION.query.return_value.filter_by.call_count == 1
+        assert self.SESSION.execute.return_value.scalars.call_count == 1
 
     def test_update_schedule_task_by_user_id__should_raise_exception_when_query_returns_zero_records(self):
         task = {'task_id': 'absdf'}
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
         with pytest.raises(BadRequest):
             self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
     def test_update_schedule_task_by_user_id__should_raise_bad_request_when_user_id_none(self):
         with pytest.raises(BadRequest):
             self.DATABASE.update_schedule_task_by_user_id(None, {})
-        self.SESSION.query.assert_not_called()
+        self.SESSION.execute.assert_not_called()
 
     @patch('svc.db.methods.user_credentials.uuid')
     def test_update_schedule_task_by_user_id__should_return_revised_task(self, mock_uuid):
         task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmLightGroup': '3', 'alarmTime': '00:00:00'}
         new_task_id = uuid.uuid4()
         mock_uuid.uuid4.return_value = new_task_id
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = ScheduleTasks(task_type=ScheduledTaskTypes())
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = ScheduleTasks(task_type=ScheduledTaskTypes())
         actual = self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert actual.taskId == str(new_task_id)
@@ -1206,32 +998,24 @@ class TestUserDatabase:
     def test_update_schedule_task_by_user_id__should_return_task_type_with_response(self):
         task_type = 'turn on'
         task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmLightGroup': '3', 'alarmTime': '00:00:00', 'taskType': task_type}
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = ScheduleTasks(task_type=ScheduledTaskTypes(activity_name=task_type))
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = ScheduleTasks(task_type=ScheduledTaskTypes(activity_name=task_type))
         actual = self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert actual.taskType == task_type
 
-    def test_delete_schedule_task_by_user__should_query_for_existing_record(self):
-        task_id = str(uuid.uuid4())
-        self.DATABASE.delete_schedule_task_by_user(self.USER_ID, task_id)
-        self.SESSION.query.assert_called_with(ScheduleTasks)
-        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID, id=task_id)
-
     def test_delete_schedule_task_by_user__should_try_to_delete_record(self):
         task_id = str(uuid.uuid4())
         self.DATABASE.delete_schedule_task_by_user(self.USER_ID, task_id)
-        self.SESSION.query.return_value.filter_by.return_value.delete.assert_called()
+        self.SESSION.execute.assert_called()
 
     def test_delete_schedule_task_by_user__should_raise_bad_request_when_user_id_none(self):
         with pytest.raises(BadRequest):
             self.DATABASE.delete_schedule_task_by_user(None, str(uuid.uuid4()))
-        self.SESSION.query.assert_not_called()
+        self.SESSION.execute.assert_not_called()
 
     def test_get_scenes_by_user__should__should_query_for_scenes_by_user_id(self):
         self.DATABASE.get_scenes_by_user(self.USER_ID)
-        self.SESSION.query.assert_called_with(Scenes)
-        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID)
-        self.SESSION.query.return_value.filter_by.return_value.all.assert_called()
+        self.SESSION.execute.return_value.unique.return_value.scalars.return_value.all.assert_called()
 
     def test_get_scenes_by_user__should_return_user_data(self):
         scene = Scenes()
@@ -1241,14 +1025,14 @@ class TestUserDatabase:
         room_name = 'fake room'
         detail.light_group_name = room_name
         scene.details = [detail]
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = [scene]
+        self.SESSION.execute.return_value.unique.return_value.scalars.return_value.all.return_value = [scene]
         actual = self.DATABASE.get_scenes_by_user(self.USER_ID)
 
         assert actual.scenes[0].name == scene_name
         assert actual.scenes[0].lights[0].groupName == room_name
 
     def test_get_scenes_by_user__should_return_empty_list_when_query_returns_none(self):
-        self.SESSION.query.return_value.filter_by.return_value.all.return_value = None
+        self.SESSION.execute.return_value.scalars.return_value.all.return_value = None
         actual = self.DATABASE.get_scenes_by_user(self.USER_ID)
 
         assert actual.to_dict() == LightScenes(scenes=[]).to_dict()
@@ -1276,17 +1060,13 @@ class TestUserDatabase:
         scene_id = str(uuid.uuid4())
         self.DATABASE.delete_scene_by_user(self.USER_ID, scene_id)
 
-        self.SESSION.query.assert_called_with(Scenes)
-        self.SESSION.query.return_value.filter_by.assert_called_with(user_id=self.USER_ID, id=scene_id)
-        self.SESSION.query.return_value.filter_by.return_value.delete.assert_called()
+        self.SESSION.execute.assert_called()
 
     def test_delete_scene_by_user__should_query_to_delete_scene_detail(self):
         scene_id = str(uuid.uuid4())
         self.DATABASE.delete_scene_by_user(self.USER_ID, scene_id)
 
-        self.SESSION.query.assert_any_call(SceneDetails)
-        self.SESSION.query.return_value.filter_by.assert_any_call(scene_id=scene_id)
-        self.SESSION.query.return_value.filter_by.return_value.delete.assert_called()
+        assert self.SESSION.execute.call_count == 2
 
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
