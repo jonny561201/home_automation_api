@@ -2,7 +2,7 @@ import uuid
 from datetime import time, datetime
 
 from zoneinfo import ZoneInfo
-from sqlalchemy import orm, create_engine
+from sqlalchemy import orm, create_engine, select, delete
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
 from svc.models.app import Preference, Task, Tasks
@@ -21,8 +21,8 @@ class UserDatabaseManager:
         settings = Settings.get_instance().Database
         connection = f'postgresql://{settings.user}:{settings.password}@localhost:{settings.port}/{settings.name}'
 
-        db_engine = create_engine(connection)
-        session = orm.sessionmaker(bind=db_engine)
+        db_engine = create_engine(connection, future=True)
+        session = orm.sessionmaker(bind=db_engine, future=True)
         self.db_session = orm.scoped_session(session)
 
         return UserDatabase(self.db_session)
