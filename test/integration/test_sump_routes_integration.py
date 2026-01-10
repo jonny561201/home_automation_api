@@ -76,4 +76,4 @@ class TestSumpRoutes:
         with UserDatabaseManager() as database:
             sump_level = database.session.execute(select(DailySumpPumpLevel).where(DailySumpPumpLevel.user_id == user_id)).scalars().first()
             assert float(sump_level.distance) == depth
-            assert sump_level.user_id == user_id
+            assert str(sump_level.user_id) == user_id

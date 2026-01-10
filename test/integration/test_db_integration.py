@@ -172,8 +172,8 @@ class TestRefreshTokenIntegration:
             stmt = select(RefreshToken).where(RefreshToken.refresh == token)
             actual = database.session.execute(stmt).scalars().first()
             assert actual.count == 10
-            assert actual.user_id == self.USER_ID
-            assert actual.refresh == token
+            assert str(actual.user_id) == self.USER_ID
+            assert str(actual.refresh) == token
             assert actual.expire_time == expire
 
     def test_insert_refresh_token__should_delete_existing_tokens_for_a_user(self):
@@ -270,7 +270,7 @@ class TestDbPreferenceIntegration:
         with UserDatabaseManager() as database:
             stmt = select(ScheduleTasks).where(ScheduleTasks.user_id == self.USER_ID)
             actual = database.session.execute(stmt).scalars().first()
-            assert actual.user_id == self.USER_ID
+            assert str(actual.user_id) == self.USER_ID
             assert actual.alarm_light_group == self.LIGHT_GROUP
             assert actual.alarm_time == datetime.time.fromisoformat(self.LIGHT_TIME)
             assert actual.alarm_days == self.DAYS
@@ -284,7 +284,7 @@ class TestDbPreferenceIntegration:
 
         with UserDatabaseManager() as database:
             actual = database.session.execute(select(ScheduleTasks).where(ScheduleTasks.user_id == self.USER_ID)).scalars().first()
-            assert actual.user_id == self.USER_ID
+            assert str(actual.user_id) == self.USER_ID
             assert actual.alarm_light_group == '0'
 
     def test_delete_schedule_tasks_by_user__should_delete_record_that_already_exists(self):
@@ -793,6 +793,7 @@ class TestUserDuplication:
     UPDATED_USER_ID = uuid.uuid4()
     USER_ROLE_ID = str(uuid.uuid4())
     UPDATED_DEVICE_ID = str(uuid.uuid4())
+    TEST_ROLE_ID = str(uuid.uuid4())
 
     def setup_method(self):
         self.PREFERENCE = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city=self.CITY)
@@ -830,6 +831,7 @@ class TestUserDuplication:
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.CHILD_USER_ID))
             database.session.execute(delete(Roles).where(Roles.id == self.ROLE_ID))
+            database.session.execute(delete(Roles).where(Roles.id == self.TEST_ROLE_ID))
 
     def test_create_child_account__should_duplicate_existing_record(self, mock_uuid):
         mock_uuid.uuid4.side_effect = [self.UPDATED_USER_ID, uuid.uuid4(), uuid.uuid4()]
@@ -840,7 +842,7 @@ class TestUserDuplication:
 
             actual = database.session.execute(select(UserInformation).where(UserInformation.id == str(self.UPDATED_USER_ID))).scalars().first()
             assert actual.email == new_email
-            assert actual.id == str(self.UPDATED_USER_ID)
+            assert str(actual.id) == str(self.UPDATED_USER_ID)
 
     def test_create_child_account__should_duplicate_existing_records_devices(self, mock_uuid):
         mock_uuid.uuid4.side_effect = [self.UPDATED_USER_ID, uuid.uuid4(), uuid.uuid4(), self.UPDATED_DEVICE_ID]
@@ -873,7 +875,7 @@ class TestUserDuplication:
         mock_uuid.uuid4.side_effect = [self.UPDATED_USER_ID, uuid.uuid4(), uuid.uuid4(), self.UPDATED_DEVICE_ID]
         new_email = 'tony_stank@stark.com'
         role_name = "security"
-        role = Roles(id=str(uuid.uuid4()), role_desc=role_name, role_name=role_name)
+        role = Roles(id=self.TEST_ROLE_ID, role_desc=role_name, role_name=role_name)
         second_role = UserRoles(id=str(uuid.uuid4()), user_id=self.USER_ID, role_id=self.ROLE_ID, role=role)
         with UserDatabaseManager() as database:
             database.session.add(second_role)

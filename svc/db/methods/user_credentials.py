@@ -21,8 +21,8 @@ class UserDatabaseManager:
         settings = Settings.get_instance().Database
         connection = f'postgresql://{settings.user}:{settings.password}@localhost:{settings.port}/{settings.name}'
 
-        db_engine = create_engine(connection, future=True)
-        session = orm.sessionmaker(bind=db_engine, future=True)
+        db_engine = create_engine(connection)
+        session = orm.sessionmaker(bind=db_engine)
         self.db_session = orm.scoped_session(session)
 
         return UserDatabase(self.db_session)
@@ -41,7 +41,7 @@ class UserDatabase:
         user = self.session.execute(stmt).scalars().first()
         if user is None or user.password != pword:
             raise Unauthorized
-        return {'user_id': user.user_id,
+        return {'user_id': str(user.user_id),
                 'roles': [self.__create_role(role.role_devices, role.role.role_name) for role in user.user_roles],
                 'first_name': user.user.first_name,
                 'last_name': user.user.last_name}
@@ -51,7 +51,7 @@ class UserDatabase:
         user = self.session.execute(stmt).scalars().first()
         if user is None:
             raise Unauthorized
-        return {'user_id': user.user_id,
+        return {'user_id': str(user.user_id),
                 'roles': [self.__create_role(role.role_devices, role.role.role_name) for role in user.user_roles],
                 'first_name': user.user.first_name,
                 'last_name': user.user.last_name}
@@ -70,7 +70,7 @@ class UserDatabase:
         token.refresh = new_refresh
         token.expire_time = expire
         token.count -= 1
-        return {'user_id': token.user_id, 'refresh_token': new_refresh}
+        return {'user_id': str(token.user_id), 'refresh_token': new_refresh}
 
     def get_roles_by_user(self, user_id):
         self.__validate_property(user_id)
@@ -327,7 +327,7 @@ class UserDatabase:
     def __get_user_info(self, user_id):
         stmt = select(UserCredentials).filter_by(user_id=user_id)
         user = self.session.execute(stmt).scalars().first()
-        return {'user_name': user.user_name, 'user_id': user_id,
+        return {'user_name': user.user_name, 'user_id': str(user_id),
                 'roles': [role.role.role_name for role in user.user_roles]}
 
     def __create_user_preference(self, new_user_id, user_id):
@@ -361,7 +361,7 @@ class UserDatabase:
     @staticmethod
     def __create_role(role_devices, role_name):
         if role_devices is not None:
-            return {'ip_address': role_devices.ip_address, 'role_name': role_name, 'device_id': role_devices.id,
+            return {'ip_address': role_devices.ip_address, 'role_name': role_name, 'device_id': str(role_devices.id),
                     'devices': [{'node_device': node.node_device, 'node_name': node.node_name} for node in role_devices.role_device_nodes]}
         else:
             return {'role_name': role_name}

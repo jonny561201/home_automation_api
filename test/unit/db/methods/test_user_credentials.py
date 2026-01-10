@@ -560,7 +560,7 @@ class TestUserDatabase:
         self.SESSION.execute.return_value.scalars.return_value.all.return_value = [account]
 
         actual = self.DATABASE.create_child_account(self.USER_ID, user_name, [], self.FAKE_PASS)
-        assert actual == [{'user_name': user_name, 'user_id': user_id, 'roles': [role_name]}]
+        assert actual == [{'user_name': user_name, 'user_id': str(user_id), 'roles': [role_name]}]
 
     def test_get_user_child_accounts__should_return_bad_request_when_user_id_is_none(self):
         with pytest.raises(BadRequest):
@@ -579,7 +579,7 @@ class TestUserDatabase:
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = creds
         actual = self.DATABASE.get_user_child_accounts(self.USER_ID)
 
-        assert actual == [{'user_name': user_name, 'user_id': user_id, 'roles': [role_name]}]
+        assert actual == [{'user_name': user_name, 'user_id': str(user_id), 'roles': [role_name]}]
 
     def test_get_user_child_accounts__should_return_empty_list_when_no_child_accounts(self):
         self.SESSION.execute.return_value.scalars.return_value.all.return_value = None
