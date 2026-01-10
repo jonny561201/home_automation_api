@@ -4,6 +4,7 @@ import jwt
 import json
 from mock import patch
 from requests import Response
+from sqlalchemy import delete
 
 from svc.config.settings_state import Settings
 from svc.constants.home_automation import Automation
@@ -28,8 +29,8 @@ class TestThermostatRoutesIntegration:
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
-            database.session.delete(self.PREFERENCE)
-            database.session.delete(self.USER)
+            database.session.execute(delete(UserPreference).where(UserPreference.user_id == str(self.USER_ID)))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == str(self.USER_ID)))
 
     def test_get_temperature__should_return_unauthorized_error_when_invalid_user(self):
         actual = self.TEST_CLIENT.get('thermostat/temperature/890234890234')

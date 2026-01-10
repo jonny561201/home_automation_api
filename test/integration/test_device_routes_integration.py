@@ -2,7 +2,7 @@ import json
 import uuid
 
 import jwt
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 
 from svc.config.settings_state import Settings
 from svc.db.methods.user_credentials import UserDatabaseManager
@@ -62,7 +62,7 @@ class TestDeviceRoutesIntegration:
         assert actual.status_code == 200
 
         with UserDatabaseManager() as database:
-            record = database.session.query(RoleDevices).filter_by(ip_address=ip_address).first()
+            record = database.session.execute(select(RoleDevices).where(RoleDevices.ip_address == ip_address)).scalars().first()
             assert record.ip_address == ip_address
 
     def test_add_device_node_by_user_id__should_return_unauthorized(self):
@@ -83,5 +83,5 @@ class TestDeviceRoutesIntegration:
         assert actual.status_code == 200
 
         with UserDatabaseManager() as database:
-            actual_record = database.session.query(RoleDeviceNodes).filter_by(role_device_id=self.DEVICE_ID).first()
+            actual_record = database.session.execute(select(RoleDeviceNodes).where(RoleDeviceNodes.role_device_id == self.DEVICE_ID)).scalars().first()
             assert actual_record.node_name == node_name

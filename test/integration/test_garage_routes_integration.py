@@ -5,6 +5,7 @@ import jwt
 import json
 from mock import patch
 from requests import Response
+from sqlalchemy import delete
 
 from svc.config.settings_state import Settings
 from svc.db.methods.user_credentials import UserDatabaseManager
@@ -39,10 +40,10 @@ class TestGarageDoorRoutesIntegration:
         with UserDatabaseManager() as database:
             database.session.delete(self.USER_ROLE)
         with UserDatabaseManager() as database:
-            database.session.delete(self.ROLE)
-            database.session.delete(self.USER_INFO)
-            database.session.query(RoleDeviceNodes).delete()
-            database.session.query(RoleDevices).delete()
+            database.session.execute(delete(RoleDeviceNodes))
+            database.session.execute(delete(RoleDevices).where(RoleDevices.id == self.DEVICE_ID))
+            database.session.execute(delete(Roles).where(Roles.id == self.ROLE_ID))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 
     def test_get_garage_door_status__should_return_unauthorized_with_no_header(self, mock_request):
         url = f'garageDoor/{self.GARAGE_ID}/user/{self.USER_ID}/status'

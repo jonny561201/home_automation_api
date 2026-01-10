@@ -2,7 +2,7 @@ import json
 import uuid
 
 import jwt
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 
 from svc.config.settings_state import Settings
 from svc.db.methods.user_credentials import UserDatabaseManager
@@ -68,7 +68,7 @@ class TestAccountRoutesIntegration:
         assert actual.status_code == 200
 
         with UserDatabaseManager() as database:
-            creds = database.session.query(UserCredentials).filter_by(user_id=self.USER_ID).first()
+            creds = database.session.execute(select(UserCredentials).where(UserCredentials.user_id == self.USER_ID)).scalars().first()
             assert creds.password == new_pass
 
     def test_get_roles_by_user_id__should_return_unauthorized_when_bad_jwt(self):

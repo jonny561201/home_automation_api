@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import jwt
+from sqlalchemy import delete, select
 
 from svc.config.settings_state import Settings
 from svc.db.methods.user_credentials import UserDatabaseManager
@@ -30,9 +31,9 @@ class TestAppRoutesIntegration:
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
-            database.session.query(ScheduleTasks).delete()
-            database.session.delete(self.PREFERENCE)
-            database.session.delete(self.USER)
+            database.session.execute(delete(ScheduleTasks).where(ScheduleTasks.user_id == self.USER_ID))
+            database.session.execute(delete(UserPreference).where(UserPreference.user_id == self.USER_ID))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 
     def test_health_check__should_return_success(self):
         actual = self.TEST_CLIENT.get('healthCheck')
@@ -102,7 +103,7 @@ class TestAppRoutesIntegration:
 
         assert actual.status_code == 200
         with UserDatabaseManager() as database:
-            preference = database.session.query(UserPreference).filter_by(user_id=self.USER_ID).first()
+            preference = database.session.execute(select(UserPreference).where(UserPreference.user_id == self.USER_ID)).scalars().first()
             assert preference.city == expected_city
 
     # def test_get_user_tasks_by_user_id__should_return_401_when_unauthorized(self):
@@ -179,7 +180,7 @@ class TestAppRoutesIntegration:
         task_id = str(uuid.uuid4())
         task = ScheduleTasks(user_id=self.USER_ID, id=task_id, alarm_group_name='fake room', alarm_light_group='42', alarm_days='Mon', enabled=False, hvac_mode='HEAT')
         with UserDatabaseManager() as database:
-            task_type = database.session.query(ScheduledTaskTypes).first()
+            task_type = database.session.execute(select(ScheduledTaskTypes)).scalars().first()
             task.task_type = task_type
             database.session.add(task)
 
@@ -194,7 +195,7 @@ class TestAppRoutesIntegration:
         assert actual.status_code == 200
 
         with UserDatabaseManager() as database:
-            record = database.session.query(ScheduleTasks).filter_by(user_id=self.USER_ID).first()
+            record = database.session.execute(select(ScheduleTasks).where(ScheduleTasks.user_id == self.USER_ID)).scalars().first()
             assert record.alarm_group_name == new_room
             assert record.alarm_days == new_day
             assert record.hvac_mode == 'COOL'
@@ -227,9 +228,11 @@ class TestRefreshTokenApp:
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
-            database.session.query(RefreshToken).delete()
-            database.session.query(ScheduleTasks).delete()
-            database.session.delete(self.USER_CREDS)
+            database.session.execute(delete(RefreshToken).where(RefreshToken.refresh == self.BAD_TOKEN))
+            database.session.execute(delete(RefreshToken).where(RefreshToken.refresh == self.GOOD_TOKEN))
+            database.session.execute(delete(UserCredentials).where(UserCredentials.user_id == self.USER_ID))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
+
     def test_get_refreshed_bearer_token__should_return_forbidden_when_token_count_expired(self):
         request_data = {'refresh_token': self.BAD_TOKEN, 'grant_type': 'refresh_token'}
         actual = self.TEST_CLIENT.post(f'token', data=json.dumps(request_data))

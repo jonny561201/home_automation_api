@@ -2,6 +2,7 @@ import json
 import uuid
 
 import jwt
+from sqlalchemy import delete
 
 from svc.config.settings_state import Settings
 from svc.db.methods.user_credentials import UserDatabaseManager
@@ -33,10 +34,9 @@ class TestSceneRoutes:
 
     def teardown_method(self):
         with UserDatabaseManager() as database:
-            database.session.query(SceneDetails).delete()
-            database.session.commit()
-            database.session.query(Scenes).delete()
-            database.session.delete(self.USER_INFO)
+            database.session.execute(delete(SceneDetails).where(SceneDetails.scene_id == self.SCENE_ID))
+            database.session.execute(delete(Scenes).where(Scenes.id == self.SCENE_ID))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 
     def test_get_scenes_by_user__should_return_success_response(self):
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')

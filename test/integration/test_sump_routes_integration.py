@@ -3,6 +3,7 @@ import uuid
 from datetime import datetime
 
 import jwt
+from sqlalchemy import select, delete
 
 from svc.config.settings_state import Settings
 from svc.db.methods.user_credentials import UserDatabaseManager
@@ -53,11 +54,10 @@ class TestSumpRoutes:
         json_actual = json.loads(actual.data)
 
         with UserDatabaseManager() as database:
-            database.session.delete(sump)
-            database.session.delete(preference)
-            database.session.delete(user)
-            database.session.delete(average)
-            database.session.flush()
+            database.session.execute(delete(DailySumpPumpLevel).where(DailySumpPumpLevel.user_id == user_id))
+            database.session.execute(delete(AverageSumpPumpLevel).where(AverageSumpPumpLevel.user_id == user_id))
+            database.session.execute(delete(UserPreference).where(UserPreference.user_id == user_id))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == user_id))
 
         assert actual.status_code == 200
         assert json_actual['currentDepth'] == expected_depth
@@ -74,6 +74,6 @@ class TestSumpRoutes:
         self.TEST_CLIENT.post(f'sumpPump/user/{user_id}/currentDepth', data=json.dumps(post_body), headers=self.HEADER)
 
         with UserDatabaseManager() as database:
-            sump_level = database.session.query(DailySumpPumpLevel).filter_by(user_id=user_id).first()
+            sump_level = database.session.execute(select(DailySumpPumpLevel).where(DailySumpPumpLevel.user_id == user_id)).scalars().first()
             assert float(sump_level.distance) == depth
             assert sump_level.user_id == user_id
