@@ -4,15 +4,15 @@ from zoneinfo import ZoneInfo
 
 import pytest
 from mock import patch
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
-from svc.models.app import Tasks
-from svc.models.scenes import LightScenes
 from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, \
     UserCredentials, Roles, UserPreference, UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts, ScheduleTasks, \
     ScheduledTaskTypes, Scenes, SceneDetails, RefreshToken
+from svc.models.app import Tasks
+from svc.models.scenes import LightScenes
 
 
 class TestDbValidateIntegration:
@@ -34,7 +34,7 @@ class TestDbValidateIntegration:
         self.USER_LOGIN = UserCredentials(id=self.CRED_ID, user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
         with UserDatabaseManager() as database:
             database.session.add(self.USER)
-            self.USER_LOGIN.role_id = database.session.query(Roles).first().id
+            self.USER_LOGIN.role_id = database.session.execute(select(Roles)).unique().scalars().first().id
             database.session.add(self.USER_LOGIN)
             database.session.add(self.USER_ROLE)
 
@@ -169,7 +169,8 @@ class TestRefreshTokenIntegration:
             database.insert_refresh_token(self.USER_ID, token, expire)
 
         with UserDatabaseManager() as database:
-            actual = database.session.query(RefreshToken).filter_by(refresh=token).first()
+            stmt = select(RefreshToken).where(RefreshToken.refresh == token)
+            actual = database.session.execute(stmt).scalars().first()
             assert actual.count == 10
             assert actual.user_id == self.USER_ID
             assert actual.refresh == token
@@ -182,7 +183,8 @@ class TestRefreshTokenIntegration:
             database.insert_refresh_token(self.USER_ID, token, expire)
 
         with UserDatabaseManager() as database:
-            actual = database.session.query(RefreshToken).filter_by(user_id=self.USER_ID).all()
+            stmt = select(RefreshToken).where(RefreshToken.user_id == self.USER_ID)
+            actual = database.session.execute(stmt).scalars().all()
             assert len(actual) == 1
 
     def test_generate_new_refresh_token__should_raise_forbidden_when_no_existing_refresh_token(self):
@@ -239,7 +241,7 @@ class TestDbPreferenceIntegration:
 
     def test_get_schedule_task_by_user__should_return_task(self):
         with UserDatabaseManager() as database:
-            task_type = database.session.query(ScheduledTaskTypes).first()
+            task_type = database.session.execute(select(ScheduledTaskTypes)).scalars().first()
             task_name = task_type.activity_name
             self.TASK.task_type = task_type
             database.session.add(self.TASK)
@@ -266,7 +268,8 @@ class TestDbPreferenceIntegration:
             database.insert_schedule_task_by_user(self.USER_ID, task)
 
         with UserDatabaseManager() as database:
-            actual = database.session.query(ScheduleTasks).filter_by(user_id=self.USER_ID).first()
+            stmt = select(ScheduleTasks).where(ScheduleTasks.user_id == self.USER_ID)
+            actual = database.session.execute(stmt).scalars().first()
             assert actual.user_id == self.USER_ID
             assert actual.alarm_light_group == self.LIGHT_GROUP
             assert actual.alarm_time == datetime.time.fromisoformat(self.LIGHT_TIME)
@@ -280,13 +283,13 @@ class TestDbPreferenceIntegration:
             database.insert_schedule_task_by_user(self.USER_ID, task)
 
         with UserDatabaseManager() as database:
-            actual = database.session.query(ScheduleTasks).filter_by(user_id=self.USER_ID).first()
+            actual = database.session.execute(select(ScheduleTasks).where(ScheduleTasks.user_id == self.USER_ID)).scalars().first()
             assert actual.user_id == self.USER_ID
             assert actual.alarm_light_group == '0'
 
     def test_delete_schedule_tasks_by_user__should_delete_record_that_already_exists(self):
         with UserDatabaseManager() as database:
-            task_type = database.session.query(ScheduledTaskTypes).first()
+            task_type = database.session.execute(select(ScheduledTaskTypes)).scalars().first()
             self.TASK.task_type = task_type
             database.session.add(self.TASK)
 
@@ -294,13 +297,13 @@ class TestDbPreferenceIntegration:
             database.delete_schedule_task_by_user(self.USER_ID, self.TASK_ID)
 
         with UserDatabaseManager() as database:
-            actual = database.session.query(ScheduleTasks).filter_by(user_id=self.USER_ID).first()
+            actual = database.session.execute(select(ScheduleTasks).where(ScheduleTasks.user_id == self.USER_ID)).first()
             assert actual is None
 
     def test_update_schedule_task_by_user__should_raise_bad_request_when_user_does_not_exist(self):
         new_task = {'taskId': str(uuid.uuid4()), 'alarmDays': 'SatSun', 'alarmGroupName': 'private potty room'}
         with UserDatabaseManager() as database:
-            task_type = database.session.query(ScheduledTaskTypes).first()
+            task_type = database.session.execute(select(ScheduledTaskTypes)).scalars().first()
             self.TASK.task_type = task_type
             database.session.add(self.TASK)
 
@@ -312,7 +315,8 @@ class TestDbPreferenceIntegration:
         new_task_type = 'turn on'
         new_task = {'taskId': self.TASK_ID, 'alarmDays': 'SatSun', 'alarmGroupName': 'private potty room', 'taskType': new_task_type, 'enabled':  False}
         with UserDatabaseManager() as database:
-            task_type = database.session.query(ScheduledTaskTypes).filter_by(activity_name='turn off').first()
+            stmt = select(ScheduledTaskTypes).where(ScheduledTaskTypes.activity_name == 'turn off')
+            task_type = database.session.execute(stmt).scalars().first()
             self.TASK.task_type = task_type
             database.session.add(self.TASK)
 
@@ -320,7 +324,7 @@ class TestDbPreferenceIntegration:
             database.update_schedule_task_by_user_id(self.USER_ID, new_task)
 
         with UserDatabaseManager() as database:
-            actual = database.session.query(ScheduleTasks).filter_by(user_id=self.USER_ID).first()
+            actual = database.session.execute(select(ScheduleTasks).where(ScheduleTasks.user_id == self.USER_ID)).scalars().first()
             assert actual.alarm_days == 'SatSun'
             assert actual.alarm_group_name == 'private potty room'
             assert actual.id != self.TASK_ID
@@ -332,7 +336,7 @@ class TestDbPreferenceIntegration:
             database.delete_schedule_task_by_user(self.USER_ID, self.TASK_ID)
 
         with UserDatabaseManager() as database:
-            actual = database.session.query(ScheduleTasks).filter_by(user_id=self.USER_ID).first()
+            actual = database.session.execute(select(ScheduleTasks).where(ScheduleTasks.user_id == self.USER_ID)).first()
             assert actual is None
 
     def test_get_preferences_by_user__should_return_preferences_for_valid_user(self):
@@ -360,7 +364,7 @@ class TestDbPreferenceIntegration:
         with UserDatabaseManager() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
             database.session.commit()
-            actual = database.session.query(UserPreference).filter_by(user_id=self.USER_ID).first()
+            actual = database.session.execute(select(UserPreference).where(UserPreference.user_id == self.USER_ID)).scalars().first()
 
             assert actual.city == city
             assert actual.is_fahrenheit is True
@@ -372,7 +376,7 @@ class TestDbPreferenceIntegration:
         preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': False, 'garageDoor': 3}
         with UserDatabaseManager() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
-            actual = database.session.query(UserPreference).filter_by(user_id=self.USER_ID).first()
+            actual = database.session.execute(select(UserPreference).where(UserPreference.user_id == self.USER_ID)).scalars().first()
 
             assert actual.city == city
             assert actual.is_fahrenheit is True
@@ -382,7 +386,7 @@ class TestDbPreferenceIntegration:
         with UserDatabaseManager() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
 
-            actual = database.session.query(UserPreference).filter_by(user_id=self.USER_ID).first()
+            actual = database.session.execute(select(UserPreference).where(UserPreference.user_id == self.USER_ID)).scalars().first()
 
             assert actual.city == self.CITY
             assert actual.is_fahrenheit is False
@@ -394,7 +398,7 @@ class TestDbPreferenceIntegration:
         with UserDatabaseManager() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
 
-            actual = database.session.query(UserPreference).filter_by(user_id=self.USER_ID).first()
+            actual = database.session.execute(select(UserPreference).where(UserPreference.user_id == self.USER_ID)).scalars().first()
 
             assert actual.city == city
             assert actual.is_fahrenheit is True
@@ -406,7 +410,7 @@ class TestDbPreferenceIntegration:
         with UserDatabaseManager() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
 
-            actual = database.session.query(UserPreference).filter_by(user_id=self.USER_ID).first()
+            actual = database.session.execute(select(UserPreference).where(UserPreference.user_id == self.USER_ID)).scalars().first()
 
             assert actual.city == city
             assert actual.is_fahrenheit is True
@@ -418,7 +422,7 @@ class TestDbPreferenceIntegration:
         with UserDatabaseManager() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
 
-            actual = database.session.query(UserPreference).filter_by(user_id=self.USER_ID).first()
+            actual = database.session.execute(select(UserPreference).where(UserPreference.user_id == self.USER_ID)).scalars().first()
 
             assert actual.city == city
             assert actual.is_fahrenheit is True
@@ -431,7 +435,7 @@ class TestDbPreferenceIntegration:
         with UserDatabaseManager() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
 
-            actual = database.session.query(UserPreference).filter_by(user_id=self.USER_ID).first()
+            actual = database.session.execute(select(UserPreference).where(UserPreference.user_id == self.USER_ID)).scalars().first()
 
             assert actual.city == city
             assert actual.is_fahrenheit is True
@@ -445,7 +449,7 @@ class TestDbPreferenceIntegration:
         with UserDatabaseManager() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
 
-            actual = database.session.query(UserPreference).filter_by(user_id=self.USER_ID).first()
+            actual = database.session.execute(select(UserPreference).where(UserPreference.user_id == self.USER_ID)).scalars().first()
 
             assert actual.city == city
             assert actual.is_fahrenheit is True
@@ -540,11 +544,12 @@ class TestDbSumpIntegration:
                           'datetime': str(self.DATE)}
             database.insert_current_sump_level(self.FIRST_USER_ID, depth_info)
 
-            actual = database.session.query(DailySumpPumpLevel).filter_by(user_id=self.FIRST_USER_ID, distance=depth).first()
+            stmt = select(DailySumpPumpLevel).where(DailySumpPumpLevel.user_id == self.FIRST_USER_ID, DailySumpPumpLevel.distance == depth)
+            actual = database.session.execute(stmt).scalars().first()
 
             assert float(actual.distance) == depth
 
-            database.session.query(DailySumpPumpLevel).filter_by(user_id=self.FIRST_USER_ID, distance=depth).delete()
+            database.session.execute(delete(DailySumpPumpLevel).where(DailySumpPumpLevel.user_id == self.FIRST_USER_ID, DailySumpPumpLevel.distance == depth))
 
     def test_insert_current_sump_level__should_raise_exception_with_bad_data(self):
         depth_info = {'badData': None}
@@ -584,7 +589,7 @@ class TestDbPasswordIntegration:
         with UserDatabaseManager() as database:
             database.change_user_password(self.USER_ID, self.PASSWORD, new_pass)
 
-            user = database.session.query(UserCredentials).filter_by(user_name=self.USER_NAME).first()
+            user = database.session.execute(select(UserCredentials).where(UserCredentials.user_name == self.USER_NAME)).scalars().first()
             assert user.password == new_pass
 
 
@@ -634,7 +639,7 @@ class TestDbRoleIntegration:
         with UserDatabaseManager() as database:
             database.add_new_role_device(self.USER_ID, self.ROLE_NAME, ip_address)
 
-            actual = database.session.query(RoleDevices).filter_by(user_role_id=self.USER_ROLE_ID).first()
+            actual = database.session.execute(select(RoleDevices).where(RoleDevices.user_role_id == self.USER_ROLE_ID)).scalars().first()
             assert actual.ip_address == ip_address
 
     def test_add_new_device__should_register_new_device_to_parent_from_child(self):
@@ -642,7 +647,7 @@ class TestDbRoleIntegration:
         with UserDatabaseManager() as database:
             device_id = database.add_new_role_device(self.CHILD_USER_ID, self.ROLE_NAME, ip_address)
 
-            actual = database.session.query(RoleDevices).filter_by(id=device_id).first()
+            actual = database.session.execute(select(RoleDevices).where(RoleDevices.id == device_id)).scalars().first()
 
             assert actual.ip_address == ip_address
 
@@ -667,7 +672,7 @@ class TestDbRoleIntegration:
             database.session.commit()
             database.add_new_device_node(self.USER_ID, device_id, node_name, False)
 
-            actual = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).first()
+            actual = database.session.execute(select(RoleDeviceNodes).where(RoleDeviceNodes.role_device_id == device_id)).scalars().first()
             assert actual.node_name == node_name
             database.session.delete(actual)
 
@@ -692,7 +697,7 @@ class TestDbRoleIntegration:
             database.session.commit()
             database.add_new_device_node(self.USER_ID, device_id, node_name, False)
 
-            actual = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).first()
+            actual = database.session.execute(select(RoleDeviceNodes).where(RoleDeviceNodes.role_device_id == device_id)).scalars().first()
             assert actual.node_device == 1
 
     def test_add_new_device_node__should_set_node_device_to_two_when_second_node(self):
@@ -707,7 +712,7 @@ class TestDbRoleIntegration:
             database.session.commit()
             database.add_new_device_node(self.USER_ID, device_id, node_name, False)
 
-            actuals = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).all()
+            actuals = database.session.execute(select(RoleDeviceNodes).where(RoleDeviceNodes.role_device_id == device_id)).scalars().all()
             assert len(actuals) == 2
             assert [actual.node_device for actual in actuals] == [1,2]
 
@@ -725,7 +730,7 @@ class TestDbRoleIntegration:
             database.session.commit()
             database.add_new_device_node(self.USER_ID, device_id, node_name, False)
 
-            actuals = database.session.query(RoleDeviceNodes).filter_by(role_device_id=device_id).all()
+            actuals = database.session.execute(select(RoleDeviceNodes).where(RoleDeviceNodes.role_device_id == device_id)).scalars().all()
             assert len(actuals) == 3
             assert [actual.node_device for actual in actuals] == [1,2,3]
 
@@ -753,7 +758,7 @@ class TestDbRoleIntegration:
             database.add_new_device_node(self.USER_ID, device_id, node_name, True)
 
         with UserDatabaseManager() as database:
-            actual = database.session.query(UserPreference).filter_by(user_id=self.USER_ID).first()
+            actual = database.session.execute(select(UserPreference).where(UserPreference.user_id == self.USER_ID)).scalars().first()
             assert actual.garage_door == node_name
             assert actual.garage_id == 1
 
@@ -833,7 +838,7 @@ class TestUserDuplication:
         with UserDatabaseManager() as database:
             database.create_child_account(self.USER_ID, new_email, [], self.PASSWORD)
 
-            actual = database.session.query(UserInformation).filter_by(id=str(self.UPDATED_USER_ID)).first()
+            actual = database.session.execute(select(UserInformation).where(UserInformation.id == str(self.UPDATED_USER_ID))).scalars().first()
             assert actual.email == new_email
             assert actual.id == str(self.UPDATED_USER_ID)
 
@@ -845,7 +850,7 @@ class TestUserDuplication:
             database.create_child_account(self.USER_ID, new_email, [self.ROLE_NAME], self.PASSWORD)
             database.session.commit()
 
-            actual = database.session.query(UserRoles).filter_by(user_id=str(self.UPDATED_USER_ID)).all()
+            actual = database.session.execute(select(UserRoles).where(UserRoles.user_id == str(self.UPDATED_USER_ID))).unique().scalars().all()
             lighting_role = next(x for x in actual if x.role.role_name == self.ROLE_NAME)
             assert lighting_role.role_devices.ip_address == '0.0.0.0'
 
@@ -854,13 +859,13 @@ class TestUserDuplication:
         new_email = 'tony_stank@stark.com'
 
         with UserDatabaseManager() as database:
-            database.session.query(RoleDevices).filter_by(user_role_id=self.USER_ROLE_ID).delete()
+            database.session.execute(delete(RoleDevices).where(RoleDevices.user_role_id == self.USER_ROLE_ID))
 
         with UserDatabaseManager() as database:
             database.create_child_account(self.USER_ID, new_email, [self.ROLE_NAME], self.PASSWORD)
             database.session.commit()
 
-            actual = database.session.query(UserRoles).filter_by(user_id=str(self.UPDATED_USER_ID)).all()
+            actual = database.session.execute(select(UserRoles).where(UserRoles.user_id == str(self.UPDATED_USER_ID))).unique().scalars().all()
             lighting_role = next(x for x in actual if x.role.role_name == self.ROLE_NAME)
             assert lighting_role.role_devices is None
 
@@ -875,7 +880,7 @@ class TestUserDuplication:
             database.session.commit()
             database.create_child_account(self.USER_ID, new_email, [role_name], self.PASSWORD)
 
-            actual = database.session.query(UserRoles).filter_by(user_id=str(self.UPDATED_USER_ID)).all()
+            actual = database.session.execute(select(UserRoles).where(UserRoles.user_id == str(self.UPDATED_USER_ID))).unique().scalars().all()
             assert len(actual) == 1
             assert actual[0].role.role_name == role_name
 
@@ -900,7 +905,7 @@ class TestUserDuplication:
             database.create_child_account(self.USER_ID, self.USER_NAME, [self.ROLE_NAME], self.PASSWORD)
 
         with UserDatabaseManager() as database:
-            new_user = database.session.query(UserPreference).filter_by(user_id=str(self.UPDATED_USER_ID)).first()
+            new_user = database.session.execute(select(UserPreference).where(UserPreference.user_id == str(self.UPDATED_USER_ID))).scalars().first()
             assert new_user.city == self.CITY
             assert new_user.is_fahrenheit is True
             assert new_user.is_imperial is True
@@ -940,9 +945,9 @@ class TestUserDuplication:
             database.delete_child_user_account(self.USER_ID, self.CHILD_USER_ID)
 
         with UserDatabaseManager() as database:
-            actual_child_account = database.session.query(ChildAccounts).filter_by(child_user_id=self.CHILD_USER_ID).first()
+            actual_child_account = database.session.execute(select(ChildAccounts).where(ChildAccounts.child_user_id == self.CHILD_USER_ID)).scalars().first()
             assert actual_child_account is None
-            actual_child_user = database.session.query(UserCredentials).filter_by(user_id=self.CHILD_USER_ID).first()
+            actual_child_user = database.session.execute(select(UserCredentials).where(UserCredentials.user_id == self.CHILD_USER_ID)).scalars().first()
             assert actual_child_user is None
 
     def test_delete_child_user_account__should_not_delete_parent_when_no_child(self, mock_uuid):
@@ -950,11 +955,11 @@ class TestUserDuplication:
             database.delete_child_user_account(self.USER_ID, self.CHILD_USER_ID)
 
         with UserDatabaseManager() as database:
-            actual_child_account = database.session.query(ChildAccounts).filter_by(child_user_id=self.CHILD_USER_ID).first()
+            actual_child_account = database.session.execute(select(ChildAccounts).where(ChildAccounts.child_user_id == self.CHILD_USER_ID)).scalars().first()
             assert actual_child_account is None
-            actual_child_user = database.session.query(UserCredentials).filter_by(user_id=self.CHILD_USER_ID).first()
+            actual_child_user = database.session.execute(select(UserCredentials).where(UserCredentials.user_id == self.CHILD_USER_ID)).scalars().first()
             assert actual_child_user is None
-            actual_parent = database.session.query(UserCredentials).filter_by(user_id=self.USER_ID).first()
+            actual_parent = database.session.execute(select(UserCredentials).where(UserCredentials.user_id == self.USER_ID)).scalars().first()
             assert actual_parent is not None
 
 
@@ -998,5 +1003,5 @@ class TestUserScenes:
             database.delete_scene_by_user(self.USER_ID, self.SCENE_ID)
 
         with UserDatabaseManager() as database:
-            actual = database.session.query(Scenes).filter_by(user_id=self.USER_ID).all()
+            actual = database.session.execute(select(Scenes).where(Scenes.user_id == self.USER_ID)).scalars().all()
             assert len(actual) == 0
