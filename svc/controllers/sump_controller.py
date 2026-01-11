@@ -1,14 +1,14 @@
 import json
 
+from svc.db.methods.user_credentials import UserDatabase
 from svc.models.sump import SumpLevel
-from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.utilities.conversion_utils import convert_to_imperial
 from svc.utilities.jwt_utils import is_jwt_valid
 
 
 def get_sump_level(user_id, bearer_token):
     is_jwt_valid(bearer_token)
-    with UserDatabaseManager() as database:
+    with UserDatabase() as database:
         current_data = database.get_current_sump_level_by_user(user_id)
         average_data = database.get_average_sump_level_by_user(user_id)
         preferences = database.get_preferences_by_user(user_id)
@@ -19,7 +19,7 @@ def get_sump_level(user_id, bearer_token):
 def save_current_level(user_id, bearer_token, request):
     is_jwt_valid(bearer_token)
     depth_info = json.loads(request)
-    with UserDatabaseManager() as database:
+    with UserDatabase() as database:
         database.insert_current_sump_level(user_id, depth_info)
 
 

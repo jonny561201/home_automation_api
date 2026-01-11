@@ -28,7 +28,8 @@ class TestUserDatabase:
 
     def setup_method(self, _):
         self.SESSION = mock.create_autospec(orm.scoped_session)
-        self.DATABASE = UserDatabase(self.SESSION)
+        self.DATABASE = UserDatabase()
+        self.DATABASE.session = self.SESSION
 
     def test_validate_credentials__should_return_user_id_if_password_matches_queried_user(self):
         user = self.__create_database_user()

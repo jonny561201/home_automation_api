@@ -14,8 +14,9 @@ from svc.db.models.user_information_model import UserPreference, UserCredentials
     ScheduledTaskTypes, Scenes, SceneDetails, RefreshToken
 
 
-class UserDatabaseManager:
-    db_session = None
+class UserDatabase:
+    def __init__(self):
+        self.session = None
 
     def __enter__(self):
         settings = Settings.get_instance().Database
@@ -23,18 +24,13 @@ class UserDatabaseManager:
 
         db_engine = create_engine(connection)
         session = orm.sessionmaker(bind=db_engine)
-        self.db_session = orm.scoped_session(session)
+        self.session = orm.scoped_session(session)
 
-        return UserDatabase(self.db_session)
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.db_session.commit()
-        self.db_session.remove()
-
-
-class UserDatabase:
-    def __init__(self, session):
-        self.session = session
+        self.session.commit()
+        self.session.remove()
 
     def validate_credentials(self, user_name, pword):
         stmt = select(UserCredentials).filter_by(user_name=user_name)

@@ -1,7 +1,7 @@
 import json
 
+from svc.db.methods.user_credentials import UserDatabase
 from svc.models.thermostat import ThermostatState
-from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.services import temperature
 from svc.utilities.conversion_utils import convert_to_celsius, convert_to_fahrenheit
 from svc.utilities.file_utils import write_desired_temp_to_file, get_desired_temp
@@ -10,7 +10,7 @@ from svc.utilities.jwt_utils import is_jwt_valid
 
 def get_user_temp(user_id, bearer_token):
     is_jwt_valid(bearer_token)
-    with UserDatabaseManager() as database:
+    with UserDatabase() as database:
         preference = database.get_preferences_by_user(user_id)
         internal_temp = temperature.get_internal_temp(preference)
 
@@ -19,7 +19,7 @@ def get_user_temp(user_id, bearer_token):
 
 def get_user_forecast(user_id, bearer_token):
     is_jwt_valid(bearer_token)
-    with UserDatabaseManager() as database:
+    with UserDatabase() as database:
         preference = database.get_preferences_by_user(user_id)
         return temperature.get_external_temp(preference)
 

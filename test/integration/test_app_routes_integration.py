@@ -6,8 +6,8 @@ from zoneinfo import ZoneInfo
 import jwt
 from sqlalchemy import delete, select
 
+from svc.db.methods.user_credentials import UserDatabase
 from svc.config.settings_state import Settings
-from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, UserPreference, ScheduleTasks, ScheduledTaskTypes, \
     RefreshToken, UserCredentials
 from svc.manager import app
@@ -25,12 +25,12 @@ class TestAppRoutesIntegration:
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
         self.PREFERENCE = UserPreference(user_id=self.USER_ID, city=self.CITY, is_fahrenheit=True, is_imperial=True)
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.add(self.USER)
             database.session.add(self.PREFERENCE)
 
     def teardown_method(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.execute(delete(ScheduleTasks).where(ScheduleTasks.user_id == self.USER_ID))
             database.session.execute(delete(UserPreference).where(UserPreference.user_id == self.USER_ID))
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
@@ -102,7 +102,7 @@ class TestAppRoutesIntegration:
         actual = self.TEST_CLIENT.post(f'userId/{self.USER_ID}/preferences/update', data=post_body, headers=headers)
 
         assert actual.status_code == 200
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             preference = database.session.execute(select(UserPreference).where(UserPreference.user_id == self.USER_ID)).scalars().first()
             assert preference.city == expected_city
 
@@ -179,7 +179,7 @@ class TestAppRoutesIntegration:
     def test_update_user_task_by_user_id__should_successfully_update_user(self):
         task_id = str(uuid.uuid4())
         task = ScheduleTasks(user_id=self.USER_ID, id=task_id, alarm_group_name='fake room', alarm_light_group='42', alarm_days='Mon', enabled=False, hvac_mode='HEAT')
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             task_type = database.session.execute(select(ScheduledTaskTypes)).scalars().first()
             task.task_type = task_type
             database.session.add(task)
@@ -194,7 +194,7 @@ class TestAppRoutesIntegration:
         actual = self.TEST_CLIENT.post(f'userId/{self.USER_ID}/tasks/update', data=request_data, headers=headers)
         assert actual.status_code == 200
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             record = database.session.execute(select(ScheduleTasks).where(ScheduleTasks.user_id == self.USER_ID)).scalars().first()
             assert record.alarm_group_name == new_room
             assert record.alarm_days == new_day
@@ -219,15 +219,15 @@ class TestRefreshTokenApp:
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
         self.USER_CREDS = UserCredentials(id=str(uuid.uuid4()), user_name="test", password="test", user=self.USER, user_id=self.USER_ID)
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.add(self.USER)
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.add(self.USER_CREDS)
             database.session.add(self.BAD_REFRESH)
             database.session.add(self.GOOD_REFRESH)
 
     def teardown_method(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.execute(delete(RefreshToken).where(RefreshToken.refresh == self.BAD_TOKEN))
             database.session.execute(delete(RefreshToken).where(RefreshToken.refresh == self.GOOD_TOKEN))
             database.session.execute(delete(UserCredentials).where(UserCredentials.user_id == self.USER_ID))

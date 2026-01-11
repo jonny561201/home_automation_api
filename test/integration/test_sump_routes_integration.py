@@ -5,8 +5,8 @@ from datetime import datetime
 import jwt
 from sqlalchemy import select, delete
 
+from svc.db.methods.user_credentials import UserDatabase
 from svc.config.settings_state import Settings
-from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, \
     UserPreference
 from svc.manager import app
@@ -44,7 +44,7 @@ class TestSumpRoutes:
         sump = DailySumpPumpLevel(user=user, distance=expected_depth, warning_level=0, create_date=datetime.now())
         average = AverageSumpPumpLevel(user=user, distance=average_depth, create_day=date)
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.add(sump)
             database.session.add(preference)
             database.session.add(average)
@@ -53,7 +53,7 @@ class TestSumpRoutes:
         actual = self.TEST_CLIENT.get(f'sumpPump/user/{user_id}/depth', headers=self.HEADER)
         json_actual = json.loads(actual.data)
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.execute(delete(DailySumpPumpLevel).where(DailySumpPumpLevel.user_id == user_id))
             database.session.execute(delete(AverageSumpPumpLevel).where(AverageSumpPumpLevel.user_id == user_id))
             database.session.execute(delete(UserPreference).where(UserPreference.user_id == user_id))
@@ -68,12 +68,12 @@ class TestSumpRoutes:
         user_id = str(uuid.uuid4())
         post_body = {'depth': depth, 'warning_level': 2, 'datetime': str(datetime.now())}
         user = UserInformation(id=user_id, first_name='Jon', last_name='Test')
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.add(user)
 
         self.TEST_CLIENT.post(f'sumpPump/user/{user_id}/currentDepth', data=json.dumps(post_body), headers=self.HEADER)
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             sump_level = database.session.execute(select(DailySumpPumpLevel).where(DailySumpPumpLevel.user_id == user_id)).scalars().first()
             assert float(sump_level.distance) == depth
             assert str(sump_level.user_id) == user_id

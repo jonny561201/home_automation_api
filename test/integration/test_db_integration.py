@@ -7,7 +7,7 @@ from mock import patch
 from sqlalchemy import delete, select
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
-from svc.db.methods.user_credentials import UserDatabaseManager
+from svc.db.methods.user_credentials import UserDatabase
 from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, \
     UserCredentials, Roles, UserPreference, UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts, ScheduleTasks, \
     ScheduledTaskTypes, Scenes, SceneDetails, RefreshToken
@@ -32,14 +32,14 @@ class TestDbValidateIntegration:
         self.USER_ROLE = UserRoles(id=self.USER_ROLE_ID, role_id=self.ROLE.id, user_id=self.USER_ID, role=self.ROLE)
         self.USER = UserInformation(id=self.USER_ID, first_name=self.FIRST, last_name=self.LAST)
         self.USER_LOGIN = UserCredentials(id=self.CRED_ID, user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.add(self.USER)
             self.USER_LOGIN.role_id = database.session.execute(select(Roles)).unique().scalars().first().id
             database.session.add(self.USER_LOGIN)
             database.session.add(self.USER_ROLE)
 
     def teardown_method(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.execute(delete(RoleDeviceNodes).where(RoleDeviceNodes.role_device_id == self.DEVICE_ID))
             database.session.execute(delete(RoleDevices).where(RoleDevices.id == self.DEVICE_ID))
             database.session.execute(delete(UserRoles).where(UserRoles.id == self.USER_ROLE_ID))
@@ -48,19 +48,19 @@ class TestDbValidateIntegration:
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 
     def test_validate_credentials__should_return_user_id_when_user_exists(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             actual = database.validate_credentials(self.USER_NAME, self.PASSWORD)
 
             assert actual['user_id'] == self.USER_ID
 
     def test_validate_credentials__should_return_first_name_when_user_exists(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             actual = database.validate_credentials(self.USER_NAME, self.PASSWORD)
 
             assert actual['first_name'] == self.FIRST
 
     def test_validate_credentials__should_return_last_name_when_user_exists(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             actual = database.validate_credentials(self.USER_NAME, self.PASSWORD)
 
             assert actual['last_name'] == self.LAST
@@ -68,7 +68,7 @@ class TestDbValidateIntegration:
     def test_validate_credentials__should_return_role_device_data(self):
         ip_address = '0.1.2.3'
         node_name = 'test_node'
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             device = RoleDevices(id=self.DEVICE_ID, user_role_id=self.USER_ROLE_ID, max_nodes=1, ip_address=ip_address)
             node = RoleDeviceNodes(role_device_id=self.DEVICE_ID, node_name=node_name, node_device=1)
             database.session.add(device)
@@ -79,18 +79,18 @@ class TestDbValidateIntegration:
                                         'devices': [{'node_device': 1, 'node_name': node_name}]}]
 
     def test_validate_credentials__should_raise_unauthorized_when_user_does_not_exist(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             with pytest.raises(Unauthorized):
                 database.validate_credentials('missingUser', 'missingPassword')
 
     def test_validate_credentials__should_raise_unauthorized_when_password_does_not_match(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             user_pass = 'wrongPassword'
             with pytest.raises(Unauthorized):
                 database.validate_credentials(self.USER_NAME, user_pass)
 
     def test_get_user_info__should_return_user_information(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             actual = database.get_user_info(self.USER_ID)
 
             assert actual['user_id'] == self.USER_ID
@@ -100,7 +100,7 @@ class TestDbValidateIntegration:
     def test_get_user_info__should_return_role_device_data(self):
         ip_address = '0.1.2.3'
         node_name = 'test_node'
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             device = RoleDevices(id=self.DEVICE_ID, user_role_id=self.USER_ROLE_ID, max_nodes=1, ip_address=ip_address)
             node = RoleDeviceNodes(role_device_id=self.DEVICE_ID, node_name=node_name, node_device=1)
             database.session.add(device)
@@ -112,14 +112,14 @@ class TestDbValidateIntegration:
 
     def test_get_user_info__should_raise_unauthorized_when_user_not_found(self):
         with pytest.raises(Unauthorized):
-            with UserDatabaseManager() as database:
+            with UserDatabase() as database:
                 missing_user_id = str(uuid.uuid4())
                 database.get_user_info(missing_user_id)
 
     def test_get_roles_by_user__should_return_role_device_data(self):
         ip_address = '0.1.2.3'
         node_name = 'test_node'
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             device = RoleDevices(id=self.DEVICE_ID, user_role_id=self.USER_ROLE_ID, max_nodes=1, ip_address=ip_address)
             node = RoleDeviceNodes(role_device_id=self.DEVICE_ID, node_name=node_name, node_device=1)
             database.session.add(device)
@@ -131,7 +131,7 @@ class TestDbValidateIntegration:
 
     def test_get_roles_by_user__should_raise_bad_request_when_missing_user(self):
         with pytest.raises(BadRequest):
-            with UserDatabaseManager() as database:
+            with UserDatabase() as database:
                 database.get_roles_by_user(str(uuid.uuid4()))
 
 
@@ -151,24 +151,24 @@ class TestRefreshTokenIntegration:
         self.VALID_REFRESH = RefreshToken(refresh=self.VALID_TOKEN, user_id=self.USER_ID, count=10, expire_time=self.EXPIRE)
         self.EXPIRED_REFRESH = RefreshToken(refresh=self.EXPIRED_TOKEN, user_id=self.USER_ID, count=10, expire_time=self.EXPIRED)
         self.WORN_REFRESH = RefreshToken(refresh=self.WORN_TOKEN, count=0, expire_time=self.EXPIRE)
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.add(self.USER)
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.add(self.EXPIRED_REFRESH)
             database.session.add(self.VALID_REFRESH)
 
     def teardown_method(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.execute(delete(RefreshToken))
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 
     def test_insert_refresh_token__should_insert_token_to_db(self):
         token = str(uuid.uuid4())
         expire = self.NOW + datetime.timedelta(hours=12)
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.insert_refresh_token(self.USER_ID, token, expire)
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             stmt = select(RefreshToken).where(RefreshToken.refresh == token)
             actual = database.session.execute(stmt).scalars().first()
             assert actual.count == 10
@@ -179,10 +179,10 @@ class TestRefreshTokenIntegration:
     def test_insert_refresh_token__should_delete_existing_tokens_for_a_user(self):
         token = str(uuid.uuid4())
         expire = self.NOW + datetime.timedelta(hours=12)
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.insert_refresh_token(self.USER_ID, token, expire)
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             stmt = select(RefreshToken).where(RefreshToken.user_id == self.USER_ID)
             actual = database.session.execute(stmt).scalars().all()
             assert len(actual) == 1
@@ -190,24 +190,24 @@ class TestRefreshTokenIntegration:
     def test_generate_new_refresh_token__should_raise_forbidden_when_no_existing_refresh_token(self):
         missing_refresh = str(uuid.uuid4())
         with pytest.raises(Forbidden):
-            with UserDatabaseManager() as database:
+            with UserDatabase() as database:
                 database.generate_new_refresh_token(missing_refresh, self.NOW)
 
     def test_generate_new_refresh_token__should_raise_forbidden_when_token_has_expired(self):
         with pytest.raises(Forbidden):
-            with UserDatabaseManager() as database:
+            with UserDatabase() as database:
                 database.generate_new_refresh_token(self.EXPIRED_TOKEN, self.NOW)
 
     def test_generate_new_refresh_token__should_raise_forbidden_when_token_has_worn_out(self):
         with pytest.raises(Forbidden):
-            with UserDatabaseManager() as database:
+            with UserDatabase() as database:
                 database.generate_new_refresh_token(self.WORN_TOKEN, self.NOW)
 
     @patch('svc.db.methods.user_credentials.uuid')
     def test_generate_new_refresh_token__should_return_a_valid_token(self, mock_uuid):
         new_refresh = str(uuid.uuid4())
         mock_uuid.uuid4.return_value = new_refresh
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             actual = database.generate_new_refresh_token(self.VALID_TOKEN, self.NOW)
             assert actual == {'user_id': self.USER_ID, 'refresh_token': new_refresh}
 
@@ -229,24 +229,24 @@ class TestDbPreferenceIntegration:
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
         self.TASK = ScheduleTasks(user_id=self.USER_ID, id=self.TASK_ID, alarm_light_group=self.LIGHT_GROUP, alarm_group_name=self.GROUP_NAME, alarm_days=self.DAYS, alarm_time=datetime.time.fromisoformat(self.LIGHT_TIME), enabled=True)
         self.USER_PREFERENCES = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city=self.CITY, garage_door=self.GARAGE, garage_id=1)
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.add(self.USER)
             database.session.add(self.USER_PREFERENCES)
 
     def teardown_method(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.execute(delete(ScheduleTasks))
             database.session.execute(delete(UserPreference).where(UserPreference.user_id == self.USER_ID))
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 
     def test_get_schedule_task_by_user__should_return_task(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             task_type = database.session.execute(select(ScheduledTaskTypes)).scalars().first()
             task_name = task_type.activity_name
             self.TASK.task_type = task_type
             database.session.add(self.TASK)
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             actual = database.get_schedule_tasks_by_user(self.USER_ID, None)
             assert actual.tasks[0].alarmLightGroup == self.LIGHT_GROUP
             assert actual.tasks[0].alarmGroupName == self.GROUP_NAME
@@ -258,16 +258,16 @@ class TestDbPreferenceIntegration:
 
     def test_get_schedule_task_by_user__should_return_empty_list_when_no_matches(self):
         user_id = str(uuid.uuid4())
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             actual = database.get_schedule_tasks_by_user(user_id, None)
             assert actual == Tasks([])
 
     def test_insert_schedule_task_by_user__should_insert_task(self):
         task = {'alarmTime': self.LIGHT_TIME, 'alarmLightGroup': self.LIGHT_GROUP, 'alarmGroupName': self.GROUP_NAME, 'alarmDays': self.DAYS, 'enabled': False, 'taskType': 'turn on'}
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.insert_schedule_task_by_user(self.USER_ID, task)
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             stmt = select(ScheduleTasks).where(ScheduleTasks.user_id == self.USER_ID)
             actual = database.session.execute(stmt).scalars().first()
             assert str(actual.user_id) == self.USER_ID
@@ -279,51 +279,51 @@ class TestDbPreferenceIntegration:
 
     def test_insert_schedule_task_by_user__should_insert_task_for_all_rooms(self):
         task = {'alarmTime': self.LIGHT_TIME, 'alarmLightGroup': '0', 'alarmGroupName': self.GROUP_NAME, 'alarmDays': self.DAYS, 'enabled': False, 'taskType': 'turn on'}
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.insert_schedule_task_by_user(self.USER_ID, task)
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             actual = database.session.execute(select(ScheduleTasks).where(ScheduleTasks.user_id == self.USER_ID)).scalars().first()
             assert str(actual.user_id) == self.USER_ID
             assert actual.alarm_light_group == '0'
 
     def test_delete_schedule_tasks_by_user__should_delete_record_that_already_exists(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             task_type = database.session.execute(select(ScheduledTaskTypes)).scalars().first()
             self.TASK.task_type = task_type
             database.session.add(self.TASK)
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.delete_schedule_task_by_user(self.USER_ID, self.TASK_ID)
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             actual = database.session.execute(select(ScheduleTasks).where(ScheduleTasks.user_id == self.USER_ID)).first()
             assert actual is None
 
     def test_update_schedule_task_by_user__should_raise_bad_request_when_user_does_not_exist(self):
         new_task = {'taskId': str(uuid.uuid4()), 'alarmDays': 'SatSun', 'alarmGroupName': 'private potty room'}
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             task_type = database.session.execute(select(ScheduledTaskTypes)).scalars().first()
             self.TASK.task_type = task_type
             database.session.add(self.TASK)
 
         with pytest.raises(BadRequest):
-            with UserDatabaseManager() as database:
+            with UserDatabase() as database:
                 database.update_schedule_task_by_user_id(self.USER_ID, new_task)
 
     def test_update_schedule_task_by_user__should_update_existing_record(self):
         new_task_type = 'turn on'
         new_task = {'taskId': self.TASK_ID, 'alarmDays': 'SatSun', 'alarmGroupName': 'private potty room', 'taskType': new_task_type, 'enabled':  False}
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             stmt = select(ScheduledTaskTypes).where(ScheduledTaskTypes.activity_name == 'turn off')
             task_type = database.session.execute(stmt).scalars().first()
             self.TASK.task_type = task_type
             database.session.add(self.TASK)
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.update_schedule_task_by_user_id(self.USER_ID, new_task)
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             actual = database.session.execute(select(ScheduleTasks).where(ScheduleTasks.user_id == self.USER_ID)).scalars().first()
             assert actual.alarm_days == 'SatSun'
             assert actual.alarm_group_name == 'private potty room'
@@ -332,15 +332,15 @@ class TestDbPreferenceIntegration:
             assert actual.enabled is False
 
     def test_delete_schedule_tasks_by_user__should_not_throw_when_record_does_not_exist(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.delete_schedule_task_by_user(self.USER_ID, self.TASK_ID)
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             actual = database.session.execute(select(ScheduleTasks).where(ScheduleTasks.user_id == self.USER_ID)).first()
             assert actual is None
 
     def test_get_preferences_by_user__should_return_preferences_for_valid_user(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             response = database.get_preferences_by_user(self.USER_ID)
 
             assert response.tempUnit == 'fahrenheit'
@@ -353,7 +353,7 @@ class TestDbPreferenceIntegration:
 
     def test_get_preferences_by_user__should_raise_bad_request_when_no_preferences(self):
         with pytest.raises(BadRequest):
-            with UserDatabaseManager() as database:
+            with UserDatabase() as database:
                 bad_user_id = str(uuid.uuid4())
                 database.get_preferences_by_user(bad_user_id)
 
@@ -361,7 +361,7 @@ class TestDbPreferenceIntegration:
         city = 'Vienna'
         new_door = 'Kalynns'
         preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': False, 'garageDoor': new_door, 'garageId': 5}
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
             database.session.commit()
             actual = database.session.execute(select(UserPreference).where(UserPreference.user_id == self.USER_ID)).scalars().first()
@@ -374,7 +374,7 @@ class TestDbPreferenceIntegration:
     def test_insert_preferences_by_user__should_not_fail_when_time_is_none(self):
         city = 'Vienna'
         preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': False, 'garageDoor': 3}
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
             actual = database.session.execute(select(UserPreference).where(UserPreference.user_id == self.USER_ID)).scalars().first()
 
@@ -383,7 +383,7 @@ class TestDbPreferenceIntegration:
 
     def test_insert_preferences_by_user__should_not_nullify_city_when_missing(self):
         preference_info = {'isFahrenheit': False, 'isImperial': True, 'garagaeDoor': 2}
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
 
             actual = database.session.execute(select(UserPreference).where(UserPreference.user_id == self.USER_ID)).scalars().first()
@@ -395,7 +395,7 @@ class TestDbPreferenceIntegration:
     def test_insert_preferences_by_user__should_not_nullify_is_fahrenheit_when_missing(self):
         city = 'Lisbon'
         preference_info = {'city': city, 'isImperial': False, 'garageDoor': 1}
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
 
             actual = database.session.execute(select(UserPreference).where(UserPreference.user_id == self.USER_ID)).scalars().first()
@@ -407,7 +407,7 @@ class TestDbPreferenceIntegration:
     def test_insert_preferences_by_user__should_not_nullify_is_imperial_when_missing(self):
         city = 'Lisbon'
         preference_info = {'city': city, 'isFahrenheit': True, 'garageDoor': 1}
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
 
             actual = database.session.execute(select(UserPreference).where(UserPreference.user_id == self.USER_ID)).scalars().first()
@@ -419,7 +419,7 @@ class TestDbPreferenceIntegration:
     def test_insert_preferences_by_user__should_not_nullify_garage_door_when_missing(self):
         city = 'Lisbon'
         preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': True}
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
 
             actual = database.session.execute(select(UserPreference).where(UserPreference.user_id == self.USER_ID)).scalars().first()
@@ -432,7 +432,7 @@ class TestDbPreferenceIntegration:
     def test_insert_preferences_by_user__should_not_nullify_garage_id_when_missing(self):
         city = 'Lisbon'
         preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': True}
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
 
             actual = database.session.execute(select(UserPreference).where(UserPreference.user_id == self.USER_ID)).scalars().first()
@@ -446,7 +446,7 @@ class TestDbPreferenceIntegration:
     def test_insert_preferences_by_user__should_set_garage_id_to_null_when_sent_null(self):
         city = 'Lisbon'
         preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': True, 'garageId': None}
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
 
             actual = database.session.execute(select(UserPreference).where(UserPreference.user_id == self.USER_ID)).scalars().first()
@@ -478,7 +478,7 @@ class TestDbSumpIntegration:
         self.SECOND_SUMP_AVG = AverageSumpPumpLevel(id=35, user_id=self.FIRST_USER_ID, distance=self.DEPTH, create_day=self.DAY)
         self.CHILD_ACCOUNT = ChildAccounts(parent_user_id=self.FIRST_USER_ID, child_user_id=self.CHILD_USER_ID)
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.add_all([self.FIRST_USER, self.SECOND_USER, self.CHILD_USER])
             database.session.add_all([self.FIRST_SUMP_AVG, self.SECOND_SUMP_AVG])
             database.session.add_all([self.FIRST_SUMP_DAILY, self.SECOND_SUMP_DAILY, self.THIRD_SUMP_DAILY])
@@ -486,7 +486,7 @@ class TestDbSumpIntegration:
             database.session.add(self.CHILD_ACCOUNT)
 
     def teardown_method(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.execute(delete(DailySumpPumpLevel).where(DailySumpPumpLevel.id == 88))
             database.session.execute(delete(DailySumpPumpLevel).where(DailySumpPumpLevel.id == 99))
             database.session.execute(delete(DailySumpPumpLevel).where(DailySumpPumpLevel.id == 100))
@@ -499,46 +499,46 @@ class TestDbSumpIntegration:
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.CHILD_USER_ID))
 
     def test_get_current_sump_level_by_user__should_return_valid_sump_level(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             actual = database.get_current_sump_level_by_user(self.FIRST_USER_ID)
             assert actual['currentDepth'] == 11.0
             assert actual['warningLevel'] == 2
 
     def test_get_current_sump_level_by_user__should_return_latest_record_for_single_user(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             actual = database.get_current_sump_level_by_user(self.SECOND_USER_ID)
             assert actual['currentDepth'] == 12.0
             assert actual['warningLevel'] == 2
 
     def test_get_current_sump_level_by_user__should_return_parent_records_for_child(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             actual = database.get_current_sump_level_by_user(self.CHILD_USER_ID)
             assert actual['currentDepth'] == 11.0
             assert actual['warningLevel'] == 2
 
     def test_get_current_sump_level_by_user__should_raise_bad_request_when_user_not_found(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             with pytest.raises(BadRequest):
                 database.get_current_sump_level_by_user(str(uuid.uuid4()))
 
     def test_get_average_sump_level_by_user__should_return_latest_record_for_single_user(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             actual = database.get_average_sump_level_by_user(self.FIRST_USER_ID)
             assert actual == {'averageDepth': self.DEPTH, 'latestDate': self.DAY}
 
     def test_get_average_sump_level_by_user__should_return_parent_records_for_child(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             actual = database.get_average_sump_level_by_user(self.CHILD_USER_ID)
             assert actual == {'averageDepth': self.DEPTH, 'latestDate': self.DAY}
 
     def test_get_average_sump_level_by_user__should_raise_bad_request_when_user_not_found(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             with pytest.raises(BadRequest):
                 database.get_average_sump_level_by_user(str(uuid.uuid4()))
 
     def test_insert_current_sump_level__should_store_new_record(self):
         depth = 12.345
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             depth_info = {'depth': depth,
                           'warning_level': 3,
                           'datetime': str(self.DATE)}
@@ -555,7 +555,7 @@ class TestDbSumpIntegration:
         depth_info = {'badData': None}
         user_id = 1234
         with pytest.raises(BadRequest):
-            with UserDatabaseManager() as database:
+            with UserDatabase() as database:
                 database.insert_current_sump_level(user_id, depth_info)
 
 
@@ -568,12 +568,12 @@ class TestDbPasswordIntegration:
     def setup_method(self):
         self.USER_INFO = UserInformation(first_name='test', last_name='Tester', id=self.USER_ID)
         self.USER_CREDS = UserCredentials(id=self.USER_CRED_ID, user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.add(self.USER_INFO)
             database.session.add(self.USER_CREDS)
 
     def teardown_method(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.execute(delete(UserCredentials).where(UserCredentials.id == self.USER_CRED_ID))
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 
@@ -581,12 +581,12 @@ class TestDbPasswordIntegration:
         mismatched_pass = 'this wont match'
         new_pass = 'doesnt matter'
         with pytest.raises(Unauthorized):
-            with UserDatabaseManager() as database:
+            with UserDatabase() as database:
                 database.change_user_password(self.USER_ID, mismatched_pass, new_pass)
 
     def test_change_user_password__should_change_user_password_when_matching(self):
         new_pass = 'I SHOULD HAVE CHANGED!!!'
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.change_user_password(self.USER_ID, self.PASSWORD, new_pass)
 
             user = database.session.execute(select(UserCredentials).where(UserCredentials.user_name == self.USER_NAME)).scalars().first()
@@ -607,7 +607,7 @@ class TestDbRoleIntegration:
         self.CHILD_USER = UserInformation(id=self.CHILD_USER_ID, first_name='Kalynn', last_name='Dawn')
         self.CHILD_ACCOUNT = ChildAccounts(parent_user_id=self.USER_ID, child_user_id=self.CHILD_USER_ID)
         self.USER_PREF = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=False)
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.add(self.ROLE)
             database.session.add_all([self.USER_INFO, self.CHILD_USER])
             database.session.add(self.USER_ROLE)
@@ -616,7 +616,7 @@ class TestDbRoleIntegration:
             database.session.add(self.CHILD_ACCOUNT)
 
     def teardown_method(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.execute(delete(RoleDeviceNodes))
             database.session.execute(delete(RoleDevices))
             database.session.execute(delete(UserPreference).where(UserPreference.user_id == self.USER_ID))
@@ -631,12 +631,12 @@ class TestDbRoleIntegration:
         role_name = 'garage_door'
         ip_address = '0.0.0.0'
         with pytest.raises(Unauthorized):
-            with UserDatabaseManager() as database:
+            with UserDatabase() as database:
                 database.add_new_role_device(self.USER_ID, role_name, ip_address)
 
     def test_add_new_device__should_insert_a_new_device_into_table(self):
         ip_address = '192.168.1.145'
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.add_new_role_device(self.USER_ID, self.ROLE_NAME, ip_address)
 
             actual = database.session.execute(select(RoleDevices).where(RoleDevices.user_role_id == self.USER_ROLE_ID)).scalars().first()
@@ -644,7 +644,7 @@ class TestDbRoleIntegration:
 
     def test_add_new_device__should_register_new_device_to_parent_from_child(self):
         ip_address = '192.168.1.145'
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             device_id = database.add_new_role_device(self.CHILD_USER_ID, self.ROLE_NAME, ip_address)
 
             actual = database.session.execute(select(RoleDevices).where(RoleDevices.id == device_id)).scalars().first()
@@ -655,7 +655,7 @@ class TestDbRoleIntegration:
         ip_address = '1.1.1.1'
         device_id = str(uuid.uuid4())
         node_name = 'test node'
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
             database.session.add(device)
 
@@ -666,7 +666,7 @@ class TestDbRoleIntegration:
         ip_address = '192.175.7.9'
         device_id = str(uuid.uuid4())
         node_name = 'first garage door'
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
             database.session.add(device)
             database.session.commit()
@@ -680,7 +680,7 @@ class TestDbRoleIntegration:
         ip_address = '192.175.7.9'
         device_id = str(uuid.uuid4())
         node_name = 'first garage door'
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
             database.session.add(device)
 
@@ -691,7 +691,7 @@ class TestDbRoleIntegration:
         ip_address = '192.175.7.9'
         device_id = str(uuid.uuid4())
         node_name = 'first garage door'
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
             database.session.add(device)
             database.session.commit()
@@ -704,7 +704,7 @@ class TestDbRoleIntegration:
         ip_address = '192.175.7.9'
         device_id = str(uuid.uuid4())
         node_name = 'second garage door'
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
             node = RoleDeviceNodes(node_name='test', node_device=1, role_device_id=device_id)
             database.session.add(device)
@@ -720,7 +720,7 @@ class TestDbRoleIntegration:
         ip_address = '192.175.7.9'
         device_id = str(uuid.uuid4())
         node_name = 'third garage door'
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=3, ip_address=ip_address)
             node_one = RoleDeviceNodes(node_name='test 1', node_device=1, role_device_id=device_id)
             node_two = RoleDeviceNodes(node_name='test 2', node_device=2, role_device_id=device_id)
@@ -738,7 +738,7 @@ class TestDbRoleIntegration:
         ip_address = '192.175.7.9'
         device_id = str(uuid.uuid4())
         node_name = 'third garage door'
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
             node_one = RoleDeviceNodes(node_name='test 1', node_device=1, role_device_id=device_id)
             node_two = RoleDeviceNodes(node_name='test 2', node_device=2, role_device_id=device_id)
@@ -752,12 +752,12 @@ class TestDbRoleIntegration:
     def test_add_new_device_node__should_update_preference_when_flag_set_to_true(self):
         device_id = str(uuid.uuid4())
         node_name = 'Jons New'
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address='1.1.1.1')
             database.session.add(device)
             database.add_new_device_node(self.USER_ID, device_id, node_name, True)
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             actual = database.session.execute(select(UserPreference).where(UserPreference.user_id == self.USER_ID)).scalars().first()
             assert actual.garage_door == node_name
             assert actual.garage_id == 1
@@ -765,7 +765,7 @@ class TestDbRoleIntegration:
     def test_get_user_garage_ip__should_return_garage_ip(self):
         ip_address = '192.175.7.9'
         device_id = str(uuid.uuid4())
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
             database.session.add(device)
 
@@ -774,7 +774,7 @@ class TestDbRoleIntegration:
             assert actual == ip_address
 
     def test_get_user_garage_ip__should_raise_bad_request_when_not_found(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             with pytest.raises(BadRequest):
                 database.get_user_garage_ip(str(uuid.uuid4()))
 
@@ -805,7 +805,7 @@ class TestUserDuplication:
         self.CHILD_USER = UserCredentials(id=str(uuid.uuid4()), user_name='Steve Rogers', password='', user_id=self.CHILD_USER_ID)
         self.CHILD_ACCOUNT = ChildAccounts(parent_user_id=self.USER_ID, child_user_id=self.CHILD_USER_ID)
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.add(self.ROLE)
             database.session.add(self.USER_INFO)
             database.session.add(self.USER_LOGIN)
@@ -814,7 +814,7 @@ class TestUserDuplication:
             database.session.add(self.PREFERENCE)
 
     def teardown_method(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.execute(delete(RoleDevices).where(RoleDevices.user_role_id == self.USER_ROLE_ID))
             database.session.execute(delete(RoleDevices).where(RoleDevices.id == self.UPDATED_DEVICE_ID))
 
@@ -837,7 +837,7 @@ class TestUserDuplication:
         mock_uuid.uuid4.side_effect = [self.UPDATED_USER_ID, uuid.uuid4(), uuid.uuid4()]
         new_email = 'tony_stank@stark.com'
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.create_child_account(self.USER_ID, new_email, [], self.PASSWORD)
 
             actual = database.session.execute(select(UserInformation).where(UserInformation.id == str(self.UPDATED_USER_ID))).scalars().first()
@@ -848,7 +848,7 @@ class TestUserDuplication:
         mock_uuid.uuid4.side_effect = [self.UPDATED_USER_ID, uuid.uuid4(), uuid.uuid4(), self.UPDATED_DEVICE_ID]
         new_email = 'tony_stank@stark.com'
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.create_child_account(self.USER_ID, new_email, [self.ROLE_NAME], self.PASSWORD)
             database.session.commit()
 
@@ -860,10 +860,10 @@ class TestUserDuplication:
         mock_uuid.uuid4.side_effect = [self.UPDATED_USER_ID, uuid.uuid4(), uuid.uuid4(), self.UPDATED_DEVICE_ID]
         new_email = 'tony_stank@stark.com'
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.execute(delete(RoleDevices).where(RoleDevices.user_role_id == self.USER_ROLE_ID))
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.create_child_account(self.USER_ID, new_email, [self.ROLE_NAME], self.PASSWORD)
             database.session.commit()
 
@@ -877,7 +877,7 @@ class TestUserDuplication:
         role_name = "security"
         role = Roles(id=self.TEST_ROLE_ID, role_desc=role_name, role_name=role_name)
         second_role = UserRoles(id=str(uuid.uuid4()), user_id=self.USER_ID, role_id=self.ROLE_ID, role=role)
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.add(second_role)
             database.session.commit()
             database.create_child_account(self.USER_ID, new_email, [role_name], self.PASSWORD)
@@ -888,13 +888,13 @@ class TestUserDuplication:
 
     def test_create_child_account__should_throw_bad_request_when_no_user_exists(self, mock_uuid):
         with pytest.raises(BadRequest):
-            with UserDatabaseManager() as database:
+            with UserDatabase() as database:
                 database.create_child_account(str(uuid.uuid4()), "", [], self.PASSWORD)
 
     def test_create_child_account__should_throw_bad_request_when_child_account(self, mock_uuid):
         with pytest.raises(BadRequest):
             user = UserInformation(id=self.CHILD_USER_ID, first_name='Steve', last_name='Rogers')
-            with UserDatabaseManager() as database:
+            with UserDatabase() as database:
                 database.session.add(user)
                 database.session.add(self.CHILD_USER)
                 database.session.commit()
@@ -903,10 +903,10 @@ class TestUserDuplication:
 
     def test_create_child_account__should_create_preferences(self, mock_uuid):
         mock_uuid.uuid4.side_effect = [self.UPDATED_USER_ID, uuid.uuid4(), uuid.uuid4(), self.UPDATED_DEVICE_ID]
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.create_child_account(self.USER_ID, self.USER_NAME, [self.ROLE_NAME], self.PASSWORD)
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             new_user = database.session.execute(select(UserPreference).where(UserPreference.user_id == str(self.UPDATED_USER_ID))).scalars().first()
             assert new_user.city == self.CITY
             assert new_user.is_fahrenheit is True
@@ -916,7 +916,7 @@ class TestUserDuplication:
         mock_uuid.uuid4.side_effect = [self.UPDATED_USER_ID, uuid.uuid4(), uuid.uuid4()]
         new_email = 'tony_stank@stark.com'
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             actual = database.create_child_account(self.USER_ID, new_email, [], self.PASSWORD)
 
             assert actual[0].get('user_name') == new_email
@@ -925,7 +925,7 @@ class TestUserDuplication:
 
     def test_get_user_child_accounts__should_return_children_accounts(self, mock_uuid):
         user = UserInformation(id=self.CHILD_USER_ID, first_name='Steve', last_name='Rogers')
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.add(user)
             database.session.add(self.CHILD_USER)
             database.session.commit()
@@ -937,26 +937,26 @@ class TestUserDuplication:
 
     def test_delete_child_user_account__should_remove_existing_child_account(self, mock_uuid):
         user = UserInformation(id=self.CHILD_USER_ID, first_name='Steve', last_name='Rogers')
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.add(user)
             database.session.add(self.CHILD_USER)
             database.session.commit()
             database.session.add(self.CHILD_ACCOUNT)
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.delete_child_user_account(self.USER_ID, self.CHILD_USER_ID)
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             actual_child_account = database.session.execute(select(ChildAccounts).where(ChildAccounts.child_user_id == self.CHILD_USER_ID)).scalars().first()
             assert actual_child_account is None
             actual_child_user = database.session.execute(select(UserCredentials).where(UserCredentials.user_id == self.CHILD_USER_ID)).scalars().first()
             assert actual_child_user is None
 
     def test_delete_child_user_account__should_not_delete_parent_when_no_child(self, mock_uuid):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.delete_child_user_account(self.USER_ID, self.CHILD_USER_ID)
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             actual_child_account = database.session.execute(select(ChildAccounts).where(ChildAccounts.child_user_id == self.CHILD_USER_ID)).scalars().first()
             assert actual_child_account is None
             actual_child_user = database.session.execute(select(UserCredentials).where(UserCredentials.user_id == self.CHILD_USER_ID)).scalars().first()
@@ -975,35 +975,35 @@ class TestUserScenes:
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
         self.SCENE = Scenes(name=self.SCENE_NAME, user_id=self.USER_ID, id=self.SCENE_ID)
         self.DETAIL = SceneDetails(light_group='2', light_group_name=self.GROUP_NAME, light_brightness=45, scene_id=self.SCENE_ID)
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.add(self.USER_INFO)
             database.session.commit()
             database.session.add(self.SCENE)
             database.session.add(self.DETAIL)
 
     def teardown_method(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.execute(delete(SceneDetails).where(SceneDetails.scene_id == self.SCENE_ID))
             database.session.execute(delete(Scenes).where(Scenes.id == self.SCENE_ID))
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 
     def test_get_scenes_by_user__should_return_records(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             actual = database.get_scenes_by_user(self.USER_ID)
 
         assert actual.scenes[0].name == self.SCENE_NAME
         assert actual.scenes[0].lights[0].groupName == self.GROUP_NAME
 
     def test_get_scenes_by_user__should_return_empty_list_when_none(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             actual = database.get_scenes_by_user(str(uuid.uuid4()))
 
         assert actual.to_dict() == LightScenes(scenes=[]).to_dict()
 
     def test_delete_scene_by_user__should_delete_record(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.delete_scene_by_user(self.USER_ID, self.SCENE_ID)
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             actual = database.session.execute(select(Scenes).where(Scenes.user_id == self.USER_ID)).scalars().all()
             assert len(actual) == 0

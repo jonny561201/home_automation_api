@@ -4,8 +4,8 @@ import uuid
 import jwt
 from sqlalchemy import delete, select
 
+from svc.db.methods.user_credentials import UserDatabase
 from svc.config.settings_state import Settings
-from svc.db.methods.user_credentials import UserDatabaseManager
 from svc.db.models.user_information_model import UserCredentials, UserInformation, ChildAccounts, UserPreference
 from svc.manager import app
 
@@ -31,7 +31,7 @@ class TestAccountRoutesIntegration:
         self.CHILD_USER_CRED = UserCredentials(id=self.CHILD_CRED_ID, user_name='Steve Rogers', password='', user_id=self.CHILD_USER_ID)
         self.CHILD_ACCOUNT = ChildAccounts(parent_user_id=self.USER_ID, child_user_id=self.CHILD_USER_ID)
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.add(self.USER_CRED)
             database.session.add(self.USER)
             database.session.add(self.CHILD_USER_CRED)
@@ -41,7 +41,7 @@ class TestAccountRoutesIntegration:
             database.session.add(self.USER_PREF)
 
     def teardown_method(self):
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             database.session.execute(delete(ChildAccounts))
             database.session.execute(delete(UserPreference).where(UserPreference.user_id == self.USER_ID))
             database.session.execute(delete(UserCredentials).where(UserCredentials.id == self.PARENT_USER_ID))
@@ -67,7 +67,7 @@ class TestAccountRoutesIntegration:
 
         assert actual.status_code == 200
 
-        with UserDatabaseManager() as database:
+        with UserDatabase() as database:
             creds = database.session.execute(select(UserCredentials).where(UserCredentials.user_id == self.USER_ID)).scalars().first()
             assert creds.password == new_pass
 

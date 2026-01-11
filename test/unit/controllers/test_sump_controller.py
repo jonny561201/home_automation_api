@@ -9,7 +9,7 @@ from svc.controllers.sump_controller import get_sump_level, save_current_level
 
 
 @patch('svc.controllers.sump_controller.is_jwt_valid')
-@patch('svc.controllers.sump_controller.UserDatabaseManager')
+@patch('svc.controllers.sump_controller.UserDatabase')
 class TestSumpController:
 
     def setup_method(self):

@@ -10,7 +10,7 @@ from svc.controllers.account_controller import change_password, get_roles, creat
 
 
 @patch('svc.controllers.account_controller.send_new_account_email')
-@patch('svc.controllers.account_controller.UserDatabaseManager')
+@patch('svc.controllers.account_controller.UserDatabase')
 @patch('svc.controllers.account_controller.jwt_utils')
 class TestAccountController:
     BEARER_TOKEN = jwt.encode({}, 'fake_jwt_secret', algorithm='HS256')
