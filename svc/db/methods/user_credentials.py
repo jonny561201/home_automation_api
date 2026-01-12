@@ -279,7 +279,6 @@ class UserDatabase:
         self.__create_user_preference(new_user_id, user_id)
         child = ChildAccounts(parent_user_id=user_id, child_user_id=new_user_id)
         self.session.add(child)
-        self.session.commit()
         stmt = select(ChildAccounts).filter_by(parent_user_id=user_id)
         children = self.session.execute(stmt).scalars().all()
         children_ids = [child.child_user_id for child in children]
@@ -311,11 +310,9 @@ class UserDatabase:
         new_user_role = UserRoles(user_id=new_user_id, role_id=user_role.role_id, id=role_id)
         new_user_role.role = user_role.role
         self.session.add(new_user_role)
-        self.session.commit()
         if user_role.role_devices is not None:
             device_id = str(uuid.uuid4())
             self.session.add(RoleDevices(id=device_id, ip_address=user_role.role_devices.ip_address, max_nodes=user_role.role_devices.max_nodes, user_role_id=role_id))
-            self.session.commit()
             if user_role.role_devices.role_device_nodes:
                 for node_device in user_role.role_devices.role_device_nodes:
                     self.session.add(RoleDeviceNodes(role_device_id=device_id, node_name=node_device.node_name, node_device=node_device.node_device))
