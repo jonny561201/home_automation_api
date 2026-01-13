@@ -6,7 +6,7 @@ from mock import patch
 from requests import Response
 from sqlalchemy import delete
 
-from svc.db.methods.user_credentials import UserDatabase
+from db.methods.database_base import DatabaseBase
 from svc.config.settings_state import Settings
 from svc.constants.home_automation import Automation
 from svc.db.models.user_information_model import UserInformation, UserPreference
@@ -23,12 +23,12 @@ class TestThermostatRoutesIntegration:
         self.PREFERENCE = UserPreference(user_id=str(self.USER_ID), city='London', is_fahrenheit=False, is_imperial=False)
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
-        with UserDatabase() as database:
+        with DatabaseBase() as database:
             database.session.add(self.USER)
             database.session.add(self.PREFERENCE)
 
     def teardown_method(self):
-        with UserDatabase() as database:
+        with DatabaseBase() as database:
             database.session.execute(delete(UserPreference).where(UserPreference.user_id == str(self.USER_ID)))
             database.session.execute(delete(UserInformation).where(UserInformation.id == str(self.USER_ID)))
 
