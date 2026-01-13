@@ -141,6 +141,13 @@ class TestLoginController:
 
         mock_db.return_value.__enter__.return_value.insert_preferences_by_user.assert_called_with(ANY, user_preferences)
 
+
+@patch('svc.controllers.app_controller.TasksRepository')
+@patch('svc.controllers.app_controller.jwt_utils')
+class TestAppControllerTasks:
+    BEARER_TOKEN = jwt.encode({}, 'fake_jwt_secret', algorithm='HS256')
+    USER_ID = str(uuid.uuid4())
+
     # TODO: find a way to have the two services authorize and pass tokens
     # def test_get_user_tasks__should_validate_bearer_token(self, mock_jwt, mock_db):
     #     get_user_tasks(self.BEARER_TOKEN, self.USER_ID)
@@ -162,7 +169,7 @@ class TestLoginController:
 
         assert actual == response
 
-    def test_delete_user_task__should_validate_bearer_token(self, mock_jwt, mock_db):
+    def test_delete_user_task__should_validate_bearer_token(self, mock_jwt, mmock_db):
         task_id = 'jklasdf89734'
         delete_user_task(self.BEARER_TOKEN, self.USER_ID, task_id)
         mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
