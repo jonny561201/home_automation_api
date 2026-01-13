@@ -5,7 +5,7 @@ from mock import patch
 from svc.controllers.scene_controller import get_created_scenes, delete_created_scene
 
 
-@patch('svc.controllers.scene_controller.UserDatabase')
+@patch('svc.controllers.scene_controller.LightsRepository')
 @patch('svc.controllers.scene_controller.is_jwt_valid')
 class TestSceneController:
     USER_ID = str(uuid.uuid4())
