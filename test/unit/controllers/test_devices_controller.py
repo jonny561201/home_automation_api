@@ -6,7 +6,7 @@ from svc.models.device import Device
 from svc.controllers.devices_controller import add_device_to_role, add_node_to_device
 
 
-@patch('svc.controllers.devices_controller.UserDatabase')
+@patch('svc.controllers.devices_controller.DeviceRepository')
 @patch('svc.controllers.devices_controller.is_jwt_valid')
 class TestDeviceController:
     BEARER_TOKEN = '123abcd'

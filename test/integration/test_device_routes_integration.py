@@ -4,7 +4,7 @@ import uuid
 import jwt
 from sqlalchemy import delete, select
 
-from svc.db.methods.user_credentials import UserDatabase
+from db.methods.database_base import DatabaseBase
 from svc.config.settings_state import Settings
 from svc.db.models.user_information_model import UserRoles, UserInformation, Roles, RoleDevices, RoleDeviceNodes
 from svc.manager import app
@@ -25,13 +25,13 @@ class TestDeviceRoutesIntegration:
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
         self.ROLE = Roles(id=self.ROLE_ID, role_desc="fake desc", role_name=self.ROLE_NAME)
         self.USER_ROLE = UserRoles(id=self.USER_ROLE_ID, user_id=self.USER_ID, role_id=self.ROLE_ID)
-        with UserDatabase() as database:
+        with DatabaseBase() as database:
             database.session.add(self.ROLE)
             database.session.add(self.USER_INFO)
             database.session.add(self.USER_ROLE)
 
     def teardown_method(self):
-        with UserDatabase() as database:
+        with DatabaseBase() as database:
             database.session.execute(delete(RoleDeviceNodes).where(RoleDeviceNodes.role_device_id == self.DEVICE_ID))
             database.session.execute(delete(RoleDevices).where(RoleDevices.user_role_id == self.USER_ROLE_ID))
             database.session.execute(delete(UserRoles).where(UserRoles.id == self.USER_ROLE_ID))
@@ -61,7 +61,7 @@ class TestDeviceRoutesIntegration:
 
         assert actual.status_code == 200
 
-        with UserDatabase() as database:
+        with DatabaseBase() as database:
             record = database.session.execute(select(RoleDevices).where(RoleDevices.ip_address == ip_address)).scalars().first()
             assert record.ip_address == ip_address
 
@@ -71,7 +71,7 @@ class TestDeviceRoutesIntegration:
         assert actual.status_code == 401
 
     def test_add_device_node_by_user_id__should_return_success_when_adding_node(self):
-        with UserDatabase() as database:
+        with DatabaseBase() as database:
             device = RoleDevices(id=self.DEVICE_ID, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address='1.1.1.1')
             database.session.add(device)
         node_name = 'test_node'
@@ -82,6 +82,6 @@ class TestDeviceRoutesIntegration:
 
         assert actual.status_code == 200
 
-        with UserDatabase() as database:
+        with DatabaseBase() as database:
             actual_record = database.session.execute(select(RoleDeviceNodes).where(RoleDeviceNodes.role_device_id == self.DEVICE_ID)).scalars().first()
             assert actual_record.node_name == node_name
