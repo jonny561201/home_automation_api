@@ -6,7 +6,7 @@ from mock import patch
 from sqlalchemy import orm
 from werkzeug.exceptions import BadRequest
 
-from svc.db.methods.account_repository import AccountRepository
+from svc.db.repositories.account_repository import AccountRepository
 from svc.db.models.user_information_model import ChildAccounts, Roles, UserRoles, UserCredentials, UserInformation, \
     UserPreference
 
@@ -68,7 +68,7 @@ class TestAccountRepository:
             self.DATABASE.create_child_account(None, '', [], '')
         self.SESSION.execute.assert_not_called()
 
-    @patch('svc.db.methods.account_repository.UserRoles')
+    @patch('svc.db.repositories.account_repository.UserRoles')
     def test_create_child_account__should_insert_user_role(self, mock_roles):
         role = Roles(role_name='security')
         user_role = UserRoles(role=role)

@@ -4,7 +4,7 @@ import uuid
 import jwt
 from sqlalchemy import delete, select
 
-from db.methods.database_base import DatabaseBase
+from svc.db.repositories.database_base import DatabaseBase
 from svc.config.settings_state import Settings
 from svc.db.models.user_information_model import UserRoles, UserInformation, Roles, RoleDevices, RoleDeviceNodes
 from svc.manager import app

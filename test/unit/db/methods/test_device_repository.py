@@ -7,7 +7,7 @@ from mock import patch, mock
 from sqlalchemy import orm
 from werkzeug.exceptions import Unauthorized, BadRequest
 
-from svc.db.methods.device_repository import DeviceRepository
+from svc.db.repositories.device_repository import DeviceRepository
 from svc.db.models.user_information_model import UserRoles, Roles, UserPreference, RoleDevices, RoleDeviceNodes
 
 
@@ -37,7 +37,7 @@ class TestDeviceRepository:
 
         self.SESSION.add.assert_called()
 
-    @patch('svc.db.methods.device_repository.uuid')
+    @patch('svc.db.repositories.device_repository.uuid')
     def test_add_new_role_device__should_return_device_id_in_response(self, mock_uuid):
         ip_address = '0.0.0.0'
         role_name = 'garage_door'

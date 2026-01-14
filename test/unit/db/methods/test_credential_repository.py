@@ -8,7 +8,7 @@ from mock import patch
 from sqlalchemy import orm
 from werkzeug.exceptions import Forbidden, Unauthorized, BadRequest
 
-from svc.db.methods.credential_repository import CredentialRepository
+from svc.db.repositories.credential_repository import CredentialRepository
 from svc.db.models.user_information_model import RefreshToken, UserInformation, UserCredentials, UserRoles, Roles
 
 
@@ -69,7 +69,7 @@ class TestCredentialRepository:
         with pytest.raises(Forbidden):
             self.DATABASE.generate_new_refresh_token(refresh, self.NOW)
 
-    @patch('svc.db.methods.credential_repository.uuid')
+    @patch('svc.db.repositories.credential_repository.uuid')
     def test_generate_new_refresh_token__should_return_a_new_refresh_token(self, mock_uuid):
         refresh = str(uuid.uuid4())
         new_refresh = str(uuid.uuid4())
@@ -83,7 +83,7 @@ class TestCredentialRepository:
 
         assert actual == {'user_id': self.USER_ID, 'refresh_token': new_refresh}
 
-    @patch('svc.db.methods.credential_repository.uuid')
+    @patch('svc.db.repositories.credential_repository.uuid')
     def test_generate_new_refresh_token__should_insert_new_refresh_token_into_db(self, mock_uuid):
         refresh = str(uuid.uuid4())
         new_refresh = str(uuid.uuid4())
@@ -98,7 +98,7 @@ class TestCredentialRepository:
         assert token.refresh == new_refresh
         assert token.expire_time == self.NOW
 
-    @patch('svc.db.methods.credential_repository.uuid')
+    @patch('svc.db.repositories.credential_repository.uuid')
     def test_generate_new_refresh_token__should_reduce_refresh_count(self, mock_uuid):
         refresh = str(uuid.uuid4())
         new_refresh = str(uuid.uuid4())

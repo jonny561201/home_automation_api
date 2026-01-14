@@ -5,8 +5,8 @@ from datetime import datetime
 import jwt
 from sqlalchemy import select, delete
 
-from db.methods.database_base import DatabaseBase
-from svc.db.methods.sump_repository import SumpDatabase
+from svc.db.repositories.database_base import DatabaseBase
+from svc.db.repositories.sump_repository import SumpDatabase
 from svc.config.settings_state import Settings
 from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, UserPreference
 from svc.manager import app

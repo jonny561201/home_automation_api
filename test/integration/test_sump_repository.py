@@ -5,8 +5,8 @@ import pytest
 from sqlalchemy import select, delete
 from werkzeug.exceptions import BadRequest
 
-from db.methods.database_base import DatabaseBase
-from svc.db.methods.sump_repository import SumpDatabase
+from svc.db.repositories.database_base import DatabaseBase
+from svc.db.repositories.sump_repository import SumpDatabase
 from svc.db.models.user_information_model import DailySumpPumpLevel, AverageSumpPumpLevel, ChildAccounts, UserInformation
 
 

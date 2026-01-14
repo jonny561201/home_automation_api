@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import select, delete
 from werkzeug.exceptions import Unauthorized, Forbidden
 
-from svc.db.methods.database_base import DatabaseBase
+from svc.db.repositories.database_base import DatabaseBase
 from svc.db.models.user_information_model import UserCredentials, RefreshToken
 
 

@@ -3,9 +3,9 @@ import json
 
 from zoneinfo import ZoneInfo
 
-from svc.db.methods.account_repository import AccountRepository
-from svc.db.methods.tasks_repository import TasksRepository
-from svc.db.methods.credential_repository import CredentialRepository
+from svc.db.repositories.account_repository import AccountRepository
+from svc.db.repositories.tasks_repository import TasksRepository
+from svc.db.repositories.credential_repository import CredentialRepository
 from svc.utilities import jwt_utils
 
 

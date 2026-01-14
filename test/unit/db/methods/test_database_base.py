@@ -7,7 +7,7 @@ from mock import mock
 from sqlalchemy import orm
 from werkzeug.exceptions import BadRequest
 
-from svc.db.methods.database_base import DatabaseBase
+from svc.db.repositories.database_base import DatabaseBase
 from svc.db.models.user_information_model import (UserPreference, UserCredentials, UserInformation)
 
 

@@ -1,6 +1,6 @@
 from werkzeug.exceptions import BadRequest
 
-from svc.db.methods.device_repository import DeviceRepository
+from svc.db.repositories.device_repository import DeviceRepository
 from svc.models.device import Device
 from svc.utilities.jwt_utils import is_jwt_valid
 

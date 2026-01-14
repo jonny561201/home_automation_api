@@ -8,7 +8,7 @@ from sqlalchemy import orm
 from werkzeug.exceptions import BadRequest
 
 from db.models.user_information_model import ScheduleTasks, ScheduledTaskTypes
-from svc.db.methods.tasks_repository import TasksRepository
+from svc.db.repositories.tasks_repository import TasksRepository
 
 
 class TestTaskRepository:
@@ -21,7 +21,7 @@ class TestTaskRepository:
         self.DATABASE.session = self.SESSION
 
 
-    @patch('svc.db.methods.tasks_repository.ScheduleTasks.__init__', return_value=None)
+    @patch('svc.db.repositories.tasks_repository.ScheduleTasks.__init__', return_value=None)
     def test_insert_schedule_task_by_user__should_create_task(self, mock_tasks):
         task = {'alarmLightGroup': '2', 'alarmGroupName': 'bathroom', 'alarmTime': '00:01:01', 'alarmDays': 'Mon', 'enabled': False,
                 'taskType': 'turn on', 'hvacMode': 'HEATING', 'hvacStart': '00:02:00', 'hvacStop': '01:00:01', 'hvacStartTemp': 20, 'hvacStopTemp': 16}
@@ -34,7 +34,7 @@ class TestTaskRepository:
                                       hvac_mode=task['hvacMode'], hvac_start=time.fromisoformat(task['hvacStart']), hvac_stop=time.fromisoformat(task['hvacStop']),
                                       hvac_start_temp=task['hvacStartTemp'], hvac_stop_temp=task['hvacStopTemp'])
 
-    @patch('svc.db.methods.tasks_repository.ScheduleTasks.__init__', return_value=None)
+    @patch('svc.db.repositories.tasks_repository.ScheduleTasks.__init__', return_value=None)
     def test_insert_schedule_task_by_user__should_create_task_with_default_values_when_missing(self, mock_tasks):
         task = {'alarmLightGroup': '2', 'alarmGroupName': 'bathroom', 'alarmTime': '00:01:01', 'alarmDays': 'Mon', 'enabled': False, 'taskType': 'turn on'}
         task_type = ScheduledTaskTypes(activity_name='turn on')
@@ -192,7 +192,7 @@ class TestTaskRepository:
 
         self.SESSION.execute.return_value.scalars.return_value.first.assert_called()
 
-    @patch('svc.db.methods.tasks_repository.uuid')
+    @patch('svc.db.repositories.tasks_repository.uuid')
     def test_update_schedule_task_by_user_id__should_update_task_id(self, mock_uuid):
         task_id = 'asd123'
         task = {'taskId': task_id, 'alarmLightGroup': '1', 'alarmGroupName': 'asdf', 'alarmDays': 'Mon', 'alarmTime': '00:00', }
@@ -405,7 +405,7 @@ class TestTaskRepository:
             self.DATABASE.update_schedule_task_by_user_id(None, {})
         self.SESSION.execute.assert_not_called()
 
-    @patch('svc.db.methods.tasks_repository.uuid')
+    @patch('svc.db.repositories.tasks_repository.uuid')
     def test_update_schedule_task_by_user_id__should_return_revised_task(self, mock_uuid):
         task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmLightGroup': '3', 'alarmTime': '00:00:00'}
         new_task_id = uuid.uuid4()

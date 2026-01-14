@@ -1,4 +1,4 @@
-from svc.db.methods.lights_repository import LightsRepository
+from svc.db.repositories.lights_repository import LightsRepository
 from svc.utilities.jwt_utils import is_jwt_valid
 
 

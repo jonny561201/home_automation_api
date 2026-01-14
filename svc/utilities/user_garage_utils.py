@@ -1,4 +1,4 @@
-from svc.db.methods.device_repository import DeviceRepository
+from svc.db.repositories.device_repository import DeviceRepository
 
 
 def get_garage_url_by_user(user_id):

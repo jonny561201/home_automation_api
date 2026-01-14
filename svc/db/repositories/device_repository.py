@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy import select
 from werkzeug.exceptions import Unauthorized, BadRequest
 
-from svc.db.methods.database_base import DatabaseBase
+from svc.db.repositories.database_base import DatabaseBase
 from svc.db.models.user_information_model import ChildAccounts, UserRoles, RoleDevices, RoleDeviceNodes, UserPreference
 from svc.models.device import DoorDeviceDetails, DeviceNode
 

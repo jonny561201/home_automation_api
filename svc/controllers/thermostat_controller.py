@@ -1,6 +1,6 @@
 import json
 
-from db.methods.account_repository import AccountRepository
+from db.repositories.account_repository import AccountRepository
 from svc.models.thermostat import ThermostatState
 from svc.services import temperature
 from svc.utilities.conversion_utils import convert_to_celsius, convert_to_fahrenheit

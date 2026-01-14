@@ -9,7 +9,7 @@ from werkzeug.exceptions import BadRequest
 
 from svc.db.models.user_information_model import SceneDetails, Scenes
 from svc.models.scenes import LightScenes
-from svc.db.methods.lights_repository import LightsRepository
+from svc.db.repositories.lights_repository import LightsRepository
 
 
 class TestLightsRepository:

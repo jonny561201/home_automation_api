@@ -7,12 +7,12 @@ from mock import patch
 from sqlalchemy import delete, select
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
-from svc.db.methods.account_repository import AccountRepository
-from svc.db.methods.device_repository import DeviceRepository
-from svc.db.methods.lights_repository import LightsRepository
-from svc.db.methods.tasks_repository import TasksRepository
-from svc.db.methods.credential_repository import CredentialRepository
-from svc.db.methods.database_base import DatabaseBase
+from svc.db.repositories.account_repository import AccountRepository
+from svc.db.repositories.device_repository import DeviceRepository
+from svc.db.repositories.lights_repository import LightsRepository
+from svc.db.repositories.tasks_repository import TasksRepository
+from svc.db.repositories.credential_repository import CredentialRepository
+from svc.db.repositories.database_base import DatabaseBase
 from svc.db.models.user_information_model import UserInformation, UserCredentials, Roles, UserPreference, UserRoles, \
     RoleDevices, RoleDeviceNodes, ChildAccounts, ScheduleTasks, \
     ScheduledTaskTypes, Scenes, SceneDetails, RefreshToken
@@ -190,7 +190,7 @@ class TestRefreshTokenIntegration:
             with CredentialRepository() as database:
                 database.generate_new_refresh_token(self.WORN_TOKEN, self.NOW)
 
-    @patch('svc.db.methods.credential_repository.uuid')
+    @patch('svc.db.repositories.credential_repository.uuid')
     def test_generate_new_refresh_token__should_return_a_valid_token(self, mock_uuid):
         new_refresh = str(uuid.uuid4())
         mock_uuid.uuid4.return_value = new_refresh
@@ -688,7 +688,7 @@ class TestDbDeviceIntegration:
                 database.get_user_garage_ip(str(uuid.uuid4()))
 
 
-@patch('svc.db.methods.account_repository.uuid')
+@patch('svc.db.repositories.account_repository.uuid')
 class TestAccountIntegration:
     PASSWORD = "Test"
     USER_NAME = "tony_stank  "

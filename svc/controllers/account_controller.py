@@ -2,8 +2,8 @@ import json
 
 from werkzeug.exceptions import BadRequest
 
-from db.methods.account_repository import AccountRepository
-from db.methods.credential_repository import CredentialRepository
+from svc.db.repositories.account_repository import AccountRepository
+from svc.db.repositories.credential_repository import CredentialRepository
 from svc.utilities import jwt_utils
 from svc.utilities.api_utils import send_new_account_email
 from svc.utilities.string_utils import generate_password

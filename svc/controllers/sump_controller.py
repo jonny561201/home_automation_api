@@ -1,6 +1,6 @@
 import json
 
-from svc.db.methods.sump_repository import SumpDatabase
+from svc.db.repositories.sump_repository import SumpDatabase
 from svc.models.sump import SumpLevel
 from svc.utilities.conversion_utils import convert_to_imperial
 from svc.utilities.jwt_utils import is_jwt_valid
