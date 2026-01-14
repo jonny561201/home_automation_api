@@ -8,7 +8,7 @@ from svc.utilities import jwt_utils
 
 
 def get_login(client_id, client_secret):
-    with UserDatabase() as user_database:
+    with CredentialRepository() as user_database:
         user_info = user_database.validate_credentials(client_id, client_secret)
         refresh = jwt_utils.generate_refresh_token()
         expire = datetime.now(tz=ZoneInfo('US/Central')) + timedelta(hours=24)
@@ -17,7 +17,7 @@ def get_login(client_id, client_secret):
 
 
 def refresh_bearer_token(old_refresh):
-    with UserDatabase() as database:
+    with CredentialRepository() as database:
         expire = datetime.now(tz=ZoneInfo('US/Central')) + timedelta(hours=24)
         refresh_data = database.generate_new_refresh_token(old_refresh, expire)
         user_info = database.get_user_info(refresh_data['user_id'])

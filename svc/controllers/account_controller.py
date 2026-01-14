@@ -11,7 +11,7 @@ from svc.utilities.string_utils import generate_password
 def change_password(bearer_token, user_id, request_data):
     jwt_utils.is_jwt_valid(bearer_token)
     request = json.loads(request_data.decode('UTF-8'))
-    with UserDatabase() as database:
+    with CredentialRepository() as database:
         database.change_user_password(user_id, request['oldPassword'], request['newPassword'])
 
 

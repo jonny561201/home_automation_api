@@ -10,9 +10,9 @@ from svc.controllers.account_controller import change_password, get_roles, creat
 
 
 @patch('svc.controllers.account_controller.send_new_account_email')
-@patch('svc.controllers.account_controller.UserDatabase')
+@patch('svc.controllers.account_controller.CredentialRepository')
 @patch('svc.controllers.account_controller.jwt_utils')
-class TestAccountController:
+class TestAccountCredentials:
     BEARER_TOKEN = jwt.encode({}, 'fake_jwt_secret', algorithm='HS256')
     USER = 'user_name'
     PASSWORD = 'password'
@@ -44,6 +44,16 @@ class TestAccountController:
         change_password(self.BEARER_TOKEN, self.USER_ID, json.dumps(request).encode('UTF-8'))
 
         mock_db.return_value.__enter__.return_value.change_user_password.assert_called_with(ANY, ANY, new_password)
+
+
+@patch('svc.controllers.account_controller.send_new_account_email')
+@patch('svc.controllers.account_controller.AccountRepository')
+@patch('svc.controllers.account_controller.jwt_utils')
+class TestAccountRoles:
+    BEARER_TOKEN = jwt.encode({}, 'fake_jwt_secret', algorithm='HS256')
+    USER = 'user_name'
+    PASSWORD = 'password'
+    USER_ID = 'fake_user_id'
 
     def test_get_roles__should_make_call_to_validate_jwt(self, mock_jwt, mock_db, mock_email):
         get_roles(self.BEARER_TOKEN, self.USER_ID)

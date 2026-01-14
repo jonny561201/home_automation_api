@@ -10,9 +10,9 @@ from svc.controllers.app_controller import get_login, get_user_preferences, save
     delete_user_task, insert_user_task, update_user_task, refresh_bearer_token
 
 
-@patch('svc.controllers.app_controller.UserDatabase')
+@patch('svc.controllers.app_controller.CredentialRepository')
 @patch('svc.controllers.app_controller.jwt_utils')
-class TestLoginController:
+class TestLoginControllerCredentials:
     BEARER_TOKEN = jwt.encode({}, 'fake_jwt_secret', algorithm='HS256')
     USER = 'user_name'
     PWORD = 'password'

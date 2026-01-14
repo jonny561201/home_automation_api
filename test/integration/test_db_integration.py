@@ -7,15 +7,20 @@ from mock import patch
 from sqlalchemy import delete, select
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 
-from svc.db.methods.user_credentials import UserDatabase
-from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, \
-    UserCredentials, Roles, UserPreference, UserRoles, RoleDevices, RoleDeviceNodes, ChildAccounts, ScheduleTasks, \
+from svc.db.methods.account_repository import AccountRepository
+from svc.db.methods.device_repository import DeviceRepository
+from svc.db.methods.lights_repository import LightsRepository
+from svc.db.methods.tasks_repository import TasksRepository
+from svc.db.methods.credential_repository import CredentialRepository
+from svc.db.methods.database_base import DatabaseBase
+from svc.db.models.user_information_model import UserInformation, UserCredentials, Roles, UserPreference, UserRoles, \
+    RoleDevices, RoleDeviceNodes, ChildAccounts, ScheduleTasks, \
     ScheduledTaskTypes, Scenes, SceneDetails, RefreshToken
 from svc.models.app import Tasks
 from svc.models.scenes import LightScenes
 
 
-class TestDbValidateIntegration:
+class TestDbCredentialIntegration:
     USER_NAME = 'Jonny'
     PASSWORD = 'fakePass'
     ROLE_NAME = 'garage_door'
@@ -32,14 +37,14 @@ class TestDbValidateIntegration:
         self.USER_ROLE = UserRoles(id=self.USER_ROLE_ID, role_id=self.ROLE.id, user_id=self.USER_ID, role=self.ROLE)
         self.USER = UserInformation(id=self.USER_ID, first_name=self.FIRST, last_name=self.LAST)
         self.USER_LOGIN = UserCredentials(id=self.CRED_ID, user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
-        with UserDatabase() as database:
+        with DatabaseBase() as database:
             database.session.add(self.USER)
             self.USER_LOGIN.role_id = database.session.execute(select(Roles)).unique().scalars().first().id
             database.session.add(self.USER_LOGIN)
             database.session.add(self.USER_ROLE)
 
     def teardown_method(self):
-        with UserDatabase() as database:
+        with DatabaseBase() as database:
             database.session.execute(delete(RoleDeviceNodes).where(RoleDeviceNodes.role_device_id == self.DEVICE_ID))
             database.session.execute(delete(RoleDevices).where(RoleDevices.id == self.DEVICE_ID))
             database.session.execute(delete(UserRoles).where(UserRoles.id == self.USER_ROLE_ID))
@@ -48,19 +53,19 @@ class TestDbValidateIntegration:
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 
     def test_validate_credentials__should_return_user_id_when_user_exists(self):
-        with UserDatabase() as database:
+        with CredentialRepository() as database:
             actual = database.validate_credentials(self.USER_NAME, self.PASSWORD)
 
             assert actual['user_id'] == self.USER_ID
 
     def test_validate_credentials__should_return_first_name_when_user_exists(self):
-        with UserDatabase() as database:
+        with CredentialRepository() as database:
             actual = database.validate_credentials(self.USER_NAME, self.PASSWORD)
 
             assert actual['first_name'] == self.FIRST
 
     def test_validate_credentials__should_return_last_name_when_user_exists(self):
-        with UserDatabase() as database:
+        with CredentialRepository() as database:
             actual = database.validate_credentials(self.USER_NAME, self.PASSWORD)
 
             assert actual['last_name'] == self.LAST
@@ -68,7 +73,7 @@ class TestDbValidateIntegration:
     def test_validate_credentials__should_return_role_device_data(self):
         ip_address = '0.1.2.3'
         node_name = 'test_node'
-        with UserDatabase() as database:
+        with CredentialRepository() as database:
             device = RoleDevices(id=self.DEVICE_ID, user_role_id=self.USER_ROLE_ID, max_nodes=1, ip_address=ip_address)
             node = RoleDeviceNodes(role_device_id=self.DEVICE_ID, node_name=node_name, node_device=1)
             database.session.add(device)
@@ -79,18 +84,18 @@ class TestDbValidateIntegration:
                                         'devices': [{'node_device': 1, 'node_name': node_name}]}]
 
     def test_validate_credentials__should_raise_unauthorized_when_user_does_not_exist(self):
-        with UserDatabase() as database:
+        with CredentialRepository() as database:
             with pytest.raises(Unauthorized):
                 database.validate_credentials('missingUser', 'missingPassword')
 
     def test_validate_credentials__should_raise_unauthorized_when_password_does_not_match(self):
-        with UserDatabase() as database:
+        with CredentialRepository() as database:
             user_pass = 'wrongPassword'
             with pytest.raises(Unauthorized):
                 database.validate_credentials(self.USER_NAME, user_pass)
 
     def test_get_user_info__should_return_user_information(self):
-        with UserDatabase() as database:
+        with CredentialRepository() as database:
             actual = database.get_user_info(self.USER_ID)
 
             assert actual['user_id'] == self.USER_ID
@@ -100,7 +105,7 @@ class TestDbValidateIntegration:
     def test_get_user_info__should_return_role_device_data(self):
         ip_address = '0.1.2.3'
         node_name = 'test_node'
-        with UserDatabase() as database:
+        with CredentialRepository() as database:
             device = RoleDevices(id=self.DEVICE_ID, user_role_id=self.USER_ROLE_ID, max_nodes=1, ip_address=ip_address)
             node = RoleDeviceNodes(role_device_id=self.DEVICE_ID, node_name=node_name, node_device=1)
             database.session.add(device)
@@ -151,24 +156,24 @@ class TestRefreshTokenIntegration:
         self.VALID_REFRESH = RefreshToken(refresh=self.VALID_TOKEN, user_id=self.USER_ID, count=10, expire_time=self.EXPIRE)
         self.EXPIRED_REFRESH = RefreshToken(refresh=self.EXPIRED_TOKEN, user_id=self.USER_ID, count=10, expire_time=self.EXPIRED)
         self.WORN_REFRESH = RefreshToken(refresh=self.WORN_TOKEN, count=0, expire_time=self.EXPIRE)
-        with UserDatabase() as database:
+        with DatabaseBase() as database:
             database.session.add(self.USER)
-        with UserDatabase() as database:
+        with DatabaseBase() as database:
             database.session.add(self.EXPIRED_REFRESH)
             database.session.add(self.VALID_REFRESH)
 
     def teardown_method(self):
-        with UserDatabase() as database:
+        with DatabaseBase() as database:
             database.session.execute(delete(RefreshToken))
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 
     def test_insert_refresh_token__should_insert_token_to_db(self):
         token = str(uuid.uuid4())
         expire = self.NOW + datetime.timedelta(hours=12)
-        with UserDatabase() as database:
+        with CredentialRepository() as database:
             database.insert_refresh_token(self.USER_ID, token, expire)
 
-        with UserDatabase() as database:
+        with CredentialRepository() as database:
             stmt = select(RefreshToken).where(RefreshToken.refresh == token)
             actual = database.session.execute(stmt).scalars().first()
             assert actual.count == 10
