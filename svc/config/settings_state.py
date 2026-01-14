@@ -99,6 +99,11 @@ class Queue:
     def vhost(self):
         return _get_setting('QUEUE_VHOST', 'VHost', self._settings)
 
+    @property
+    def exchange(self):
+        return _get_setting('QUEUE_EXCHANGE', 'Exchange', self._settings)
+
+
 class BaseUrls:
 
     def __init__(self, settings):

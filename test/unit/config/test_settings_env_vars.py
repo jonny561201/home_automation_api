@@ -5,12 +5,13 @@ from svc.config.settings_state import Settings
 
 
 class TestSettingsEnvVars:
-    ENV_VARS = {'SQL_USERNAME': 'test_user', 'SQL_PASSWORD': 'test_pass', 'SQL_PORT': '5231',
-                'SQL_DBNAME': 'fake_name', 'EMAIL_APP_ID': 'abc123', 'WEATHER_APP_ID': '345def',
-                'JWT_SECRET': 'FakeSecret', 'TEMP_FILE_NAME': 'test.json', 'USER_ID': 'sdf234',
-                'LIGHT_API_KEY': str(uuid.uuid4()), 'QUEUE_USER_NAME': 'queue_user', 'QUEUE_PASSWORD': 'queue_pass',
-                'QUEUE_HOST': 'localhost', 'QUEUE_PORT': '5642', 'QUEUE_VHOST': 'vhost'
-                }
+    ENV_VARS = {
+        'SQL_USERNAME': 'test_user', 'SQL_PASSWORD': 'test_pass', 'SQL_PORT': '5231',
+        'SQL_DBNAME': 'fake_name', 'EMAIL_APP_ID': 'abc123', 'WEATHER_APP_ID': '345def',
+        'JWT_SECRET': 'FakeSecret', 'TEMP_FILE_NAME': 'test.json', 'USER_ID': 'sdf234',
+        'LIGHT_API_KEY': str(uuid.uuid4()), 'QUEUE_USER_NAME': 'queue_user', 'QUEUE_PASSWORD': 'queue_pass',
+        'QUEUE_HOST': 'localhost', 'QUEUE_PORT': '5642', 'QUEUE_VHOST': 'vhost', 'QUEUE_EXCHANGE': 'exchange'
+    }
 
     def setup_method(self):
         os.environ.update(self.ENV_VARS)
@@ -35,6 +36,7 @@ class TestSettingsEnvVars:
         os.environ.pop('QUEUE_HOST')
         os.environ.pop('QUEUE_PORT')
         os.environ.pop('QUEUE_VHOST')
+        os.environ.pop('QUEUE_EXCHANGE')
 
     def test_database_user__should_return_value(self):
         assert self.SETTINGS.Database.user == self.ENV_VARS['SQL_USERNAME']
@@ -113,6 +115,9 @@ class TestSettingsEnvVars:
 
     def test_queue_port__should_return_value(self):
         assert self.SETTINGS.Queue.port == self.ENV_VARS['QUEUE_PORT']
+
+    def test_queue_exchange__should_return_value(self):
+        assert self.SETTINGS.Queue.exchange == self.ENV_VARS['QUEUE_EXCHANGE']
 
     def test_queue_port__should_favor_environment_variables_above_settings(self):
         self.SETTINGS.Queue._settings = {'Port': '9999'}

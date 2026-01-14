@@ -5,7 +5,7 @@ from svc.config.settings_state import Settings
 
 class TestSettings:
     db_settings = {'User': 'other_user', 'Password': 'other_pass', 'Port': '1234', 'Name': 'other_name'}
-    q_settings = {'Host': 'localhost', 'Port': 564, 'VHost': '/', 'User': 'guest', 'Password': 'fake+pass'}
+    q_settings = {'Host': 'localhost', 'Port': 564, 'VHost': '/', 'User': 'guest', 'Password': 'fake+pass', 'Exchange': 'test_exchange'}
     urls = {'Lights': 'http://lights.api', 'Weather': 'http://weather.api', 'Email': 'http://email.com'}
     test_settings = {
         'Environment': 'Testing',
@@ -73,6 +73,9 @@ class TestSettings:
 
     def test_queue_port__should_pull_from_settings(self):
         assert self.SETTINGS.Queue.port == self.q_settings['Port']
+
+    def test_queue_exchange__should_pull_from_settings(self):
+        assert self.SETTINGS.Queue.exchange == self.q_settings['Exchange']
 
     def test_allowed_origins__should_pull_from_settings(self):
         assert self.SETTINGS.allowed_origins == self.test_settings['AllowedOrigins']
