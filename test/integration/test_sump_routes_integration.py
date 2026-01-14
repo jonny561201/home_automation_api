@@ -5,22 +5,44 @@ from datetime import datetime
 import jwt
 from sqlalchemy import select, delete
 
-from svc.db.repositories.database_base import DatabaseBase
-from svc.db.repositories.sump_repository import SumpDatabase
 from svc.config.settings_state import Settings
-from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, UserPreference
+from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, \
+    UserPreference
+from svc.db.repositories.database_base import DatabaseBase
 from svc.manager import app
 
 
 class TestSumpRoutes:
     JWT_SECRET = 'fakeKey'
+    USER_ID = str(uuid.uuid4())
+    DEPTH = 12.45
+    AVG_DEPTH = 10.65
+    BEAR_TOKEN = jwt.encode({}, JWT_SECRET, algorithm='HS256')
+    HEADER = {'Authorization': 'Bearer ' + BEAR_TOKEN}
 
     def setup_method(self):
         Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET}
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
-        self.BEAR_TOKEN = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
-        self.HEADER = {'Authorization': 'Bearer ' + self.BEAR_TOKEN}
+        user = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
+        preference = UserPreference(user=user, is_imperial=False, is_fahrenheit=True)
+        sump = DailySumpPumpLevel(user=user, distance=self.DEPTH, warning_level=0, create_date=datetime.now())
+        average = AverageSumpPumpLevel(user=user, distance=self.AVG_DEPTH, create_day=datetime.date(datetime.now()))
+
+        with DatabaseBase() as database:
+            database.session.add(sump)
+            database.session.add(preference)
+            database.session.add(average)
+            database.session.flush()
+
+    def teardown_method(self):
+        with DatabaseBase() as database:
+            database.session.execute(delete(DailySumpPumpLevel).where(DailySumpPumpLevel.user_id == self.USER_ID))
+            database.session.execute(delete(AverageSumpPumpLevel).where(AverageSumpPumpLevel.user_id == self.USER_ID))
+            database.session.execute(delete(UserPreference).where(UserPreference.user_id == self.USER_ID))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
+
+
 
     def test_get_current_sump_level__should_return_not_found_when_user_does_not_exist(self):
         user_id = uuid.uuid4().hex
@@ -35,45 +57,20 @@ class TestSumpRoutes:
         assert actual.status_code == 401
 
     def test_get_current_sump_level__should_return_valid_response(self):
-        user_id = uuid.uuid4().hex
-        user = UserInformation(id=user_id, first_name='Jon', last_name='Test')
-        expected_depth = 12.45
-        average_depth = 10.65
-        date = datetime.date(datetime.now())
-        preference = UserPreference(user=user, is_imperial=False, is_fahrenheit=True)
-        sump = DailySumpPumpLevel(user=user, distance=expected_depth, warning_level=0, create_date=datetime.now())
-        average = AverageSumpPumpLevel(user=user, distance=average_depth, create_day=date)
-
-        with DatabaseBase() as database:
-            database.session.add(sump)
-            database.session.add(preference)
-            database.session.add(average)
-            database.session.flush()
-
-        actual = self.TEST_CLIENT.get(f'sumpPump/user/{user_id}/depth', headers=self.HEADER)
+        actual = self.TEST_CLIENT.get(f'sumpPump/user/{self.USER_ID}/depth', headers=self.HEADER)
         json_actual = json.loads(actual.data)
 
-        with DatabaseBase() as database:
-            database.session.execute(delete(DailySumpPumpLevel).where(DailySumpPumpLevel.user_id == user_id))
-            database.session.execute(delete(AverageSumpPumpLevel).where(AverageSumpPumpLevel.user_id == user_id))
-            database.session.execute(delete(UserPreference).where(UserPreference.user_id == user_id))
-            database.session.execute(delete(UserInformation).where(UserInformation.id == user_id))
-
         assert actual.status_code == 200
-        assert json_actual['currentDepth'] == expected_depth
-        assert json_actual['averageDepth'] == average_depth
+        assert json_actual['currentDepth'] == self.DEPTH
+        assert json_actual['averageDepth'] == self.AVG_DEPTH
 
     def test_save_current_level_by_user__should_store_depth_info(self):
         depth = 12.31
-        user_id = str(uuid.uuid4())
         post_body = {'depth': depth, 'warning_level': 2, 'datetime': str(datetime.now())}
-        user = UserInformation(id=user_id, first_name='Jon', last_name='Test')
-        with SumpDatabase() as database:
-            database.session.add(user)
 
-        self.TEST_CLIENT.post(f'sumpPump/user/{user_id}/currentDepth', data=json.dumps(post_body), headers=self.HEADER)
+        self.TEST_CLIENT.post(f'sumpPump/user/{self.USER_ID}/currentDepth', data=json.dumps(post_body), headers=self.HEADER)
 
-        with SumpDatabase() as database:
-            sump_level = database.session.execute(select(DailySumpPumpLevel).where(DailySumpPumpLevel.user_id == user_id)).scalars().first()
+        with DatabaseBase() as database:
+            sump_level = database.session.execute(select(DailySumpPumpLevel).where(DailySumpPumpLevel.user_id == self.USER_ID, DailySumpPumpLevel.distance == depth)).scalars().first()
             assert float(sump_level.distance) == depth
-            assert str(sump_level.user_id) == user_id
+            assert str(sump_level.user_id) == self.USER_ID
