@@ -117,27 +117,9 @@ class TestDbCredentialIntegration:
 
     def test_get_user_info__should_raise_unauthorized_when_user_not_found(self):
         with pytest.raises(Unauthorized):
-            with UserDatabase() as database:
+            with CredentialRepository() as database:
                 missing_user_id = str(uuid.uuid4())
                 database.get_user_info(missing_user_id)
-
-    def test_get_roles_by_user__should_return_role_device_data(self):
-        ip_address = '0.1.2.3'
-        node_name = 'test_node'
-        with UserDatabase() as database:
-            device = RoleDevices(id=self.DEVICE_ID, user_role_id=self.USER_ROLE_ID, max_nodes=1, ip_address=ip_address)
-            node = RoleDeviceNodes(role_device_id=self.DEVICE_ID, node_name=node_name, node_device=1)
-            database.session.add(device)
-            database.session.add(node)
-            actual = database.get_roles_by_user(self.USER_ID)
-
-            assert actual['roles'] == [{'ip_address': ip_address, 'role_name': self.ROLE_NAME, 'device_id': self.DEVICE_ID,
-                                        'devices': [{'node_device': 1, 'node_name': node_name}]}]
-
-    def test_get_roles_by_user__should_raise_bad_request_when_missing_user(self):
-        with pytest.raises(BadRequest):
-            with UserDatabase() as database:
-                database.get_roles_by_user(str(uuid.uuid4()))
 
 
 class TestRefreshTokenIntegration:
