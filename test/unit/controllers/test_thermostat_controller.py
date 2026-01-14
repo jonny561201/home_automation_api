@@ -11,7 +11,7 @@ from svc.controllers.thermostat_controller import get_user_temp, set_user_temper
 
 @patch('svc.controllers.thermostat_controller.get_desired_temp')
 @patch('svc.controllers.thermostat_controller.temperature')
-@patch('svc.controllers.thermostat_controller.UserDatabase')
+@patch('svc.controllers.thermostat_controller.AccountRepository')
 @patch('svc.controllers.thermostat_controller.is_jwt_valid')
 class TestThermostatGetController:
     JWT_TOKEN = jwt.encode({}, 'JWT_SECRET', algorithm='HS256')

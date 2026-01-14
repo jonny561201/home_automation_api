@@ -98,6 +98,14 @@ class TestLoginControllerCredentials:
 
         assert actual == self.BEARER_TOKEN
 
+
+@patch('svc.controllers.app_controller.AccountRepository')
+@patch('svc.controllers.app_controller.jwt_utils')
+class TestAppControllerAccount:
+    BEARER_TOKEN = jwt.encode({}, 'fake_jwt_secret', algorithm='HS256')
+    USER = 'user_name'
+    USER_ID = str(uuid.uuid4())
+
     def test_get_user_preferences__should_validate_bearer_token(self, mock_jwt, mock_db):
         get_user_preferences(self.BEARER_TOKEN, self.USER_ID)
 

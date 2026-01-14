@@ -7,7 +7,7 @@ from mock import patch
 from requests import Response
 from sqlalchemy import delete
 
-from svc.db.methods.user_credentials import UserDatabase
+from db.methods.database_base import DatabaseBase
 from svc.config.settings_state import Settings
 from svc.db.models.user_information_model import UserInformation, Roles, UserRoles, RoleDevices, RoleDeviceNodes
 from svc.manager import app
@@ -30,16 +30,16 @@ class TestGarageDoorRoutesIntegration:
         self.ROLE = Roles(id=self.ROLE_ID, role_desc="fake desc", role_name='garage_door')
         self.USER_ROLE = UserRoles(id=self.USER_ROLE_ID, user_id=self.USER_ID, role_id=self.ROLE_ID)
         self.DEVICE = RoleDevices(id=self.DEVICE_ID, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address='1.1.1.1', ip_port=5001)
-        with UserDatabase() as database:
+        with DatabaseBase() as database:
             database.session.add(self.ROLE)
             database.session.add(self.USER_INFO)
             database.session.add(self.USER_ROLE)
             database.session.add(self.DEVICE)
 
     def teardown_method(self):
-        with UserDatabase() as database:
+        with DatabaseBase() as database:
             database.session.delete(self.USER_ROLE)
-        with UserDatabase() as database:
+        with DatabaseBase() as database:
             database.session.execute(delete(RoleDeviceNodes))
             database.session.execute(delete(RoleDevices).where(RoleDevices.id == self.DEVICE_ID))
             database.session.execute(delete(Roles).where(Roles.id == self.ROLE_ID))

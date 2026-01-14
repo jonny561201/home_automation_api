@@ -3,7 +3,9 @@ import json
 
 from zoneinfo import ZoneInfo
 
-from svc.db.methods.user_credentials import UserDatabase
+from svc.db.methods.account_repository import AccountRepository
+from svc.db.methods.tasks_repository import TasksRepository
+from svc.db.methods.credential_repository import CredentialRepository
 from svc.utilities import jwt_utils
 
 
@@ -26,14 +28,14 @@ def refresh_bearer_token(old_refresh):
 
 def get_user_preferences(bearer_token, user_id):
     jwt_utils.is_jwt_valid(bearer_token)
-    with UserDatabase() as database:
+    with AccountRepository() as database:
         return database.get_preferences_by_user(user_id)
 
 
 def save_user_preferences(bearer_token, user_id, request_data):
     jwt_utils.is_jwt_valid(bearer_token)
     user_preferences = json.loads(request_data.decode('UTF-8'))
-    with UserDatabase() as database:
+    with AccountRepository() as database:
         database.insert_preferences_by_user(user_id, user_preferences)
 
 
