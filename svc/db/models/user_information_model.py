@@ -139,7 +139,6 @@ class ScheduleTasks(Base):
     task_type = relationship('ScheduledTaskTypes', foreign_keys='ScheduleTasks.task_type_id')
 
 
-# TODO: remove cascade delete on user roles
 class UserCredentials(Base):
     __tablename__ = 'user_login'
 
