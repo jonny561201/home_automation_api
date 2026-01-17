@@ -18,6 +18,7 @@ class Hvac:
     MODE = Mode
     FURNACE = 'furnace'
     AIR_CONDITIONING = 'ac'
+    QUEUE = 'home-automation-hvac'
 
 
 class Garage:
