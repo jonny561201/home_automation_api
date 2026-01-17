@@ -1,11 +1,13 @@
 import json
 
-from db.repositories.account_repository import AccountRepository
+from svc.constants.home_automation import Automation
+from svc.db.repositories.account_repository import AccountRepository
 from svc.models.thermostat import ThermostatState
 from svc.services import temperature
 from svc.utilities.conversion_utils import convert_to_celsius, convert_to_fahrenheit
 from svc.utilities.file_utils import write_desired_temp_to_file, get_desired_temp
 from svc.utilities.jwt_utils import is_jwt_valid
+from svc.utilities.rabbitmq_client import publish
 
 
 def get_user_temp(user_id, bearer_token):
@@ -28,7 +30,9 @@ def set_user_temperature(request, bearer_token):
     is_jwt_valid(bearer_token)
     json_request = json.loads(request.decode('UTF-8'))
     temp = json_request['desiredTemp'] if not json_request['isFahrenheit'] else convert_to_celsius(json_request['desiredTemp'])
-    write_desired_temp_to_file(temp, json_request['mode'])
+    mode = json_request['mode']
+    write_desired_temp_to_file(temp, mode)
+    publish(Automation.HVAC.QUEUE, {'desiredTemp': temp, 'mode': mode, 'isAuto': mode == 'auto'})
 
 
 def __create_response(internal_temp, is_fahren):
