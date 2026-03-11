@@ -1,13 +1,11 @@
 import json
-from functools import partial
 
 import pika
 
 from svc.config.settings_state import Settings, Queue
-from utilities.event_client import MyThread
 
 
-def publish(queue_name, payload):
+def publish(queue_name: str, payload: dict):
     settings = Settings.get_instance().Queue
 
     try:
