@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from dataclasses_json import dataclass_json, cfg
 
@@ -18,7 +18,7 @@ class Coordinates:
 @dataclass
 class GarageStatus:
     isGarageOpen: bool
-    statusDuration: datetime
+    statusDuration: timedelta
     coordinates: Coordinates
 
 
