@@ -13,7 +13,7 @@ def get_status(bearer_token, user_id, garage_id):
     return api_utils.get_garage_door_status(bearer_token, base_url, garage_id)
 
 
-def update_state(bearer_token, user_id, garage_id, request):
+def update_state(bearer_token, garage_id, request):
     is_jwt_valid(bearer_token)
     message = {'id': garage_id, 'action': 'update', 'open': request['garageDoorOpen']}
     publish(Automation.GARAGE.QUEUE, message)
@@ -21,7 +21,7 @@ def update_state(bearer_token, user_id, garage_id, request):
     return GarageState(isGarageOpen=request['garageDoorOpen'])
 
 
-def toggle_door(bearer_token, user_id, garage_id):
+def toggle_door(bearer_token, garage_id):
     is_jwt_valid(bearer_token)
     message = {'id': garage_id, 'action': 'toggle'}
 
