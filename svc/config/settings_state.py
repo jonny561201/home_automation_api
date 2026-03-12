@@ -126,7 +126,7 @@ class BaseUrls:
 class Authority:
 
     def __init__(self, settings):
-        self._settings = settings.get('BaseURls') if settings is not None else {}
+        self._settings = settings.get('Authority') if settings is not None else {}
 
     @property
     def domain(self):
