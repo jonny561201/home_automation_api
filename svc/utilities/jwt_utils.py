@@ -3,7 +3,7 @@ from datetime import timedelta, datetime
 
 import jwt
 from zoneinfo import ZoneInfo
-from jwt import DecodeError, ExpiredSignatureError, InvalidSignatureError
+from jwt import DecodeError, ExpiredSignatureError, InvalidSignatureError, PyJWKClient
 from werkzeug.exceptions import Unauthorized
 
 from svc.config.settings_state import Settings
@@ -34,3 +34,29 @@ def _parse_jwt_token(jwt_token):
         jwt.decode(stripped_token, settings.jwt_secret, algorithms=["HS256"])
     except (InvalidSignatureError, ExpiredSignatureError, DecodeError, KeyError) as er:
         raise Unauthorized
+
+
+
+
+class AuthClient:
+    # TODO: store in settings if this works
+    AUTH0_DOMAIN = "dev-mx0anv661qiyofk8.us.auth0.com"
+    API_AUDIENCE = "http://localhost:5000"
+    ALGORITHMS = ["RS256"]
+
+    def __init__(self):
+        jwks_url = f"https://{self.AUTH0_DOMAIN}/.well-known/jwks.json"
+        self.jwks_client = PyJWKClient(jwks_url)
+
+    def verify_jwt(self, token: str):
+        signing_key = self.jwks_client.get_signing_key_from_jwt(token)
+
+        payload = jwt.decode(
+            token,
+            signing_key.key,
+            algorithms=self.ALGORITHMS,
+            audience=self.API_AUDIENCE,
+            issuer=f"https://{self.AUTH0_DOMAIN}/",
+        )
+
+        return payload
