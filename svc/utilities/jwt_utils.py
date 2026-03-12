@@ -39,13 +39,11 @@ def _parse_jwt_token(jwt_token):
 
 
 class AuthClient:
-    # TODO: store in settings if this works
-    AUTH0_DOMAIN = "dev-mx0anv661qiyofk8.us.auth0.com"
-    API_AUDIENCE = "http://localhost:5000"
     ALGORITHMS = ["RS256"]
 
-    def __init__(self):
-        jwks_url = f"https://{self.AUTH0_DOMAIN}/.well-known/jwks.json"
+    def __init__(self, settings: Settings):
+        self.settings = settings
+        jwks_url = f"https://{self.settings.Authority.domain}/.well-known/jwks.json"
         self.jwks_client = PyJWKClient(jwks_url)
 
     def verify_jwt(self, token: str):
