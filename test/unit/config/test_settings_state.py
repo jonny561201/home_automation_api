@@ -7,6 +7,7 @@ class TestSettings:
     db_settings = {'User': 'other_user', 'Password': 'other_pass', 'Port': '1234', 'Name': 'other_name'}
     q_settings = {'Host': 'localhost', 'Port': 564, 'VHost': '/', 'User': 'guest', 'Password': 'fake+pass', 'Exchange': 'test_exchange'}
     urls = {'Lights': 'http://lights.api', 'Weather': 'http://weather.api', 'Email': 'http://email.com'}
+    auth_settings = {'Domain': 'fake.domain.com', 'Audience': 'https://fake.com'}
     test_settings = {
         'Environment': 'Testing',
         'EmailAppId': '098zyx',
@@ -24,6 +25,7 @@ class TestSettings:
         self.SETTINGS.Database._settings = self.db_settings
         self.SETTINGS.Queue._settings = self.q_settings
         self.SETTINGS.BaseUrls._settings = self.urls
+        self.SETTINGS.Authority._settings = self.auth_settings
 
     def test_environment__should_pull_from_settings(self):
         assert self.SETTINGS.environment == self.test_settings['Environment']
@@ -88,3 +90,9 @@ class TestSettings:
 
     def test_base_url_email__should_pull_from_settings(self):
         assert self.SETTINGS.BaseUrls.email == self.urls['Email']
+
+    def test_auth_domain__should_pull_from_settings(self):
+        assert self.SETTINGS.Authority.domain == self.auth_settings['Domain']
+
+    def test_auth_audience__should_pull_from_settings(self):
+        assert self.SETTINGS.Authority.audience == self.auth_settings['Audience']

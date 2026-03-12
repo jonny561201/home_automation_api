@@ -107,22 +107,6 @@ class TestSettingsEnvVars:
     def test_queue_password__should_return_value(self):
         assert self.SETTINGS.Queue.password == self.ENV_VARS['QUEUE_PASSWORD']
 
-    def test_queue_host__should_return_value(self):
-        assert self.SETTINGS.Queue.host == self.ENV_VARS['QUEUE_HOST']
-
-    def test_queue_vhost__should_return_value(self):
-        assert self.SETTINGS.Queue.vhost == self.ENV_VARS['QUEUE_VHOST']
-
-    def test_queue_port__should_return_value(self):
-        assert self.SETTINGS.Queue.port == self.ENV_VARS['QUEUE_PORT']
-
-    def test_queue_exchange__should_return_value(self):
-        assert self.SETTINGS.Queue.exchange == self.ENV_VARS['QUEUE_EXCHANGE']
-
-    def test_queue_port__should_favor_environment_variables_above_settings(self):
-        self.SETTINGS.Queue._settings = {'Port': '9999'}
-        assert self.SETTINGS.Queue.port == self.ENV_VARS['QUEUE_PORT']
-
     def test_queue_user__should_favor_environment_variables_above_settings(self):
         self.SETTINGS.Queue._settings = {'User': 'other_user'}
         assert self.SETTINGS.Queue.user_name == self.ENV_VARS['QUEUE_USER_NAME']
@@ -130,11 +114,3 @@ class TestSettingsEnvVars:
     def test_queue_password__should_favor_environment_variables_above_settings(self):
         self.SETTINGS.Queue._settings = {'Password': 'IveChangedThis'}
         assert self.SETTINGS.Queue.password == self.ENV_VARS['QUEUE_PASSWORD']
-
-    def test_queue_host__should_favor_environment_variables_above_settings(self):
-        self.SETTINGS.Queue._settings = {'Host': 'ImANewHost'}
-        assert self.SETTINGS.Queue.host == self.ENV_VARS['QUEUE_HOST']
-
-    def test_queue_vhost__should_favor_environment_variables_above_settings(self):
-        self.SETTINGS.Queue._settings = {'VHost': 'ImANewHost'}
-        assert self.SETTINGS.Queue.vhost == self.ENV_VARS['QUEUE_VHOST']

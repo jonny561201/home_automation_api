@@ -13,6 +13,7 @@ class Settings:
         self.Queue = Queue(self._settings)
         self.Database = Database(self._settings)
         self.BaseUrls = BaseUrls(self._settings)
+        self.Authority = Authority(self._settings)
 
     @property
     def environment(self):
@@ -89,19 +90,19 @@ class Queue:
 
     @property
     def host(self):
-        return _get_setting('QUEUE_HOST', 'Host', self._settings)
+        return self._settings.get('Host')
 
     @property
     def port(self):
-        return _get_setting('QUEUE_PORT', 'Port', self._settings)
+        return self._settings.get('Port')
 
     @property
     def vhost(self):
-        return _get_setting('QUEUE_VHOST', 'VHost', self._settings)
+        return self._settings.get('VHost')
 
     @property
     def exchange(self):
-        return _get_setting('QUEUE_EXCHANGE', 'Exchange', self._settings)
+        return self._settings.get('Exchange')
 
 
 class BaseUrls:
@@ -121,6 +122,19 @@ class BaseUrls:
     def email(self):
         return self._settings.get('Email')
 
+
+class Authority:
+
+    def __init__(self, settings):
+        self._settings = settings.get('BaseURls') if settings is not None else {}
+
+    @property
+    def domain(self):
+        return self._settings.get('Domain')
+
+    @property
+    def audience(self):
+        return self._settings.get('Audience')
 
 def _get_setting(env_var, setting_key, settings):
     env_var_value = os.environ.get(env_var)
