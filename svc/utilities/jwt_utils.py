@@ -53,8 +53,8 @@ class AuthClient:
             token,
             signing_key.key,
             algorithms=self.ALGORITHMS,
-            audience=self.API_AUDIENCE,
-            issuer=f"https://{self.AUTH0_DOMAIN}/",
+            audience=self.settings.Authority.audience,
+            issuer=f"https://{self.settings.Authority.domain}/",
         )
 
         return payload
