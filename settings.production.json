@@ -4,6 +4,10 @@
     "Port": "5432",
     "Name": "garage_door"
   },
+  "Authority": {
+    "Domain": "dev-mx0anv661qiyofk8.us.auth0.com",
+    "Audience": "https://soaringleafsolutions.com"
+  },
   "UserId": "e97febc0-fd10-11e9-8f0b-362b9e155667",
   "TempFileName": "/home/pi/temperature_settings.json",
   "BaseURls": {
