@@ -56,7 +56,7 @@ class Settings:
 class Database:
 
     def __init__(self, settings):
-        self._settings = settings.get('Database') if settings is not None else None
+        self._settings = settings.get('Database', {}) if settings is not None else None
 
     @property
     def user(self):
@@ -78,7 +78,7 @@ class Database:
 class Queue:
 
     def __init__(self, settings):
-        self._settings = settings.get('Queue') if settings is not None else None
+        self._settings = settings.get('Queue', {}) if settings is not None else None
 
     @property
     def user_name(self):
@@ -108,7 +108,7 @@ class Queue:
 class BaseUrls:
 
     def __init__(self, settings):
-        self._settings = settings.get('BaseURls') if settings is not None else {}
+        self._settings = settings.get('BaseURls', {}) if settings is not None else {}
 
     @property
     def lights(self):
@@ -126,7 +126,7 @@ class BaseUrls:
 class Authority:
 
     def __init__(self, settings):
-        self._settings = settings.get('Authority') if settings is not None else {}
+        self._settings = settings.get('Authority', {}) if settings is not None else {}
 
     @property
     def domain(self):
