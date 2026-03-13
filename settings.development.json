@@ -18,8 +18,8 @@
   "Queue": {
     "Port": 123,
     "Host": "localhost",
-    "VHost": "/",
-    "Exchange": "home_automation-dev"
+    "VHost": "home-automation-dev",
+    "Exchange": "home_automation"
   },
   "AllowedOrigins": [
     "https://www.dev.soaringleafsolutions.com",
