@@ -8,18 +8,18 @@ from svc.constants.home_automation import Mime
 from svc.config.settings_state import Settings
 
 
-def get_weather_by_city(city, unit, app_id):
-    args = {'q': city, 'units': unit, 'APPID': app_id}
+def get_city_coordinates(city):
+    args = {'name': city, 'count': 1}
     base_url = Settings.get_instance().BaseUrls.weather
-    response = requests.get(f'{base_url}/weather', params=args)
+    response = requests.get(f'https://geocoding-{base_url}/search', params=args)
     __validate_response(response)
     return response.json()
 
 
-def get_forecast_by_coords(coords, unit, app_id):
-    args = {'lat': coords['lat'], 'lon': coords['lon'], 'units': unit, 'appid': app_id, 'exclude': 'alerts,current,hourly,minutely'}
+def get_forecast_by_coords(lat, lon, unit):
+    args = {'latitude': lat, 'longitude': lon, 'current_weather': True, 'temperature_unit': unit, 'daily': 'temperature_2m_max,temperature_2m_min,weathercode', 'forecast_days': 1, 'timezone': 'auto'}
     base_url = Settings.get_instance().BaseUrls.weather
-    response = requests.get(f'{base_url}/onecall', params=args)
+    response = requests.get(f'https://{base_url}/forecast', params=args)
     __validate_response(response)
     return response.json()
 

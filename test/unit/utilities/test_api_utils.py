@@ -7,7 +7,7 @@ from requests import Response, ReadTimeout, ConnectTimeout
 from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
 
 from svc.config.settings_state import Settings
-from svc.utilities.api_utils import get_weather_by_city, create_light_group, set_light_groups, set_light_state, \
+from svc.utilities.api_utils import get_city_coordinates, create_light_group, set_light_groups, set_light_state, \
     get_light_groups, get_garage_door_status, toggle_garage_door_state, update_garage_door_state, \
     send_new_account_email, get_forecast_by_coords
 
@@ -16,84 +16,61 @@ from svc.utilities.api_utils import get_weather_by_city, create_light_group, set
 class TestWeatherApiRequests:
     CITY = 'Des Moines'
     COORDS = {'lat': 23.123, 'lon': -92.28876}
-    UNIT_PREFERENCE = 'imperial'
-    URL = 'https://test.weather.api'
-    APP_ID = 'ab30xkd0'
+    UNIT_PREFERENCE = 'fahrenheit'
+    URL = 'test.weather.api'
 
     def setup_method(self):
         Settings.get_instance().BaseUrls._settings = {'Weather': self.URL}
         self.RESPONSE = Response()
         self.RESPONSE.status_code = 200
-        self.RESPONSE_CONTENT = {'main': {}, 'weather': [{}]}
-        self.WEATHER_PARAMS = {'q': self.CITY, 'units': self.UNIT_PREFERENCE, 'APPID': self.APP_ID}
-        self.FORECAST_PARAMS = {'lat': self.COORDS['lat'], 'lon': self.COORDS['lon'], 'units': self.UNIT_PREFERENCE, 'appid': self.APP_ID, 'exclude': 'alerts,current,hourly,minutely'}
+        self.RESPONSE_CONTENT = {'weather': [{}]}
+        self.WEATHER_PARAMS = {'name': self.CITY, 'count': 1}
+        self.FORECAST_PARAMS = {'latitude': self.COORDS['lat'], 'longitude': self.COORDS['lon'], 'current_weather': True, 'temperature_unit': self.UNIT_PREFERENCE, 'daily': 'temperature_2m_max,temperature_2m_min,weathercode', 'forecast_days': 1, 'timezone': 'auto'}
 
-    def test_get_weather_by_city__should_call_requests_get(self, mock_requests):
+    def test_get_city_coordinates__should_call_requests_get(self, mock_requests):
         self.RESPONSE._content = json.dumps(self.RESPONSE_CONTENT).encode('UTF-8')
         mock_requests.get.return_value = self.RESPONSE
 
-        get_weather_by_city(self.CITY, self.UNIT_PREFERENCE, self.APP_ID)
+        get_city_coordinates(self.CITY)
 
-        mock_requests.get.assert_called_with(f'{self.URL}/weather', params=self.WEATHER_PARAMS)
+        mock_requests.get.assert_called_with(f'https://geocoding-{self.URL}/search', params=self.WEATHER_PARAMS)
 
-    def test_get_weather_by_city__should_use_provided_city_location_in_url(self, mock_requests):
-        city = 'London'
+    def test_get_city_coordinates__should_use_provided_city_location_in_url(self, mock_requests):
         self.RESPONSE._content = json.dumps(self.RESPONSE_CONTENT).encode('UTF-8')
         mock_requests.get.return_value = self.RESPONSE
 
-        get_weather_by_city(city, self.UNIT_PREFERENCE, self.APP_ID)
+        get_city_coordinates(self.WEATHER_PARAMS['name'])
 
-        self.WEATHER_PARAMS['q'] = city
-        mock_requests.get.assert_called_with(f'{self.URL}/weather', params=self.WEATHER_PARAMS)
+        mock_requests.get.assert_called_with(f'https://geocoding-{self.URL}/search', params=self.WEATHER_PARAMS)
 
-    def test_get_weather_by_city__should_use_provided_app_id_in_url(self, mock_requests):
-        app_id = 'fake app id'
-        self.RESPONSE._content = json.dumps(self.RESPONSE_CONTENT).encode('UTF-8')
-        mock_requests.get.return_value = self.RESPONSE
-
-        get_weather_by_city(self.CITY, self.UNIT_PREFERENCE, app_id)
-
-        self.WEATHER_PARAMS['APPID'] = app_id
-        mock_requests.get.assert_called_with(f'{self.URL}/weather', params=self.WEATHER_PARAMS)
-
-    def test_get_weather_by_city__should_call_api_using_unit_preference_in_params(self, mock_requests):
-        self.RESPONSE._content = json.dumps(self.RESPONSE_CONTENT).encode('UTF-8')
-        mock_requests.get.return_value = self.RESPONSE
-        unit = 'metric'
-        self.WEATHER_PARAMS['units'] = unit
-
-        get_weather_by_city(self.CITY, unit, self.APP_ID)
-
-        mock_requests.get.assert_called_with(f'{self.URL}/weather', params=self.WEATHER_PARAMS)
-
-    def test_get_weather_by_city__should_return_status_code_and_content(self, mock_requests):
+    def test_get_city_coordinates__should_return_status_code_and_content(self, mock_requests):
         expected_content = json.dumps(self.RESPONSE_CONTENT).encode('UTF-8')
         self.RESPONSE._content = expected_content
         mock_requests.get.return_value = self.RESPONSE
 
-        content = get_weather_by_city(self.CITY, 'metric', self.APP_ID)
+        content = get_city_coordinates(self.CITY)
 
         assert content == self.RESPONSE_CONTENT
 
-    def test_get_weather_by_city__should_raise_unauthorized(self, mock_requests):
+    def test_get_city_coordinates__should_raise_unauthorized(self, mock_requests):
         self.RESPONSE.status_code = 401
         mock_requests.get.return_value = self.RESPONSE
         with pytest.raises(Unauthorized):
-            get_weather_by_city(self.CITY, self.UNIT_PREFERENCE, self.APP_ID)
+            get_city_coordinates(self.CITY)
 
     def test_get_forecast_by_coords__should_make_get_request(self, mock_requests):
         self.RESPONSE._content = json.dumps({}).encode('UTF-8')
         mock_requests.get.return_value = self.RESPONSE
-        get_forecast_by_coords(self.COORDS, self.UNIT_PREFERENCE, self.APP_ID)
+        get_forecast_by_coords(self.COORDS['lat'], self.COORDS['lon'], self.UNIT_PREFERENCE)
 
-        mock_requests.get.assert_called_with(f'{self.URL}/onecall', params=self.FORECAST_PARAMS)
+        mock_requests.get.assert_called_with(f'https://{self.URL}/forecast', params=self.FORECAST_PARAMS)
 
     def test_get_forecast_by_coords__should_return_the_response_content(self, mock_requests):
         content = {'doesntMatter': 'dumb'}
         self.RESPONSE._content = json.dumps(content).encode('UTF-8')
         mock_requests.get.return_value = self.RESPONSE
 
-        actual = get_forecast_by_coords(self.COORDS, self.UNIT_PREFERENCE, self.APP_ID)
+        actual = get_forecast_by_coords(self.COORDS['lat'], self.COORDS['lon'], self.UNIT_PREFERENCE)
 
         assert actual == content
 
@@ -101,13 +78,13 @@ class TestWeatherApiRequests:
         self.RESPONSE.status_code = 400
         mock_requests.get.return_value = self.RESPONSE
         with pytest.raises(FailedDependency):
-            get_forecast_by_coords(self.COORDS, self.UNIT_PREFERENCE, self.APP_ID)
+            get_forecast_by_coords(self.COORDS['lat'], self.COORDS['lon'], self.UNIT_PREFERENCE)
 
     def test_get_forecast_by_coords__should_raise_unauthorized(self, mock_requests):
         self.RESPONSE.status_code = 401
         mock_requests.get.return_value = self.RESPONSE
         with pytest.raises(Unauthorized):
-            get_forecast_by_coords(self.COORDS, self.UNIT_PREFERENCE, self.APP_ID)
+            get_forecast_by_coords(self.COORDS['lat'], self.COORDS['lon'], self.UNIT_PREFERENCE)
 
 
 @patch('svc.utilities.api_utils.requests')
