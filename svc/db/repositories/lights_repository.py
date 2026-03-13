@@ -13,8 +13,7 @@ class LightsRepository(DatabaseBase):
         scenes = self.session.execute(stmt).unique().scalars().all()
         if scenes is None:
             return LightScenes(scenes=[])
-        return LightScenes(
-            scenes=[LightScene(name=scene.name, lights=self.__create_light_scenes(scene.details)) for scene in scenes])
+        return LightScenes(scenes=[LightScene(name=scene.name, lights=self.__create_light_scenes(scene.details)) for scene in scenes])
 
     def delete_scene_by_user(self, user_id, scene_id):
         self._validate_property(user_id)

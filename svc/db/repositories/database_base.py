@@ -40,8 +40,7 @@ class DatabaseBase:
         if role_devices is not None:
             return {'ip_address': role_devices.ip_address, 'role_name': role_name,
                     'device_id': str(role_devices.id),
-                    'devices': [{'node_device': node.node_device, 'node_name': node.node_name} for node in
-                                role_devices.role_device_nodes]}
+                    'devices': [{'node_device': node.node_device, 'node_name': node.node_name} for node in role_devices.role_device_nodes]}
         else:
             return {'role_name': role_name}
 
