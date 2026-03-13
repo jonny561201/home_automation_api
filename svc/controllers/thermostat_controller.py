@@ -21,6 +21,7 @@ def get_user_temp(user_id, bearer_token):
         return __create_response(internal_temp, preference.isFahrenheit)
 
 
+#TODO: update database account repo to store lat/lon of city
 def get_user_forecast(user_id, bearer_token):
     is_jwt_valid(bearer_token)
     with AccountRepository() as database:

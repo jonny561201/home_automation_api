@@ -32,6 +32,7 @@ def get_user_preferences(bearer_token, user_id):
         return database.get_preferences_by_user(user_id)
 
 
+#TODO: get city coordinates and save in Account Repo
 def save_user_preferences(bearer_token, user_id, request_data):
     jwt_utils.is_jwt_valid(bearer_token)
     user_preferences = json.loads(request_data.decode('UTF-8'))
