@@ -3,18 +3,20 @@ import json
 from svc.constants.home_automation import Automation
 from svc.db.repositories.account_repository import AccountRepository
 from svc.models.thermostat import ThermostatState
-from svc.services import temperature
+from svc.services import weather_request
 from svc.utilities.conversion_utils import convert_to_celsius, convert_to_fahrenheit
-from svc.utilities.file_utils import write_desired_temp_to_file, get_desired_temp
+from svc.utilities.file_utils import write_desired_temp_to_file, get_desired_temp, read_temperature_file
 from svc.utilities.jwt_utils import is_jwt_valid
 from svc.utilities.rabbitmq_client import publish
+from svc.utilities.user_temp_utils import get_user_temperature
 
 
 def get_user_temp(user_id, bearer_token):
     is_jwt_valid(bearer_token)
     with AccountRepository() as database:
         preference = database.get_preferences_by_user(user_id)
-        internal_temp = temperature.get_internal_temp(preference)
+        temp_text = read_temperature_file()
+        internal_temp = get_user_temperature(temp_text, preference.isFahrenheit)
 
         return __create_response(internal_temp, preference.isFahrenheit)
 
@@ -23,7 +25,7 @@ def get_user_forecast(user_id, bearer_token):
     is_jwt_valid(bearer_token)
     with AccountRepository() as database:
         preference = database.get_preferences_by_user(user_id)
-        return temperature.get_external_temp(preference)
+        return weather_request.get_weather(preference.city, preference.tempUnit)
 
 
 def set_user_temperature(request, bearer_token):

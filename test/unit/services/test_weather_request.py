@@ -1,4 +1,4 @@
-from mock import patch, ANY
+from mock import patch
 from requests.exceptions import ConnectionError
 
 from svc.services.weather_request import get_weather
