@@ -6,4 +6,4 @@ VALUES ('127.0.0.1', 5001, 1, (SELECT ur.id
                               WHERE ui.first_name = 'Jon'
                                 AND r.role_name = 'garage_door'));
 
-INSERT INTO role_device_nodes (node_name, node_device, role_device_id) VALUES ('garage door ip', 1, (SELECT id FROM role_devices WHERE ip_address = '127.0.0.1'));
+INSERT INTO role_device_nodes (node_name, node_device, role_device_id) VALUES ('Jon''s', 1, (SELECT id FROM role_devices WHERE ip_address = '127.0.0.1'));
