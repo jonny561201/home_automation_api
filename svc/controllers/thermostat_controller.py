@@ -51,7 +51,7 @@ def __create_response(internal_temp, is_fahren):
 
 
 def __convert_desired_temp(is_fahren, internal_temp, state):
-    desired_temp = state['desiredTemp']
+    desired_temp = state.get('desiredTemp')
     if desired_temp is None:
         return internal_temp
     elif is_fahren:
