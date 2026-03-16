@@ -5,6 +5,7 @@ from flask import Blueprint, request, Response
 from svc.constants.home_automation import Mime
 from svc.controllers import account_controller
 
+
 ACCOUNT_BLUEPRINT = Blueprint('account_routes', __name__, url_prefix='/account')
 
 

@@ -3,6 +3,7 @@ from flask import Blueprint, request, Response
 from svc.constants.home_automation import Mime
 from svc.controllers import thermostat_controller
 
+
 THERMOSTAT_BLUEPRINT = Blueprint('thermostat_blueprint', __name__, url_prefix='/thermostat')
 
 

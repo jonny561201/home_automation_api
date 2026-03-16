@@ -4,6 +4,7 @@ from flask import request
 from svc.constants.home_automation import Mime
 from svc.controllers import garage_door_controller
 
+
 GARAGE_BLUEPRINT = Blueprint('garage_blueprint', __name__, url_prefix='/garageDoor')
 
 

@@ -3,6 +3,7 @@ from flask import Blueprint, request, Response
 from svc.constants.home_automation import Mime
 from svc.controllers.sump_controller import get_sump_level, save_current_level
 
+
 SUMP_BLUEPRINT = Blueprint('sump_pump_blueprint', __name__, url_prefix='/sumpPump')
 
 

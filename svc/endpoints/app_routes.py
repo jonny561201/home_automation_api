@@ -6,6 +6,7 @@ from werkzeug.exceptions import Unauthorized
 from svc.constants.home_automation import Mime
 from svc.controllers import app_controller
 
+
 APP_BLUEPRINT = Blueprint('app_routes', __name__)
 
 

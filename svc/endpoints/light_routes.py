@@ -5,6 +5,7 @@ from flask import request, Response, Blueprint
 from svc.constants.home_automation import Mime
 from svc.controllers import light_controller
 
+
 LIGHT_BLUEPRINT = Blueprint('light_blueprint', __name__, url_prefix="/lights")
 
 
