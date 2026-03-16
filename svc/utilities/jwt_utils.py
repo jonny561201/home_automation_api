@@ -37,7 +37,7 @@ def _parse_jwt_token(jwt_token):
 
 
 
-
+#TODO: add a has_permission method that validates and checks for claim?
 class AuthClient:
     ALGORITHMS = ["RS256"]
 
