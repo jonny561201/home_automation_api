@@ -40,16 +40,11 @@ class TestThermostatRoutesIntegration:
     @patch('svc.controllers.thermostat_controller.get_desired_temp')
     @patch('svc.utilities.api_utils.requests')
     def test_get_temperature__should_return_temperature(self, mock_requests, mock_file):
-        response_one = Response()
-        response_one.status_code = 200
-        response_one._content = json.dumps({'weather': [{'description': 'light drizzle'}],
-                                        'main': {'temp': 23.4}}).encode()
-        response_two = Response()
-        response_two.status_code = 200
-        response_two._content = json.dumps({'daily': [{'temp': {'min': 21.0, 'max': 25.1}}]}).encode()
+        first = self._create_response(content={'results': [{'latitude': -93.1232, 'longitude': 12.323}]})
+        second = self._create_response(content={'daily': {'temp': {'min': 21.0, 'max': 25.1}}})
         mock_file.return_value = {'desiredTemp': 22.2, 'mode': Automation.HVAC.MODE.HEATING}
 
-        mock_requests.get.side_effect = [response_two, response_one]
+        mock_requests.get.side_effect = [first, second]
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
         headers = {'Authorization': bearer_token}
 
@@ -81,17 +76,14 @@ class TestThermostatRoutesIntegration:
 
     @patch('svc.utilities.api_utils.requests')
     def test_get_forecast_data__should_return_successfully(self, mock_request):
-        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
-        headers = {'Authorization': bearer_token}
-        response_one = Response()
-        response_two = Response()
-        response_one.status_code = 200
-        response_two.status_code = 200
+        temp = 13.3
         min_temp = 22.0
         max_temp = 27.3
-        response_one._content = json.dumps({'daily': [{'temp': {'min': min_temp, 'max': max_temp}}]}).encode()
-        response_two._content = json.dumps({'coord': {'lat': 23.232, 'lon': -93.232}}).encode()
-        mock_request.get.side_effect = [response_two, response_one]
+        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
+        headers = {'Authorization': bearer_token}
+        first = self._create_response(content={'results': [{'latitude': 23.232, 'longitude': -93.232}]})
+        second = self._create_response(content={'daily': {'temperature_2m_min': [min_temp], 'temperature_2m_max': [max_temp]}, 'current_weather': {'temperature': temp}})
+        mock_request.get.side_effect = [first, second]
 
         actual = self.TEST_CLIENT.get(f'thermostat/forecast/{str(self.USER_ID)}', headers=headers)
         json_actual = json.loads(actual.data)
@@ -99,4 +91,11 @@ class TestThermostatRoutesIntegration:
         assert actual.status_code == 200
         assert json_actual['minTemp'] == min_temp
         assert json_actual['maxTemp'] == max_temp
+        assert json_actual['temp'] == temp
 
+    @staticmethod
+    def _create_response(status=200, content={}):
+        response = Response()
+        response.status_code = status
+        response._content = json.dumps(content).encode()
+        return response
