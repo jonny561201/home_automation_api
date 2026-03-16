@@ -64,24 +64,20 @@ class TestGarageDoorRoutesIntegration:
         assert actual.status_code == 200
 
     def test_update_garage_door_state__should_return_unauthorized_without_jwt(self, mock_request):
-        post_body = {}
-        headers = {}
+        post_body = "{}"
+        headers = {'Content-Type': 'application/json'}
 
-        url = f'garageDoor/{self.GARAGE_ID}/user/{self.USER_ID}/state'
+        url = f'garageDoor/{self.GARAGE_ID}/state'
         actual = self.TEST_CLIENT.post(url, data=post_body, headers=headers)
 
         assert actual.status_code == 401
 
     def test_update_garage_door_state__should_return_success(self, mock_request):
         post_body = {'garageDoorOpen': True}
-        response = Response()
-        response._content = json.dumps({'isGarageOpen': False, 'statusDuration': datetime.now().isoformat(), 'coordinates': {'latitude': 1.12, 'longitude': -12.93}}).encode()
-        response.status_code = 200
-        mock_request.post.return_value = response
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
-        headers = {'Authorization': bearer_token}
+        headers = {'Authorization': bearer_token, 'Content-Type': 'application/json'}
 
-        url = f'garageDoor/{self.GARAGE_ID}/user/{self.USER_ID}/state'
+        url = f'garageDoor/{self.GARAGE_ID}/state'
         actual = self.TEST_CLIENT.post(url, data=json.dumps(post_body), headers=headers)
 
         assert actual.status_code == 200
@@ -89,13 +85,9 @@ class TestGarageDoorRoutesIntegration:
     def test_update_garage_door_state__should_return_bad_request_when_malformed_json(self, mock_request):
         post_body = {'badKey': 'fakerequest'}
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
-        headers = {'Authorization': bearer_token}
-        response = Response()
-        response.status_code = 400
-        response._content = json.dumps({}).encode()
-        mock_request.post.return_value = response
+        headers = {'Authorization': bearer_token, 'Content-Type': 'application/json'}
 
-        url = f'garageDoor/{self.GARAGE_ID}/user/{self.USER_ID}/state'
+        url = f'garageDoor/{self.GARAGE_ID}/state'
         actual = self.TEST_CLIENT.post(url, data=json.dumps(post_body), headers=headers)
 
         assert actual.status_code == 400
@@ -107,7 +99,7 @@ class TestGarageDoorRoutesIntegration:
         response.status_code = 200
         mock_request.get.return_value = response
 
-        url = f'garageDoor/{self.GARAGE_ID}/user/{self.USER_ID}/toggle'
+        url = f'garageDoor/{self.GARAGE_ID}/toggle'
         actual = self.TEST_CLIENT.get(url, headers=headers)
 
         assert actual.status_code == 200
@@ -116,7 +108,7 @@ class TestGarageDoorRoutesIntegration:
         bearer_token = jwt.encode({}, 'bad_secret', algorithm='HS256')
         headers = {'Authorization': bearer_token}
 
-        url = f'garageDoor/{self.GARAGE_ID}/user/{self.USER_ID}/toggle'
+        url = f'garageDoor/{self.GARAGE_ID}/toggle'
         actual = self.TEST_CLIENT.get(url, headers=headers)
 
         assert actual.status_code == 401

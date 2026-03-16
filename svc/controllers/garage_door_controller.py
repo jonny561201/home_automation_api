@@ -1,3 +1,5 @@
+from werkzeug.exceptions import BadRequest
+
 from svc.models.garage import GarageState
 from svc.constants.home_automation import Automation
 from svc.utilities import api_utils
@@ -15,7 +17,10 @@ def get_status(bearer_token, user_id, garage_id):
 
 def update_state(bearer_token, garage_id, request):
     is_jwt_valid(bearer_token)
-    message = {'id': garage_id, 'action': 'update', 'open': request['garageDoorOpen']}
+    garage_open = request.get('garageDoorOpen')
+    if garage_open is None:
+        raise BadRequest('Field "garageDoorOpen" is required.')
+    message = {'id': garage_id, 'action': 'update', 'open': garage_open}
     publish(Automation.GARAGE.QUEUE, message)
 
     return GarageState(isGarageOpen=request['garageDoorOpen'])

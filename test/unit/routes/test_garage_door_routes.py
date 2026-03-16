@@ -60,19 +60,19 @@ class TestAppRoutes:
         assert actual.data.decode('UTF-8') == self.STATUS.to_json()
 
     def test_update_garage_door_state__should_call_update_state(self, mock_request, mock_controller):
-        expected_data = '{"garageDoorOpen": "True"}'.encode()
+        expected_data = {"garageDoorOpen": "True"}
         mock_request.headers = {'Authorization': self.JWT_TOKEN}
         mock_controller.update_state.return_value = self.STATE
-        mock_request.data = expected_data
-        update_garage_door_state(self.USER_ID, self.GARAGE_ID)
+        mock_request.get_json.return_value = expected_data
+        update_garage_door_state(self.GARAGE_ID)
 
-        mock_controller.update_state.assert_called_with(self.JWT_TOKEN, self.USER_ID, self.GARAGE_ID, expected_data )
+        mock_controller.update_state.assert_called_with(self.JWT_TOKEN, self.GARAGE_ID, expected_data )
 
     def test_update_garage_door_state__should_return_success_status_code(self, mock_request, mock_controller):
         mock_request.headers = {'Authorization': self.JWT_TOKEN}
         mock_request.data = '{"garageDoorOpen": "False"}'.encode()
         mock_controller.update_state.return_value = self.STATE
-        actual = update_garage_door_state(self.USER_ID, self.GARAGE_ID)
+        actual = update_garage_door_state(self.GARAGE_ID)
 
         assert actual.status_code == 200
 
@@ -82,7 +82,7 @@ class TestAppRoutes:
         mock_controller.update_state.return_value = self.STATE
         expected_headers = 'application/json'
 
-        actual = update_garage_door_state(self.USER_ID, self.GARAGE_ID)
+        actual = update_garage_door_state(self.GARAGE_ID)
 
         assert actual.content_type == expected_headers
 
@@ -92,27 +92,27 @@ class TestAppRoutes:
         mock_request.data = post_body.encode()
         mock_controller.update_state.return_value = self.STATE
 
-        actual = update_garage_door_state(self.USER_ID, self.GARAGE_ID)
+        actual = update_garage_door_state(self.GARAGE_ID)
         json_actual = json.loads(actual.data)
 
         assert json_actual == self.STATE.to_dict()
 
     def test_toggle_garage_door__should_call_controller_with_bearer_token(self, mock_request, mock_controller):
         mock_request.headers = {'Authorization': self.JWT_TOKEN}
-        toggle_garage_door(self.USER_ID, self.GARAGE_ID)
+        toggle_garage_door(self.GARAGE_ID)
 
-        mock_controller.toggle_door.assert_called_with(self.JWT_TOKEN, self.USER_ID, self.GARAGE_ID)
+        mock_controller.toggle_door.assert_called_with(self.JWT_TOKEN, self.GARAGE_ID)
 
     def test_toggle_garage_door__should_return_success_status_code(self, mock_request, mock_controller):
         mock_request.headers = {'Authorization': self.JWT_TOKEN}
-        actual = toggle_garage_door(self.USER_ID, self.GARAGE_ID)
+        actual = toggle_garage_door(self.GARAGE_ID)
 
         assert actual.status_code == 200
 
     def test_toggle_garage_door__should_return_success_headers(self, mock_request, mock_controller):
         expected_headers = 'application/json'
         mock_request.headers = {'Authorization': self.JWT_TOKEN}
-        actual = toggle_garage_door(self.USER_ID, self.GARAGE_ID)
+        actual = toggle_garage_door(self.GARAGE_ID)
 
         assert actual.content_type == expected_headers
 
