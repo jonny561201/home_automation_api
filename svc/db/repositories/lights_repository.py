@@ -2,7 +2,7 @@ from sqlalchemy import select, delete
 
 from svc.db.repositories.database_base import DatabaseBase
 from svc.db.models.user_information_model import Scenes, SceneDetails
-from models.scenes import LightScenes, LightScene, LightDetail
+from svc.models.scenes import LightScenes, LightScene, LightDetail
 
 
 class LightsRepository(DatabaseBase):
