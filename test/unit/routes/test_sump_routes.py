@@ -1,58 +1,59 @@
 import json
 
+from flask import Flask, request
 from mock import patch
 
 from svc.models.sump import SumpLevel
 from svc.endpoints.sump_routes import get_current_sump_level, save_current_level_by_user
 
 
-@patch('svc.endpoints.sump_routes.request')
-@patch('svc.endpoints.sump_routes.get_sump_level')
-def test_get_current_sump_level__should_call_controller(mock_controller, mock_request):
-    bearer_token = 'test123'
-    mock_request.headers = {'Authorization': bearer_token}
-    user_id = 'fakeuserid'
-    mock_controller.return_value = SumpLevel(currentDepth=1.12, averageDepth=1.23, warningLevel=1)
+class TestSumpRoutes:
+    BEARER_TOKEN = 'test123'
 
-    get_current_sump_level(user_id)
+    def setup_method(self):
+        self.app = Flask(__name__)
+        self.ctx = self.app.test_request_context(data=json.dumps({}), headers={'Authorization': self.BEARER_TOKEN})
+        self.ctx.push()
 
-    mock_controller.assert_called_with(user_id, bearer_token)
+    def teardown_method(self):
+        self.ctx.pop()
 
+    @patch('svc.endpoints.sump_routes.get_sump_level')
+    def test_get_current_sump_level__should_call_controller(self, mock_controller):
+        user_id = 'fakeuserid'
+        mock_controller.return_value = SumpLevel(currentDepth=1.12, averageDepth=1.23, warningLevel=1)
 
-@patch('svc.endpoints.sump_routes.request')
-@patch('svc.endpoints.sump_routes.get_sump_level')
-def test_get_current_sump_level__should_return_valid_response(mock_controller, mock_request):
-    user_id = 'fakeuserid'
-    expected_depth = SumpLevel(currentDepth=1.12, averageDepth=1.23, warningLevel=1)
-    mock_controller.return_value = expected_depth
+        get_current_sump_level(user_id)
 
-    actual = get_current_sump_level(user_id)
-    json_actual = json.loads(actual.data)
+        mock_controller.assert_called_with(user_id, self.BEARER_TOKEN)
 
-    assert json_actual == expected_depth.to_dict()
+    @patch('svc.endpoints.sump_routes.get_sump_level')
+    def test_get_current_sump_level__should_return_valid_response(self, mock_controller):
+        user_id = 'fakeuserid'
+        expected_depth = SumpLevel(currentDepth=1.12, averageDepth=1.23, warningLevel=1)
+        mock_controller.return_value = expected_depth
 
+        actual = get_current_sump_level(user_id)
+        json_actual = json.loads(actual.data)
 
-@patch('svc.endpoints.sump_routes.request')
-@patch('svc.endpoints.sump_routes.get_sump_level')
-def test_get_current_sump_level__should_return_success_status(mock_controller, mock_request):
-    user_id = 'fakeuserid'
-    expected_depth = SumpLevel(currentDepth=1.12, averageDepth=1.23, warningLevel=1)
-    mock_controller.return_value = expected_depth
+        assert json_actual == expected_depth.to_dict()
 
-    actual = get_current_sump_level(user_id)
+    @patch('svc.endpoints.sump_routes.get_sump_level')
+    def test_get_current_sump_level__should_return_success_status(self, mock_controller):
+        user_id = 'fakeuserid'
+        expected_depth = SumpLevel(currentDepth=1.12, averageDepth=1.23, warningLevel=1)
+        mock_controller.return_value = expected_depth
 
-    assert actual.status_code == 200
+        actual = get_current_sump_level(user_id)
 
+        assert actual.status_code == 200
 
-@patch('svc.endpoints.sump_routes.request')
-@patch('svc.endpoints.sump_routes.save_current_level')
-def test_save_current_level_by_user__should_call_controller(mock_controller, mock_request):
-    user_id = 1234
-    request_body = {}
-    bearer_token = 'fake_token'
-    mock_request.data = request_body
-    mock_request.headers = {'Authorization': bearer_token}
+    @patch('svc.endpoints.sump_routes.save_current_level')
+    def test_save_current_level_by_user__should_call_controller(self, mock_controller):
+        user_id = 1234
+        request_data = json.dumps({}).encode()
+        request.data = request_data
 
-    save_current_level_by_user(user_id)
+        save_current_level_by_user(user_id)
 
-    mock_controller.assert_called_with(user_id, bearer_token, request_body)
+        mock_controller.assert_called_with(user_id, self.BEARER_TOKEN, request_data)
