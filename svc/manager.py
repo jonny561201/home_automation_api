@@ -29,4 +29,3 @@ app.register_blueprint(LIGHT_BLUEPRINT)
 app.register_blueprint(DEVICES_BLUEPRINT)
 app.register_blueprint(SCENE_BLUEPRINT)
 app.after_request(add_security_headers)
-
