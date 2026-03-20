@@ -26,16 +26,18 @@ def refresh_bearer_token(old_refresh):
         return jwt_utils.create_jwt_token(user_info, refresh_data['refresh_token'])
 
 
-def get_user_preferences(bearer_token, user_id):
-    jwt_utils.is_jwt_valid(bearer_token)
+def get_user_preferences(bearer_token):
+    claims = jwt_utils.is_jwt_valid(bearer_token)
+    user_id = claims['sub']
     with AccountRepository() as database:
         return database.get_preferences_by_user(user_id)
 
 
 #TODO: get city coordinates and save in Account Repo
-def save_user_preferences(bearer_token, user_id, request_data):
-    jwt_utils.is_jwt_valid(bearer_token)
+def save_user_preferences(bearer_token, request_data):
+    claims = jwt_utils.is_jwt_valid(bearer_token)
     user_preferences = json.loads(request_data.decode('UTF-8'))
+    user_id = claims['sub']
     with AccountRepository() as database:
         database.insert_preferences_by_user(user_id, user_preferences)
 

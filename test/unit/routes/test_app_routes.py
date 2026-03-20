@@ -6,7 +6,7 @@ from flask import Flask, request
 from mock import patch, ANY
 from werkzeug.exceptions import Unauthorized
 
-from svc.endpoints.app_routes import get_token, get_user_preferences_by_user_id, update_user_preferences_by_user_id, \
+from svc.endpoints.app_routes import get_token, get_user_preferences, update_user_preferences, \
     get_user_tasks_by_user_id, delete_user_tasks_by_user_id, insert_user_task_by_user_id, update_user_task_by_user_id
 from svc.models.app import Preference, Tasks, Task
 
@@ -53,56 +53,45 @@ class TestAppRoutes:
 
         mock_controller.get_login.assert_called_with(self.USER, self.PWORD)
 
-    def test_get_user_preferences_by_user_id__should_call_app_controller_with_user_id(self, mock_controller):
+    def test_get_user_preferences__should_call_app_controller_with_bearer_token(self, mock_controller):
         mock_controller.get_user_preferences.return_value = self.PREFERENCES
-        get_user_preferences_by_user_id(self.USER_ID)
+        get_user_preferences()
 
-        mock_controller.get_user_preferences.assert_called_with(ANY, self.USER_ID)
+        mock_controller.get_user_preferences.assert_called_with(self.FAKE_JWT_TOKEN)
 
-    def test_get_user_preferences_by_user_id__should_call_app_controller_with_bearer_token(self, mock_controller):
-        mock_controller.get_user_preferences.return_value = self.PREFERENCES
-        get_user_preferences_by_user_id(self.USER_ID)
-
-        mock_controller.get_user_preferences.assert_called_with(self.FAKE_JWT_TOKEN, ANY)
-
-    def test_get_user_preferences_by_user_id__should_return_preference_response(self, mock_controller):
+    def test_get_user_preferences__should_return_preference_response(self, mock_controller):
         mock_controller.get_user_preferences.return_value = self.PREFERENCES
 
-        actual = get_user_preferences_by_user_id(self.USER_ID)
+        actual = get_user_preferences()
 
         assert json.loads(actual.data) == self.PREFERENCES.to_dict()
 
-    def test_get_user_preferences_by_user_id__should_return_success_status_code(self, mock_controller):
+    def test_get_user_preferences__should_return_success_status_code(self, mock_controller):
         mock_controller.get_user_preferences.return_value = self.PREFERENCES
 
-        actual = get_user_preferences_by_user_id(self.USER_ID)
+        actual = get_user_preferences()
 
         assert actual.status_code == 200
 
-    def test_update_user_preferences_by_user_id__should_call_app_controller_with_user_id(self, mock_controller):
-        update_user_preferences_by_user_id(self.USER_ID)
+    def test_update_user_preferences__should_call_app_controller_with_bearer_token(self, mock_controller):
+        update_user_preferences()
 
-        mock_controller.save_user_preferences.assert_called_with(ANY, self.USER_ID, ANY)
+        mock_controller.save_user_preferences.assert_called_with(self.FAKE_JWT_TOKEN, ANY)
 
-    def test_update_user_preferences_by_user_id__should_call_app_controller_with_bearer_token(self, mock_controller):
-        update_user_preferences_by_user_id(self.USER_ID)
-
-        mock_controller.save_user_preferences.assert_called_with(self.FAKE_JWT_TOKEN, ANY, ANY)
-
-    def test_update_user_preferences_by_user_id__should_call_app_controller_with_request_data(self, mock_controller):
+    def test_update_user_preferences__should_call_app_controller_with_request_data(self, mock_controller):
         expected_data = json.dumps({}).encode()
         request.data = expected_data
-        update_user_preferences_by_user_id(self.USER_ID)
+        update_user_preferences()
 
-        mock_controller.save_user_preferences.assert_called_with(ANY, ANY, expected_data)
+        mock_controller.save_user_preferences.assert_called_with(ANY, expected_data)
 
-    def test_update_user_preferences_by_user_id__should_return_success_status_code(self, mock_controller):
-        actual = update_user_preferences_by_user_id(self.USER_ID)
+    def test_update_user_preferences__should_return_success_status_code(self, mock_controller):
+        actual = update_user_preferences()
 
         assert actual.status_code == 200
 
-    def test_update_user_preferences_by_user_id__should_return_success_content(self, mock_controller):
-        actual = update_user_preferences_by_user_id(self.USER_ID)
+    def test_update_user_preferences__should_return_success_content(self, mock_controller):
+        actual = update_user_preferences()
 
         assert actual.content_type == 'application/json'
 

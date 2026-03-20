@@ -27,17 +27,17 @@ def get_token():
     return Response(json.dumps({'bearerToken': token}), status=200, mimetype=Mime.JSON)
 
 
-@APP_BLUEPRINT.route('/userId/<user_id>/preferences', methods=['GET'])
-def get_user_preferences_by_user_id(user_id):
+@APP_BLUEPRINT.route('/preferences', methods=['GET'])
+def get_user_preferences():
     bearer_token = request.headers.get('Authorization')
-    preferences = app_controller.get_user_preferences(bearer_token, user_id)
+    preferences = app_controller.get_user_preferences(bearer_token)
     return Response(preferences.to_json(), status=200, mimetype=Mime.JSON)
 
 
-@APP_BLUEPRINT.route('/userId/<user_id>/preferences/update', methods=['POST'])
-def update_user_preferences_by_user_id(user_id):
+@APP_BLUEPRINT.route('/preferences/update', methods=['POST'])
+def update_user_preferences():
     bearer_token = request.headers.get('Authorization')
-    app_controller.save_user_preferences(bearer_token, user_id, request.data)
+    app_controller.save_user_preferences(bearer_token, request.data)
     return Response(status=200, mimetype=Mime.JSON)
 
 

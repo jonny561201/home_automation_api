@@ -102,17 +102,19 @@ class TestLoginControllerCredentials:
 @patch('svc.controllers.app_controller.AccountRepository')
 @patch('svc.controllers.app_controller.jwt_utils')
 class TestAppControllerAccount:
-    BEARER_TOKEN = jwt.encode({}, 'fake_jwt_secret', algorithm='HS256')
-    USER = 'user_name'
     USER_ID = str(uuid.uuid4())
+    CLAIMS = {'sub': USER_ID}
+    BEARER_TOKEN = jwt.encode(CLAIMS, 'fake_jwt_secret', algorithm='HS256')
+    USER = 'user_name'
 
     def test_get_user_preferences__should_validate_bearer_token(self, mock_jwt, mock_db):
-        get_user_preferences(self.BEARER_TOKEN, self.USER_ID)
+        get_user_preferences(self.BEARER_TOKEN)
 
         mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
 
     def test_get_user_preferences__should_call_get_preferences_by_user(self, mock_jwt, mock_db):
-        get_user_preferences(self.BEARER_TOKEN, self.USER_ID)
+        mock_jwt.is_jwt_valid.return_value = self.CLAIMS
+        get_user_preferences(self.BEARER_TOKEN)
 
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.assert_called_with(self.USER_ID)
 
@@ -120,7 +122,7 @@ class TestAppControllerAccount:
         prefs = {'unit': 'imperial', 'city': 'Des Moines'}
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = prefs
 
-        actual = get_user_preferences(self.BEARER_TOKEN, self.USER_ID)
+        actual = get_user_preferences(self.BEARER_TOKEN)
 
         assert actual == prefs
 
@@ -128,15 +130,16 @@ class TestAppControllerAccount:
         bearer_token = 'fakeBearerToken'
         request_data = json.dumps({}).encode()
 
-        save_user_preferences(bearer_token, self.USER_ID, request_data)
+        save_user_preferences(bearer_token, request_data)
 
         mock_jwt.is_jwt_valid.assert_called_with(bearer_token)
 
     def test_save_user_preferences__should_call_insert_preferences_by_user_with_user_id(self, mock_jwt, mock_db):
+        mock_jwt.is_jwt_valid.return_value = self.CLAIMS
         bearer_token = 'fakeBearerToken'
         request_data = json.dumps({}).encode()
 
-        save_user_preferences(bearer_token, self.USER_ID, request_data)
+        save_user_preferences(bearer_token, request_data)
 
         mock_db.return_value.__enter__.return_value.insert_preferences_by_user.assert_called_with(self.USER_ID, ANY)
 
@@ -145,7 +148,7 @@ class TestAppControllerAccount:
         user_preferences = {'city': 'Berlin'}
         request_data = json.dumps(user_preferences).encode('UTF-8')
 
-        save_user_preferences(bearer_token, self.USER_ID, request_data)
+        save_user_preferences(bearer_token, request_data)
 
         mock_db.return_value.__enter__.return_value.insert_preferences_by_user.assert_called_with(ANY, user_preferences)
 
