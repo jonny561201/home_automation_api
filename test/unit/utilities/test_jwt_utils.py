@@ -65,14 +65,17 @@ class TestJwt:
         mock_date.now.return_value = now
         expected_expiration = now + timedelta(hours=12)
         truncated_expiration = (str(expected_expiration.timestamp() * 1000))[:10]
-        expected_id = 12345
-        expected_token_body = {'user': expected_id,
+        user_info = {'user_id': '12345', 'first_name': 'test', 'last_name': 'user', 'roles': ['admin']}
+        expected_claims = {'sub': user_info['user_id'],
+                               'roles': user_info['roles'],
+                               'first_name': user_info['first_name'],
+                               'last_name': user_info['last_name'],
                                'refresh_token': refresh,
                                'exp': int(truncated_expiration)}
 
-        actual = create_jwt_token(expected_id, refresh)
+        actual = create_jwt_token(user_info, refresh)
 
-        assert jwt.decode(actual, self.JWT_SECRET, algorithms='HS256') == expected_token_body
+        assert jwt.decode(actual, self.JWT_SECRET, algorithms='HS256') == expected_claims
 
     @patch('svc.utilities.jwt_utils.uuid')
     def test_generate_refresh_token__should_return_generated_id(self, mock_uuid):
