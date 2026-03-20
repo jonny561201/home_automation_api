@@ -27,7 +27,35 @@ Don't add comments unless I tell you to do so.
 ### Testing Styles
 - Tests should be written using pytest framework.
 - Tests should be written in an arrange/act/assert format without comments.
+- Prefer bare test functions when tests are simple and self-contained. Only use class-based test organization (with `setup_method`/`teardown_method`) when there is significant shared setup overhead or shared class-level `@patch` decorators. Do not use pytest fixtures.
+- Test method naming convention: test_<function_name>__should_<expected_behavior> (double underscore separator).
+- Use class-level @patch decorators for mocks shared across all or most tests in a class; patch parameters are injected in reverse decorator order.
+- Class-level constants (UPPER_SNAKE_CASE) for immutable test data; instance-level attributes set in setup_method for mutable test data.
+- Unit tests for routes should mock the entire controller module and use a Flask test_request_context.
+- Unit tests for controllers should mock repositories, JWT validation, and external service calls at the module path where they are imported.
+- Integration tests should use the Flask test client (app.test_client()), seed/clean up real database records in setup_method/teardown_method.
+
 
 ### File and Folder Conventions
 - Favor using MVC architecture for organizing code.
-- The `app.py` file is used to start the app in product and `local_app.py` is used for local development.
+- The `app.py` file is used to start the app in production and `local_app.py` is used for local development.
+
+
+ ### Architecture Conventions
+- Routes → Controllers → Services/Repositories/Utilities: routes delegate to controllers, controllers orchestrate business logic using repositories, services, and utility functions.
+- svc/endpoints/ contains Flask blueprint route definitions — one file per domain (e.g., thermostat_routes.py).
+- svc/controllers/ contains business logic functions — one file per domain (e.g., thermostat_controller.py).
+- svc/models/ contains @dataclass_json/@dataclass DTOs for API request/response shapes.
+- svc/db/models/ contains SQLAlchemy ORM model definitions.
+- svc/db/repositories/ contains database access classes using the repository pattern.
+- svc/services/ contains functions for external API integrations.
+- svc/utilities/ contains shared stateless helper functions.
+- svc/constants/ contains constant values organized by domain using nested classes.
+- svc/config/ contains app configuration and middleware (e.g., Settings singleton, security headers).
+- test/unit/ mirrors the svc/ folder structure. test/integration/ contains end-to-end route tests.
+
+
+### Configuration Conventions
+- Settings files are named settings.<environment>.json at the project root. The environment is determined by the PYTHON_ENVIRONMENT env var (defaults to local).
+- Sensitive settings support environment variable overrides — the _get_setting helper checks the env var first, then falls back to the JSON file.
+- Database migrations use Flyway and are stored in docker/flyway/migration/ with versioned naming (V<version>__<description>.sql).
