@@ -23,9 +23,13 @@ def is_jwt_valid(jwt_token):
 def create_jwt_token(user_info, refresh_token):
     expire_time = datetime.now(tz=ZoneInfo('US/Central')) + timedelta(hours=12)
     settings = Settings.get_instance()
-    return jwt.encode({'user': user_info,
-                       'refresh_token': refresh_token,
-                       'exp': expire_time}, settings.jwt_secret, algorithm='HS256')
+    claims = {'sub': user_info['user_id'],
+             'roles': user_info['roles'],
+             'first_name': user_info['first_name'],
+             'last_name': user_info['last_name'],
+             'refresh_token': refresh_token,
+             'exp': expire_time}
+    return jwt.encode(claims, settings.jwt_secret, algorithm='HS256')
 
 
 def generate_refresh_token():
