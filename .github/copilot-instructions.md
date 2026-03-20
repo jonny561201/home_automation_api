@@ -22,9 +22,13 @@ Don't add comments unless I tell you to do so.
 - NEVER nest functions inside other functions (ie: inner functions).
 - NEVER use global variables.
 - NEVER import modules inside functions or methods.
-
+- Use werkzeug.exceptions (e.g., Unauthorized, BadRequest, FailedDependency) for HTTP error responses — never use flask.abort().
+- Use the repository pattern with Python context managers (with ... as database:) for all database access. Repositories should inherit from DatabaseBase.
+- Access settings through the Settings singleton via Settings.get_instance() — never read config files or environment variables directly in business logic.
+- Route functions should return Response(data, status=<code>, mimetype=Mime.JSON) — use the Mime constants class, not raw strings.
 
 ### Testing Styles
+- Use mock.patch from the mock library, not unittest.mock.
 - Tests should be written using pytest framework.
 - Tests should be written in an arrange/act/assert format without comments.
 - Prefer bare test functions when tests are simple and self-contained. Only use class-based test organization (with `setup_method`/`teardown_method`) when there is significant shared setup overhead or shared class-level `@patch` decorators. Do not use pytest fixtures.
