@@ -46,43 +46,38 @@ class TestAppRoutes:
 
     def test_post_child_account_by_user__should_call_controller_with_bearer_token(self, mock_controller):
         mock_controller.create_child_account_by_user.return_value = {}
-        post_child_account_by_user(self.USER_ID)
-        mock_controller.create_child_account_by_user.assert_called_with(self.FAKE_JWT_TOKEN, ANY, ANY)
+        post_child_account_by_user()
+        mock_controller.create_child_account_by_user.assert_called_with(self.FAKE_JWT_TOKEN, ANY)
 
     def test_post_child_account_by_user__not_raise_error_when_no_authorization_header(self, mock_controller):
         self.ctx.pop()
         self.ctx = self.app.test_request_context()
         self.ctx.push()
         mock_controller.create_child_account_by_user.return_value = {}
-        post_child_account_by_user(self.USER_ID)
-        mock_controller.create_child_account_by_user.assert_called_with(None, ANY, ANY)
-
-    def test_post_child_account_by_user__should_call_controller_with_user_id(self, mock_controller):
-        mock_controller.create_child_account_by_user.return_value = {}
-        post_child_account_by_user(self.USER_ID)
-        mock_controller.create_child_account_by_user.assert_called_with(ANY, self.USER_ID, ANY)
+        post_child_account_by_user()
+        mock_controller.create_child_account_by_user.assert_called_with(None, ANY)
 
     def test_post_child_account_by_user__should_call_controller_with_post_body(self, mock_controller):
         request_data = json.dumps({'fake': 'request'}).encode()
         request.data = request_data
         mock_controller.create_child_account_by_user.return_value = {}
-        post_child_account_by_user(self.USER_ID)
-        mock_controller.create_child_account_by_user.assert_called_with(ANY, ANY, request_data)
+        post_child_account_by_user()
+        mock_controller.create_child_account_by_user.assert_called_with(ANY, request_data)
 
     def test_post_child_account_by_user__should_return_success_status_code(self, mock_controller):
         mock_controller.create_child_account_by_user.return_value = {}
-        actual = post_child_account_by_user(self.USER_ID)
+        actual = post_child_account_by_user()
         assert actual.status_code == 200
 
     def test_post_child_account_by_user__should_return_success_headers(self, mock_controller):
         mock_controller.create_child_account_by_user.return_value = {}
-        actual = post_child_account_by_user(self.USER_ID)
+        actual = post_child_account_by_user()
         assert actual.content_type == 'application/json'
 
     def test_post_child_account_by_user__should_return_controller_response(self, mock_controller):
         response = {'test': 'fake data'}
         mock_controller.create_child_account_by_user.return_value = response
-        actual = post_child_account_by_user(self.USER_ID)
+        actual = post_child_account_by_user()
         assert json.loads(actual.data) == response
 
     def test_get_child_accounts_by_user_id__should_call_controller_with_bearer_token(self, mock_controller):

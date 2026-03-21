@@ -16,10 +16,10 @@ def update_user_password():
     return Response(status=200, mimetype=Mime.JSON)
 
 
-@ACCOUNT_BLUEPRINT.route('/userId/<user_id>/createChildAccount', methods=['POST'])
-def post_child_account_by_user(user_id):
+@ACCOUNT_BLUEPRINT.route('/createChildAccount', methods=['POST'])
+def post_child_account_by_user():
     bearer_token = request.headers.get('Authorization')
-    child_accounts = account_controller.create_child_account_by_user(bearer_token, user_id, request.data)
+    child_accounts = account_controller.create_child_account_by_user(bearer_token, request.data)
     return Response(json.dumps(child_accounts), status=200, mimetype=Mime.JSON)
 
 

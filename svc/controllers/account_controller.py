@@ -23,8 +23,9 @@ def get_roles(bearer_token, user_id):
         return database.get_roles_by_user(user_id)
 
 
-def create_child_account_by_user(bearer_token, user_id, request_data):
-    jwt_utils.is_jwt_valid(bearer_token)
+def create_child_account_by_user(bearer_token, request_data):
+    claims = jwt_utils.is_jwt_valid(bearer_token)
+    user_id = claims['sub']
     request = json.loads(request_data.decode('UTF-8'))
     email = request.get('email')
     roles = request.get('roles')
