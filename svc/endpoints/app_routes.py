@@ -49,10 +49,10 @@ def get_user_tasks(task_type):
     return Response(tasks.to_json(), status=200, mimetype=Mime.JSON)
 
 
-@APP_BLUEPRINT.route('/userId/<user_id>/tasks/<task_id>', methods=['DELETE'])
-def delete_user_tasks_by_user_id(user_id, task_id):
+@APP_BLUEPRINT.route('/tasks/<task_id>', methods=['DELETE'])
+def delete_user_task(task_id):
     bearer_token = request.headers.get('Authorization')
-    app_controller.delete_user_task(bearer_token, user_id, task_id)
+    app_controller.delete_user_task(bearer_token, task_id)
     return Response(status=200, mimetype=Mime.JSON)
 
 

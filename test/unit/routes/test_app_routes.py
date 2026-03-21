@@ -7,7 +7,7 @@ from mock import patch, ANY
 from werkzeug.exceptions import Unauthorized
 
 from svc.endpoints.app_routes import get_token, get_user_preferences, update_user_preferences, \
-    get_user_tasks, delete_user_tasks_by_user_id, insert_user_task_by_user_id, update_user_task_by_user_id
+    get_user_tasks, delete_user_task, insert_user_task_by_user_id, update_user_task_by_user_id
 from svc.models.app import Preference, Tasks, Task
 
 
@@ -126,33 +126,27 @@ class TestAppRoutes:
 
         assert json.loads(actual.data) == self.TASKS.to_dict()
 
-    def test_delete_user_tasks_by_user_id__should_call_app_controller_with_bearer_token(self, mock_controller):
+    def test_delete_user_tasks__should_call_app_controller_with_bearer_token(self, mock_controller):
         task_id = 'asjkdhflkjasd'
-        delete_user_tasks_by_user_id(self.USER_ID, task_id)
+        delete_user_task(task_id)
 
-        mock_controller.delete_user_task.assert_called_with(self.FAKE_JWT_TOKEN, ANY, ANY)
+        mock_controller.delete_user_task.assert_called_with(self.FAKE_JWT_TOKEN, ANY)
 
-    def test_delete_user_tasks_by_user_id__should_call_app_controller_with_user_id(self, mock_controller):
+    def test_delete_user_tasks__should_call_app_controller_with_request_data(self, mock_controller):
         task_id = 'asjkdhflkjasd'
-        delete_user_tasks_by_user_id(self.USER_ID, task_id)
+        delete_user_task(task_id)
 
-        mock_controller.delete_user_task.assert_called_with(ANY, self.USER_ID, ANY)
+        mock_controller.delete_user_task.assert_called_with(ANY, task_id)
 
-    def test_delete_user_tasks_by_user_id__should_call_app_controller_with_request_data(self, mock_controller):
+    def test_delete_user_tasks__should_return_success_status_code(self, mock_controller):
         task_id = 'asjkdhflkjasd'
-        delete_user_tasks_by_user_id(self.USER_ID, task_id)
-
-        mock_controller.delete_user_task.assert_called_with(ANY, ANY, task_id)
-
-    def test_delete_user_tasks_by_user_id__should_return_success_status_code(self, mock_controller):
-        task_id = 'asjkdhflkjasd'
-        actual = delete_user_tasks_by_user_id(self.USER_ID, task_id)
+        actual = delete_user_task(task_id)
 
         assert actual.status_code == 200
 
-    def test_delete_user_tasks_by_user_id__should_return_success_content_type(self, mock_controller):
+    def test_delete_user_tasks__should_return_success_content_type(self, mock_controller):
         task_id = 'asjkdhflkjasd'
-        actual = delete_user_tasks_by_user_id(self.USER_ID, task_id)
+        actual = delete_user_task(task_id)
 
         assert actual.content_type == 'application/json'
 

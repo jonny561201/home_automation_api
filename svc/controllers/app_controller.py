@@ -49,8 +49,9 @@ def get_user_tasks(bearer_token, task_type):
         return database.get_schedule_tasks_by_user(user_id, task_type)
 
 
-def delete_user_task(bearer_token, user_id, task_id):
-    jwt_utils.is_jwt_valid(bearer_token)
+def delete_user_task(bearer_token, task_id):
+    claims = jwt_utils.is_jwt_valid(bearer_token)
+    user_id = claims['sub']
     with TasksRepository() as database:
         database.delete_schedule_task_by_user(user_id, task_id)
 
