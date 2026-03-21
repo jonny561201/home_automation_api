@@ -42,8 +42,9 @@ def save_user_preferences(bearer_token, request_data):
         database.insert_preferences_by_user(user_id, user_preferences)
 
 
-def get_user_tasks(bearer_token, user_id, task_type):
-    # jwt_utils.is_jwt_valid(bearer_token)
+def get_user_tasks(bearer_token, task_type):
+    claims = jwt_utils.is_jwt_valid(bearer_token)
+    user_id = claims['sub']
     with TasksRepository() as database:
         return database.get_schedule_tasks_by_user(user_id, task_type)
 

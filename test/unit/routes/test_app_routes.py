@@ -7,7 +7,7 @@ from mock import patch, ANY
 from werkzeug.exceptions import Unauthorized
 
 from svc.endpoints.app_routes import get_token, get_user_preferences, update_user_preferences, \
-    get_user_tasks_by_user_id, delete_user_tasks_by_user_id, insert_user_task_by_user_id, update_user_task_by_user_id
+    get_user_tasks, delete_user_tasks_by_user_id, insert_user_task_by_user_id, update_user_task_by_user_id
 from svc.models.app import Preference, Tasks, Task
 
 
@@ -95,40 +95,34 @@ class TestAppRoutes:
 
         assert actual.content_type == 'application/json'
 
-    def test_get_user_tasks_by_user_id__should_call_app_controller_with_user_id(self, mock_controller):
+    def test_get_user_tasks__should_call_app_controller_with_bearer_token(self, mock_controller):
         mock_controller.get_user_tasks.return_value = self.TASKS
-        get_user_tasks_by_user_id(self.USER_ID, None)
+        get_user_tasks(None)
 
-        mock_controller.get_user_tasks.assert_called_with(ANY, self.USER_ID, ANY)
+        mock_controller.get_user_tasks.assert_called_with(self.FAKE_JWT_TOKEN, ANY)
 
-    def test_get_user_tasks_by_user_id__should_call_app_controller_with_bearer_token(self, mock_controller):
-        mock_controller.get_user_tasks.return_value = self.TASKS
-        get_user_tasks_by_user_id(self.USER_ID, None)
-
-        mock_controller.get_user_tasks.assert_called_with(self.FAKE_JWT_TOKEN, ANY, ANY)
-
-    def test_get_user_tasks_by_user_id__should_call_app_controller_with_task_type(self, mock_controller):
+    def test_get_user_tasks__should_call_app_controller_with_task_type(self, mock_controller):
         mock_controller.get_user_tasks.return_value = self.TASKS
         task_type = 'hvac'
-        get_user_tasks_by_user_id(self.USER_ID, task_type)
+        get_user_tasks(task_type)
 
-        mock_controller.get_user_tasks.assert_called_with(ANY, ANY, task_type)
+        mock_controller.get_user_tasks.assert_called_with(ANY, task_type)
 
-    def test_get_user_tasks_by_user_id__should_return_success_status_code(self, mock_controller):
+    def test_get_user_tasks__should_return_success_status_code(self, mock_controller):
         mock_controller.get_user_tasks.return_value = self.TASKS
-        actual = get_user_tasks_by_user_id(self.USER_ID, None)
+        actual = get_user_tasks(None)
 
         assert actual.status_code == 200
 
-    def test_get_user_tasks_by_user_id__should_return_success_content_type(self, mock_controller):
+    def test_get_user_tasks__should_return_success_content_type(self, mock_controller):
         mock_controller.get_user_tasks.return_value = self.TASKS
-        actual = get_user_tasks_by_user_id(self.USER_ID, None)
+        actual = get_user_tasks(None)
 
         assert actual.content_type == 'application/json'
 
-    def test_get_user_tasks_by_user_id__should_return_serialize_data_from_controller(self, mock_controller):
+    def test_get_user_tasks__should_return_serialize_data_from_controller(self, mock_controller):
         mock_controller.get_user_tasks.return_value = self.TASKS
-        actual = get_user_tasks_by_user_id(self.USER_ID, None)
+        actual = get_user_tasks(None)
 
         assert json.loads(actual.data) == self.TASKS.to_dict()
 
