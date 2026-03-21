@@ -9,10 +9,10 @@ from svc.controllers import account_controller
 ACCOUNT_BLUEPRINT = Blueprint('account_routes', __name__, url_prefix='/account')
 
 
-@ACCOUNT_BLUEPRINT.route('/userId/<user_id>/updateAccount', methods=['POST'])
-def update_user_password(user_id):
+@ACCOUNT_BLUEPRINT.route('/updateAccount', methods=['POST'])
+def update_user_password():
     bearer_token = request.headers.get('Authorization')
-    account_controller.change_password(bearer_token, user_id,  request.data)
+    account_controller.change_password(bearer_token, request.data)
     return Response(status=200, mimetype=Mime.JSON)
 
 

@@ -23,29 +23,24 @@ class TestAppRoutes:
         self.ctx.pop()
 
     def test_update_user_password__should_call_change_password_controller_with_bearer_token(self, mock_controller):
-        update_user_password(self.USER_ID)
+        update_user_password()
 
-        mock_controller.change_password.assert_called_with(self.FAKE_JWT_TOKEN, ANY, ANY)
-
-    def test_update_user_password__should_call_change_password_controller_with_user_id(self, mock_controller):
-        update_user_password(self.USER_ID)
-
-        mock_controller.change_password.assert_called_with(ANY, self.USER_ID, ANY)
+        mock_controller.change_password.assert_called_with(self.FAKE_JWT_TOKEN, ANY)
 
     def test_update_user_password__should_call_change_password_controller_with_data(self, mock_controller):
         request_data = json.dumps({'fakeData': 'doesnt matter'}).encode()
         request.data = request_data
-        update_user_password(self.USER_ID)
+        update_user_password()
 
-        mock_controller.change_password.assert_called_with(ANY, ANY, request_data)
+        mock_controller.change_password.assert_called_with(ANY, request_data)
 
     def test_update_user_password__should_return_success_status_code(self, mock_controller):
-        actual = update_user_password(self.USER_ID)
+        actual = update_user_password()
 
         assert actual.status_code == 200
 
     def test_update_user_password__should_return_success_content(self, mock_controller):
-        actual = update_user_password(self.USER_ID)
+        actual = update_user_password()
 
         assert actual.content_type == 'application/json'
 

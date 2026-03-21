@@ -9,8 +9,9 @@ from svc.utilities.api_utils import send_new_account_email
 from svc.utilities.string_utils import generate_password
 
 
-def change_password(bearer_token, user_id, request_data):
-    jwt_utils.is_jwt_valid(bearer_token)
+def change_password(bearer_token, request_data):
+    claims = jwt_utils.is_jwt_valid(bearer_token)
+    user_id = claims['sub']
     request = json.loads(request_data.decode('UTF-8'))
     with CredentialRepository() as database:
         database.change_user_password(user_id, request['oldPassword'], request['newPassword'])
