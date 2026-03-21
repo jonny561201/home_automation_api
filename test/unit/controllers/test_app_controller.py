@@ -228,21 +228,23 @@ class TestAppControllerTasks:
     def test_update_user_task__should_validate_bearer_token(self, mock_jwt, mock_db):
         task = {'alarm_time': '00:01:00'}
         request_data = json.dumps(task).encode('UTF-8')
-        update_user_task(self.BEARER_TOKEN, self.USER_ID, request_data)
+        update_user_task(self.BEARER_TOKEN, request_data)
 
         mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
 
     def test_update_user_task__should_call_update_schedule_task_by_user_id_with_user_id(self, mock_jwt, mock_db):
+        mock_jwt.is_jwt_valid.return_value = {'sub': self.USER_ID}
         task = {'alarm_time': '00:01:00'}
         request_data = json.dumps(task).encode('UTF-8')
-        update_user_task(self.BEARER_TOKEN, self.USER_ID, request_data)
+        update_user_task(self.BEARER_TOKEN, request_data)
 
         mock_db.return_value.__enter__.return_value.update_schedule_task_by_user_id.assert_called_with(self.USER_ID, ANY)
 
     def test_update_user_task__should_call_update_schedule_task_by_user_id_with_new_task(self, mock_jwt, mock_db):
+        mock_jwt.is_jwt_valid.return_value = {'sub': self.USER_ID}
         task = {'alarm_time': '00:01:00'}
         request_data = json.dumps(task).encode('UTF-8')
-        update_user_task(self.BEARER_TOKEN, self.USER_ID, request_data)
+        update_user_task(self.BEARER_TOKEN, request_data)
 
         mock_db.return_value.__enter__.return_value.update_schedule_task_by_user_id.assert_called_with(self.USER_ID, task)
 
@@ -251,6 +253,6 @@ class TestAppControllerTasks:
         request_data = json.dumps(task).encode('UTF-8')
         response = {'fakeItem': 'item'}
         mock_db.return_value.__enter__.return_value.update_schedule_task_by_user_id.return_value = response
-        actual = update_user_task(self.BEARER_TOKEN, self.USER_ID, request_data)
+        actual = update_user_task(self.BEARER_TOKEN, request_data)
 
         assert actual == response
