@@ -6,7 +6,7 @@ from werkzeug.exceptions import Unauthorized
 from flask import Flask, request
 
 from svc.endpoints.account_routes import update_user_password, post_child_account_by_user, get_child_accounts, \
-    get_roles_by_user_id, delete_child_account_by_user_id
+    get_roles, delete_child_account_by_user_id
 
 
 @patch('svc.endpoints.account_routes.account_controller')
@@ -107,43 +107,37 @@ class TestAppRoutes:
         with pytest.raises(Unauthorized):
             get_child_accounts()
 
-    def test_get_roles_by_user_id__should_call_controller_with_bearer_token(self, mock_controller):
+    def test_get_roles__should_call_controller_with_bearer_token(self, mock_controller):
         mock_controller.get_roles.return_value = {}
-        get_roles_by_user_id(self.USER_ID)
+        get_roles()
 
-        mock_controller.get_roles.assert_called_with(self.FAKE_JWT_TOKEN, ANY)
+        mock_controller.get_roles.assert_called_with(self.FAKE_JWT_TOKEN)
 
-    def test_get_roles_by_user_id__should_call_controller_with_user_id(self, mock_controller):
-        mock_controller.get_roles.return_value = {}
-        get_roles_by_user_id(self.USER_ID)
-
-        mock_controller.get_roles.assert_called_with(ANY, self.USER_ID)
-
-    def test_get_roles_by_user_id__should_not_throw_exception_when_no_header(self, mock_controller):
+    def test_get_roles__should_not_throw_exception_when_no_header(self, mock_controller):
         self.ctx.pop()
         self.ctx = self.app.test_request_context()
         self.ctx.push()
         mock_controller.get_roles.return_value = {}
-        get_roles_by_user_id(self.USER_ID)
+        get_roles()
 
-        mock_controller.get_roles.assert_called_with(None, ANY)
+        mock_controller.get_roles.assert_called_with(None)
 
-    def test_get_roles_by_user_id__should_return_success_status_code(self, mock_controller):
+    def test_get_roles__should_return_success_status_code(self, mock_controller):
         mock_controller.get_roles.return_value = {}
-        actual = get_roles_by_user_id(self.USER_ID)
+        actual = get_roles()
 
         assert actual.status_code == 200
 
-    def test_get_roles_by_user_id__should_return_success_headers(self, mock_controller):
+    def test_get_roles__should_return_success_headers(self, mock_controller):
         mock_controller.get_roles.return_value = {}
-        actual = get_roles_by_user_id(self.USER_ID)
+        actual = get_roles()
 
         assert actual.content_type == 'application/json'
 
-    def test_get_roles_by_user_id__should_return_data_from_the_controller(self, mock_controller):
+    def test_get_roles__should_return_data_from_the_controller(self, mock_controller):
         response = {'roles': ['admin', 'user']}
         mock_controller.get_roles.return_value = response
-        actual = get_roles_by_user_id(self.USER_ID)
+        actual = get_roles()
 
         assert json.loads(actual.data) == response
 

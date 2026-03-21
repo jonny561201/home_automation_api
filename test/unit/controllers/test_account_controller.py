@@ -57,19 +57,20 @@ class TestAccountRoles:
     USER_ID = 'fake_user_id'
 
     def test_get_roles__should_make_call_to_validate_jwt(self, mock_jwt, mock_db, mock_email):
-        get_roles(self.BEARER_TOKEN, self.USER_ID)
+        get_roles(self.BEARER_TOKEN)
 
         mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
 
     def test_get_roles__should_make_call_to_get_roles(self, mock_jwt, mock_db, mock_email):
-        get_roles(self.BEARER_TOKEN, self.USER_ID)
+        mock_jwt.is_jwt_valid.return_value = {'sub': self.USER_ID}
+        get_roles(self.BEARER_TOKEN)
 
         mock_db.return_value.__enter__.return_value.get_roles_by_user.assert_called_with(self.USER_ID)
 
     def test_get_roles__should_return_the_result_from_the_database(self, mock_jwt, mock_db, mock_email):
         roles = {'roles': []}
         mock_db.return_value.__enter__.return_value.get_roles_by_user.return_value = roles
-        actual = get_roles(self.BEARER_TOKEN, self.USER_ID)
+        actual = get_roles(self.BEARER_TOKEN)
 
         assert actual == roles
 

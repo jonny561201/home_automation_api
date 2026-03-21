@@ -17,8 +17,9 @@ def change_password(bearer_token, request_data):
         database.change_user_password(user_id, request['oldPassword'], request['newPassword'])
 
 
-def get_roles(bearer_token, user_id):
-    jwt_utils.is_jwt_valid(bearer_token)
+def get_roles(bearer_token):
+    claims = jwt_utils.is_jwt_valid(bearer_token)
+    user_id = claims['sub']
     with AccountRepository() as database:
         return database.get_roles_by_user(user_id)
 

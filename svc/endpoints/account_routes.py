@@ -30,10 +30,10 @@ def get_child_accounts():
     return Response(json.dumps(child_accounts), status=200, mimetype=Mime.JSON)
 
 
-@ACCOUNT_BLUEPRINT.route('/userId/<user_id>/roles', methods=['GET'])
-def get_roles_by_user_id(user_id):
+@ACCOUNT_BLUEPRINT.route('/roles', methods=['GET'])
+def get_roles():
     bearer_token = request.headers.get('Authorization')
-    roles = account_controller.get_roles(bearer_token, user_id)
+    roles = account_controller.get_roles(bearer_token)
     return Response(json.dumps(roles), status=200, mimetype=Mime.JSON)
 
 
