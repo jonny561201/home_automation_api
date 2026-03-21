@@ -46,7 +46,8 @@ def get_child_accounts_by_user(bearer_token):
         return database.get_user_child_accounts(user_id)
 
 
-def delete_child_account(bearer_token, user_id, child_user_id):
-    jwt_utils.is_jwt_valid(bearer_token)
+def delete_child_account(bearer_token, child_user_id):
+    claims = jwt_utils.is_jwt_valid(bearer_token)
+    user_id = claims['sub']
     with AccountRepository() as database:
         database.delete_child_user_account(user_id, child_user_id)

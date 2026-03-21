@@ -6,7 +6,7 @@ from werkzeug.exceptions import Unauthorized
 from flask import Flask, request
 
 from svc.endpoints.account_routes import update_user_password, post_child_account_by_user, get_child_accounts, \
-    get_roles, delete_child_account_by_user_id
+    get_roles, delete_child_account
 
 
 @patch('svc.endpoints.account_routes.account_controller')
@@ -141,39 +141,33 @@ class TestAppRoutes:
 
         assert json.loads(actual.data) == response
 
-    def test_delete_child_account_by_user_id__should_call_controller_with_bearer_token(self, mock_controller):
+    def test_delete_child_account__should_call_controller_with_bearer_token(self, mock_controller):
         child_user_id = '123abc'
-        delete_child_account_by_user_id(self.USER_ID, child_user_id)
+        delete_child_account(child_user_id)
 
-        mock_controller.delete_child_account.assert_called_with(self.FAKE_JWT_TOKEN, ANY, ANY)
+        mock_controller.delete_child_account.assert_called_with(self.FAKE_JWT_TOKEN, ANY)
 
-    def test_delete_child_account_by_user_id__should_call_controller_with_user_id(self, mock_controller):
+    def test_delete_child_account__should_call_controller_with_child_user_id(self, mock_controller):
         child_user_id = '123abc'
-        delete_child_account_by_user_id(self.USER_ID, child_user_id)
+        delete_child_account(child_user_id)
 
-        mock_controller.delete_child_account.assert_called_with(ANY, self.USER_ID, ANY)
+        mock_controller.delete_child_account.assert_called_with(ANY, child_user_id)
 
-    def test_delete_child_account_by_user_id__should_call_controller_with_child_user_id(self, mock_controller):
+    def test_delete_child_account__should_not_raise_error_when_trying_to_get_bearer_token(self, mock_controller):
         child_user_id = '123abc'
-        delete_child_account_by_user_id(self.USER_ID, child_user_id)
-
-        mock_controller.delete_child_account.assert_called_with(ANY, ANY, child_user_id)
-
-    def test_delete_child_account_by_user_id__should_not_raise_error_when_trying_to_get_bearer_token(self, mock_controller):
-        child_user_id = '123abc'
-        delete_child_account_by_user_id(self.USER_ID, child_user_id)
+        delete_child_account(child_user_id)
 
         mock_controller.delete_child_account.assert_called()
 
-    def test_delete_child_account_by_user_id__should_return_success_status_code(self, mock_controller):
+    def test_delete_child_account__should_return_success_status_code(self, mock_controller):
         child_user_id = '123abc'
-        actual = delete_child_account_by_user_id(self.USER_ID, child_user_id)
+        actual = delete_child_account(child_user_id)
 
         assert actual.status_code == 200
 
-    def test_delete_child_account_by_user_id__should_return_default_headers(self, mock_controller):
+    def test_delete_child_account__should_return_default_headers(self, mock_controller):
         child_user_id = '123abc'
-        actual = delete_child_account_by_user_id(self.USER_ID, child_user_id)
+        actual = delete_child_account(child_user_id)
 
         assert actual.content_type == 'application/json'
 

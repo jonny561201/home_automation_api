@@ -37,8 +37,8 @@ def get_roles():
     return Response(json.dumps(roles), status=200, mimetype=Mime.JSON)
 
 
-@ACCOUNT_BLUEPRINT.route('/userId/<user_id>/childUserId/<child_user_id>', methods=['DELETE'])
-def delete_child_account_by_user_id(user_id, child_user_id):
+@ACCOUNT_BLUEPRINT.route('/childUserId/<child_user_id>', methods=['DELETE'])
+def delete_child_account(child_user_id):
     bearer_token = request.headers.get('Authorization')
-    account_controller.delete_child_account(bearer_token, user_id, child_user_id)
+    account_controller.delete_child_account(bearer_token, child_user_id)
     return Response(status=200, mimetype=Mime.JSON)
