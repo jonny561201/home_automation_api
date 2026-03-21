@@ -7,7 +7,7 @@ from mock import patch, ANY
 from werkzeug.exceptions import Unauthorized
 
 from svc.endpoints.app_routes import get_token, get_user_preferences, update_user_preferences, \
-    get_user_tasks, delete_user_task, insert_user_task_by_user_id, update_user_task_by_user_id
+    get_user_tasks, delete_user_task, insert_user_task, update_user_task_by_user_id
 from svc.models.app import Preference, Tasks, Task
 
 
@@ -150,41 +150,35 @@ class TestAppRoutes:
 
         assert actual.content_type == 'application/json'
 
-    def test_insert_user_task_by_user_id__should_call_app_controller_with_bearer_token(self, mock_controller):
+    def test_insert_user_task__should_call_app_controller_with_bearer_token(self, mock_controller):
         mock_controller.insert_user_task.return_value = self.TASKS
-        insert_user_task_by_user_id(self.USER_ID)
+        insert_user_task()
 
-        mock_controller.insert_user_task.assert_called_with(self.FAKE_JWT_TOKEN, ANY, ANY)
+        mock_controller.insert_user_task.assert_called_with(self.FAKE_JWT_TOKEN, ANY)
 
-    def test_insert_user_task_by_user_id__should_call_app_controller_with_user_id(self, mock_controller):
-        mock_controller.insert_user_task.return_value = self.TASKS
-        insert_user_task_by_user_id(self.USER_ID)
-
-        mock_controller.insert_user_task.assert_called_with(ANY, self.USER_ID, ANY)
-
-    def test_insert_user_task_by_user_id__should_call_app_controller_with_request_data(self, mock_controller):
+    def test_insert_user_task__should_call_app_controller_with_request_data(self, mock_controller):
         data = json.dumps({'test_data': 'asdfasd'}).encode()
         request.data = data
         mock_controller.insert_user_task.return_value = self.TASKS
-        insert_user_task_by_user_id(self.USER_ID)
+        insert_user_task()
 
-        mock_controller.insert_user_task.assert_called_with(ANY, ANY, data)
+        mock_controller.insert_user_task.assert_called_with(ANY, data)
 
-    def test_insert_user_task_by_user_id__should_return_success_status_code(self, mock_controller):
+    def test_insert_user_task__should_return_success_status_code(self, mock_controller):
         mock_controller.insert_user_task.return_value = self.TASKS
-        actual = insert_user_task_by_user_id(self.USER_ID)
+        actual = insert_user_task()
 
         assert actual.status_code == 200
 
-    def test_insert_user_task_by_user_id__should_return_success_content_type(self, mock_controller):
+    def test_insert_user_task__should_return_success_content_type(self, mock_controller):
         mock_controller.insert_user_task.return_value = self.TASKS
-        actual = insert_user_task_by_user_id(self.USER_ID)
+        actual = insert_user_task()
 
         assert actual.content_type == 'application/json'
 
-    def test_insert_user_task_by_user_id__should_return_response_data(self, mock_controller):
+    def test_insert_user_task__should_return_response_data(self, mock_controller):
         mock_controller.insert_user_task.return_value = self.TASKS
-        actual = insert_user_task_by_user_id(self.USER_ID)
+        actual = insert_user_task()
 
         assert json.loads(actual.data) == self.TASKS.to_dict()
 

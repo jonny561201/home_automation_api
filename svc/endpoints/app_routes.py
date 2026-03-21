@@ -56,10 +56,10 @@ def delete_user_task(task_id):
     return Response(status=200, mimetype=Mime.JSON)
 
 
-@APP_BLUEPRINT.route('/userId/<user_id>/tasks', methods=['POST'])
-def insert_user_task_by_user_id(user_id):
+@APP_BLUEPRINT.route('/tasks', methods=['POST'])
+def insert_user_task():
     bearer_token = request.headers.get('Authorization')
-    updated_tasks = app_controller.insert_user_task(bearer_token, user_id, request.data)
+    updated_tasks = app_controller.insert_user_task(bearer_token, request.data)
     return Response(updated_tasks.to_json(), status=200, mimetype=Mime.JSON)
 
 

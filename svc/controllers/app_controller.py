@@ -56,8 +56,9 @@ def delete_user_task(bearer_token, task_id):
         database.delete_schedule_task_by_user(user_id, task_id)
 
 
-def insert_user_task(bearer_token, user_id, task):
-    jwt_utils.is_jwt_valid(bearer_token)
+def insert_user_task(bearer_token, task):
+    claims = jwt_utils.is_jwt_valid(bearer_token)
+    user_id = claims['sub']
     request = json.loads(task.decode('UTF-8'))
     with TasksRepository() as database:
         return database.insert_schedule_task_by_user(user_id, request)
