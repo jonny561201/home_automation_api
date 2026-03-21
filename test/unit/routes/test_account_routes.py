@@ -5,7 +5,7 @@ from mock import patch, ANY
 from werkzeug.exceptions import Unauthorized
 from flask import Flask, request
 
-from svc.endpoints.account_routes import update_user_password, post_child_account_by_user, get_child_accounts_by_user_id, \
+from svc.endpoints.account_routes import update_user_password, post_child_account_by_user, get_child_accounts, \
     get_roles_by_user_id, delete_child_account_by_user_id
 
 
@@ -80,37 +80,32 @@ class TestAppRoutes:
         actual = post_child_account_by_user()
         assert json.loads(actual.data) == response
 
-    def test_get_child_accounts_by_user_id__should_call_controller_with_bearer_token(self, mock_controller):
+    def test_get_child_accounts__should_call_controller_with_bearer_token(self, mock_controller):
         mock_controller.get_child_accounts_by_user.return_value = {}
-        get_child_accounts_by_user_id(self.USER_ID)
-        mock_controller.get_child_accounts_by_user.assert_called_with(self.FAKE_JWT_TOKEN, ANY)
+        get_child_accounts()
+        mock_controller.get_child_accounts_by_user.assert_called_with(self.FAKE_JWT_TOKEN)
 
-    def test_get_child_accounts_by_user_id__should_call_controller_with_user_id(self, mock_controller):
+    def test_get_child_accounts__should_return_success_status_code(self, mock_controller):
         mock_controller.get_child_accounts_by_user.return_value = {}
-        get_child_accounts_by_user_id(self.USER_ID)
-        mock_controller.get_child_accounts_by_user.assert_called_with(ANY, self.USER_ID)
-
-    def test_get_child_accounts_by_user_id__should_return_success_status_code(self, mock_controller):
-        mock_controller.get_child_accounts_by_user.return_value = {}
-        actual = get_child_accounts_by_user_id(self.USER_ID)
+        actual = get_child_accounts()
         assert actual.status_code == 200
 
-    def test_get_child_accounts_by_user_id__should_return_success_headers(self, mock_controller):
+    def test_get_child_accounts__should_return_success_headers(self, mock_controller):
         mock_controller.get_child_accounts_by_user.return_value = {}
-        actual = get_child_accounts_by_user_id(self.USER_ID)
+        actual = get_child_accounts()
         assert actual.content_type == 'application/json'
 
-    def test_get_child_accounts_by_user_id__should_return_response_from_controller(self, mock_controller):
+    def test_get_child_accounts__should_return_response_from_controller(self, mock_controller):
         response = {'test': 'test data'}
         mock_controller.get_child_accounts_by_user.return_value = response
-        actual = get_child_accounts_by_user_id(self.USER_ID)
+        actual = get_child_accounts()
 
         assert json.loads(actual.data) == response
 
-    def test_get_child_accounts_by_user_id__should_not_throw_exception_when_no_bearer_token(self, mock_controller):
+    def test_get_child_accounts__should_not_throw_exception_when_no_bearer_token(self, mock_controller):
         mock_controller.get_child_accounts_by_user.side_effect = Unauthorized()
         with pytest.raises(Unauthorized):
-            get_child_accounts_by_user_id(self.USER_ID)
+            get_child_accounts()
 
     def test_get_roles_by_user_id__should_call_controller_with_bearer_token(self, mock_controller):
         mock_controller.get_roles.return_value = {}

@@ -23,10 +23,10 @@ def post_child_account_by_user():
     return Response(json.dumps(child_accounts), status=200, mimetype=Mime.JSON)
 
 
-@ACCOUNT_BLUEPRINT.route('/userId/<user_id>/childAccounts', methods=['GET'])
-def get_child_accounts_by_user_id(user_id):
+@ACCOUNT_BLUEPRINT.route('/childAccounts', methods=['GET'])
+def get_child_accounts():
     bearer_token = request.headers.get('Authorization')
-    child_accounts = account_controller.get_child_accounts_by_user(bearer_token, user_id)
+    child_accounts = account_controller.get_child_accounts_by_user(bearer_token)
     return Response(json.dumps(child_accounts), status=200, mimetype=Mime.JSON)
 
 
