@@ -8,8 +8,9 @@ from svc.utilities.user_garage_utils import get_garage_url_by_user
 from svc.utilities.rabbitmq_client import publish
 
 
-def get_status(bearer_token, user_id, garage_id):
-    is_jwt_valid(bearer_token)
+def get_status(bearer_token, garage_id):
+    claims = is_jwt_valid(bearer_token)
+    user_id = claims['sub']
     base_url = get_garage_url_by_user(user_id)
 
     return api_utils.get_garage_door_status(bearer_token, base_url, garage_id)

@@ -33,27 +33,27 @@ class TestAppRoutes:
 
     def test_garage_door_status__should_call_get_status(self, mock_controller):
         mock_controller.get_status.return_value = self.STATUS
-        get_garage_door_status(self.USER_ID, self.GARAGE_ID)
+        get_garage_door_status(self.GARAGE_ID)
 
-        mock_controller.get_status.assert_called_with(self.JWT_TOKEN, self.USER_ID, self.GARAGE_ID)
+        mock_controller.get_status.assert_called_with(self.JWT_TOKEN, self.GARAGE_ID)
 
     def test_garage_door_status__should_return_success_status_code(self, mock_controller):
         mock_controller.get_status.return_value = self.STATUS
-        actual = get_garage_door_status(self.USER_ID, self.GARAGE_ID)
+        actual = get_garage_door_status(self.GARAGE_ID)
 
         assert actual.status_code == 200
 
     def test_garage_door_status__should_return_success_header(self, mock_controller):
         mock_controller.get_status.return_value = self.STATUS
 
-        actual = get_garage_door_status(self.USER_ID, self.GARAGE_ID)
+        actual = get_garage_door_status(self.GARAGE_ID)
 
         assert actual.content_type == 'application/json'
 
     def test_garage_door_status__should_return_response_body(self, mock_controller):
         mock_controller.get_status.return_value = self.STATUS
 
-        actual = get_garage_door_status(self.USER_ID, self.GARAGE_ID)
+        actual = get_garage_door_status(self.GARAGE_ID)
 
         assert actual.data.decode('UTF-8') == self.STATUS.to_json()
 
