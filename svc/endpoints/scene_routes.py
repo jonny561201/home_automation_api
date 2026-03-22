@@ -7,15 +7,15 @@ from svc.controllers import scene_controller
 SCENE_BLUEPRINT = Blueprint('scene_routes', __name__, url_prefix='/scenes')
 
 
-@SCENE_BLUEPRINT.route('/userId/<user_id>', methods=['GET'])
-def get_scenes_by_user(user_id):
+@SCENE_BLUEPRINT.route('/list', methods=['GET'])
+def get_scenes():
     bearer_token = request.headers.get('Authorization')
-    scenes = scene_controller.get_created_scenes(bearer_token, user_id)
+    scenes = scene_controller.get_created_scenes(bearer_token)
     return Response(scenes.to_json(), status=200, mimetype=Mime.JSON)
 
 
-@SCENE_BLUEPRINT.route('/userId/<user_id>/scene/<scene_id>', methods=['DELETE'])
-def delete_scene_by_user(user_id, scene_id):
+@SCENE_BLUEPRINT.route('/<scene_id>', methods=['DELETE'])
+def delete_scene(scene_id):
     bearer_token = request.headers.get('Authorization')
-    scene_controller.delete_created_scene(bearer_token, user_id, scene_id)
+    scene_controller.delete_created_scene(bearer_token, scene_id)
     return Response(status=200, mimetype=Mime.JSON)
