@@ -4,7 +4,7 @@ from flask import Flask, request
 from mock import patch
 
 from svc.models.sump import SumpLevel
-from svc.endpoints.sump_routes import get_current_sump_level, save_current_level_by_user
+from svc.endpoints.sump_routes import get_current_sump_level, save_current_depth
 
 
 class TestSumpRoutes:
@@ -20,40 +20,36 @@ class TestSumpRoutes:
 
     @patch('svc.endpoints.sump_routes.get_sump_level')
     def test_get_current_sump_level__should_call_controller(self, mock_controller):
-        user_id = 'fakeuserid'
         mock_controller.return_value = SumpLevel(currentDepth=1.12, averageDepth=1.23, warningLevel=1)
 
-        get_current_sump_level(user_id)
+        get_current_sump_level()
 
-        mock_controller.assert_called_with(user_id, self.BEARER_TOKEN)
+        mock_controller.assert_called_with(self.BEARER_TOKEN)
 
     @patch('svc.endpoints.sump_routes.get_sump_level')
     def test_get_current_sump_level__should_return_valid_response(self, mock_controller):
-        user_id = 'fakeuserid'
         expected_depth = SumpLevel(currentDepth=1.12, averageDepth=1.23, warningLevel=1)
         mock_controller.return_value = expected_depth
 
-        actual = get_current_sump_level(user_id)
+        actual = get_current_sump_level()
         json_actual = json.loads(actual.data)
 
         assert json_actual == expected_depth.to_dict()
 
     @patch('svc.endpoints.sump_routes.get_sump_level')
     def test_get_current_sump_level__should_return_success_status(self, mock_controller):
-        user_id = 'fakeuserid'
         expected_depth = SumpLevel(currentDepth=1.12, averageDepth=1.23, warningLevel=1)
         mock_controller.return_value = expected_depth
 
-        actual = get_current_sump_level(user_id)
+        actual = get_current_sump_level()
 
         assert actual.status_code == 200
 
     @patch('svc.endpoints.sump_routes.save_current_level')
-    def test_save_current_level_by_user__should_call_controller(self, mock_controller):
-        user_id = 1234
+    def test_save_current_depth__should_call_controller(self, mock_controller):
         request_data = json.dumps({}).encode()
         request.data = request_data
 
-        save_current_level_by_user(user_id)
+        save_current_depth()
 
-        mock_controller.assert_called_with(user_id, self.BEARER_TOKEN, request_data)
+        mock_controller.assert_called_with(self.BEARER_TOKEN, request_data)

@@ -6,8 +6,9 @@ from svc.utilities.conversion_utils import convert_to_imperial
 from svc.utilities.jwt_utils import is_jwt_valid
 
 
-def get_sump_level(user_id, bearer_token):
-    is_jwt_valid(bearer_token)
+def get_sump_level(bearer_token):
+    claims = is_jwt_valid(bearer_token)
+    user_id = claims['sub']
     with SumpDatabase() as database:
         current_data = database.get_current_sump_level_by_user(user_id)
         average_data = database.get_average_sump_level_by_user(user_id)
@@ -16,8 +17,9 @@ def get_sump_level(user_id, bearer_token):
         return __map_response(current_data, average_data, preferences.isImperial)
 
 
-def save_current_level(user_id, bearer_token, request):
-    is_jwt_valid(bearer_token)
+def save_current_level(bearer_token, request):
+    claims = is_jwt_valid(bearer_token)
+    user_id = claims['sub']
     depth_info = json.loads(request)
     with SumpDatabase() as database:
         database.insert_current_sump_level(user_id, depth_info)
