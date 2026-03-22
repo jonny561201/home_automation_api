@@ -11,8 +11,9 @@ from svc.utilities.rabbitmq_client import publish
 from svc.utilities.user_temp_utils import get_user_temperature
 
 
-def get_user_temp(user_id, bearer_token):
-    is_jwt_valid(bearer_token)
+def get_user_temp(bearer_token):
+    claims = is_jwt_valid(bearer_token)
+    user_id = claims['sub']
     with AccountRepository() as database:
         preference = database.get_preferences_by_user(user_id)
         temp_text = read_temperature_file()
@@ -22,8 +23,9 @@ def get_user_temp(user_id, bearer_token):
 
 
 #TODO: update database account repo to store lat/lon of city
-def get_user_forecast(user_id, bearer_token):
-    is_jwt_valid(bearer_token)
+def get_user_forecast(bearer_token):
+    claims = is_jwt_valid(bearer_token)
+    user_id = claims['sub']
     with AccountRepository() as database:
         preference = database.get_preferences_by_user(user_id)
         return weather_request.get_weather(preference.city, preference.tempUnit)

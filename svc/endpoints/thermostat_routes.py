@@ -7,22 +7,22 @@ from svc.controllers import thermostat_controller
 THERMOSTAT_BLUEPRINT = Blueprint('thermostat_blueprint', __name__, url_prefix='/thermostat')
 
 
-@THERMOSTAT_BLUEPRINT.route('/temperature/<user_id>', methods=['GET'])
-def get_temperature(user_id):
+@THERMOSTAT_BLUEPRINT.route('/temperature', methods=['GET'])
+def get_temperature():
     bearer_token = request.headers.get('Authorization')
-    temp = thermostat_controller.get_user_temp(user_id, bearer_token)
+    temp = thermostat_controller.get_user_temp(bearer_token)
     return Response(temp.to_json(), status=200, mimetype=Mime.JSON)
 
 
-@THERMOSTAT_BLUEPRINT.route('/temperature/<user_id>', methods=['POST'])
-def set_temperature(user_id):
+@THERMOSTAT_BLUEPRINT.route('/temperature/desired', methods=['POST'])
+def set_desired_temperature():
     bearer_token = request.headers.get('Authorization')
     thermostat_controller.set_user_temperature(request.data, bearer_token)
     return Response(status=200, mimetype=Mime.JSON)
 
 
-@THERMOSTAT_BLUEPRINT.route('/forecast/<user_id>', methods=['GET'])
-def get_forecast_data(user_id):
+@THERMOSTAT_BLUEPRINT.route('/forecast', methods=['GET'])
+def get_forecast_data():
     bearer_token = request.headers.get('Authorization')
-    forecast = thermostat_controller.get_user_forecast(user_id, bearer_token)
+    forecast = thermostat_controller.get_user_forecast(bearer_token)
     return Response(forecast.to_json(), status=200, mimetype=Mime.JSON)
