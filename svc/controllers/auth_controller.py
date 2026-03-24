@@ -10,5 +10,5 @@ def exchange_auth_code(request_data):
 
     if not code or not code_verifier or not redirect_uri:
         raise BadRequest()
-    return api_utils.exchange_auth0_code(code, code_verifier, redirect_uri)
 
+    return api_utils.exchange_auth0_code(code, code_verifier, redirect_uri)

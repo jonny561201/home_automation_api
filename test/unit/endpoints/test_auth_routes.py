@@ -42,12 +42,12 @@ class TestAuthRoutes:
 
         assert actual.status_code == 200
 
-    def test_exchange_token__should_return_access_token_in_body(self, mock_controller, mock_settings):
+    def test_exchange_token__should_return_empty_response_body(self, mock_controller, mock_settings):
         mock_settings.get_instance.return_value = MagicMock(environment='local')
         mock_controller.exchange_auth_code.return_value = {'access_token': self.ACCESS_TOKEN, 'refresh_token': self.REFRESH_TOKEN}
         actual = exchange_token()
 
-        assert json.loads(actual.data)['access_token'] == self.ACCESS_TOKEN
+        assert actual.data == b''
 
     def test_exchange_token__should_set_access_token_cookie(self, mock_controller, mock_settings):
         mock_settings.get_instance.return_value = MagicMock(environment='local')
