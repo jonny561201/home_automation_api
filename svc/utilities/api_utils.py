@@ -133,18 +133,17 @@ def send_new_account_email(email, password):
 def exchange_auth0_code(code, code_verifier, redirect_uri):
     settings = Settings.get_instance()
     authority = settings.Authority
-    response = requests.post(
-        f'https://{authority.domain}/oauth/token',
-        json={
-            'grant_type': 'authorization_code',
-            'client_id': authority.client_id,
-            'client_secret': authority.client_secret,
-            'code': code,
-            'code_verifier': code_verifier,
-            'redirect_uri': redirect_uri,
-        }
-    )
+    request = {
+        'grant_type': 'authorization_code',
+        'client_id': authority.client_id,
+        'client_secret': authority.client_secret,
+        'code': code,
+        'code_verifier': code_verifier,
+        'redirect_uri': redirect_uri,
+    }
+    response = requests.post(f'https://{authority.domain}/oauth/token', json=request)
     __validate_response(response)
+
     return response.json()
 
 
