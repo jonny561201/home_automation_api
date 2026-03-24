@@ -136,6 +136,14 @@ class Authority:
     def audience(self):
         return self._settings.get('Audience')
 
+    @property
+    def client_id(self):
+        return _get_setting('AUTH0_CLIENT_ID', 'ClientId', self._settings)
+
+    @property
+    def client_secret(self):
+        return _get_setting('AUTH0_CLIENT_SECRET', 'ClientSecret', self._settings)
+
 def _get_setting(env_var, setting_key, settings):
     env_var_value = os.environ.get(env_var)
     return env_var_value if env_var_value is not None else settings.get(setting_key)
