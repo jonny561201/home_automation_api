@@ -9,7 +9,7 @@ from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
 from svc.config.settings_state import Settings
 from svc.utilities.api_utils import get_city_coordinates, create_light_group, set_light_groups, set_light_state, \
     get_light_groups, get_garage_door_status, toggle_garage_door_state, update_garage_door_state, \
-    send_new_account_email, get_forecast_by_coords
+    send_new_account_email, get_forecast_by_coords, exchange_auth0_code
 
 
 @patch('svc.utilities.api_utils.requests')
@@ -587,3 +587,56 @@ class TestEmailApiRequests:
         send_new_account_email(self.EMAIL, self.PASSWORD)
 
         mock_request.post.assert_called_with(ANY, data=json.dumps(expected_data), headers=ANY)
+
+
+@patch('svc.utilities.api_utils.requests')
+class TestExchangeAuth0Code:
+    FAKE_CODE = 'fake_auth_code'
+    FAKE_VERIFIER = 'fake_verifier'
+    FAKE_REDIRECT = 'http://localhost:3000/callback'
+    DOMAIN = 'dev-test.us.auth0.com'
+    CLIENT_ID = 'fake_client_id'
+    CLIENT_SECRET = 'fake_client_secret'
+
+    def setup_method(self):
+        Settings.get_instance().Authority._settings = {
+            'Domain': self.DOMAIN,
+            'ClientId': self.CLIENT_ID,
+            'ClientSecret': self.CLIENT_SECRET
+        }
+        self.RESPONSE = Response()
+        self.RESPONSE.status_code = 200
+
+    def test_exchange_auth0_code__should_call_auth0_token_endpoint(self, mock_requests):
+        mock_requests.post.return_value = self.RESPONSE
+        exchange_auth0_code(self.FAKE_CODE, self.FAKE_VERIFIER, self.FAKE_REDIRECT)
+
+        request = {
+            'grant_type': 'authorization_code',
+            'client_id': self.CLIENT_ID,
+            'client_secret': self.CLIENT_SECRET,
+            'code': self.FAKE_CODE,
+            'code_verifier': self.FAKE_VERIFIER,
+            'redirect_uri': self.FAKE_REDIRECT,
+        }
+        mock_requests.post.assert_called_with(f'https://{self.DOMAIN}/oauth/token', json=request)
+
+    def test_exchange_auth0_code__should_return_token_response(self, mock_requests):
+        self.RESPONSE._content = json.dumps({'access_token': 'abc', 'refresh_token': 'xyz'}).encode()
+        mock_requests.post.return_value = self.RESPONSE
+        actual = exchange_auth0_code(self.FAKE_CODE, self.FAKE_VERIFIER, self.FAKE_REDIRECT)
+
+        assert actual == {'access_token': 'abc', 'refresh_token': 'xyz'}
+
+    def test_exchange_auth0_code__should_raise_unauthorized_on_401(self, mock_requests):
+        self.RESPONSE.status_code = 401
+        mock_requests.post.return_value = self.RESPONSE
+        with pytest.raises(Unauthorized):
+            exchange_auth0_code(self.FAKE_CODE, self.FAKE_VERIFIER, self.FAKE_REDIRECT)
+
+    def test_exchange_auth0_code__should_raise_failed_dependency_on_500(self, mock_requests):
+        self.RESPONSE.status_code = 500
+        mock_requests.post.return_value = self.RESPONSE
+        with pytest.raises(FailedDependency):
+            exchange_auth0_code(self.FAKE_CODE, self.FAKE_VERIFIER, self.FAKE_REDIRECT)
+

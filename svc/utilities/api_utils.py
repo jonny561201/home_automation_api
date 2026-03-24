@@ -130,6 +130,24 @@ def send_new_account_email(email, password):
     requests.post(settings.BaseUrls.email, data=json.dumps(request), headers=headers)
 
 
+def exchange_auth0_code(code, code_verifier, redirect_uri):
+    settings = Settings.get_instance()
+    authority = settings.Authority
+    response = requests.post(
+        f'https://{authority.domain}/oauth/token',
+        json={
+            'grant_type': 'authorization_code',
+            'client_id': authority.client_id,
+            'client_secret': authority.client_secret,
+            'code': code,
+            'code_verifier': code_verifier,
+            'redirect_uri': redirect_uri,
+        }
+    )
+    __validate_response(response)
+    return response.json()
+
+
 def __validate_response(response):
     if response.status_code == 401:
         raise Unauthorized()
