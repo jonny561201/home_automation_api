@@ -16,8 +16,8 @@ def initialize_queue(queue_name: str):
         channel.exchange_declare(exchange=settings.exchange, exchange_type='direct', durable=False)
         channel.queue_declare(queue=queue_name, durable=True)
         channel.queue_bind(queue=queue_name, exchange=settings.exchange, routing_key=queue_name)
-    except Exception as exc:
-        logging.warning('Failed to initialize queue: %s - %s', queue_name, str(exc))
+    except Exception:
+        logging.warning(f'Failed to initialize queue: {queue_name}')
     finally:
         try:
             connection.close()
