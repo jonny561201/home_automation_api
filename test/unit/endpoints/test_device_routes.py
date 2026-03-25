@@ -1,11 +1,12 @@
 import json
 
-from flask import Flask, request
+from flask import Flask
 from mock import patch, ANY
 
 from svc.models.device import DeviceNode, DoorDeviceDetails
 from svc.models.device import Device
 from svc.endpoints.device_routes import add_device, add_device_node
+from test.unit.test_helpers import setup_request
 
 
 @patch('svc.endpoints.device_routes.devices_controller')
@@ -18,8 +19,7 @@ class TestDeviceRoutes:
         self.app = Flask(__name__)
         self.DEVICE = Device(deviceId=self.DEVICE_ID)
         self.NODE = DeviceNode(availableNodes=1, device=DoorDeviceDetails(doorId=1, doorName='Test Door'))
-        self.ctx = self.app.test_request_context(data=json.dumps({}), headers={'Authorization': self.BEARER_TOKEN})
-        self.ctx.push()
+        self.ctx = setup_request(self.app, bearer=self.BEARER_TOKEN)
 
     def teardown_method(self):
         self.ctx.pop()
@@ -32,7 +32,7 @@ class TestDeviceRoutes:
     def test_add_device__should_pass_the_decoded_request_body_to_controller(self, mock_controller):
         mock_controller.add_device_to_role.return_value = self.DEVICE
         request_data = {'fakeData': 'Im Not Real'}
-        request.data = json.dumps(request_data).encode('UTF-8')
+        self.ctx = setup_request(self.app, self.ctx, request_data, self.BEARER_TOKEN)
         add_device()
         mock_controller.add_device_to_role.assert_called_with(ANY, request_data)
 
@@ -64,7 +64,7 @@ class TestDeviceRoutes:
     def test_add_device_node__should_pass_the_decoded_body_to_the_controller(self, mock_controller):
         request_data = {'test': 'test'}
         mock_controller.add_node_to_device.return_value = self.NODE
-        request.data = json.dumps(request_data).encode('UTF-8')
+        self.ctx = setup_request(self.app, self.ctx, request_data, self.BEARER_TOKEN)
         add_device_node(self.DEVICE_ID)
 
         mock_controller.add_node_to_device.assert_called_with(ANY, ANY, request_data)
