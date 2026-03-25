@@ -5,10 +5,10 @@ import jwt
 import pytest
 from mock import patch
 from zoneinfo import ZoneInfo
-from werkzeug.exceptions import Unauthorized
+from werkzeug.exceptions import Unauthorized, Forbidden
 
 from svc.config.settings_state import Settings
-from svc.utilities.jwt_utils import is_jwt_valid, create_jwt_token, generate_refresh_token
+from svc.utilities.jwt_utils import is_jwt_valid, create_jwt_token, generate_refresh_token, AuthClient
 
 
 class TestJwt:
@@ -94,3 +94,53 @@ class TestJwt:
         with pytest.raises(Unauthorized):
             is_jwt_valid(jwt_token)
 
+
+@patch('svc.utilities.jwt_utils.PyJWKClient')
+@patch('svc.utilities.jwt_utils.jwt')
+class TestAuthClient:
+    DOMAIN = 'dev-test.us.auth0.com'
+    AUDIENCE = 'https://fake.domain.com'
+    USER_ID = 'fake_user_id'
+    TOKEN = 'IM_A_FAKE_TOKEN'
+
+    def setup_method(self):
+        self.SETTINGS = Settings.get_instance()
+        self.SETTINGS._settings = {'Authority': {'Domain': self.DOMAIN, 'Audience': self.AUDIENCE}}
+
+    def test_verify_and_authorize__should_return_claims_when_roles_match(self, mock_jwt, mock_jwks):
+        claims = {'sub': self.USER_ID, 'roles': ['lighting', 'security']}
+        mock_jwt.decode.return_value = claims
+        client = AuthClient(self.SETTINGS)
+        actual = client.verify_and_authorize(self.TOKEN, 'lighting')
+
+        assert actual == claims
+
+    def test_verify_and_authorize__should_return_claims_when_all_required_roles_present(self, mock_jwt, mock_jwks):
+        claims = {'sub': self.USER_ID, 'roles': ['lighting', 'security', 'thermostat']}
+        mock_jwt.decode.return_value = claims
+        client = AuthClient(self.SETTINGS)
+        actual = client.verify_and_authorize(self.TOKEN, 'lighting', 'security')
+
+        assert actual == claims
+
+    def test_verify_and_authorize__should_raise_forbidden_when_role_missing(self, mock_jwt, mock_jwks):
+        claims = {'sub': self.USER_ID, 'roles': ['lighting']}
+        mock_jwt.decode.return_value = claims
+        client = AuthClient(self.SETTINGS)
+        with pytest.raises(Forbidden):
+            client.verify_and_authorize(self.TOKEN, 'security')
+
+    def test_verify_and_authorize__should_raise_forbidden_when_roles_claim_missing(self, mock_jwt, mock_jwks):
+        claims = {'sub': self.USER_ID}
+        mock_jwt.decode.return_value = claims
+        client = AuthClient(self.SETTINGS)
+        with pytest.raises(Forbidden):
+            client.verify_and_authorize(self.TOKEN, 'lighting')
+
+    def test_verify_and_authorize__should_succeed_with_no_required_roles(self, mock_jwt, mock_jwks):
+        claims = {'sub': self.USER_ID, 'roles': []}
+        mock_jwt.decode.return_value = claims
+        client = AuthClient(self.SETTINGS)
+        actual = client.verify_and_authorize(self.TOKEN)
+
+        assert actual == claims
