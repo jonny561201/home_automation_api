@@ -1,5 +1,3 @@
-import json
-
 import jwt
 import pytest
 from mock import patch, ANY
@@ -19,30 +17,28 @@ class TestAccountCredentials:
     USER_ID = 'fake_user_id'
 
     def test_change_password__should_validate_jwt_token(self, mock_jwt, mock_db, mock_email):
-        request = json.dumps({'userName': None, 'oldPassword': None, 'newPassword': None}).encode('UTF-8')
+        request = {'userName': None, 'oldPassword': None, 'newPassword': None}
         change_password(self.BEARER_TOKEN, request)
 
         mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
 
     def test_change_password__should_call_database_change_user_password_with_user_id(self, mock_jwt, mock_db, mock_email):
         mock_jwt.is_jwt_valid.return_value = {'sub': self.USER_ID}
-        new_password = 'new password'
-        request = {'userName': self.USER, 'oldPassword': self.PASSWORD, 'newPassword': new_password}
-        change_password(self.BEARER_TOKEN, json.dumps(request).encode('UTF-8'))
+        request = {'userName': self.USER, 'oldPassword': self.PASSWORD, 'newPassword': 'new password'}
+        change_password(self.BEARER_TOKEN, request)
 
         mock_db.return_value.__enter__.return_value.change_user_password.assert_called_with(self.USER_ID, ANY, ANY)
 
     def test_change_password__should_call_database_change_user_password_with_old_password(self, mock_jwt, mock_db, mock_email):
-        new_password = 'new password'
-        request = {'userName': self.USER, 'oldPassword': self.PASSWORD, 'newPassword': new_password}
-        change_password(self.BEARER_TOKEN, json.dumps(request).encode('UTF-8'))
+        request = {'userName': self.USER, 'oldPassword': self.PASSWORD, 'newPassword': 'new password'}
+        change_password(self.BEARER_TOKEN, request)
 
         mock_db.return_value.__enter__.return_value.change_user_password.assert_called_with(ANY, self.PASSWORD, ANY)
 
     def test_change_password__should_call_database_change_user_password_with_new_password(self, mock_jwt, mock_db, mock_email):
         new_password = 'new password'
         request = {'userName': self.USER, 'oldPassword': self.PASSWORD, 'newPassword': new_password}
-        change_password(self.BEARER_TOKEN, json.dumps(request).encode('UTF-8'))
+        change_password(self.BEARER_TOKEN, request)
 
         mock_db.return_value.__enter__.return_value.change_user_password.assert_called_with(ANY, ANY, new_password)
 
@@ -75,35 +71,35 @@ class TestAccountRoles:
         assert actual == roles
 
     def test_create_child_account_by_user__should_validate_bearer_token(self, mock_jwt, mock_db, mock_email):
-        request = json.dumps({'email': 'test', 'roles': ['stuff']}).encode()
+        request = {'email': 'test', 'roles': ['stuff']}
         create_child_account_by_user(self.BEARER_TOKEN, request)
         mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
 
     def test_create_child_account_by_user__should_make_call_to_database_with_user_id(self, mock_jwt, mock_db, mock_email):
         mock_jwt.is_jwt_valid.return_value = {'sub': self.USER_ID}
-        request = json.dumps({'email': 'test', 'roles': ['stuff']}).encode()
+        request = {'email': 'test', 'roles': ['stuff']}
         create_child_account_by_user(self.BEARER_TOKEN, request)
         mock_db.return_value.__enter__.return_value.create_child_account.assert_called_with(self.USER_ID, ANY, ANY, ANY)
 
     def test_create_child_account_by_user__should_make_call_to_database_with_email(self, mock_jwt, mock_db, mock_email):
         email = 'thor_thunder@gmail.com'
-        request = json.dumps({'email': email, 'roles': ['stuff']}).encode('UTF-8')
+        request = {'email': email, 'roles': ['stuff']}
         create_child_account_by_user(self.BEARER_TOKEN, request)
         mock_db.return_value.__enter__.return_value.create_child_account.assert_called_with(ANY, email, ANY, ANY)
 
     def test_create_child_account_by_user__should_make_call_to_database_with_roles(self, mock_jwt, mock_db, mock_email):
         roles = ['Im a role!!!']
-        request = json.dumps({'email': 'test', 'roles': roles}).encode('UTF-8')
+        request = {'email': 'test', 'roles': roles}
         create_child_account_by_user(self.BEARER_TOKEN, request)
         mock_db.return_value.__enter__.return_value.create_child_account.assert_called_with(ANY, ANY, roles, ANY)
 
     def test_create_child_account_by_user__should_raise_bad_request_when_no_email(self, mock_jwt, mock_db, mock_email):
-        request = json.dumps({'email': '', 'roles': ['sweet ass role']}).encode('UTF-8')
+        request = {'email': '', 'roles': ['sweet ass role']}
         with pytest.raises(BadRequest):
             create_child_account_by_user(self.BEARER_TOKEN, request)
 
     def test_create_child_account_by_user__should_raise_bad_request_when_no_roles(self, mock_jwt, mock_db, mock_email):
-        request = json.dumps({'email': 'test', 'roles': []}).encode('UTF-8')
+        request = {'email': 'test', 'roles': []}
         with pytest.raises(BadRequest):
             create_child_account_by_user(self.BEARER_TOKEN, request)
 
@@ -112,7 +108,7 @@ class TestAccountRoles:
         roles = ['Im a role!!!']
         password = 'brandNewPassword'
         mock_pass.return_value = password
-        request = json.dumps({'email': 'test', 'roles': roles}).encode('UTF-8')
+        request = {'email': 'test', 'roles': roles}
         create_child_account_by_user(self.BEARER_TOKEN, request)
         mock_db.return_value.__enter__.return_value.create_child_account.assert_called_with(ANY, ANY, ANY, password)
 
@@ -121,13 +117,13 @@ class TestAccountRoles:
         email = 'test@test.com'
         password = 'brandNewPassword'
         mock_pass.return_value = password
-        request = json.dumps({'email': email, 'roles': ['stuff']}).encode('UTF-8')
+        request = {'email': email, 'roles': ['stuff']}
         create_child_account_by_user(self.BEARER_TOKEN, request)
 
         mock_email.assert_called_with(email, password)
 
     def test_create_child_account_by_user__should_return_response_from_database_method(self, mock_jwt, mock_db, mock_email):
-        request = json.dumps({'email': 'test', 'roles': ['stuff']}).encode('UTF-8')
+        request = {'email': 'test', 'roles': ['stuff']}
         response = {'user_data': 'doesnt matter'}
         mock_db.return_value.__enter__.return_value.create_child_account.return_value = response
         actual = create_child_account_by_user(self.BEARER_TOKEN, request)
