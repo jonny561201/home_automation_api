@@ -15,6 +15,7 @@ Don't add comments unless I tell you to do so.
 - Prefer using functions over classes unless state management is necessary.
 - Functions should follow SOLID principles, especially single responsibility.
 - Use snake_case for variable and function names.
+- Use f-strings for all string formatting — never use %-formatting or str.format().
 - route or endpoint methods should be as lightweight as possible, delegating logic to service or utility functions.
 - use flask blueprints to organize routes by functionality.
 - do not use docstrings unless this is a library for public consumption.
