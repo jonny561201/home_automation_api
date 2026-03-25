@@ -1,9 +1,10 @@
 import json
 
-from flask import Flask, request
+from flask import Flask
 from mock import patch
 
 from svc.endpoints.light_routes import get_assigned_light_groups, set_assigned_light_group, set_light_state
+from test.unit.test_helpers import setup_request
 
 
 @patch('svc.endpoints.light_routes.light_controller')
@@ -12,8 +13,7 @@ class TestLightRoutes:
 
     def setup_method(self):
         self.app = Flask(__name__)
-        self.ctx = self.app.test_request_context(data=json.dumps({}), headers={'Authorization': self.BEARER_TOKEN})
-        self.ctx.push()
+        self.ctx = setup_request(self.app, bearer=self.BEARER_TOKEN)
 
     def teardown_method(self):
         self.ctx.pop()
@@ -45,7 +45,7 @@ class TestLightRoutes:
 
     def test_set_assigned_light_group__should_call_light_controller(self, mock_controller):
         request_data = {"on": "False", "groupId": 1}
-        request.data = json.dumps(request_data).encode()
+        self.ctx = setup_request(self.app, self.ctx, request_data, self.BEARER_TOKEN)
         set_assigned_light_group()
 
         mock_controller.set_assigned_light_groups.assert_called_with(self.BEARER_TOKEN, request_data)
@@ -62,7 +62,7 @@ class TestLightRoutes:
 
     def test_set_light_state__should_call_light_controller(self, mock_controller):
         request_data = {"on": "False", "brightness": 133, "lightId": "3"}
-        request.data = json.dumps(request_data).encode()
+        self.ctx = setup_request(self.app, self.ctx, request_data, self.BEARER_TOKEN)
         set_light_state()
 
         mock_controller.set_assigned_light.assert_called_with(self.BEARER_TOKEN, request_data)
