@@ -2,13 +2,14 @@ import json
 import uuid
 
 import pytest
-from flask import Flask, request
+from flask import Flask
 from mock import patch, ANY
 from werkzeug.exceptions import Unauthorized
 
 from svc.endpoints.app_routes import get_token, get_user_preferences, update_user_preferences, \
     get_user_tasks, delete_user_task, insert_user_task, update_user_task
 from svc.models.app import Preference, Tasks, Task
+from test.unit.test_helpers import setup_request
 
 
 @patch('svc.endpoints.app_routes.app_controller')
@@ -23,14 +24,14 @@ class TestAppRoutes:
         self.TASK = Task(taskId='1', taskType='x', enabled=True, hvacMode='auto', alarmDays='M', hvacStopTemp=68, hvacStartTemp=72, alarmGroupName='Test', alarmLightGroup='1')
         self.PREFERENCES = Preference(isImperial=False, isFahrenheit=False, city='York', tempUnit='Celsius', measureUnit='cm', garageId=1, garageDoor='Kals')
         self.TASKS = Tasks(tasks=[])
-        self.ctx = self.app.test_request_context(headers={'Authorization': self.FAKE_JWT_TOKEN})
-        self.ctx.push()
+        self.LOGIN_REQUEST = {'grant_type': 'client_credentials', 'client_id': self.USER, 'client_secret': self.PWORD}
+        self.ctx = setup_request(self.app, bearer=self.FAKE_JWT_TOKEN)
 
     def teardown_method(self):
         self.ctx.pop()
 
     def test_token__should_respond_with_success_status_code(self, mock_controller):
-        request.data = json.dumps({'grant_type': 'client_credentials', 'client_id': self.USER, 'client_secret': self.PWORD}).encode()
+        self.ctx = setup_request(self.app, self.ctx, self.LOGIN_REQUEST, self.FAKE_JWT_TOKEN)
         mock_controller.get_login.return_value = self.FAKE_JWT_TOKEN
 
         actual = get_token()
@@ -38,7 +39,7 @@ class TestAppRoutes:
         assert actual.status_code == 200
 
     def test_token__should_respond_with_success_login_response(self, mock_controller):
-        request.data = json.dumps({'grant_type': 'client_credentials', 'client_id': self.USER, 'client_secret': self.PWORD}).encode()
+        self.ctx = setup_request(self.app, self.ctx, self.LOGIN_REQUEST, self.FAKE_JWT_TOKEN)
         mock_controller.get_login.return_value = self.FAKE_JWT_TOKEN
 
         actual = get_token()
@@ -47,7 +48,7 @@ class TestAppRoutes:
         assert json_actual['bearerToken'] == self.FAKE_JWT_TOKEN
 
     def test_token__should_call_get_login(self, mock_controller):
-        request.data = json.dumps({'grant_type': 'client_credentials', 'client_id': self.USER, 'client_secret': self.PWORD}).encode()
+        self.ctx = setup_request(self.app, self.ctx, self.LOGIN_REQUEST, self.FAKE_JWT_TOKEN)
         mock_controller.get_login.return_value = self.FAKE_JWT_TOKEN
         get_token()
 
@@ -79,8 +80,8 @@ class TestAppRoutes:
         mock_controller.save_user_preferences.assert_called_with(self.FAKE_JWT_TOKEN, ANY)
 
     def test_update_user_preferences__should_call_app_controller_with_request_data(self, mock_controller):
-        expected_data = json.dumps({}).encode()
-        request.data = expected_data
+        expected_data = {'city': 'Berlin'}
+        self.ctx = setup_request(self.app, self.ctx, expected_data, self.FAKE_JWT_TOKEN)
         update_user_preferences()
 
         mock_controller.save_user_preferences.assert_called_with(ANY, expected_data)
@@ -157,8 +158,8 @@ class TestAppRoutes:
         mock_controller.insert_user_task.assert_called_with(self.FAKE_JWT_TOKEN, ANY)
 
     def test_insert_user_task__should_call_app_controller_with_request_data(self, mock_controller):
-        data = json.dumps({'test_data': 'asdfasd'}).encode()
-        request.data = data
+        data = {'test_data': 'asdfasd'}
+        self.ctx = setup_request(self.app, self.ctx, data, self.FAKE_JWT_TOKEN)
         mock_controller.insert_user_task.return_value = self.TASKS
         insert_user_task()
 
@@ -188,9 +189,9 @@ class TestAppRoutes:
 
         mock_controller.update_user_task.assert_called_with(self.FAKE_JWT_TOKEN, ANY)
 
-    def test_update_user_task_by_user_id_should_call_app_controller_with_request_data(self, mock_controller):
-        data = json.dumps({'test_data': 'asdfasd'}).encode()
-        request.data = data
+    def test_update_user_task__should_call_app_controller_with_request_data(self, mock_controller):
+        data = {'test_data': 'asdfasd'}
+        self.ctx = setup_request(self.app, self.ctx, data, self.FAKE_JWT_TOKEN)
         mock_controller.update_user_task.return_value = self.TASK
         update_user_task()
 
@@ -216,28 +217,28 @@ class TestAppRoutes:
 
     def test_token__should_call_app_controller_with_old_refresh_token(self, mock_controller):
         old_refresh = str(uuid.uuid4())
-        request.data = json.dumps({'grant_type': 'refresh_token', 'refresh_token': old_refresh}).encode()
+        self.ctx = setup_request(self.app, self.ctx, {'grant_type': 'refresh_token', 'refresh_token': old_refresh}, self.FAKE_JWT_TOKEN)
         mock_controller.refresh_bearer_token.return_value = self.FAKE_JWT_TOKEN
         get_token()
 
         mock_controller.refresh_bearer_token.assert_called_with(old_refresh)
 
     def test_token__should_return_success_status_code(self, mock_controller):
-        request.data = json.dumps({'grant_type': 'refresh_token', 'refresh_token': str(uuid.uuid4())}).encode()
+        self.ctx = setup_request(self.app, self.ctx, {'grant_type': 'refresh_token', 'refresh_token': str(uuid.uuid4())}, self.FAKE_JWT_TOKEN)
         mock_controller.refresh_bearer_token.return_value = self.FAKE_JWT_TOKEN
         actual = get_token()
 
         assert actual.status_code == 200
 
     def test_token__should_return_success_content_type(self, mock_controller):
-        request.data = json.dumps({'grant_type': 'refresh_token', 'refresh_token': str(uuid.uuid4())}).encode()
+        self.ctx = setup_request(self.app, self.ctx, {'grant_type': 'refresh_token', 'refresh_token': str(uuid.uuid4())}, self.FAKE_JWT_TOKEN)
         mock_controller.refresh_bearer_token.return_value = self.FAKE_JWT_TOKEN
         actual = get_token()
 
         assert actual.content_type == 'application/json'
 
     def test_token__should_return_response_data(self, mock_controller):
-        request.data = json.dumps({'grant_type': 'refresh_token', 'refresh_token': str(uuid.uuid4())}).encode()
+        self.ctx = setup_request(self.app, self.ctx, {'grant_type': 'refresh_token', 'refresh_token': str(uuid.uuid4())}, self.FAKE_JWT_TOKEN)
         mock_controller.refresh_bearer_token.return_value = self.FAKE_JWT_TOKEN
         actual = get_token()
 
@@ -245,6 +246,6 @@ class TestAppRoutes:
         assert json_actual['bearerToken'] == self.FAKE_JWT_TOKEN
 
     def test_token__should_raise_bad_request_when_wrong_grant_type(self, mock_controller):
-        request.data = json.dumps({'grant_type': 'bearer'}).encode()
+        self.ctx = setup_request(self.app, self.ctx, {'grant_type': 'bearer'}, self.FAKE_JWT_TOKEN)
         with pytest.raises(Unauthorized):
             get_token()

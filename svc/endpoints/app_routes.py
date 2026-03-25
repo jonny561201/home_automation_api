@@ -17,7 +17,7 @@ def health_check():
 
 @APP_BLUEPRINT.route('/token', methods=['POST'])
 def get_token():
-    body = json.loads(request.data)
+    body = request.get_json()
     if body['grant_type'] == 'client_credentials':
         token = app_controller.get_login(body['client_id'], body['client_secret'])
     elif body['grant_type'] == 'refresh_token':
@@ -37,7 +37,7 @@ def get_user_preferences():
 @APP_BLUEPRINT.route('/preferences/update', methods=['POST'])
 def update_user_preferences():
     bearer_token = request.headers.get('Authorization')
-    app_controller.save_user_preferences(bearer_token, request.data)
+    app_controller.save_user_preferences(bearer_token, request.get_json())
     return Response(status=200, mimetype=Mime.JSON)
 
 
@@ -59,12 +59,12 @@ def delete_user_task(task_id):
 @APP_BLUEPRINT.route('/tasks', methods=['POST'])
 def insert_user_task():
     bearer_token = request.headers.get('Authorization')
-    updated_tasks = app_controller.insert_user_task(bearer_token, request.data)
+    updated_tasks = app_controller.insert_user_task(bearer_token, request.get_json())
     return Response(updated_tasks.to_json(), status=200, mimetype=Mime.JSON)
 
 
 @APP_BLUEPRINT.route('/tasks/update', methods=['POST'])
 def update_user_task():
     bearer_token = request.headers.get('Authorization')
-    task = app_controller.update_user_task(bearer_token, request.data)
+    task = app_controller.update_user_task(bearer_token, request.get_json())
     return Response(task.to_json(), status=200, mimetype=Mime.JSON)

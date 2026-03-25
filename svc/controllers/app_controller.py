@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-import json
 
 from zoneinfo import ZoneInfo
 
@@ -36,10 +35,9 @@ def get_user_preferences(bearer_token):
 #TODO: get city coordinates and save in Account Repo
 def save_user_preferences(bearer_token, request_data):
     claims = jwt_utils.is_jwt_valid(bearer_token)
-    user_preferences = json.loads(request_data.decode('UTF-8'))
     user_id = claims['sub']
     with AccountRepository() as database:
-        database.insert_preferences_by_user(user_id, user_preferences)
+        database.insert_preferences_by_user(user_id, request_data)
 
 
 def get_user_tasks(bearer_token, task_type):
@@ -59,14 +57,12 @@ def delete_user_task(bearer_token, task_id):
 def insert_user_task(bearer_token, task):
     claims = jwt_utils.is_jwt_valid(bearer_token)
     user_id = claims['sub']
-    request = json.loads(task.decode('UTF-8'))
     with TasksRepository() as database:
-        return database.insert_schedule_task_by_user(user_id, request)
+        return database.insert_schedule_task_by_user(user_id, task)
 
 
 def update_user_task(bearer_token, task):
     claims = jwt_utils.is_jwt_valid(bearer_token)
     user_id = claims['sub']
-    request = json.loads(task.decode('UTF-8'))
     with TasksRepository() as database:
-        return database.update_schedule_task_by_user_id(user_id, request)
+        return database.update_schedule_task_by_user_id(user_id, task)
