@@ -17,7 +17,7 @@ def get_temperature():
 @THERMOSTAT_BLUEPRINT.route('/temperature/desired', methods=['POST'])
 def set_desired_temperature():
     bearer_token = request.headers.get('Authorization')
-    thermostat_controller.set_user_temperature(request.data, bearer_token)
+    thermostat_controller.set_user_temperature(request.get_json(), bearer_token)
     return Response(status=200, mimetype=Mime.JSON)
 
 

@@ -1,11 +1,12 @@
 import json
 
 import jwt
-from flask import Flask, request
+from flask import Flask
 from mock import patch, ANY
 
 from svc.models.thermostat import ThermostatState, DailyForecast
 from svc.endpoints.thermostat_routes import get_temperature, set_desired_temperature, get_forecast_data
+from test.unit.test_helpers import setup_request
 
 
 @patch('svc.endpoints.thermostat_routes.thermostat_controller')
@@ -17,8 +18,7 @@ class TestThermostatRoutes:
     def setup_method(self):
         self.app = Flask(__name__)
         self.DAILY_FORECAST = DailyForecast(temp=12.0, minTemp=5.6, maxTemp=15.2, description='sunny')
-        self.ctx = self.app.test_request_context(data=json.dumps({}), headers={'Authorization': self.BEARER_TOKEN})
-        self.ctx.push()
+        self.ctx = setup_request(self.app, bearer=self.BEARER_TOKEN)
 
     def teardown_method(self):
         self.ctx.pop()
@@ -52,8 +52,8 @@ class TestThermostatRoutes:
         mock_controller.set_user_temperature.assert_called_with(ANY, self.BEARER_TOKEN)
 
     def test_set_desired_temperature__should_call_thermostat_controller_with_request_body(self, mock_controller):
-        request_data = json.dumps({'desiredTemp': 34.1}).encode()
-        request.data = request_data
+        request_data = {'desiredTemp': 34.1}
+        self.ctx = setup_request(self.app, self.ctx, request_data, self.BEARER_TOKEN)
 
         set_desired_temperature()
 
@@ -65,9 +65,7 @@ class TestThermostatRoutes:
         mock_controller.get_user_forecast.assert_called_with(self.BEARER_TOKEN)
 
     def test_get_forecast_data__should_call_thermostat_controller_with_none_when_no_auth_header(self, mock_controller):
-        self.ctx.pop()
-        self.ctx = self.app.test_request_context()
-        self.ctx.push()
+        self.ctx = setup_request(self.app, self.ctx)
         mock_controller.get_user_forecast.return_value = self.DAILY_FORECAST
         get_forecast_data()
         mock_controller.get_user_forecast.assert_called_with(None)

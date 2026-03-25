@@ -1,5 +1,3 @@
-import json
-
 from svc.constants.home_automation import Automation
 from svc.db.repositories.account_repository import AccountRepository
 from svc.models.thermostat import ThermostatState
@@ -31,11 +29,10 @@ def get_user_forecast(bearer_token):
         return weather_request.get_weather(preference.city, preference.tempUnit)
 
 
-def set_user_temperature(request, bearer_token):
+def set_user_temperature(request_data, bearer_token):
     is_jwt_valid(bearer_token)
-    json_request = json.loads(request.decode('UTF-8'))
-    temp = json_request['desiredTemp'] if not json_request['isFahrenheit'] else convert_to_celsius(json_request['desiredTemp'])
-    mode = json_request['mode']
+    temp = request_data['desiredTemp'] if not request_data['isFahrenheit'] else convert_to_celsius(request_data['desiredTemp'])
+    mode = request_data['mode']
     write_desired_temp_to_file(temp, mode)
     publish(Automation.HVAC.QUEUE, {'desiredTemp': temp, 'mode': mode, 'isAuto': mode == 'auto'})
 

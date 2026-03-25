@@ -151,7 +151,7 @@ class TestThermostatSetController:
     DESIRED_FAHRENHEIT_TEMP = 68.9
 
     def setup_method(self):
-        self.REQUEST = json.dumps({'mode': Automation.HVAC.MODE.HEATING, 'isFahrenheit': False, 'desiredTemp': self.DESIRED_CELSIUS_TEMP}).encode('UTF-8')
+        self.REQUEST = {'mode': Automation.HVAC.MODE.HEATING, 'isFahrenheit': False, 'desiredTemp': self.DESIRED_CELSIUS_TEMP}
 
     def test_set_user_temperature__should_call_is_jwt_valid(self, mock_jwt, mock_convert, mock_file, mock_publish):
         set_user_temperature(self.REQUEST, self.BEARER_TOKEN)
@@ -159,7 +159,7 @@ class TestThermostatSetController:
         mock_jwt.assert_called_with(self.BEARER_TOKEN)
 
     def test_set_user_temperature__should_convert_fahrenheit_to_celsius(self, mock_jwt, mock_convert, mock_file, mock_publish):
-        request = json.dumps({'mode': Automation.HVAC.MODE.COOLING, 'isFahrenheit': True, 'desiredTemp': self.DESIRED_FAHRENHEIT_TEMP}).encode('UTF-8')
+        request = {'mode': Automation.HVAC.MODE.COOLING, 'isFahrenheit': True, 'desiredTemp': self.DESIRED_FAHRENHEIT_TEMP}
         set_user_temperature(request, self.BEARER_TOKEN)
 
         mock_convert.assert_called_with(self.DESIRED_FAHRENHEIT_TEMP)
