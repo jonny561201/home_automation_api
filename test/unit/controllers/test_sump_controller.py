@@ -1,5 +1,3 @@
-import json
-
 from mock import patch
 
 from svc.models.app import Preference
@@ -65,17 +63,16 @@ class TestSumpController:
         mock_database.return_value.__enter__.return_value.get_average_sump_level_by_user.assert_called_with(self.USER_ID)
 
     def test_save_current_level__should_call_is_jwt_valid(self, mock_db, mock_jwt):
-        request = json.dumps({'depth': 'test'})
+        request_data = {'depth': 'test'}
 
-        save_current_level(self.BEARER_TOKEN, request)
+        save_current_level(self.BEARER_TOKEN, request_data)
 
         mock_jwt.assert_called_with(self.BEARER_TOKEN)
 
     def test_save_current_level__should_call_save_current_sump_level(self, mock_db, mock_jwt):
         mock_jwt.return_value = self.CLAIMS
         depth_info = {'depth': 'test'}
-        request = json.dumps(depth_info)
 
-        save_current_level(self.BEARER_TOKEN, request)
+        save_current_level(self.BEARER_TOKEN, depth_info)
 
         mock_db.return_value.__enter__.return_value.insert_current_sump_level.assert_called_with(self.USER_ID, depth_info)

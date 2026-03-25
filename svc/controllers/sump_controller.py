@@ -1,5 +1,3 @@
-import json
-
 from svc.db.repositories.sump_repository import SumpDatabase
 from svc.models.sump import SumpLevel
 from svc.utilities.conversion_utils import convert_to_imperial
@@ -17,12 +15,11 @@ def get_sump_level(bearer_token):
         return __map_response(current_data, average_data, preferences.isImperial)
 
 
-def save_current_level(bearer_token, request):
+def save_current_level(bearer_token, request_data):
     claims = is_jwt_valid(bearer_token)
     user_id = claims['sub']
-    depth_info = json.loads(request)
     with SumpDatabase() as database:
-        database.insert_current_sump_level(user_id, depth_info)
+        database.insert_current_sump_level(user_id, request_data)
 
 
 def __map_response(current_data, average_data, is_imperial):

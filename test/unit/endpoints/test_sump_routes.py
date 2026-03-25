@@ -1,10 +1,11 @@
 import json
 
-from flask import Flask, request
+from flask import Flask
 from mock import patch
 
 from svc.models.sump import SumpLevel
 from svc.endpoints.sump_routes import get_current_sump_level, save_current_depth
+from test.unit.test_helpers import setup_request
 
 
 class TestSumpRoutes:
@@ -12,8 +13,7 @@ class TestSumpRoutes:
 
     def setup_method(self):
         self.app = Flask(__name__)
-        self.ctx = self.app.test_request_context(data=json.dumps({}), headers={'Authorization': self.BEARER_TOKEN})
-        self.ctx.push()
+        self.ctx = setup_request(self.app, bearer=self.BEARER_TOKEN)
 
     def teardown_method(self):
         self.ctx.pop()
@@ -47,8 +47,8 @@ class TestSumpRoutes:
 
     @patch('svc.endpoints.sump_routes.save_current_level')
     def test_save_current_depth__should_call_controller(self, mock_controller):
-        request_data = json.dumps({}).encode()
-        request.data = request_data
+        request_data = {'depth': 12.5}
+        self.ctx = setup_request(self.app, self.ctx, request_data, self.BEARER_TOKEN)
 
         save_current_depth()
 
