@@ -15,11 +15,13 @@ from svc.manager import app
 
 class TestThermostatRoutesIntegration:
     JWT_SECRET = 'fake_secret'
+    USER_ID = str(uuid.uuid4())
+    BEARER_TOKEN = jwt.encode({'sub': USER_ID}, JWT_SECRET, algorithm='HS256')
+    HEADERS = {'Authorization': BEARER_TOKEN, 'Content-Type': 'application/json'}
 
     def setup_method(self):
         Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET}
-        self.USER_ID = uuid.uuid4()
-        self.USER = UserInformation(id=str(self.USER_ID), first_name='Jon', last_name='Test')
+        self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
         self.PREFERENCE = UserPreference(user_id=str(self.USER_ID), city='London', is_fahrenheit=False, is_imperial=False)
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
@@ -29,11 +31,11 @@ class TestThermostatRoutesIntegration:
 
     def teardown_method(self):
         with DatabaseBase() as database:
-            database.session.execute(delete(UserPreference).where(UserPreference.user_id == str(self.USER_ID)))
-            database.session.execute(delete(UserInformation).where(UserInformation.id == str(self.USER_ID)))
+            database.session.execute(delete(UserPreference).where(UserPreference.user_id == self.USER_ID))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 
     def test_get_temperature__should_return_unauthorized_error_when_invalid_user(self):
-        actual = self.TEST_CLIENT.get('thermostat/temperature/890234890234')
+        actual = self.TEST_CLIENT.get('thermostat/temperature')
 
         assert actual.status_code == 401
 
@@ -45,32 +47,30 @@ class TestThermostatRoutesIntegration:
         mock_file.return_value = {'desiredTemp': 22.2, 'mode': Automation.HVAC.MODE.HEATING}
 
         mock_requests.get.side_effect = [first, second]
-        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
-        headers = {'Authorization': bearer_token}
 
-        actual = self.TEST_CLIENT.get(f'thermostat/temperature/{str(self.USER_ID)}', headers=headers)
+        actual = self.TEST_CLIENT.get(f'thermostat/temperature', headers=self.HEADERS)
 
         assert actual.status_code == 200
         assert {'currentTemp', 'mode', 'minThermostatTemp', 'maxThermostatTemp', 'isFahrenheit', 'desiredTemp'} == set(json.loads(actual.data))
 
     def test_set_temperature__should_return_unauthorized_error_when_invalid_user(self):
-        actual = self.TEST_CLIENT.post('thermostat/temperature/3843040')
+        actual = self.TEST_CLIENT.post('thermostat/temperature/desired', data='{}', headers={'Content-Type': 'application/json'})
 
         assert actual.status_code == 401
 
     @patch('svc.controllers.thermostat_controller.write_desired_temp_to_file')
     def test_set_temperature__should_return_successfully(self, mock_file):
-        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
-        headers = {'Authorization': bearer_token}
+        # bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
+        # headers = {'Authorization': bearer_token}
         request = {'desiredTemp': 23.7, 'mode': Automation.HVAC.MODE.HEATING, 'isFahrenheit': True}
 
-        url = f'thermostat/temperature/{str(self.USER_ID)}'
-        actual = self.TEST_CLIENT.post(url, data=json.dumps(request), headers=headers)
+        url = f'thermostat/temperature/desired'
+        actual = self.TEST_CLIENT.post(url, data=json.dumps(request), headers=self.HEADERS)
 
         assert actual.status_code == 200
 
     def test_get_forecast_data__should_return_unauthorized_error_when_invalid_user(self):
-        actual = self.TEST_CLIENT.get('thermostat/forecast/3843040')
+        actual = self.TEST_CLIENT.get('thermostat/forecast')
 
         assert actual.status_code == 401
 
@@ -79,13 +79,11 @@ class TestThermostatRoutesIntegration:
         temp = 13.3
         min_temp = 22.0
         max_temp = 27.3
-        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
-        headers = {'Authorization': bearer_token}
         first = self._create_response(content={'results': [{'latitude': 23.232, 'longitude': -93.232}]})
         second = self._create_response(content={'daily': {'temperature_2m_min': [min_temp], 'temperature_2m_max': [max_temp]}, 'current_weather': {'temperature': temp}})
         mock_request.get.side_effect = [first, second]
 
-        actual = self.TEST_CLIENT.get(f'thermostat/forecast/{str(self.USER_ID)}', headers=headers)
+        actual = self.TEST_CLIENT.get(f'thermostat/forecast', headers=self.HEADERS)
         json_actual = json.loads(actual.data)
 
         assert actual.status_code == 200
