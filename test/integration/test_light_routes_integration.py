@@ -10,6 +10,8 @@ from svc.manager import app
 class TestLightRoutesIntegration:
     JWT_SECRET = 'TotallyNewFakeSecret'
     LIGHT_PASS = 'fakeLightSecret'
+    BEARER_TOKEN = jwt.encode({}, JWT_SECRET, algorithm='HS256')
+    HEADER = {'Authorization': BEARER_TOKEN, 'Content-Type': 'application/json'}
 
     def setup_method(self):
         Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET, 'LightApiKey': self.LIGHT_PASS}
@@ -23,40 +25,33 @@ class TestLightRoutesIntegration:
 
     @patch('svc.controllers.light_controller.api_utils')
     def test_get_all_assigned_lights__should_return_success_with_valid_jwt(self, mock_get):
-        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
-        header = {'Authorization': bearer_token}
         mock_get.get_light_groups.return_value = {'test': 'fake'}
 
-        actual = self.TEST_CLIENT.get('lights/groups', headers=header)
+        actual = self.TEST_CLIENT.get('lights/groups', headers=self.HEADER)
 
         assert actual.status_code == 200
         assert json.loads(actual.data) == {'test': 'fake'}
 
     def test_set_assigned_light_group__should_return_unauthorized_without_header(self):
-        actual = self.TEST_CLIENT.post('lights/group/state', data='{}', headers={})
+        actual = self.TEST_CLIENT.post('lights/group/state', data='{}', headers={'Content-Type': 'application/json'})
 
         assert actual.status_code == 401
 
     @patch('svc.utilities.api_utils.set_light_groups')
     def test_set_assigned_light_group__should_return_success_with_valid_jwt(self, mock_groups):
         post_body = '{"on": "False", "brightness": 144, "groupId": 1}'
-        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
-        header = {'Authorization': bearer_token}
-        actual = self.TEST_CLIENT.post('lights/group/state', data=post_body, headers=header)
+        actual = self.TEST_CLIENT.post('lights/group/state', data=post_body, headers=self.HEADER)
 
         assert actual.status_code == 200
 
     def test_set_light_state__should_return_unauthorized_without_header(self):
-        post_body = '{}'
-        actual = self.TEST_CLIENT.post('lights/group/light', headers={}, data=post_body)
+        actual = self.TEST_CLIENT.post('lights/group/light', headers={'Content-Type': 'application/json'}, data='{}')
 
         assert actual.status_code == 401
 
     @patch('svc.utilities.api_utils.set_light_state')
     def test_set_light_state__should_return_success_with_valid_jwt(self, mock_groups):
         post_body = '{"on": "True", "brightness": 1, "lightId": "3"}'
-        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
-        header = {'Authorization': bearer_token}
-        actual = self.TEST_CLIENT.post('lights/group/light', headers=header, data=post_body)
+        actual = self.TEST_CLIENT.post('lights/group/light', headers=self.HEADER, data=post_body)
 
         assert actual.status_code == 200
