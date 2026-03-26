@@ -16,13 +16,13 @@ class TestSceneRoutes:
     SCENE_NAME = 'movie timez'
     GROUP_NAME = 'livin in the room'
     JWT_SECRET = 'fakeKey'
+    BEAR_TOKEN = jwt.encode({'sub': USER_ID}, JWT_SECRET, algorithm='HS256')
+    HEADER = {'Authorization': f'Bearer {BEAR_TOKEN}', 'Content-Type': 'application/json'}
 
     def setup_method(self):
         Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET}
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
-        self.BEAR_TOKEN = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
-        self.HEADER = {'Authorization': 'Bearer ' + self.BEAR_TOKEN}
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
         self.SCENE = Scenes(name=self.SCENE_NAME, user_id=self.USER_ID, id=self.SCENE_ID)
         self.DETAIL = SceneDetails(light_group='2', light_group_name=self.GROUP_NAME, light_brightness=45, scene_id=self.SCENE_ID)
@@ -39,29 +39,23 @@ class TestSceneRoutes:
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 
     def test_get_scenes_by_user__should_return_success_response(self):
-        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
-        headers = {'Authorization': bearer_token}
-        actual = self.TEST_CLIENT.get(f'scenes/userId/{self.USER_ID}', headers=headers)
+        actual = self.TEST_CLIENT.get(f'scenes/list', headers=self.HEADER)
 
         assert actual.status_code == 200
         assert json.loads(actual.data)['scenes'][0]['name'] == self.SCENE_NAME
         assert json.loads(actual.data)['scenes'][0]['lights'][0]['groupName'] == self.GROUP_NAME
 
     def test_get_scenes_by_user__should_return_unauthorized_with_no_header(self):
-        url = f'scenes/userId/{self.USER_ID}'
-        actual = self.TEST_CLIENT.get(url)
+        actual = self.TEST_CLIENT.get(f'scenes/list')
 
         assert actual.status_code == 401
 
     def test_delete_scene_by_user__should_remove_existing_record(self):
-        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
-        headers = {'Authorization': bearer_token}
-        actual = self.TEST_CLIENT.delete(f'scenes/userId/{self.USER_ID}/scene/{self.SCENE_ID}', headers=headers)
+        actual = self.TEST_CLIENT.delete(f'scenes/{self.SCENE_ID}', headers=self.HEADER)
 
         assert actual.status_code == 200
 
     def test_delete_scene_by_user__should_return_unauthorized_with_no_header(self):
-        url = f'scenes/userId/{self.USER_ID}/scene/{self.SCENE_ID}'
-        actual = self.TEST_CLIENT.delete(url)
+        actual = self.TEST_CLIENT.delete(f'scenes/{self.SCENE_ID}')
 
         assert actual.status_code == 401
