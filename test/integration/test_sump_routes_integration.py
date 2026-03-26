@@ -17,8 +17,8 @@ class TestSumpRoutes:
     USER_ID = str(uuid.uuid4())
     DEPTH = 12.45
     AVG_DEPTH = 10.65
-    BEAR_TOKEN = jwt.encode({}, JWT_SECRET, algorithm='HS256')
-    HEADER = {'Authorization': 'Bearer ' + BEAR_TOKEN}
+    BEAR_TOKEN = jwt.encode({'sub': USER_ID}, JWT_SECRET, algorithm='HS256')
+    HEADER = {'Authorization': f'Bearer {BEAR_TOKEN}', 'Content-Type': 'application/json'}
 
     def setup_method(self):
         Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET}
@@ -45,19 +45,19 @@ class TestSumpRoutes:
 
 
     def test_get_current_sump_level__should_return_not_found_when_user_does_not_exist(self):
-        user_id = uuid.uuid4().hex
-        actual = self.TEST_CLIENT.get(f'sumpPump/user/{user_id}/depth', headers=self.HEADER)
+        token = jwt.encode({'sub': str(uuid.uuid4())}, self.JWT_SECRET, algorithm='HS256')
+        header = {'Authorization': f'Bearer {token}'}
+        actual = self.TEST_CLIENT.get(f'sumpPump/depth', headers=header)
 
         assert actual.status_code == 400
 
     def test_get_current_sump_level__should_raise_unauthorized_when_invalid_user(self):
-        user_id = uuid.uuid4().hex
-        actual = self.TEST_CLIENT.get(f'sumpPump/user/{user_id}/depth', headers={})
+        actual = self.TEST_CLIENT.get(f'sumpPump/depth', headers={})
 
         assert actual.status_code == 401
 
     def test_get_current_sump_level__should_return_valid_response(self):
-        actual = self.TEST_CLIENT.get(f'sumpPump/user/{self.USER_ID}/depth', headers=self.HEADER)
+        actual = self.TEST_CLIENT.get(f'sumpPump/depth', headers=self.HEADER)
         json_actual = json.loads(actual.data)
 
         assert actual.status_code == 200
@@ -68,7 +68,7 @@ class TestSumpRoutes:
         depth = 12.31
         post_body = {'depth': depth, 'warning_level': 2, 'datetime': str(datetime.now())}
 
-        self.TEST_CLIENT.post(f'sumpPump/user/{self.USER_ID}/currentDepth', data=json.dumps(post_body), headers=self.HEADER)
+        self.TEST_CLIENT.post(f'sumpPump/currentDepth', data=json.dumps(post_body), headers=self.HEADER)
 
         with DatabaseBase() as database:
             sump_level = database.session.execute(select(DailySumpPumpLevel).where(DailySumpPumpLevel.user_id == self.USER_ID, DailySumpPumpLevel.distance == depth)).scalars().first()
