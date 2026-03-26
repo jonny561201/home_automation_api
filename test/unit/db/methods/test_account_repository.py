@@ -9,6 +9,7 @@ from werkzeug.exceptions import BadRequest
 from svc.db.repositories.account_repository import AccountRepository
 from svc.db.models.user_information_model import ChildAccounts, Roles, UserRoles, UserCredentials, UserInformation, \
     UserPreference
+from svc.models.account import UserRolesResponse
 
 
 class TestAccountRepository:
@@ -108,6 +109,34 @@ class TestAccountRepository:
             self.DATABASE.get_roles_by_user(None)
         self.SESSION.execute.assert_not_called()
 
+    def test_get_user_roles__should_raise_bad_request_when_user_id_is_none(self):
+        with pytest.raises(BadRequest):
+            self.DATABASE.get_user_roles(None)
+        self.SESSION.execute.assert_not_called()
+
+    def test_get_user_roles__should_raise_bad_request_when_user_not_found(self):
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
+        with pytest.raises(BadRequest):
+            self.DATABASE.get_user_roles(self.USER_ID)
+
+    def test_get_user_roles__should_return_user_roles_response_with_role_names(self):
+        role_one = Roles(role_name='lighting')
+        role_two = Roles(role_name='security')
+        user_roles = [UserRoles(role=role_one), UserRoles(role=role_two)]
+        creds = UserCredentials(user_roles=user_roles)
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = creds
+
+        actual = self.DATABASE.get_user_roles(self.USER_ID)
+
+        assert actual == UserRolesResponse(roles=['lighting', 'security'])
+
+    def test_get_user_roles__should_return_empty_roles_when_user_has_none(self):
+        creds = UserCredentials(user_roles=[])
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = creds
+
+        actual = self.DATABASE.get_user_roles(self.USER_ID)
+
+        assert actual == UserRolesResponse(roles=[])
 
     def test_insert_preferences_by_user__should_raise_bad_request_when_preferences_empty(self):
         preference_info = {}
