@@ -18,10 +18,8 @@ class TestAppRoutesIntegration:
     USER_ID = str(uuid.uuid4())
     CITY = 'Prague'
     GOOD_TOKEN = jwt.encode({'sub': USER_ID}, JWT_SECRET, algorithm='HS256')
-    BAD_TOKEN = jwt.encode({}, 'bad secret', algorithm='HS256')
     HEADERS = {'Content-Type': 'application/json'}
     TOKEN_HEADER = {'Authorization': GOOD_TOKEN, 'Content-Type': 'application/json'}
-    BAD_HEADER = {'Authorization': BAD_TOKEN, 'Content-Type': 'application/json'}
 
     def setup_method(self):
         Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET}
@@ -88,7 +86,7 @@ class TestAppRoutesIntegration:
         assert json.loads(actual.data).get('city') == self.CITY
 
     def test_update_user_preferences_by_user_id__should_return_401_when_unauthorized(self):
-        actual = self.TEST_CLIENT.post(f'preferences/update', data='{}', headers=self.BAD_HEADER)
+        actual = self.TEST_CLIENT.post(f'preferences/update', data='{}', headers=self.HEADERS)
 
         assert actual.status_code == 401
 
@@ -140,7 +138,7 @@ class TestAppRoutesIntegration:
     def test_insert_user_task_by_user_id__should_return_401_when_unauthorized(self):
         request_data = json.dumps({'alarm_time': '00:00:01'})
 
-        actual = self.TEST_CLIENT.post(f'tasks', data=request_data, headers=self.BAD_HEADER)
+        actual = self.TEST_CLIENT.post(f'tasks', data=request_data, headers=self.HEADERS)
 
         assert actual.status_code == 401
 
@@ -155,7 +153,7 @@ class TestAppRoutesIntegration:
     def test_update_user_task_by_user_id__should_return_401_when_unauthorized(self):
         request_data = json.dumps({'alarm_time': '00:00:01'})
 
-        actual = self.TEST_CLIENT.post(f'tasks/update', data=request_data, headers=self.BAD_HEADER)
+        actual = self.TEST_CLIENT.post(f'tasks/update', data=request_data, headers=self.HEADERS)
 
         assert actual.status_code == 401
 

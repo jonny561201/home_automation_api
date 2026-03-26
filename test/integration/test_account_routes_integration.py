@@ -20,6 +20,8 @@ class TestAccountRoutesIntegration:
     PARENT_USER_ID = str(uuid.uuid4())
     EMAIL_APP_ID = 'as;kljdfski;hasdf'
     CHILD_EMAIL = 'blackened_widow@gmail.com'
+    BEARER_TOKEN = jwt.encode({'sub': USER_ID}, JWT_SECRET, algorithm='HS256')
+    HEADERS = {'Authorization': BEARER_TOKEN, 'Content-Type': 'application/json'}
 
     def setup_method(self):
         Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET, 'EmailAppId': self.EMAIL_APP_ID}
@@ -53,19 +55,17 @@ class TestAccountRoutesIntegration:
 
     def test_update_user_password__should_return_401_when_unauthorized(self):
         bearer_token = jwt.encode({}, 'bad secret', algorithm='HS256')
-        headers = {'Authorization': bearer_token}
+        headers = {'Authorization': bearer_token, 'Content-Type': 'application/json'}
 
-        actual = self.TEST_CLIENT.post(f'account/userId/{self.USER_ID}/updateAccount', data={}, headers=headers)
+        actual = self.TEST_CLIENT.post(f'account/updateAccount', data='{}', headers=headers)
 
         assert actual.status_code == 401
 
     def test_update_user_password__should_update_user_password_successfully(self):
         new_pass = 'not important'
         post_body = json.dumps({'userName': self.USER_NAME, 'oldPassword': self.PASSWORD, 'newPassword': new_pass})
-        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
-        headers = {'Authorization': bearer_token}
 
-        actual = self.TEST_CLIENT.post(f'account/userId/{self.USER_ID}/updateAccount', data=post_body, headers=headers)
+        actual = self.TEST_CLIENT.post(f'account/updateAccount', data=post_body, headers=self.HEADERS)
 
         assert actual.status_code == 200
 
@@ -74,51 +74,43 @@ class TestAccountRoutesIntegration:
             assert creds.password == new_pass
 
     def test_get_roles_by_user_id__should_return_unauthorized_when_bad_jwt(self):
-        actual = self.TEST_CLIENT.get(f'account/userId/{self.USER_ID}/roles')
+        actual = self.TEST_CLIENT.get(f'account/roles')
 
         assert actual.status_code == 401
 
     def test_get_roles_by_user_id__should_return_success_response(self):
-        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
-        headers = {'Authorization': bearer_token}
-        actual = self.TEST_CLIENT.get(f'account/userId/{self.USER_ID}/roles', headers=headers)
+        actual = self.TEST_CLIENT.get(f'account/roles', headers=self.HEADERS)
 
         assert actual.status_code == 200
         assert json.loads(actual.data) == {'roles': []}
 
     def test_post_child_account_by_user__should_return_unauthorized_when_bad_jwt(self):
-        actual = self.TEST_CLIENT.post(f'account/userId/{self.USER_ID}/createChildAccount')
+        actual = self.TEST_CLIENT.post(f'account/createChildAccount', data='{}', headers={'Content-Type': 'application/json'})
 
         assert actual.status_code == 401
 
     def test_post_child_account_by_user__should_return_success_after_creating_child_account(self):
-        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
-        headers = {'Authorization': bearer_token}
         post_body = json.dumps({'email': self.CHILD_EMAIL, 'roles': ['garage_door']})
-        actual = self.TEST_CLIENT.post(f'account/userId/{self.USER_ID}/createChildAccount', headers=headers, data=post_body)
+        actual = self.TEST_CLIENT.post(f'account/createChildAccount', headers=self.HEADERS, data=post_body)
 
         assert actual.status_code == 200
 
     def test_get_child_accounts_by_user_id__should_return_success_response(self):
-        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
-        headers = {'Authorization': bearer_token}
-        actual = self.TEST_CLIENT.get(f'account/userId/{self.USER_ID}/childAccounts', headers=headers)
+        actual = self.TEST_CLIENT.get(f'account/childAccounts', headers=self.HEADERS)
 
         assert actual.status_code == 200
 
     def test_get_child_accounts_by_user_id__should_return_unauthorized_when_bad_jwt(self):
-        actual = self.TEST_CLIENT.get(f'account/userId/{self.USER_ID}/childAccounts')
+        actual = self.TEST_CLIENT.get(f'account/childAccounts')
 
         assert actual.status_code == 401
 
     def test_delete_child_account_by_user_id__should_return_unauthorized_when_bad_jwt(self):
-        actual = self.TEST_CLIENT.delete(f'account/userId/{self.USER_ID}/childUserId/{self.CHILD_USER_ID}')
+        actual = self.TEST_CLIENT.delete(f'account/childUserId/{self.CHILD_USER_ID}')
 
         assert actual.status_code == 401
 
     def test_delete_child_account_by_user_id__should_return_success_response(self):
-        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
-        headers = {'Authorization': bearer_token}
-        actual = self.TEST_CLIENT.delete(f'account/userId/{self.USER_ID}/childUserId/{self.CHILD_USER_ID}', headers=headers)
+        actual = self.TEST_CLIENT.delete(f'account/childUserId/{self.CHILD_USER_ID}', headers=self.HEADERS)
 
         assert actual.status_code == 200
