@@ -4,10 +4,10 @@ import pytest
 from sqlalchemy import select, delete
 from werkzeug.exceptions import BadRequest, Unauthorized
 
-from db.models.user_information_model import UserPreference, RoleDevices, RoleDeviceNodes, UserInformation, Roles, \
+from svc.db.models.user_information_model import UserPreference, RoleDevices, RoleDeviceNodes, UserInformation, Roles, \
     UserRoles, ChildAccounts
-from db.repositories.database_base import DatabaseBase
-from db.repositories.device_repository import DeviceRepository
+from svc.db.repositories.database_base import DatabaseBase
+from svc.db.repositories.device_repository import DeviceRepository
 
 
 class TestDbDeviceIntegration:

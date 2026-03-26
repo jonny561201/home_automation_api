@@ -2,10 +2,10 @@ import uuid
 
 from sqlalchemy import delete, select
 
-from db.models.user_information_model import UserInformation, Scenes, SceneDetails
-from db.repositories.database_base import DatabaseBase
-from db.repositories.lights_repository import LightsRepository
-from models.scenes import LightScenes
+from svc.db.models.user_information_model import UserInformation, Scenes, SceneDetails
+from svc.db.repositories.database_base import DatabaseBase
+from svc.db.repositories.lights_repository import LightsRepository
+from svc.models.scenes import LightScenes
 
 
 class TestUserScenes:
