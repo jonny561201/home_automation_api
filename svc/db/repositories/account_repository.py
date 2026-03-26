@@ -6,6 +6,7 @@ from werkzeug.exceptions import BadRequest
 from svc.db.repositories.database_base import DatabaseBase
 from svc.db.models.user_information_model import ChildAccounts, UserCredentials, UserInformation, UserPreference, \
     UserRoles, RoleDevices, RoleDeviceNodes
+from svc.models.account import UserRolesResponse
 
 
 class AccountRepository(DatabaseBase):
@@ -77,6 +78,13 @@ class AccountRepository(DatabaseBase):
         user = self.session.execute(stmt).scalars().first()
         self._validate_property(user)
         return {'roles': [self._create_role(role.role_devices, role.role.role_name) for role in user.user_roles]}
+
+    def get_user_roles(self, user_id):
+        self._validate_property(user_id)
+        stmt = select(UserCredentials).filter_by(user_id=user_id)
+        user = self.session.execute(stmt).scalars().first()
+        self._validate_property(user)
+        return UserRolesResponse(roles=[role.role.role_name for role in user.user_roles])
 
     def __get_user_info(self, user_id):
         stmt = select(UserCredentials).filter_by(user_id=user_id)
