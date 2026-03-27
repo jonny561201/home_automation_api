@@ -8,8 +8,7 @@ from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
 
 from svc.config.settings_state import Settings
 from svc.utilities.api_utils import get_city_coordinates, create_light_group, set_light_groups, set_light_state, \
-    get_light_groups, get_garage_door_status, toggle_garage_door_state, update_garage_door_state, \
-    send_new_account_email, get_forecast_by_coords, exchange_auth0_code
+    get_light_groups, get_garage_door_status, send_new_account_email, get_forecast_by_coords, exchange_auth0_code
 
 
 @patch('svc.utilities.api_utils.requests')
@@ -142,109 +141,6 @@ class TestGarageApiRequests:
             get_garage_door_status(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
         assert e.value.description == 'Garage node returned a failure'
 
-    def test_toggle_garage_door_state__should_call_requests_with_url(self, mock_requests):
-        response = Response()
-        response.status_code = 200
-        mock_requests.get.return_value = response
-        toggle_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
-
-        expected_url = f'{self.BASE_URL}/garageDoor/{str(self.GARAGE_ID)}/toggle'
-        mock_requests.get.assert_called_with(expected_url, headers=ANY, timeout=5)
-
-    def test_toggle_garage_door_state__should_call_requests_with_with_headers(self, mock_requests):
-        response = Response()
-        response.status_code = 200
-        mock_requests.get.return_value = response
-        header = {'Authorization': 'Bearer ' + self.FAKE_BEARER}
-        toggle_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
-
-        mock_requests.get.assert_called_with(ANY, headers=header, timeout=5)
-
-    def test_toggle_garage_door_state__should_raise_bad_request_when_status_code_failure(self, mock_request):
-        response = Response()
-        response.status_code = 400
-        mock_request.get.return_value = response
-        with pytest.raises(BadRequest) as e:
-            toggle_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
-        assert e.value.description == 'Garage node returned a failure'
-
-    def test_toggle_garage_door_state__should_raise_bad_request_when_request_raises_connection_error(self, mock_request):
-        mock_request.get.side_effect = ConnectionError()
-        with pytest.raises(BadRequest) as e:
-            toggle_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
-        assert e.value.description == 'Garage node returned a failure'
-
-    def test_toggle_garage_door_state__should_raise_bad_request_when_request_raises_connection_timeout_error(self, mock_request):
-        mock_request.get.side_effect = ConnectTimeout()
-        with pytest.raises(BadRequest) as e:
-            toggle_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
-        assert e.value.description == 'Garage node returned a failure'
-
-    def test_update_garage_door_state__should_call_requests_with_url(self, mock_requests):
-        request = {}
-        response = Response()
-        response.status_code = 200
-        response._content = json.dumps(self.STATUS).encode('UTF-8')
-        mock_requests.post.return_value = response
-        update_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID, request)
-
-        expected_url = f'{self.BASE_URL}/garageDoor/{str(self.GARAGE_ID)}/state'
-        mock_requests.post.assert_called_with(expected_url, headers=ANY, data=ANY, timeout=5)
-
-    def test_update_garage_door_state__should_call_requests_with_headers(self, mock_requests):
-        header = {'Authorization': 'Bearer ' + self.FAKE_BEARER}
-        request = {}
-        response = Response()
-        response.status_code = 200
-        response._content = json.dumps(self.STATUS).encode('UTF-8')
-        mock_requests.post.return_value = response
-        update_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID, request)
-
-        mock_requests.post.assert_called_with(ANY, headers=header, data=ANY, timeout=5)
-
-    def test_update_garage_door_state__should_call_requests_with_request(self, mock_requests):
-        request = '{"testData": "NotReal"}'.encode()
-        response = Response()
-        response.status_code = 200
-        response._content = json.dumps(self.STATUS).encode('UTF-8')
-        mock_requests.post.return_value = response
-        update_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID, request)
-
-        mock_requests.post.assert_called_with(ANY, headers=ANY, data=request, timeout=5)
-
-    def test_update_garage_door_state__should_raise_bad_request_when_response_is_failure_status(self, mock_requests):
-        response = Response()
-        response.status_code = 400
-        mock_requests.post.return_value = response
-        request = '{"testData": "NotReal"}'.encode()
-        with pytest.raises(BadRequest) as e:
-            update_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID, request)
-        assert e.value.description == 'Garage node returned a failure'
-
-    def test_update_garage_door_state__should_raise_bad_request_when_response_raises_connection_error(self, mock_requests):
-        mock_requests.post.side_effect = ConnectionError()
-        request = '{"testData": "NotReal"}'.encode()
-        with pytest.raises(BadRequest) as e:
-            update_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID, request)
-        assert e.value.description == 'Garage node returned a failure'
-
-    def test_update_garage_door_state__should_raise_bad_request_when_response_raises_connection_timeout_error(self, mock_requests):
-        mock_requests.post.side_effect = ConnectTimeout()
-        request = '{"testData": "NotReal"}'.encode()
-        with pytest.raises(BadRequest) as e:
-            update_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID, request)
-        assert e.value.description == 'Garage node returned a failure'
-
-    def test_update_garage_door_state__should_return_response(self, mock_requests):
-        response = Response()
-        request = {}
-        response.status_code = 200
-        response._content = json.dumps(self.STATE).encode('UTF-8')
-        mock_requests.post.return_value = response
-        actual = update_garage_door_state(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID, request)
-
-        assert actual.to_dict() == self.STATE
-
 
 @patch('svc.utilities.api_utils.requests')
 class TestLightApiRequests:
@@ -301,7 +197,7 @@ class TestLightApiRequests:
         expected_url = f'{self.BASE_URL}/group/state'
         set_light_groups(self.API_KEY, group_id, True, 132)
 
-        mock_requests.post.assert_called_with(expected_url, data=ANY, headers={'LightApiKey': self.API_KEY})
+        mock_requests.post.assert_called_with(expected_url, json=ANY, headers={'LightApiKey': self.API_KEY})
 
     def test_set_light_groups__should_call_state_with_on_off_set(self, mock_requests):
         brightness = 222
@@ -309,16 +205,16 @@ class TestLightApiRequests:
         group_id = 2
         set_light_groups(self.API_KEY, group_id, True, brightness)
 
-        expected_request = json.dumps({'groupId': group_id, 'on': True, 'brightness': brightness})
-        mock_requests.post.assert_called_with(ANY, data=expected_request, headers={'LightApiKey': self.API_KEY})
+        expected_request = {'groupId': group_id, 'on': True, 'brightness': brightness}
+        mock_requests.post.assert_called_with(ANY, json=expected_request, headers={'LightApiKey': self.API_KEY})
 
     def test_set_light_groups__should_call_state_with_on_to_false_when_brightness_zero(self, mock_requests):
         mock_requests.post.return_value = self.__create_response()
         group_id = 2
         set_light_groups(self.API_KEY, group_id, True, 0)
 
-        expected_request = json.dumps({'groupId': group_id, 'on': False})
-        mock_requests.post.assert_called_with(ANY, data=expected_request, headers={'LightApiKey': self.API_KEY})
+        expected_request = {'groupId': group_id, 'on': False}
+        mock_requests.post.assert_called_with(ANY, json=expected_request, headers={'LightApiKey': self.API_KEY})
 
     def test_set_light_groups__should_call_state_with_dimmer_value(self, mock_requests):
         brightness = 233
@@ -326,8 +222,8 @@ class TestLightApiRequests:
         group_id = 1
         set_light_groups(self.API_KEY, group_id, True, brightness)
 
-        expected_request = json.dumps({'groupId': group_id, 'on': True, 'brightness': brightness})
-        mock_requests.post.assert_called_with(ANY, data=expected_request, headers={'LightApiKey': self.API_KEY})
+        expected_request = {'groupId': group_id, 'on': True, 'brightness': brightness}
+        mock_requests.post.assert_called_with(ANY, json=expected_request, headers={'LightApiKey': self.API_KEY})
 
     def test_set_light_groups__should_call_state_with_on_set_true_if_dimmer_value(self, mock_requests):
         brightness = 155
@@ -335,8 +231,8 @@ class TestLightApiRequests:
         group_id = 1
         set_light_groups(self.API_KEY, group_id, True, brightness)
 
-        expected_request = json.dumps({'groupId': group_id, 'on': True, 'brightness': brightness})
-        mock_requests.post.assert_called_with(ANY, data=expected_request, headers={'LightApiKey': self.API_KEY})
+        expected_request = {'groupId': group_id, 'on': True, 'brightness': brightness}
+        mock_requests.post.assert_called_with(ANY, json=expected_request, headers={'LightApiKey': self.API_KEY})
 
     def test_set_light_groups__should_raise_failed_dependency_when_returns_failure(self, mock_requests):
         brightness = 155
@@ -348,22 +244,22 @@ class TestLightApiRequests:
         mock_requests.post.return_value = self.__create_response()
         group_id = 1
         set_light_groups(self.API_KEY, group_id, False, None)
-        expected = json.dumps({'groupId': group_id, 'on': False})
+        expected = {'groupId': group_id, 'on': False}
 
-        mock_requests.post.assert_called_with(ANY, data=expected, headers={'LightApiKey': self.API_KEY})
+        mock_requests.post.assert_called_with(ANY, json=expected, headers={'LightApiKey': self.API_KEY})
 
     def test_create_light_group__should_make_api_call_to_url(self, mock_requests):
         expected_url = f'{self.BASE_URL}/group/create'
         create_light_group(self.API_KEY, None)
 
-        mock_requests.post.assert_called_with(expected_url, data=ANY, headers={'LightApiKey': self.API_KEY})
+        mock_requests.post.assert_called_with(expected_url, json=ANY, headers={'LightApiKey': self.API_KEY})
 
     def test_create_light_group__should_make_api_with_group_name(self, mock_requests):
         group_name = 'Test Group'
-        expected_data = json.dumps({'name': group_name})
+        expected_data = {'name': group_name}
         create_light_group(self.API_KEY, group_name)
 
-        mock_requests.post.assert_called_with(ANY, data=expected_data, headers={'LightApiKey': self.API_KEY})
+        mock_requests.post.assert_called_with(ANY, json=expected_data, headers={'LightApiKey': self.API_KEY})
 
     # def test_get_all_lights__should_make_api_call_to_url(self, mock_requests):
     #     mock_requests.get.return_value = self.__create_response()
@@ -488,25 +384,25 @@ class TestLightApiRequests:
         mock_requests.post.return_value = self.__create_response()
         set_light_state(self.API_KEY, light_id, None)
 
-        mock_requests.post.assert_called_with(expected_url, data=ANY, headers={'LightApiKey': self.API_KEY})
+        mock_requests.post.assert_called_with(expected_url, json=ANY, headers={'LightApiKey': self.API_KEY})
 
     def test_set_light_state__should_submit_data_to_requested_url(self, mock_requests):
         light_id = '9'
         brightness = 188
-        expected_data = json.dumps({'lightId': light_id, 'on': True, 'brightness': brightness})
+        expected_data = {'lightId': light_id, 'on': True, 'brightness': brightness}
         mock_requests.post.return_value = self.__create_response()
         set_light_state(self.API_KEY, light_id, brightness)
 
-        mock_requests.post.assert_called_with(ANY, data=expected_data, headers={'LightApiKey': self.API_KEY})
+        mock_requests.post.assert_called_with(ANY, json=expected_data, headers={'LightApiKey': self.API_KEY})
 
     def test_set_light_state__should_set_light_on_state_to_false_when_brightness_zero(self, mock_requests):
         light_id = '9'
         brightness = 0
-        expected_data = json.dumps({'lightId': light_id, 'on': False, 'brightness': brightness})
+        expected_data = {'lightId': light_id, 'on': False, 'brightness': brightness}
         mock_requests.post.return_value = self.__create_response()
         set_light_state(self.API_KEY, light_id, brightness)
 
-        mock_requests.post.assert_called_with(ANY, data=expected_data, headers={'LightApiKey': self.API_KEY})
+        mock_requests.post.assert_called_with(ANY, json=expected_data, headers={'LightApiKey': self.API_KEY})
 
     def test_set_light_state__should_raise_failed_dependency_when_exception(self, mock_requests):
         mock_requests.post.return_value = self.__create_response(400)
@@ -570,12 +466,12 @@ class TestEmailApiRequests:
         expected_header = {'api-key': self.API_KEY, 'content-type': 'application/json', 'accept': 'application/json'}
         send_new_account_email(self.EMAIL, self.PASSWORD)
 
-        mock_request.post.assert_called_with(ANY, data=ANY, headers=expected_header)
+        mock_request.post.assert_called_with(ANY, json=ANY, headers=expected_header)
 
     def test_send_new_account_email__should_call_url_in_post_method(self, mock_request):
         send_new_account_email(self.EMAIL, self.PASSWORD)
 
-        mock_request.post.assert_called_with(self.URL, data=ANY, headers=ANY)
+        mock_request.post.assert_called_with(self.URL, json=ANY, headers=ANY)
 
     def test_send_new_account_email__should_make_call_to_post_request_with_correct_body(self, mock_request):
         expected_data = {
@@ -586,7 +482,7 @@ class TestEmailApiRequests:
         }
         send_new_account_email(self.EMAIL, self.PASSWORD)
 
-        mock_request.post.assert_called_with(ANY, data=json.dumps(expected_data), headers=ANY)
+        mock_request.post.assert_called_with(ANY, json=expected_data, headers=ANY)
 
 
 @patch('svc.utilities.api_utils.requests')

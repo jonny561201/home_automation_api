@@ -34,25 +34,6 @@ def get_garage_door_status(bearer_token, base_url, garage_id):
     return GarageStatus.from_json(response.text)
 
 
-def toggle_garage_door_state(bearer_token, base_url, garage_id):
-    header = {'Authorization': f'Bearer {bearer_token}'}
-    try:
-        response = requests.get(f'{base_url}/garageDoor/{garage_id}/toggle', headers=header, timeout=5)
-    except Exception:
-        raise BadRequest(description='Garage node returned a failure')
-    __validate_garage_response(response)
-
-
-def update_garage_door_state(bearer_token, base_url, garage_id, request):
-    header = {'Authorization': f'Bearer {bearer_token}'}
-    try:
-        response = requests.post(f'{base_url}/garageDoor/{garage_id}/state', headers=header, data=request, timeout=5)
-    except Exception:
-        raise BadRequest(description='Garage node returned a failure')
-    __validate_garage_response(response)
-    return GarageState.from_json(response.text)
-
-
 def get_light_groups(api_key):
     base_url = Settings.get_instance().BaseUrls.lights
     try:
@@ -70,15 +51,14 @@ def set_light_groups(api_key, group_id, on, brightness):
     if brightness != 0 and brightness is not None:
         request['brightness'] = brightness
 
-    __validate_response(
-        requests.post(f'{base_url}/group/state', data=json.dumps(request), headers={'LightApiKey': api_key}))
+    __validate_response(requests.post(f'{base_url}/group/state', json=request, headers={'LightApiKey': api_key}))
 
 
 def create_light_group(api_key, group_name):
     base_url = Settings.get_instance().BaseUrls.lights
 
     request = {'name': group_name}
-    requests.post(f'{base_url}/group/create', data=json.dumps(request), headers={'LightApiKey': api_key})
+    requests.post(f'{base_url}/group/create', json=request, headers={'LightApiKey': api_key})
 
 
 def delete_light_group(group_id):
@@ -94,7 +74,7 @@ def set_light_state(api_key, light_id, brightness):
     # if brightness != 0:
     #     request['brightness'] = brightness
 
-    __validate_response(requests.post(f'{base_url}/light/state', data=json.dumps(request), headers={'LightApiKey': api_key}))
+    __validate_response(requests.post(f'{base_url}/light/state', json=request, headers={'LightApiKey': api_key}))
 
 
 def get_unregistered_lights(api_key):
@@ -112,7 +92,7 @@ def assign_light_group(api_key, group_id, light_id, name, switch_type):
     base_url = Settings.get_instance().BaseUrls.lights
 
     request = {'name': name, 'groupId': group_id, 'lightId': light_id, 'switchTypeId': switch_type}
-    requests.post(f'{base_url}/group/assign', data=json.dumps(request), headers={'LightApiKey': api_key})
+    requests.post(f'{base_url}/group/assign', json=request, headers={'LightApiKey': api_key})
 
 
 def send_new_account_email(email, password):
@@ -127,7 +107,7 @@ def send_new_account_email(email, password):
         'subject': 'Home Automation: New Account Registration',
         'htmlContent': f'<html><head></head><body><p>Hello,</p><p>A new Home Automation account has been setup for you.</p><p>Password: {password}</p></body></html>'
     }
-    requests.post(settings.BaseUrls.email, data=json.dumps(request), headers=headers)
+    requests.post(settings.BaseUrls.email, json=request, headers=headers)
 
 
 def exchange_auth0_code(code, code_verifier, redirect_uri):
