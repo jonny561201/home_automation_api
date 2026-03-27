@@ -175,6 +175,22 @@ class TestAccountRepository:
         user_id = str(uuid.uuid4())
         self.DATABASE.insert_preferences_by_user(user_id, preference_info)
 
+    @patch('svc.db.repositories.account_repository.uuid')
+    def test_provision_user__should_add_user_to_session(self, mock_uuid):
+        user_id = str(uuid.uuid4())
+        mock_uuid.uuid4.return_value = user_id
+        self.DATABASE.provision_user(self.FIRST_NAME, self.LAST_NAME, 'test@test.com')
+
+        self.SESSION.add.assert_called_once()
+
+    @patch('svc.db.repositories.account_repository.uuid')
+    def test_provision_user__should_return_generated_user_id(self, mock_uuid):
+        user_id = str(uuid.uuid4())
+        mock_uuid.uuid4.return_value = user_id
+        actual = self.DATABASE.provision_user(self.FIRST_NAME, self.LAST_NAME, 'test@test.com')
+
+        assert actual == user_id
+
     @staticmethod
     def __create_database_user(id=str(uuid.uuid4()), password=FAKE_PASS, first=FIRST_NAME, last=LAST_NAME):
         user = UserInformation(first_name=first, last_name=last)

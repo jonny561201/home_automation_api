@@ -1,3 +1,5 @@
+import json
+
 from flask import Blueprint, request, Response
 
 from svc.config.settings_state import Settings
@@ -17,3 +19,10 @@ def exchange_token():
     response.set_cookie('refresh_token', tokens['refresh_token'], httponly=True, secure=is_secure, samesite='Strict', path='/token', max_age=60 * 60 * 24 * 30)
 
     return response
+
+
+@AUTH_BLUEPRINT.route('/provision', methods=['POST'])
+def provision_user():
+    api_key = request.headers.get('X-API-Key')
+    user_id = auth_controller.provision_user(api_key, request.get_json())
+    return Response(json.dumps({'user_id': user_id}), status=201, mimetype=Mime.JSON)

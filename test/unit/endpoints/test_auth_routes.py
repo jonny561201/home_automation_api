@@ -78,3 +78,46 @@ class TestAuthRoutes:
         cookie_header = actual.headers.getlist('Set-Cookie')
         assert all('Secure' in c for c in cookie_header)
 
+
+@patch('svc.endpoints.auth_routes.auth_controller')
+class TestProvisionRoutes:
+    API_KEY = 'test-api-key'
+    REQUEST = {'first_name': 'Jon', 'last_name': 'Test', 'email': 'jon@test.com'}
+
+    def setup_method(self):
+        self.app = Flask(__name__)
+        self.ctx = setup_request(self.app, request=self.REQUEST, headers={'X-API-Key': self.API_KEY})
+
+    def teardown_method(self):
+        self.ctx.pop()
+
+    def test_provision_user__should_call_controller_with_api_key(self, mock_controller):
+        mock_controller.provision_user.return_value = 'fake-uuid'
+        provision_user()
+
+        mock_controller.provision_user.assert_called_with(self.API_KEY, ANY)
+
+    def test_provision_user__should_call_controller_with_request_data(self, mock_controller):
+        mock_controller.provision_user.return_value = 'fake-uuid'
+        provision_user()
+
+        mock_controller.provision_user.assert_called_with(ANY, self.REQUEST)
+
+    def test_provision_user__should_return_201_status_code(self, mock_controller):
+        mock_controller.provision_user.return_value = 'fake-uuid'
+        actual = provision_user()
+
+        assert actual.status_code == 201
+
+    def test_provision_user__should_return_json_content_type(self, mock_controller):
+        mock_controller.provision_user.return_value = 'fake-uuid'
+        actual = provision_user()
+
+        assert actual.content_type == 'application/json'
+
+    def test_provision_user__should_return_user_id_in_response(self, mock_controller):
+        user_id = 'fake-uuid'
+        mock_controller.provision_user.return_value = user_id
+        actual = provision_user()
+
+        assert json.loads(actual.data) == {'user_id': user_id}

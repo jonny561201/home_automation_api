@@ -86,6 +86,12 @@ class AccountRepository(DatabaseBase):
         self._validate_property(user)
         return UserRolesResponse(roles=[role.role.role_name for role in user.user_roles])
 
+    def provision_user(self, first_name, last_name, email):
+        user_id = str(uuid.uuid4())
+        user = UserInformation(id=user_id, first_name=first_name, last_name=last_name, email=email)
+        self.session.add(user)
+        return user_id
+
     def __get_user_info(self, user_id):
         stmt = select(UserCredentials).filter_by(user_id=user_id)
         user = self.session.execute(stmt).scalars().first()
