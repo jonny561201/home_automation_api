@@ -1,11 +1,9 @@
-import json
-
 import requests
 from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
 
-from svc.models.garage import GarageStatus, GarageState
-from svc.constants.home_automation import Mime
 from svc.config.settings_state import Settings
+from svc.constants.home_automation import Mime
+from svc.models.garage import GarageStatus
 
 
 def get_city_coordinates(city):

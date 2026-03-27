@@ -502,6 +502,7 @@ class TestExchangeAuth0Code:
         }
         self.RESPONSE = Response()
         self.RESPONSE.status_code = 200
+        self.RESPONSE._content = '{}'.encode('utf-8')
 
     def test_exchange_auth0_code__should_call_auth0_token_endpoint(self, mock_requests):
         mock_requests.post.return_value = self.RESPONSE
