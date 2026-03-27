@@ -247,6 +247,7 @@ class TestAccountIntegration:
         ip_address = '0.1.2.3'
         node_name = 'test_node'
         with AccountRepository() as database:
+            database.session.execute(delete(RoleDevices).where(RoleDevices.user_role_id == self.USER_ROLE_ID))
             device = RoleDevices(id=self.DEVICE_ID, user_role_id=self.USER_ROLE_ID, max_nodes=1, ip_address=ip_address)
             node = RoleDeviceNodes(role_device_id=self.DEVICE_ID, node_name=node_name, node_device=1)
             database.session.add(device)
