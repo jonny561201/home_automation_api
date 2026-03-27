@@ -3,7 +3,7 @@ import pytest
 from mock import patch, ANY
 from werkzeug.exceptions import BadRequest
 
-from svc.controllers.account_controller import change_password, get_roles, create_child_account_by_user, \
+from svc.controllers.account_controller import change_password, get_roles, get_roles_v2, create_child_account_by_user, \
     get_child_accounts_by_user, delete_child_account
 
 
@@ -67,6 +67,24 @@ class TestAccountRoles:
         roles = {'roles': []}
         mock_db.return_value.__enter__.return_value.get_roles_by_user.return_value = roles
         actual = get_roles(self.BEARER_TOKEN)
+
+        assert actual == roles
+
+    def test_get_roles_v2__should_validate_jwt(self, mock_jwt, mock_db, mock_email):
+        get_roles_v2(self.BEARER_TOKEN)
+
+        mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
+
+    def test_get_roles_v2__should_call_database_with_user_id(self, mock_jwt, mock_db, mock_email):
+        mock_jwt.is_jwt_valid.return_value = {'sub': self.USER_ID}
+        get_roles_v2(self.BEARER_TOKEN)
+
+        mock_db.return_value.__enter__.return_value.get_user_roles.assert_called_with(self.USER_ID)
+
+    def test_get_roles_v2__should_return_result_from_database(self, mock_jwt, mock_db, mock_email):
+        roles = ['lighting', 'security']
+        mock_db.return_value.__enter__.return_value.get_user_roles.return_value = roles
+        actual = get_roles_v2(self.BEARER_TOKEN)
 
         assert actual == roles
 

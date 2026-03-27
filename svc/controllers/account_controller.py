@@ -21,6 +21,13 @@ def get_roles(bearer_token):
         return database.get_roles_by_user(user_id)
 
 
+def get_roles_v2(bearer_token):
+    claims = jwt_utils.is_jwt_valid(bearer_token)
+    user_id = claims['sub']
+    with AccountRepository() as database:
+        return database.get_user_roles(user_id)
+
+
 def create_child_account_by_user(bearer_token, request_data):
     claims = jwt_utils.is_jwt_valid(bearer_token)
     user_id = claims['sub']
