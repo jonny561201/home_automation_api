@@ -144,6 +144,11 @@ class Authority:
     def client_secret(self):
         return _get_setting('AUTH0_CLIENT_SECRET', 'ClientSecret', self._settings)
 
+    @property
+    def provision_api_key(self):
+        return _get_setting('PROVISION_API_KEY', 'ProvisionApiKey', self._settings)
+
+
 def _get_setting(env_var, setting_key, settings):
     env_var_value = os.environ.get(env_var)
     return env_var_value if env_var_value is not None else settings.get(setting_key)
