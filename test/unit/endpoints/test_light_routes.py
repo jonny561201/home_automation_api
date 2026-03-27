@@ -10,10 +10,11 @@ from test.unit.test_helpers import setup_request
 @patch('svc.endpoints.light_routes.light_controller')
 class TestLightRoutes:
     BEARER_TOKEN = 'fakeBearerToken'
+    HEADERS = {'Authorization': BEARER_TOKEN}
 
     def setup_method(self):
         self.app = Flask(__name__)
-        self.ctx = setup_request(self.app, bearer=self.BEARER_TOKEN)
+        self.ctx = setup_request(self.app, headers=self.HEADERS)
 
     def teardown_method(self):
         self.ctx.pop()
@@ -45,7 +46,7 @@ class TestLightRoutes:
 
     def test_set_assigned_light_group__should_call_light_controller(self, mock_controller):
         request_data = {"on": "False", "groupId": 1}
-        self.ctx = setup_request(self.app, self.ctx, request_data, self.BEARER_TOKEN)
+        self.ctx = setup_request(self.app, self.ctx, request_data, self.HEADERS)
         set_assigned_light_group()
 
         mock_controller.set_assigned_light_groups.assert_called_with(self.BEARER_TOKEN, request_data)
@@ -62,7 +63,7 @@ class TestLightRoutes:
 
     def test_set_light_state__should_call_light_controller(self, mock_controller):
         request_data = {"on": "False", "brightness": 133, "lightId": "3"}
-        self.ctx = setup_request(self.app, self.ctx, request_data, self.BEARER_TOKEN)
+        self.ctx = setup_request(self.app, self.ctx, request_data, self.HEADERS)
         set_light_state()
 
         mock_controller.set_assigned_light.assert_called_with(self.BEARER_TOKEN, request_data)

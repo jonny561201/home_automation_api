@@ -10,10 +10,11 @@ from test.unit.test_helpers import setup_request
 
 class TestSumpRoutes:
     BEARER_TOKEN = 'test123'
+    HEADERS = {'Authorization': BEARER_TOKEN}
 
     def setup_method(self):
         self.app = Flask(__name__)
-        self.ctx = setup_request(self.app, bearer=self.BEARER_TOKEN)
+        self.ctx = setup_request(self.app, headers=self.HEADERS)
 
     def teardown_method(self):
         self.ctx.pop()
@@ -48,7 +49,7 @@ class TestSumpRoutes:
     @patch('svc.endpoints.sump_routes.save_current_level')
     def test_save_current_depth__should_call_controller(self, mock_controller):
         request_data = {'depth': 12.5}
-        self.ctx = setup_request(self.app, self.ctx, request_data, self.BEARER_TOKEN)
+        self.ctx = setup_request(self.app, self.ctx, request_data, self.HEADERS)
 
         save_current_depth()
 

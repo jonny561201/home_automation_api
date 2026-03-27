@@ -1,9 +1,10 @@
 import json
 
 from flask import Flask
-from mock import patch, MagicMock
+from mock import patch, MagicMock, ANY
 
-from svc.endpoints.auth_routes import exchange_token
+from svc.endpoints.auth_routes import exchange_token, provision_user
+from test.unit.test_helpers import setup_request
 
 
 @patch('svc.endpoints.auth_routes.Settings')

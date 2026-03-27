@@ -12,13 +12,14 @@ from test.unit.test_helpers import setup_request
 @patch('svc.endpoints.thermostat_routes.thermostat_controller')
 class TestThermostatRoutes:
     JWT_TOKEN = jwt.encode({}, 'JWT_SECRET', algorithm='HS256')
-    BEARER_TOKEN = "Bearer " + JWT_TOKEN
+    BEARER_TOKEN = f'Bearer {JWT_TOKEN}'
+    HEADERS = {'Authorization': BEARER_TOKEN}
     USER_ID = 'test'
 
     def setup_method(self):
         self.app = Flask(__name__)
         self.DAILY_FORECAST = DailyForecast(temp=12.0, minTemp=5.6, maxTemp=15.2, description='sunny')
-        self.ctx = setup_request(self.app, bearer=self.BEARER_TOKEN)
+        self.ctx = setup_request(self.app, headers=self.HEADERS)
 
     def teardown_method(self):
         self.ctx.pop()
@@ -53,7 +54,7 @@ class TestThermostatRoutes:
 
     def test_set_desired_temperature__should_call_thermostat_controller_with_request_body(self, mock_controller):
         request_data = {'desiredTemp': 34.1}
-        self.ctx = setup_request(self.app, self.ctx, request_data, self.BEARER_TOKEN)
+        self.ctx = setup_request(self.app, self.ctx, request_data, self.HEADERS)
 
         set_desired_temperature()
 

@@ -13,13 +13,14 @@ from test.unit.test_helpers import setup_request
 class TestDeviceRoutes:
     USER_ID = '1234abcd'
     BEARER_TOKEN = 'IMAFAKEBEARERTOKEN'
+    HEADERS = {'Authorization': BEARER_TOKEN}
     DEVICE_ID = '890xyz'
 
     def setup_method(self):
         self.app = Flask(__name__)
         self.DEVICE = Device(deviceId=self.DEVICE_ID)
         self.NODE = DeviceNode(availableNodes=1, device=DoorDeviceDetails(doorId=1, doorName='Test Door'))
-        self.ctx = setup_request(self.app, bearer=self.BEARER_TOKEN)
+        self.ctx = setup_request(self.app, headers=self.HEADERS)
 
     def teardown_method(self):
         self.ctx.pop()
@@ -32,7 +33,7 @@ class TestDeviceRoutes:
     def test_add_device__should_pass_the_decoded_request_body_to_controller(self, mock_controller):
         mock_controller.add_device_to_role.return_value = self.DEVICE
         request_data = {'fakeData': 'Im Not Real'}
-        self.ctx = setup_request(self.app, self.ctx, request_data, self.BEARER_TOKEN)
+        self.ctx = setup_request(self.app, self.ctx, request_data, self.HEADERS)
         add_device()
         mock_controller.add_device_to_role.assert_called_with(ANY, request_data)
 
@@ -64,7 +65,7 @@ class TestDeviceRoutes:
     def test_add_device_node__should_pass_the_decoded_body_to_the_controller(self, mock_controller):
         request_data = {'test': 'test'}
         mock_controller.add_node_to_device.return_value = self.NODE
-        self.ctx = setup_request(self.app, self.ctx, request_data, self.BEARER_TOKEN)
+        self.ctx = setup_request(self.app, self.ctx, request_data, self.HEADERS)
         add_device_node(self.DEVICE_ID)
 
         mock_controller.add_node_to_device.assert_called_with(ANY, ANY, request_data)

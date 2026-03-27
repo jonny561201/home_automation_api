@@ -14,17 +14,18 @@ from test.unit.test_helpers import setup_request
 class TestAppRoutes:
     USER_ID = '123bac34'
     FAKE_JWT_TOKEN = 'fakeJwtToken'
+    HEADERS = {'Authorization': FAKE_JWT_TOKEN}
     REQUEST = {'fakeData': 'doesnt matter'}
 
     def setup_method(self):
         self.app = Flask(__name__)
-        self.ctx = setup_request(self.app, bearer=self.FAKE_JWT_TOKEN)
+        self.ctx = setup_request(self.app, headers=self.HEADERS)
 
     def teardown_method(self):
         self.ctx.pop()
 
     def test_update_user_password__should_call_change_password_controller_with_bearer_token(self, mock_controller):
-        self.ctx = setup_request(self.app, self.ctx, self.REQUEST, self.FAKE_JWT_TOKEN)
+        self.ctx = setup_request(self.app, self.ctx, self.REQUEST, self.HEADERS)
         update_user_password()
 
         mock_controller.change_password.assert_called_with(self.FAKE_JWT_TOKEN, ANY)
@@ -115,10 +116,11 @@ class TestAppRoutes:
 class TestChildAccountRoutes:
     USER_ID = '123bac34'
     FAKE_JWT_TOKEN = 'fakeJwtToken'
+    HEADERS = {'Authorization': FAKE_JWT_TOKEN}
 
     def setup_method(self):
         self.app = Flask(__name__)
-        self.ctx = setup_request(self.app, bearer=self.FAKE_JWT_TOKEN)
+        self.ctx = setup_request(self.app, headers=self.HEADERS)
 
     def teardown_method(self):
         self.ctx.pop()
