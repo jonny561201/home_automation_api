@@ -1,23 +1,16 @@
 import datetime
 import uuid
-from zoneinfo import ZoneInfo
 
 import pytest
-from mock import patch
 from sqlalchemy import delete, select
-from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
+from werkzeug.exceptions import NotFound
 
+from svc.db.models.user_information_model import UserInformation, UserPreference, ScheduleTasks, \
+    ScheduledTaskTypes
 from svc.db.repositories.account_repository import AccountRepository
-from svc.db.repositories.device_repository import DeviceRepository
-from svc.db.repositories.lights_repository import LightsRepository
-from svc.db.repositories.tasks_repository import TasksRepository
-from svc.db.repositories.credential_repository import CredentialRepository
 from svc.db.repositories.database_base import DatabaseBase
-from svc.db.models.user_information_model import UserInformation, UserCredentials, Roles, UserPreference, UserRoles, \
-    RoleDevices, RoleDeviceNodes, ChildAccounts, ScheduleTasks, \
-    ScheduledTaskTypes, Scenes, SceneDetails, RefreshToken
+from svc.db.repositories.tasks_repository import TasksRepository
 from svc.models.app import Tasks
-from svc.models.scenes import LightScenes
 
 
 class TestDbTaskIntegration:
@@ -106,14 +99,14 @@ class TestDbTaskIntegration:
             actual = database.session.execute(select(ScheduleTasks).where(ScheduleTasks.user_id == self.USER_ID)).first()
             assert actual is None
 
-    def test_update_schedule_task_by_user__should_raise_bad_request_when_user_does_not_exist(self):
+    def test_update_schedule_task_by_user__should_raise_not_found_when_user_does_not_exist(self):
         new_task = {'taskId': str(uuid.uuid4()), 'alarmDays': 'SatSun', 'alarmGroupName': 'private potty room'}
         with TasksRepository() as database:
             task_type = database.session.execute(select(ScheduledTaskTypes)).scalars().first()
             self.TASK.task_type = task_type
             database.session.add(self.TASK)
 
-        with pytest.raises(BadRequest):
+        with pytest.raises(NotFound):
             with TasksRepository() as database:
                 database.update_schedule_task_by_user_id(self.USER_ID, new_task)
 
@@ -182,8 +175,8 @@ class TestDbPreferenceIntegration:
             assert response.garageDoor == self.GARAGE
             assert response.garageId == 1
 
-    def test_get_preferences_by_user__should_raise_bad_request_when_no_preferences(self):
-        with pytest.raises(BadRequest):
+    def test_get_preferences_by_user__should_raise_not_found_when_no_preferences(self):
+        with pytest.raises(NotFound):
             with AccountRepository() as database:
                 bad_user_id = str(uuid.uuid4())
                 database.get_preferences_by_user(bad_user_id)

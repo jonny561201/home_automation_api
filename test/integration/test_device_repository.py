@@ -2,7 +2,7 @@ import uuid
 
 import pytest
 from sqlalchemy import select, delete
-from werkzeug.exceptions import BadRequest, Unauthorized
+from werkzeug.exceptions import BadRequest, Unauthorized, NotFound
 
 from svc.db.models.user_information_model import UserPreference, RoleDevices, RoleDeviceNodes, UserInformation, Roles, \
     UserRoles, ChildAccounts
@@ -190,7 +190,7 @@ class TestDbDeviceIntegration:
 
             assert actual == ip_address
 
-    def test_get_user_garage_ip__should_raise_bad_request_when_not_found(self):
+    def test_get_user_garage_ip__should_raise_not_found_when_not_found(self):
         with DeviceRepository() as database:
-            with pytest.raises(BadRequest):
+            with pytest.raises(NotFound):
                 database.get_user_garage_ip(str(uuid.uuid4()))

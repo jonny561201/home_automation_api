@@ -5,10 +5,10 @@ from zoneinfo import ZoneInfo
 import pytest
 from mock import patch, mock
 from sqlalchemy import orm
-from werkzeug.exceptions import Unauthorized, BadRequest
+from werkzeug.exceptions import Unauthorized, NotFound
 
-from svc.db.repositories.device_repository import DeviceRepository
 from svc.db.models.user_information_model import UserRoles, Roles, UserPreference, RoleDevices, RoleDeviceNodes
+from svc.db.repositories.device_repository import DeviceRepository
 
 
 class TestDeviceRepository:
@@ -57,8 +57,8 @@ class TestDeviceRepository:
         with pytest.raises(Unauthorized):
             self.DATABASE.add_new_role_device(self.USER_ID, role_name, ip_address)
 
-    def test_add_new_role_device__should_raise_bad_request_when_user_id_is_none(self):
-        with pytest.raises(BadRequest):
+    def test_add_new_role_device__should_raise_not_found_when_user_id_is_none(self):
+        with pytest.raises(NotFound):
             self.DATABASE.add_new_role_device(None, '', '')
         self.SESSION.query.assert_not_called()
 
@@ -101,8 +101,8 @@ class TestDeviceRepository:
         with pytest.raises(Unauthorized):
             self.DATABASE.add_new_device_node(self.USER_ID, self.USER_ID, node_name, False)
 
-    def test_add_new_device_node__should_raise_bad_request_when_user_id_is_none(self):
-        with pytest.raises(BadRequest):
+    def test_add_new_device_node__should_raise_not_found_when_user_id_is_none(self):
+        with pytest.raises(NotFound):
             self.DATABASE.add_new_device_node(None, self.USER_ID, '', True)
         self.SESSION.execute.assert_not_called()
 
@@ -114,13 +114,13 @@ class TestDeviceRepository:
 
         assert actual.availableNodes == 1
 
-    def test_get_user_garage_ip__should_raise_bad_request_error_when_no_user_role(self):
+    def test_get_user_garage_ip__should_raise_not_found_error_when_no_user_role(self):
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
-        with pytest.raises(BadRequest):
+        with pytest.raises(NotFound):
             self.DATABASE.get_user_garage_ip(self.USER_ID)
 
-    def test_get_user_garage_ip__should_raise_bad_request_when_user_id_none(self):
-        with pytest.raises(BadRequest):
+    def test_get_user_garage_ip__should_raise_not_found_when_user_id_none(self):
+        with pytest.raises(NotFound):
             self.DATABASE.get_user_garage_ip(None)
         self.SESSION.execute.assert_not_called()
 

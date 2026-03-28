@@ -2,10 +2,10 @@ import uuid
 from datetime import time
 
 from sqlalchemy import select, delete
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import NotFound
 
-from svc.db.repositories.database_base import DatabaseBase
 from svc.db.models.user_information_model import ScheduleTasks, ScheduledTaskTypes
+from svc.db.repositories.database_base import DatabaseBase
 from svc.models.app import Tasks, Task
 
 
@@ -60,7 +60,7 @@ class TasksRepository(DatabaseBase):
                                      hvac_start_temp=task.get('hvacStartTemp'), hvac_stop_temp=task.get('hvacStopTemp'))
             self.session.add(new_task)
         except KeyError:
-            raise BadRequest
+            raise NotFound
         stmt = select(ScheduleTasks).where(ScheduleTasks.user_id==user_id)
         new_tasks = self.session.execute(stmt).scalars().all()
         return Tasks(tasks=[self.__create_scheduled_task(task) for task in new_tasks])

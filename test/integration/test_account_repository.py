@@ -3,7 +3,7 @@ import uuid
 import pytest
 from mock import patch
 from sqlalchemy import delete, select
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import BadRequest, NotFound
 
 from svc.db.models.user_information_model import UserCredentials, UserInformation, Roles, UserRoles, RoleDeviceNodes, \
     RoleDevices, UserPreference, ChildAccounts
@@ -45,13 +45,13 @@ class TestAccountRepositoryIntegration:
 
         assert sorted(actual.roles) == ['garage_door', 'lighting']
 
-    def test_get_user_roles__should_raise_bad_request_when_user_id_is_none(self):
-        with pytest.raises(BadRequest):
+    def test_get_user_roles__should_raise_not_found_when_user_id_is_none(self):
+        with pytest.raises(NotFound):
             with AccountRepository() as database:
                 database.get_user_roles(None)
 
-    def test_get_user_roles__should_raise_bad_request_when_user_not_found(self):
-        with pytest.raises(BadRequest):
+    def test_get_user_roles__should_raise_not_found_when_user_not_found(self):
+        with pytest.raises(NotFound):
             with AccountRepository() as database:
                 database.get_user_roles(str(uuid.uuid4()))
 
@@ -258,7 +258,7 @@ class TestAccountIntegration:
             assert actual['roles'] == [{'ip_address': ip_address, 'role_name': self.ROLE_NAME, 'device_id': self.DEVICE_ID,
                                         'devices': [{'node_device': 1, 'node_name': node_name}]}]
 
-    def test_get_roles_by_user__should_raise_bad_request_when_missing_user(self, mock_uuid):
-        with pytest.raises(BadRequest):
+    def test_get_roles_by_user__should_raise_not_found_when_missing_user(self, mock_uuid):
+        with pytest.raises(NotFound):
             with AccountRepository() as database:
                 database.get_roles_by_user(str(uuid.uuid4()))

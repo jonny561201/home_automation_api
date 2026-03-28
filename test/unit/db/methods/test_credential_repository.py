@@ -6,10 +6,10 @@ import mock
 import pytest
 from mock import patch
 from sqlalchemy import orm
-from werkzeug.exceptions import Forbidden, Unauthorized, BadRequest
+from werkzeug.exceptions import Forbidden, Unauthorized, NotFound
 
-from svc.db.repositories.credential_repository import CredentialRepository
 from svc.db.models.user_information_model import RefreshToken, UserInformation, UserCredentials, UserRoles, Roles
+from svc.db.repositories.credential_repository import CredentialRepository
 
 
 class TestCredentialRepository:
@@ -120,8 +120,8 @@ class TestCredentialRepository:
         with pytest.raises(Unauthorized):
             self.DATABASE.change_user_password(self.FAKE_USER, self.FAKE_PASS, new_pass)
 
-    def test_change_user_password__should_raise_bad_request_if_user_id_none(self):
-        with pytest.raises(BadRequest):
+    def test_change_user_password__should_raise_not_found_if_user_id_none(self):
+        with pytest.raises(NotFound):
             self.DATABASE.change_user_password(None, self.FAKE_PASS, 'some text')
         self.SESSION.query.assert_not_called()
 

@@ -3,11 +3,12 @@ from datetime import datetime
 
 import pytest
 from sqlalchemy import select, delete
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import NotFound
 
+from svc.db.models.user_information_model import DailySumpPumpLevel, AverageSumpPumpLevel, ChildAccounts, \
+    UserInformation
 from svc.db.repositories.database_base import DatabaseBase
 from svc.db.repositories.sump_repository import SumpDatabase
-from svc.db.models.user_information_model import DailySumpPumpLevel, AverageSumpPumpLevel, ChildAccounts, UserInformation
 
 
 class TestDbSumpIntegration:
@@ -70,9 +71,9 @@ class TestDbSumpIntegration:
             assert actual['currentDepth'] == 11.0
             assert actual['warningLevel'] == 2
 
-    def test_get_current_sump_level_by_user__should_raise_bad_request_when_user_not_found(self):
+    def test_get_current_sump_level_by_user__should_raise_not_found_when_user_not_found(self):
         with SumpDatabase() as database:
-            with pytest.raises(BadRequest):
+            with pytest.raises(NotFound):
                 database.get_current_sump_level_by_user(str(uuid.uuid4()))
 
     def test_get_average_sump_level_by_user__should_return_latest_record_for_single_user(self):
@@ -85,9 +86,9 @@ class TestDbSumpIntegration:
             actual = database.get_average_sump_level_by_user(self.CHILD_USER_ID)
             assert actual == {'averageDepth': self.DEPTH, 'latestDate': self.DAY}
 
-    def test_get_average_sump_level_by_user__should_raise_bad_request_when_user_not_found(self):
+    def test_get_average_sump_level_by_user__should_raise_not_found_when_user_not_found(self):
         with SumpDatabase() as database:
-            with pytest.raises(BadRequest):
+            with pytest.raises(NotFound):
                 database.get_average_sump_level_by_user(str(uuid.uuid4()))
 
     def test_insert_current_sump_level__should_store_new_record(self):
@@ -102,10 +103,10 @@ class TestDbSumpIntegration:
 
             assert float(actual.distance) == self.UPDATED_DEPTH
 
-    def test_insert_current_sump_level__should_raise_exception_with_bad_data(self):
+    def test_insert_current_sump_level__should_raise_not_found_with_bad_data(self):
         depth_info = {'badData': None}
         user_id = 1234
-        with pytest.raises(BadRequest):
+        with pytest.raises(NotFound):
             with SumpDatabase() as database:
                 database.insert_current_sump_level(user_id, depth_info)
 

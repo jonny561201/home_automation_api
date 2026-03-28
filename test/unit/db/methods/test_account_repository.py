@@ -4,11 +4,11 @@ import mock
 import pytest
 from mock import patch
 from sqlalchemy import orm
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import BadRequest, NotFound
 
-from svc.db.repositories.account_repository import AccountRepository
 from svc.db.models.user_information_model import ChildAccounts, Roles, UserRoles, UserCredentials, UserInformation, \
     UserPreference
+from svc.db.repositories.account_repository import AccountRepository
 from svc.models.account import UserRolesResponse
 
 
@@ -25,8 +25,8 @@ class TestAccountRepository:
         self.DATABASE.session = self.SESSION
 
 
-    def test_get_user_child_accounts__should_return_bad_request_when_user_id_is_none(self):
-        with pytest.raises(BadRequest):
+    def test_get_user_child_accounts__should_return_not_found_when_user_id_is_none(self):
+        with pytest.raises(NotFound):
             self.DATABASE.get_user_child_accounts(None)
         self.SESSION.execute.assert_not_called()
 
@@ -50,8 +50,8 @@ class TestAccountRepository:
 
         assert actual == []
 
-    def test_delete_child_user_account__should_raise_bad_request_when_user_id_is_none(self):
-        with pytest.raises(BadRequest):
+    def test_delete_child_user_account__should_raise_not_found_when_user_id_is_none(self):
+        with pytest.raises(NotFound):
             self.DATABASE.delete_child_user_account(None, str(uuid.uuid4()))
         self.SESSION.execute.assert_not_called()
 
@@ -64,8 +64,8 @@ class TestAccountRepository:
 
         self.SESSION.execute.assert_called()
 
-    def test_create_child_account__should_raise_bad_request_when_user_id_is_none(self):
-        with pytest.raises(BadRequest):
+    def test_create_child_account__should_raise_not_found_when_user_id_is_none(self):
+        with pytest.raises(NotFound):
             self.DATABASE.create_child_account(None, '', [], '')
         self.SESSION.execute.assert_not_called()
 
@@ -99,24 +99,24 @@ class TestAccountRepository:
         actual = self.DATABASE.create_child_account(self.USER_ID, user_name, [], self.FAKE_PASS)
         assert actual == [{'user_name': user_name, 'user_id': str(user_id), 'roles': [role_name]}]
 
-    def test_get_roles_by_user__should_raise_bad_request_when_no_user(self):
+    def test_get_roles_by_user__should_raise_not_found_when_no_user(self):
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
-        with pytest.raises(BadRequest):
+        with pytest.raises(NotFound):
             self.DATABASE.get_roles_by_user(self.USER_ID)
 
-    def test_get_roles_by_user__should_raise_bad_request_when_no_user_id(self):
-        with pytest.raises(BadRequest):
+    def test_get_roles_by_user__should_raise_not_found_when_no_user_id(self):
+        with pytest.raises(NotFound):
             self.DATABASE.get_roles_by_user(None)
         self.SESSION.execute.assert_not_called()
 
-    def test_get_user_roles__should_raise_bad_request_when_user_id_is_none(self):
-        with pytest.raises(BadRequest):
+    def test_get_user_roles__should_raise_not_found_when_user_id_is_none(self):
+        with pytest.raises(NotFound):
             self.DATABASE.get_user_roles(None)
         self.SESSION.execute.assert_not_called()
 
-    def test_get_user_roles__should_raise_bad_request_when_user_not_found(self):
+    def test_get_user_roles__should_raise_not_found_when_user_not_found(self):
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
-        with pytest.raises(BadRequest):
+        with pytest.raises(NotFound):
             self.DATABASE.get_user_roles(self.USER_ID)
 
     def test_get_user_roles__should_return_user_roles_response_with_role_names(self):

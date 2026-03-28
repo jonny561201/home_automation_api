@@ -5,11 +5,11 @@ from zoneinfo import ZoneInfo
 import mock
 import pytest
 from sqlalchemy import orm
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import NotFound
 
 from svc.db.models.user_information_model import SceneDetails, Scenes
-from svc.models.scenes import LightScenes
 from svc.db.repositories.lights_repository import LightsRepository
+from svc.models.scenes import LightScenes
 
 
 class TestLightsRepository:
@@ -45,22 +45,22 @@ class TestLightsRepository:
 
         assert actual.to_dict() == LightScenes(scenes=[]).to_dict()
 
-    def test_get_scenes_by_user__should_raise_bad_request_when_user_id_is_none(self):
-        with pytest.raises(BadRequest):
+    def test_get_scenes_by_user__should_raise_not_found_when_user_id_is_none(self):
+        with pytest.raises(NotFound):
             self.DATABASE.get_scenes_by_user(None)
 
     def test_get_scenes_by_user__should_not_call_database_when_user_id_is_none(self):
-        with pytest.raises(BadRequest):
+        with pytest.raises(NotFound):
             self.DATABASE.get_scenes_by_user(None)
         self.SESSION.query.assert_not_called()
 
-    def test_delete_scene_by_user__should_raise_bad_request_when_user_id_is_none(self):
-        with pytest.raises(BadRequest):
+    def test_delete_scene_by_user__should_raise_not_found_when_user_id_is_none(self):
+        with pytest.raises(NotFound):
             self.DATABASE.delete_scene_by_user(None, str(uuid.uuid4()))
         self.SESSION.query.assert_not_called()
 
-    def test_delete_scene_by_user__should_raise_bad_request_when_scene_id_is_none(self):
-        with pytest.raises(BadRequest):
+    def test_delete_scene_by_user__should_raise_not_found_when_scene_id_is_none(self):
+        with pytest.raises(NotFound):
             self.DATABASE.delete_scene_by_user(self.USER_ID, None)
         self.SESSION.query.assert_not_called()
 

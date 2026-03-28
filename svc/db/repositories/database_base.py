@@ -1,9 +1,9 @@
 from sqlalchemy import create_engine, orm, select
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import NotFound
 
+from svc.config.settings_state import Settings
 from svc.db.models.user_information_model import UserPreference
 from svc.models.app import Preference
-from svc.config.settings_state import Settings
 
 
 class DatabaseBase:
@@ -50,4 +50,4 @@ class DatabaseBase:
     @staticmethod
     def _validate_property(record):
         if record is None:
-            raise BadRequest()
+            raise NotFound()

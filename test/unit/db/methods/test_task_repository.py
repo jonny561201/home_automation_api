@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 import pytest
 from mock import mock, patch
 from sqlalchemy import orm
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import NotFound
 
 from db.models.user_information_model import ScheduleTasks, ScheduledTaskTypes
 from svc.db.repositories.tasks_repository import TasksRepository
@@ -61,18 +61,18 @@ class TestTaskRepository:
         self.DATABASE.insert_schedule_task_by_user(self.USER_ID, task)
         self.SESSION.execute.return_value.scalars.return_value.first.assert_called()
 
-    def test_insert_schedule_task_by_user__should_raise_bad_request_when_alarm_days_missing(self):
+    def test_insert_schedule_task_by_user__should_raise_not_found_when_alarm_days_missing(self):
         preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'taskType': 'all on', 'enabled': False}
-        with pytest.raises(BadRequest):
+        with pytest.raises(NotFound):
             self.DATABASE.insert_schedule_task_by_user(self.USER_ID, preference_info)
 
-    def test_insert_schedule_task_by_user__should_raise_bad_request_when_user_id_is_none(self):
-        with pytest.raises(BadRequest):
+    def test_insert_schedule_task_by_user__should_raise_not_found_when_user_id_is_none(self):
+        with pytest.raises(NotFound):
             self.DATABASE.insert_schedule_task_by_user(None, {})
         self.SESSION.query.assert_not_called()
 
-    def test_get_schedule_tasks_by_user__should_raise_bad_request_when_user_id_is_none(self):
-        with pytest.raises(BadRequest):
+    def test_get_schedule_tasks_by_user__should_raise_not_found_when_user_id_is_none(self):
+        with pytest.raises(NotFound):
             self.DATABASE.get_schedule_tasks_by_user(None, None)
 
     def test_get_schedule_tasks_by_user__should_query_database_for_tasks(self):
@@ -394,14 +394,14 @@ class TestTaskRepository:
 
         assert self.SESSION.execute.return_value.scalars.call_count == 1
 
-    def test_update_schedule_task_by_user_id__should_raise_exception_when_query_returns_zero_records(self):
+    def test_update_schedule_task_by_user_id__should_raise_not_found_when_query_returns_zero_records(self):
         task = {'task_id': 'absdf'}
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
-        with pytest.raises(BadRequest):
+        with pytest.raises(NotFound):
             self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
-    def test_update_schedule_task_by_user_id__should_raise_bad_request_when_user_id_none(self):
-        with pytest.raises(BadRequest):
+    def test_update_schedule_task_by_user_id__should_raise_not_found_when_user_id_none(self):
+        with pytest.raises(NotFound):
             self.DATABASE.update_schedule_task_by_user_id(None, {})
         self.SESSION.execute.assert_not_called()
 
@@ -428,7 +428,7 @@ class TestTaskRepository:
         self.DATABASE.delete_schedule_task_by_user(self.USER_ID, task_id)
         self.SESSION.execute.assert_called()
 
-    def test_delete_schedule_task_by_user__should_raise_bad_request_when_user_id_none(self):
-        with pytest.raises(BadRequest):
+    def test_delete_schedule_task_by_user__should_raise_not_found_when_user_id_none(self):
+        with pytest.raises(NotFound):
             self.DATABASE.delete_schedule_task_by_user(None, str(uuid.uuid4()))
         self.SESSION.execute.assert_not_called()

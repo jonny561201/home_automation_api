@@ -5,10 +5,10 @@ from zoneinfo import ZoneInfo
 import pytest
 from mock import mock
 from sqlalchemy import orm
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import NotFound
 
-from svc.db.repositories.database_base import DatabaseBase
 from svc.db.models.user_information_model import (UserPreference, UserCredentials, UserInformation)
+from svc.db.repositories.database_base import DatabaseBase
 
 
 class TestDatabaseBase:
@@ -92,14 +92,14 @@ class TestDatabaseBase:
 
         assert actual.measureUnit == 'metric'
 
-    def test_get_preferences_by_user__should_throw_bad_request_when_no_preferences(self):
+    def test_get_preferences_by_user__should_throw_not_found_when_no_preferences(self):
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
 
-        with pytest.raises(BadRequest):
+        with pytest.raises(NotFound):
             self.DATABASE.get_preferences_by_user(uuid.uuid4().hex)
 
-    def test_get_preferences_by_user__should_throw_bad_request_when_user_id_none(self):
-        with pytest.raises(BadRequest):
+    def test_get_preferences_by_user__should_throw_not_found_when_user_id_none(self):
+        with pytest.raises(NotFound):
             self.DATABASE.get_preferences_by_user(None)
 
         self.SESSION.execute.assert_not_called()

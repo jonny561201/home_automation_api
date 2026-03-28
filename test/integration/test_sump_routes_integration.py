@@ -49,7 +49,7 @@ class TestSumpRoutes:
         header = {'Authorization': f'Bearer {token}'}
         actual = self.TEST_CLIENT.get(f'sumpPump/depth', headers=header)
 
-        assert actual.status_code == 400
+        assert actual.status_code == 404
 
     def test_get_current_sump_level__should_raise_unauthorized_when_invalid_user(self):
         actual = self.TEST_CLIENT.get(f'sumpPump/depth', headers={})

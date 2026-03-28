@@ -1,8 +1,8 @@
 from sqlalchemy import select
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import NotFound
 
-from svc.db.repositories.database_base import DatabaseBase
 from svc.db.models.user_information_model import ChildAccounts, DailySumpPumpLevel, AverageSumpPumpLevel
+from svc.db.repositories.database_base import DatabaseBase
 
 
 class SumpDatabase(DatabaseBase):
@@ -39,4 +39,4 @@ class SumpDatabase(DatabaseBase):
 
             self.session.add(current_depth)
         except (TypeError, KeyError):
-            raise BadRequest
+            raise NotFound
