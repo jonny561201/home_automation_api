@@ -54,3 +54,13 @@ class TestSumpRoutes:
         save_current_depth()
 
         mock_controller.assert_called_with(self.BEARER_TOKEN, request_data)
+
+    @patch('svc.endpoints.sump_routes.save_current_level')
+    def test_save_current_depth__should_return_success_status(self, mock_controller):
+        request_data = {'depth': 12.5}
+        self.ctx = setup_request(self.app, self.ctx, request_data, self.HEADERS)
+
+        actual = save_current_depth()
+
+        assert actual.status_code == 200
+

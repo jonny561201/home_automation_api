@@ -16,5 +16,6 @@ def get_current_sump_level():
 
 @SUMP_BLUEPRINT.route('/currentDepth', methods=['POST'])
 def save_current_depth():
-    bear_token = request.headers.get('Authorization')
-    save_current_level(bear_token, request.get_json())
+    bearer_token = request.headers.get('Authorization')
+    save_current_level(bearer_token, request.get_json())
+    return Response(status=200, mimetype=Mime.JSON)
