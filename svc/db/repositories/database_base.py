@@ -7,17 +7,19 @@ from svc.config.settings_state import Settings
 
 
 class DatabaseBase:
+    _engine = None
+    _scoped_session = None
+
     def __init__(self):
+        if DatabaseBase._engine is None:
+            settings = Settings.get_instance().Database
+            connection = f'postgresql://{settings.user}:{settings.password}@localhost:{settings.port}/{settings.name}'
+            DatabaseBase._engine = create_engine(connection)
+            DatabaseBase._scoped_session = orm.scoped_session(orm.sessionmaker(bind=DatabaseBase._engine))
         self.session = None
 
     def __enter__(self):
-        settings = Settings.get_instance().Database
-        connection = f'postgresql://{settings.user}:{settings.password}@localhost:{settings.port}/{settings.name}'
-
-        db_engine = create_engine(connection)
-        session = orm.sessionmaker(bind=db_engine)
-        self.session = orm.scoped_session(session)
-
+        self.session = DatabaseBase._scoped_session
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
