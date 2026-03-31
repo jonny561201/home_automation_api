@@ -46,7 +46,6 @@ class DatabaseBase:
         else:
             return {'role_name': role_name}
 
-    #TODO: maybe throw different error?  mostly used when no user_id found
     @staticmethod
     def _validate_property(record):
         if record is None:
