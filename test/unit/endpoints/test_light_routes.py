@@ -10,7 +10,7 @@ from test.unit.test_helpers import setup_request
 @patch('svc.endpoints.light_routes.light_controller')
 class TestLightRoutes:
     BEARER_TOKEN = 'fakeBearerToken'
-    HEADERS = {'Cookie': f'access_token={BEARER_TOKEN}'}
+    HEADERS = {'Authorization': BEARER_TOKEN}
 
     def setup_method(self):
         self.app = Flask(__name__)

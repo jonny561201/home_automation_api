@@ -13,7 +13,7 @@ from test.unit.test_helpers import setup_request
 class TestDeviceRoutes:
     USER_ID = '1234abcd'
     BEARER_TOKEN = 'IMAFAKEBEARERTOKEN'
-    HEADERS = {'Cookie': f'access_token={BEARER_TOKEN}'}
+    HEADERS = {'Authorization': BEARER_TOKEN}
     DEVICE_ID = '890xyz'
 
     def setup_method(self):

@@ -10,7 +10,7 @@ from test.unit.test_helpers import setup_request
 
 class TestSumpRoutes:
     BEARER_TOKEN = 'test123'
-    HEADERS = {'Cookie': f'access_token={BEARER_TOKEN}'}
+    HEADERS = {'Authorization': BEARER_TOKEN}
 
     def setup_method(self):
         self.app = Flask(__name__)

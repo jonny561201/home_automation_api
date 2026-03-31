@@ -11,7 +11,7 @@ class TestLightRoutesIntegration:
     JWT_SECRET = 'TotallyNewFakeSecret'
     LIGHT_PASS = 'fakeLightSecret'
     BEARER_TOKEN = jwt.encode({}, JWT_SECRET, algorithm='HS256')
-    HEADERS = {'Cookie': f'access_token={BEARER_TOKEN}', 'Content-Type': 'application/json'}
+    HEADER = {'Authorization': BEARER_TOKEN, 'Content-Type': 'application/json'}
 
     def setup_method(self):
         Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET, 'LightApiKey': self.LIGHT_PASS}
@@ -27,7 +27,7 @@ class TestLightRoutesIntegration:
     def test_get_all_assigned_lights__should_return_success_with_valid_jwt(self, mock_get):
         mock_get.get_light_groups.return_value = {'test': 'fake'}
 
-        actual = self.TEST_CLIENT.get('lights/groups', headers=self.HEADERS)
+        actual = self.TEST_CLIENT.get('lights/groups', headers=self.HEADER)
 
         assert actual.status_code == 200
         assert json.loads(actual.data) == {'test': 'fake'}
@@ -40,7 +40,7 @@ class TestLightRoutesIntegration:
     @patch('svc.utilities.api_utils.set_light_groups')
     def test_set_assigned_light_group__should_return_success_with_valid_jwt(self, mock_groups):
         post_body = '{"on": "False", "brightness": 144, "groupId": 1}'
-        actual = self.TEST_CLIENT.post('lights/group/state', data=post_body, headers=self.HEADERS)
+        actual = self.TEST_CLIENT.post('lights/group/state', data=post_body, headers=self.HEADER)
 
         assert actual.status_code == 200
 
@@ -52,6 +52,6 @@ class TestLightRoutesIntegration:
     @patch('svc.utilities.api_utils.set_light_state')
     def test_set_light_state__should_return_success_with_valid_jwt(self, mock_groups):
         post_body = '{"on": "True", "brightness": 1, "lightId": "3"}'
-        actual = self.TEST_CLIENT.post('lights/group/light', headers=self.HEADERS, data=post_body)
+        actual = self.TEST_CLIENT.post('lights/group/light', headers=self.HEADER, data=post_body)
 
         assert actual.status_code == 200

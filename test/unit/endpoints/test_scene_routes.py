@@ -13,11 +13,10 @@ class TestSceneRoutes:
     USER_ID = str(uuid.uuid4())
     SCENE_ID = str(uuid.uuid4())
     BEARER_TOKEN = 'im a bearer token'
-    HEADERS = {'Cookie': f'access_token={BEARER_TOKEN}'}
 
     def setup_method(self):
         self.app = Flask(__name__)
-        self.ctx = self.app.test_request_context(headers=self.HEADERS)
+        self.ctx = self.app.test_request_context(headers={'Authorization': self.BEARER_TOKEN})
         self.ctx.push()
         self.SCENE = LightScene(name='test', lights=[(LightDetail(groupId=1, groupName='test light', brightness=75))])
         self.SCENES = LightScenes(scenes=[self.SCENE])

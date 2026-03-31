@@ -18,7 +18,7 @@ class TestAppRoutes:
     USER_ID = '123bac34'
     PWORD = 'password'
     JWT_TOKEN = 'fakeJwtToken'
-    HEADERS = {'Cookie': f'access_token={JWT_TOKEN}'}
+    HEADERS = {'Authorization': JWT_TOKEN}
 
     def setup_method(self):
         self.app = Flask(__name__)

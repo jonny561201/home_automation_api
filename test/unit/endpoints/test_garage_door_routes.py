@@ -9,7 +9,6 @@ from mock import patch
 
 from svc.models.garage import GarageStatus, Coordinates, GarageState
 from svc.endpoints.garage_door_routes import get_garage_door_status, update_garage_door_state, toggle_garage_door
-from unit.test_helpers import setup_request
 
 
 @patch('svc.endpoints.garage_door_routes.garage_door_controller')
@@ -18,12 +17,12 @@ class TestAppRoutes:
     USER_ID = str(uuid.uuid4())
     JWT_SECRET = 'fake_jwt_secret'
     JWT_TOKEN = jwt.encode({}, JWT_SECRET, algorithm='HS256')
-    HEADERS = {'Cookie': f'access_token={JWT_TOKEN}'}
 
     def setup_method(self):
         os.environ.update({'JWT_SECRET': self.JWT_SECRET})
         self.app = Flask(__name__)
-        self.ctx = setup_request(self.app, headers=self.HEADERS)
+        self.ctx = self.app.test_request_context(data=json.dumps({}), content_type='application/json', headers={'Authorization': self.JWT_TOKEN})
+        self.ctx.push()
         self.STATE = GarageState(isGarageOpen=False)
         self.COORDINATES = Coordinates(latitude=19.00, longitude=-99.00)
         self.STATUS = GarageStatus(isGarageOpen=True, statusDuration=datetime.now(), coordinates=self.COORDINATES)
@@ -60,7 +59,9 @@ class TestAppRoutes:
 
     def test_update_garage_door_state__should_call_update_state(self, mock_controller):
         expected_data = {"garageDoorOpen": "True"}
-        self.ctx = setup_request(self.app, request=expected_data, headers=self.HEADERS)
+        self.ctx.pop()
+        self.ctx = self.app.test_request_context(data=json.dumps(expected_data), content_type='application/json', headers={'Authorization': self.JWT_TOKEN})
+        self.ctx.push()
         mock_controller.update_state.return_value = self.STATE
         update_garage_door_state(self.GARAGE_ID)
 
