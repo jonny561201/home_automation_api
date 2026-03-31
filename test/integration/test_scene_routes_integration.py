@@ -17,7 +17,7 @@ class TestSceneRoutes:
     GROUP_NAME = 'livin in the room'
     JWT_SECRET = 'fakeKey'
     BEAR_TOKEN = jwt.encode({'sub': USER_ID}, JWT_SECRET, algorithm='HS256')
-    HEADER = {'Authorization': f'Bearer {BEAR_TOKEN}', 'Content-Type': 'application/json'}
+    HEADERS = {'Cookie': f'access_token={BEAR_TOKEN}', 'Content-Type': 'application/json'}
 
     def setup_method(self):
         Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET}
@@ -39,7 +39,7 @@ class TestSceneRoutes:
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 
     def test_get_scenes_by_user__should_return_success_response(self):
-        actual = self.TEST_CLIENT.get(f'scenes/list', headers=self.HEADER)
+        actual = self.TEST_CLIENT.get(f'scenes/list', headers=self.HEADERS)
 
         assert actual.status_code == 200
         assert json.loads(actual.data)['scenes'][0]['name'] == self.SCENE_NAME
@@ -51,7 +51,7 @@ class TestSceneRoutes:
         assert actual.status_code == 401
 
     def test_delete_scene_by_user__should_remove_existing_record(self):
-        actual = self.TEST_CLIENT.delete(f'scenes/{self.SCENE_ID}', headers=self.HEADER)
+        actual = self.TEST_CLIENT.delete(f'scenes/{self.SCENE_ID}', headers=self.HEADERS)
 
         assert actual.status_code == 200
 

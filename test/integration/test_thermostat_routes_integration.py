@@ -17,7 +17,7 @@ class TestThermostatRoutesIntegration:
     JWT_SECRET = 'fake_secret'
     USER_ID = str(uuid.uuid4())
     BEARER_TOKEN = jwt.encode({'sub': USER_ID}, JWT_SECRET, algorithm='HS256')
-    HEADERS = {'Authorization': BEARER_TOKEN, 'Content-Type': 'application/json'}
+    HEADERS = {'Cookie': f'access_token={BEARER_TOKEN}', 'Content-Type': 'application/json'}
 
     def setup_method(self):
         Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET}

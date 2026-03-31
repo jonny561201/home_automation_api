@@ -14,7 +14,7 @@ from test.unit.test_helpers import setup_request
 class TestAppRoutes:
     USER_ID = '123bac34'
     FAKE_JWT_TOKEN = 'fakeJwtToken'
-    HEADERS = {'Authorization': FAKE_JWT_TOKEN}
+    HEADERS = {'Cookie': f'access_token={FAKE_JWT_TOKEN}'}
     REQUEST = {'fakeData': 'doesnt matter'}
 
     def setup_method(self):
@@ -116,7 +116,7 @@ class TestAppRoutes:
 class TestChildAccountRoutes:
     USER_ID = '123bac34'
     FAKE_JWT_TOKEN = 'fakeJwtToken'
-    HEADERS = {'Authorization': FAKE_JWT_TOKEN}
+    HEADERS = {'Cookie': f'access_token={FAKE_JWT_TOKEN}'}
 
     def setup_method(self):
         self.app = Flask(__name__)

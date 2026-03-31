@@ -18,7 +18,7 @@ class TestSumpRoutes:
     DEPTH = 12.45
     AVG_DEPTH = 10.65
     BEAR_TOKEN = jwt.encode({'sub': USER_ID}, JWT_SECRET, algorithm='HS256')
-    HEADER = {'Authorization': f'Bearer {BEAR_TOKEN}', 'Content-Type': 'application/json'}
+    HEADER = {'Cookie': f'access_token={BEAR_TOKEN}', 'Content-Type': 'application/json'}
 
     def setup_method(self):
         Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET}
@@ -46,7 +46,7 @@ class TestSumpRoutes:
 
     def test_get_current_sump_level__should_return_not_found_when_user_does_not_exist(self):
         token = jwt.encode({'sub': str(uuid.uuid4())}, self.JWT_SECRET, algorithm='HS256')
-        header = {'Authorization': f'Bearer {token}'}
+        header = {'Cookie': f'access_token={token}'}
         actual = self.TEST_CLIENT.get(f'sumpPump/depth', headers=header)
 
         assert actual.status_code == 404

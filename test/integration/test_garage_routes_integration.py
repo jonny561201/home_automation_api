@@ -22,7 +22,7 @@ class TestGarageDoorRoutesIntegration:
     USER_ROLE_ID = str(uuid.uuid4())
     DEVICE_ID = str(uuid.uuid4())
     BEARER_TOKEN = jwt.encode({'sub': USER_ID}, JWT_SECRET, algorithm='HS256')
-    HEADERS = {'Authorization': BEARER_TOKEN, 'Content-Type': 'application/json'}
+    HEADERS = {'Cookie': f'access_token={BEARER_TOKEN}', 'Content-Type': 'application/json'}
 
     def setup_method(self):
         Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET}
@@ -71,7 +71,7 @@ class TestGarageDoorRoutesIntegration:
     def test_update_garage_door_state__should_return_success(self, mock_request):
         post_body = {'garageDoorOpen': True}
         bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
-        headers = {'Authorization': bearer_token, 'Content-Type': 'application/json'}
+        headers = {'Cookie': f'access_token={bearer_token}', 'Content-Type': 'application/json'}
 
         url = f'garageDoor/{self.GARAGE_ID}/state'
         actual = self.TEST_CLIENT.post(url, data=json.dumps(post_body), headers=headers)
@@ -96,7 +96,7 @@ class TestGarageDoorRoutesIntegration:
 
     def test_toggle_garage_door__should_return_unauthorized_when_invalid_jwt(self, mock_request):
         bearer_token = jwt.encode({}, 'bad_secret', algorithm='HS256')
-        headers = {'Authorization': bearer_token}
+        headers = {'Cookie': f'access_token={bearer_token}'}
 
         actual = self.TEST_CLIENT.get(f'garageDoor/{self.GARAGE_ID}/toggle', headers=headers)
 

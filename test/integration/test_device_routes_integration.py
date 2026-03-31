@@ -18,7 +18,7 @@ class TestDeviceRoutesIntegration:
     ROLE_NAME = 'made_up_role'
     JWT_SECRET = 'fakeSecret'
     BEARER_TOKEN = jwt.encode({'sub': USER_ID}, JWT_SECRET, algorithm='HS256')
-    HEADER = {'Authorization': BEARER_TOKEN, 'Content-Type': 'application/json'}
+    HEADERS = {'Cookie': f'access_token={BEARER_TOKEN}', 'Content-Type': 'application/json'}
 
     def setup_method(self):
         Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET}
@@ -47,14 +47,14 @@ class TestDeviceRoutesIntegration:
     def test_add_device_by_user_id__should_return_device_id_when_user_with_correct_role(self):
         ip_address = '1.1.1.1'
         post_body = json.dumps({'roleName': self.ROLE_NAME, 'ipAddress': ip_address})
-        actual = self.TEST_CLIENT.post(f'devices/register', headers=self.HEADER, data=post_body)
+        actual = self.TEST_CLIENT.post(f'devices/register', headers=self.HEADERS, data=post_body)
 
         assert json.loads(actual.data)['deviceId'] is not None
 
     def test_add_device_by_user_id__should_return_success_when_user_with_correct_role(self):
         ip_address = '1.1.1.1'
         post_body = json.dumps({'roleName': self.ROLE_NAME, 'ipAddress': ip_address})
-        actual = self.TEST_CLIENT.post(f'devices/register', headers=self.HEADER, data=post_body)
+        actual = self.TEST_CLIENT.post(f'devices/register', headers=self.HEADERS, data=post_body)
 
         assert actual.status_code == 200
 
@@ -72,7 +72,7 @@ class TestDeviceRoutesIntegration:
             database.session.add(device)
         node_name = 'test_node'
         post_body = json.dumps({'nodeName': node_name})
-        actual = self.TEST_CLIENT.post(f'devices/{self.DEVICE_ID}/node', headers=self.HEADER, data=post_body)
+        actual = self.TEST_CLIENT.post(f'devices/{self.DEVICE_ID}/node', headers=self.HEADERS, data=post_body)
 
         assert actual.status_code == 200
 

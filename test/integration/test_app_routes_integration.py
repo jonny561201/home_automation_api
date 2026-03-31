@@ -19,7 +19,7 @@ class TestAppRoutesIntegration:
     CITY = 'Prague'
     GOOD_TOKEN = jwt.encode({'sub': USER_ID}, JWT_SECRET, algorithm='HS256')
     HEADERS = {'Content-Type': 'application/json'}
-    TOKEN_HEADER = {'Authorization': GOOD_TOKEN, 'Content-Type': 'application/json'}
+    COOKIE_HEADER = {'Cookie': f'access_token={GOOD_TOKEN}', 'Content-Type': 'application/json'}
 
     def setup_method(self):
         Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET}
@@ -73,14 +73,14 @@ class TestAppRoutesIntegration:
 
     def test_get_user_preferences_by_user_id__should_return_401_when_unauthorized(self):
         bearer_token = jwt.encode({}, 'bad secret', algorithm='HS256')
-        headers = {'Authorization': bearer_token}
+        headers = {'Cookie': f'access_token={bearer_token}'}
 
         actual = self.TEST_CLIENT.get(f'preferences', headers=headers)
 
         assert actual.status_code == 401
 
     def test_get_user_preferences_by_user_id__should_return_success_when_valid_user(self):
-        actual = self.TEST_CLIENT.get(f'preferences', headers=self.TOKEN_HEADER)
+        actual = self.TEST_CLIENT.get(f'preferences', headers=self.COOKIE_HEADER)
 
         assert actual.status_code == 200
         assert json.loads(actual.data).get('city') == self.CITY
@@ -94,7 +94,7 @@ class TestAppRoutesIntegration:
         expected_city = 'Shannon'
         post_body = json.dumps({'city': expected_city, 'isFahrenheit': False})
 
-        actual = self.TEST_CLIENT.post(f'preferences/update', data=post_body, headers=self.TOKEN_HEADER)
+        actual = self.TEST_CLIENT.post(f'preferences/update', data=post_body, headers=self.COOKIE_HEADER)
 
         assert actual.status_code == 200
         with DatabaseBase() as database:
@@ -110,19 +110,19 @@ class TestAppRoutesIntegration:
     #     assert actual.status_code == 401
 
     def test_get_user_tasks_by_user_id__should_successfully_retrieve_user(self):
-        actual = self.TEST_CLIENT.get(f'tasks', headers=self.TOKEN_HEADER)
+        actual = self.TEST_CLIENT.get(f'tasks', headers=self.COOKIE_HEADER)
 
         assert actual.status_code == 200
 
     def test_get_user_tasks_by_user_id__should_successfully_retrieve_user_by_type(self):
-        actual = self.TEST_CLIENT.get(f'tasks/hvac', headers=self.TOKEN_HEADER)
+        actual = self.TEST_CLIENT.get(f'tasks/hvac', headers=self.COOKIE_HEADER)
 
         assert actual.status_code == 200
 
     def test_delete_user_tasks_by_user_id__should_return_401_when_unauthorized(self):
         bearer_token = jwt.encode({}, 'bad secret', algorithm='HS256')
         task_id = str(uuid.uuid4())
-        headers = {'Authorization': bearer_token}
+        headers = {'Cookie': f'access_token={bearer_token}'}
 
         actual = self.TEST_CLIENT.delete(f'tasks/{task_id}', headers=headers)
 
@@ -131,7 +131,7 @@ class TestAppRoutesIntegration:
     def test_delete_user_tasks_by_user_id__should_successfully_update_user(self):
         task_id = str(uuid.uuid4())
 
-        actual = self.TEST_CLIENT.delete(f'tasks/{task_id}', headers=self.TOKEN_HEADER)
+        actual = self.TEST_CLIENT.delete(f'tasks/{task_id}', headers=self.COOKIE_HEADER)
 
         assert actual.status_code == 200
 
@@ -146,7 +146,7 @@ class TestAppRoutesIntegration:
         request_data = json.dumps({'alarmTime': '00:00:01', 'alarmGroupName': 'potty room', 'alarmLightGroup': '43', 'alarmDays': 'Wed',
                                    'taskType': 'turn on', 'enabled': True, 'hvacMode': 'HEAT', 'hvacStart': '01:01:01', 'hvacStop': '02:02:02'})
 
-        actual = self.TEST_CLIENT.post(f'tasks', data=request_data, headers=self.TOKEN_HEADER)
+        actual = self.TEST_CLIENT.post(f'tasks', data=request_data, headers=self.COOKIE_HEADER)
 
         assert actual.status_code == 200
 
@@ -170,7 +170,7 @@ class TestAppRoutesIntegration:
         request_data = json.dumps({'taskId': task_id, 'alarmTime': '00:00:01', 'alarmGroupName': new_room, 'alarmLightGroup': '43',
                                    'alarmDays': new_day, 'taskType': 'turn off', 'enabled': False, 'hvacMode': 'COOL'})
 
-        actual = self.TEST_CLIENT.post(f'tasks/update', data=request_data, headers=self.TOKEN_HEADER)
+        actual = self.TEST_CLIENT.post(f'tasks/update', data=request_data, headers=self.COOKIE_HEADER)
         assert actual.status_code == 200
 
         with DatabaseBase() as database:

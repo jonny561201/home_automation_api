@@ -21,7 +21,7 @@ class TestAccountRoutesIntegration:
     EMAIL_APP_ID = 'as;kljdfski;hasdf'
     CHILD_EMAIL = 'blackened_widow@gmail.com'
     BEARER_TOKEN = jwt.encode({'sub': USER_ID}, JWT_SECRET, algorithm='HS256')
-    HEADERS = {'Authorization': BEARER_TOKEN, 'Content-Type': 'application/json'}
+    HEADERS = {'Cookie': f'access_token={BEARER_TOKEN}', 'Content-Type': 'application/json'}
 
     def setup_method(self):
         Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET, 'EmailAppId': self.EMAIL_APP_ID}
@@ -55,7 +55,7 @@ class TestAccountRoutesIntegration:
 
     def test_update_user_password__should_return_401_when_unauthorized(self):
         bearer_token = jwt.encode({}, 'bad secret', algorithm='HS256')
-        headers = {'Authorization': bearer_token, 'Content-Type': 'application/json'}
+        headers = {'Cookie': f'access_token={bearer_token}', 'Content-Type': 'application/json'}
 
         actual = self.TEST_CLIENT.post(f'account/updateAccount', data='{}', headers=headers)
 

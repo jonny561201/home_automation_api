@@ -12,8 +12,7 @@ from test.unit.test_helpers import setup_request
 @patch('svc.endpoints.thermostat_routes.thermostat_controller')
 class TestThermostatRoutes:
     JWT_TOKEN = jwt.encode({}, 'JWT_SECRET', algorithm='HS256')
-    BEARER_TOKEN = f'Bearer {JWT_TOKEN}'
-    HEADERS = {'Authorization': BEARER_TOKEN}
+    HEADERS = {'Cookie': f'access_token={JWT_TOKEN}'}
     USER_ID = 'test'
 
     def setup_method(self):
@@ -32,7 +31,7 @@ class TestThermostatRoutes:
     def test_get_temperature__should_call_thermostat_controller_with_correct_parameters(self, mock_controller):
         get_temperature()
 
-        mock_controller.get_user_temp.assert_called_with(self.BEARER_TOKEN)
+        mock_controller.get_user_temp.assert_called_with(self.JWT_TOKEN)
 
     def test_get_temperature__should_return_response_from_controller(self, mock_controller):
         expected_temp = ThermostatState(currentTemp=12.0, isFahrenheit=False, minThermostatTemp=50.0, maxThermostatTemp=90.0, mode='test', desiredTemp=71.0)
@@ -50,7 +49,7 @@ class TestThermostatRoutes:
     def test_set_desired_temperature__should_call_thermostat_controller_with_bearer_token(self, mock_controller):
         set_desired_temperature()
 
-        mock_controller.set_user_temperature.assert_called_with(ANY, self.BEARER_TOKEN)
+        mock_controller.set_user_temperature.assert_called_with(ANY, self.JWT_TOKEN)
 
     def test_set_desired_temperature__should_call_thermostat_controller_with_request_body(self, mock_controller):
         request_data = {'desiredTemp': 34.1}
@@ -63,9 +62,9 @@ class TestThermostatRoutes:
     def test_get_forecast_data__should_call_thermostat_controller_with_bearer_token(self, mock_controller):
         mock_controller.get_user_forecast.return_value = self.DAILY_FORECAST
         get_forecast_data()
-        mock_controller.get_user_forecast.assert_called_with(self.BEARER_TOKEN)
+        mock_controller.get_user_forecast.assert_called_with(self.JWT_TOKEN)
 
-    def test_get_forecast_data__should_call_thermostat_controller_with_none_when_no_auth_header(self, mock_controller):
+    def test_get_forecast_data__should_call_thermostat_controller_with_none_when_no_cookie(self, mock_controller):
         self.ctx = setup_request(self.app, self.ctx)
         mock_controller.get_user_forecast.return_value = self.DAILY_FORECAST
         get_forecast_data()
