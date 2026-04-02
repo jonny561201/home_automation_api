@@ -36,6 +36,11 @@ class Time:
     TEN_MINUTE = 600
 
 
+class AuthClaims:
+    ROLES = 'https://soaringleafsolutions.com/roles'
+    USER_ID = 'https://soaringleafsolutions.com/user_id'
+
+
 class Automation:
     APP_NAME = "Soaring Leaf Home Automation"
     HVAC = Hvac

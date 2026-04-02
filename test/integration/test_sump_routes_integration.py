@@ -2,10 +2,9 @@ import json
 import uuid
 from datetime import datetime
 
-import jwt
 from sqlalchemy import select, delete
 
-from svc.config.settings_state import Settings
+from integration.route_base import mock_jwks_token
 from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, \
     UserPreference
 from svc.db.repositories.database_base import DatabaseBase
@@ -13,15 +12,14 @@ from svc.manager import app
 
 
 class TestSumpRoutes:
-    JWT_SECRET = 'fakeKey'
     USER_ID = str(uuid.uuid4())
     DEPTH = 12.45
     AVG_DEPTH = 10.65
-    BEAR_TOKEN = jwt.encode({'sub': USER_ID}, JWT_SECRET, algorithm='HS256')
-    HEADER = {'Authorization': f'Bearer {BEAR_TOKEN}', 'Content-Type': 'application/json'}
 
     def setup_method(self):
-        Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET}
+        self.TOKEN = mock_jwks_token(self.USER_ID)
+        self.HEADER = {'Authorization': f'Bearer {self.TOKEN}', 'Content-Type': 'application/json'}
+
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
         user = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
@@ -42,10 +40,8 @@ class TestSumpRoutes:
             database.session.execute(delete(UserPreference).where(UserPreference.user_id == self.USER_ID))
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 
-
-
     def test_get_current_sump_level__should_return_not_found_when_user_does_not_exist(self):
-        token = jwt.encode({'sub': str(uuid.uuid4())}, self.JWT_SECRET, algorithm='HS256')
+        token = mock_jwks_token(str(uuid.uuid4()))
         header = {'Authorization': f'Bearer {token}'}
         actual = self.TEST_CLIENT.get(f'sumpPump/depth', headers=header)
 

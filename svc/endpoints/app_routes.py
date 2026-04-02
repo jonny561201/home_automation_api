@@ -1,11 +1,7 @@
-import json
-
 from flask import Blueprint, request, Response
-from werkzeug.exceptions import Unauthorized
 
 from svc.constants.home_automation import Mime
 from svc.controllers import app_controller
-
 
 APP_BLUEPRINT = Blueprint('app_routes', __name__)
 
@@ -13,18 +9,6 @@ APP_BLUEPRINT = Blueprint('app_routes', __name__)
 @APP_BLUEPRINT.route('/healthCheck')
 def health_check():
     return Response("Success", status=200)
-
-
-@APP_BLUEPRINT.route('/token', methods=['POST'])
-def get_token():
-    body = request.get_json()
-    if body['grant_type'] == 'client_credentials':
-        token = app_controller.get_login(body['client_id'], body['client_secret'])
-    elif body['grant_type'] == 'refresh_token':
-        token = app_controller.refresh_bearer_token(body['refresh_token'])
-    else:
-        raise Unauthorized()
-    return Response(json.dumps({'bearerToken': token}), status=200, mimetype=Mime.JSON)
 
 
 @APP_BLUEPRINT.route('/preferences', methods=['GET'])

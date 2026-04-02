@@ -1,22 +1,22 @@
-import json
 import uuid
 
 import jwt
 from mock import patch, ANY
 
-from svc.models.app import Preference
+from svc.constants.home_automation import AuthClaims
 from svc.constants.home_automation import Automation
 from svc.controllers.thermostat_controller import get_user_temp, set_user_temperature, get_user_forecast
+from svc.models.app import Preference
 
 
 @patch('svc.controllers.thermostat_controller.get_desired_temp')
 @patch('svc.controllers.thermostat_controller.get_user_temperature')
 @patch('svc.controllers.thermostat_controller.AccountRepository')
-@patch('svc.controllers.thermostat_controller.is_jwt_valid')
+@patch('svc.controllers.thermostat_controller.AuthClient')
 class TestThermostatTempController:
     JWT_TOKEN = jwt.encode({}, 'JWT_SECRET', algorithm='HS256')
     USER_ID = uuid.uuid4().hex
-    CLAIMS = {'sub': USER_ID}
+    CLAIMS = {AuthClaims.USER_ID: USER_ID}
     TEMP_FAHR = 45.608
     TEMP_CEL = 7.56
 
@@ -26,10 +26,10 @@ class TestThermostatTempController:
     def test_get_user_temp__should_call_is_jwt_valid(self, mock_jwt, mock_db, mock_temp, mock_file):
         get_user_temp(self.JWT_TOKEN)
 
-        mock_jwt.assert_called_with(self.JWT_TOKEN)
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.JWT_TOKEN)
 
     def test_get_user_temp__should_call_get_preferences_by_user(self, mock_jwt, mock_db, mock_temp, mock_file):
-        mock_jwt.return_value = self.CLAIMS
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         get_user_temp(self.JWT_TOKEN)
 
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.assert_called_with(self.USER_ID)
@@ -107,11 +107,11 @@ class TestThermostatTempController:
 
 @patch('svc.controllers.thermostat_controller.weather_request')
 @patch('svc.controllers.thermostat_controller.AccountRepository')
-@patch('svc.controllers.thermostat_controller.is_jwt_valid')
+@patch('svc.controllers.thermostat_controller.AuthClient')
 class TestThermostatForecastController:
     JWT_TOKEN = jwt.encode({}, 'JWT_SECRET', algorithm='HS256')
     USER_ID = uuid.uuid4().hex
-    CLAIMS = {'sub': USER_ID}
+    CLAIMS = {AuthClaims.USER_ID: USER_ID}
     TEMP_FAHR = 45.608
     TEMP_CEL = 7.56
 
@@ -120,21 +120,21 @@ class TestThermostatForecastController:
 
     def test_get_user_forecast__should_validate_jwt_token(self, mock_jwt, mock_db, mock_weather):
         get_user_forecast(self.JWT_TOKEN)
-        mock_jwt.assert_called_with(self.JWT_TOKEN)
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.JWT_TOKEN)
 
     def test_get_user_forecast__should_get_the_preferences_by_user(self, mock_jwt, mock_db, mock_weather):
-        mock_jwt.return_value = self.CLAIMS
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         get_user_forecast(self.JWT_TOKEN)
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.assert_called_with(self.USER_ID)
 
     def test_get_user_forecast__should_call_for_external_temp_with_preferences(self, mock_jwt, mock_db, mock_weather):
-        mock_jwt.return_value = self.CLAIMS
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
         get_user_forecast(self.JWT_TOKEN)
         mock_weather.get_weather.assert_called_with(self.PREFERENCE.city, self.PREFERENCE.tempUnit)
 
     def test_get_user_forecast__should_return_response_from_getting_external_temp(self, mock_jwt, mock_db, mock_weather):
-        mock_jwt.return_value = self.CLAIMS
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         response = {'myData': 'some value'}
         mock_weather.get_weather.return_value = response
         actual = get_user_forecast(self.JWT_TOKEN)
@@ -144,7 +144,7 @@ class TestThermostatForecastController:
 @patch('svc.controllers.thermostat_controller.publish')
 @patch('svc.controllers.thermostat_controller.write_desired_temp_to_file')
 @patch('svc.controllers.thermostat_controller.convert_to_celsius')
-@patch('svc.controllers.thermostat_controller.is_jwt_valid')
+@patch('svc.controllers.thermostat_controller.AuthClient')
 class TestThermostatSetController:
     BEARER_TOKEN = 'fake bearer'
     DESIRED_CELSIUS_TEMP = 24.0
@@ -156,7 +156,7 @@ class TestThermostatSetController:
     def test_set_user_temperature__should_call_is_jwt_valid(self, mock_jwt, mock_convert, mock_file, mock_publish):
         set_user_temperature(self.REQUEST, self.BEARER_TOKEN)
 
-        mock_jwt.assert_called_with(self.BEARER_TOKEN)
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
     def test_set_user_temperature__should_convert_fahrenheit_to_celsius(self, mock_jwt, mock_convert, mock_file, mock_publish):
         request = {'mode': Automation.HVAC.MODE.COOLING, 'isFahrenheit': True, 'desiredTemp': self.DESIRED_FAHRENHEIT_TEMP}

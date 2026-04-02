@@ -1,12 +1,9 @@
 import json
-import uuid
 
-import pytest
 from flask import Flask
 from mock import patch, ANY
-from werkzeug.exceptions import Unauthorized
 
-from svc.endpoints.app_routes import get_token, get_user_preferences, update_user_preferences, \
+from svc.endpoints.app_routes import get_user_preferences, update_user_preferences, \
     get_user_tasks, delete_user_task, insert_user_task, update_user_task
 from svc.models.app import Preference, Tasks, Task
 from test.unit.test_helpers import setup_request
@@ -30,30 +27,6 @@ class TestAppRoutes:
 
     def teardown_method(self):
         self.ctx.pop()
-
-    def test_token__should_respond_with_success_status_code(self, mock_controller):
-        self.ctx = setup_request(self.app, self.ctx, self.LOGIN_REQUEST, self.HEADERS)
-        mock_controller.get_login.return_value = self.JWT_TOKEN
-
-        actual = get_token()
-
-        assert actual.status_code == 200
-
-    def test_token__should_respond_with_success_login_response(self, mock_controller):
-        self.ctx = setup_request(self.app, self.ctx, self.LOGIN_REQUEST, self.HEADERS)
-        mock_controller.get_login.return_value = self.JWT_TOKEN
-
-        actual = get_token()
-        json_actual = json.loads(actual.data)
-
-        assert json_actual['bearerToken'] == self.JWT_TOKEN
-
-    def test_token__should_call_get_login(self, mock_controller):
-        self.ctx = setup_request(self.app, self.ctx, self.LOGIN_REQUEST, self.HEADERS)
-        mock_controller.get_login.return_value = self.JWT_TOKEN
-        get_token()
-
-        mock_controller.get_login.assert_called_with(self.USER, self.PWORD)
 
     def test_get_user_preferences__should_call_app_controller_with_bearer_token(self, mock_controller):
         mock_controller.get_user_preferences.return_value = self.PREFERENCES
@@ -215,38 +188,3 @@ class TestAppRoutes:
         actual = update_user_task()
 
         assert json.loads(actual.data) == self.TASK.to_dict()
-
-    def test_token__should_call_app_controller_with_old_refresh_token(self, mock_controller):
-        old_refresh = str(uuid.uuid4())
-        self.ctx = setup_request(self.app, self.ctx, {'grant_type': 'refresh_token', 'refresh_token': old_refresh}, self.HEADERS)
-        mock_controller.refresh_bearer_token.return_value = self.JWT_TOKEN
-        get_token()
-
-        mock_controller.refresh_bearer_token.assert_called_with(old_refresh)
-
-    def test_token__should_return_success_status_code(self, mock_controller):
-        self.ctx = setup_request(self.app, self.ctx, {'grant_type': 'refresh_token', 'refresh_token': str(uuid.uuid4())}, self.HEADERS)
-        mock_controller.refresh_bearer_token.return_value = self.JWT_TOKEN
-        actual = get_token()
-
-        assert actual.status_code == 200
-
-    def test_token__should_return_success_content_type(self, mock_controller):
-        self.ctx = setup_request(self.app, self.ctx, {'grant_type': 'refresh_token', 'refresh_token': str(uuid.uuid4())}, self.HEADERS)
-        mock_controller.refresh_bearer_token.return_value = self.JWT_TOKEN
-        actual = get_token()
-
-        assert actual.content_type == 'application/json'
-
-    def test_token__should_return_response_data(self, mock_controller):
-        self.ctx = setup_request(self.app, self.ctx, {'grant_type': 'refresh_token', 'refresh_token': str(uuid.uuid4())}, self.HEADERS)
-        mock_controller.refresh_bearer_token.return_value = self.JWT_TOKEN
-        actual = get_token()
-
-        json_actual = json.loads(actual.data)
-        assert json_actual['bearerToken'] == self.JWT_TOKEN
-
-    def test_token__should_raise_bad_request_when_wrong_grant_type(self, mock_controller):
-        self.ctx = setup_request(self.app, self.ctx, {'grant_type': 'bearer'}, self.HEADERS)
-        with pytest.raises(Unauthorized):
-            get_token()

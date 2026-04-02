@@ -1,20 +1,20 @@
 import json
+import uuid
 
-import jwt
 from mock import patch
 
-from svc.config.settings_state import Settings
+from integration.route_base import mock_jwks_token
 from svc.manager import app
 
 
 class TestLightRoutesIntegration:
-    JWT_SECRET = 'TotallyNewFakeSecret'
+    USER_ID = str(uuid.uuid4())
     LIGHT_PASS = 'fakeLightSecret'
-    BEARER_TOKEN = jwt.encode({}, JWT_SECRET, algorithm='HS256')
-    HEADER = {'Authorization': BEARER_TOKEN, 'Content-Type': 'application/json'}
 
     def setup_method(self):
-        Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET, 'LightApiKey': self.LIGHT_PASS}
+        self.TOKEN = mock_jwks_token(self.USER_ID)
+        self.HEADER = {'Authorization': self.TOKEN, 'Content-Type': 'application/json'}
+
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
 

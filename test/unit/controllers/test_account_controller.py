@@ -3,13 +3,14 @@ import pytest
 from mock import patch, ANY
 from werkzeug.exceptions import BadRequest
 
+from svc.constants.home_automation import AuthClaims
 from svc.controllers.account_controller import change_password, get_roles, get_roles_v2, create_child_account_by_user, \
     get_child_accounts_by_user, delete_child_account
 
 
 @patch('svc.controllers.account_controller.send_new_account_email')
 @patch('svc.controllers.account_controller.CredentialRepository')
-@patch('svc.controllers.account_controller.jwt_utils')
+@patch('svc.controllers.account_controller.AuthClient')
 class TestAccountCredentials:
     BEARER_TOKEN = jwt.encode({}, 'fake_jwt_secret', algorithm='HS256')
     USER = 'user_name'
@@ -20,10 +21,10 @@ class TestAccountCredentials:
         request = {'userName': None, 'oldPassword': None, 'newPassword': None}
         change_password(self.BEARER_TOKEN, request)
 
-        mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
     def test_change_password__should_call_database_change_user_password_with_user_id(self, mock_jwt, mock_db, mock_email):
-        mock_jwt.is_jwt_valid.return_value = {'sub': self.USER_ID}
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
         request = {'userName': self.USER, 'oldPassword': self.PASSWORD, 'newPassword': 'new password'}
         change_password(self.BEARER_TOKEN, request)
 
@@ -45,7 +46,7 @@ class TestAccountCredentials:
 
 @patch('svc.controllers.account_controller.send_new_account_email')
 @patch('svc.controllers.account_controller.AccountRepository')
-@patch('svc.controllers.account_controller.jwt_utils')
+@patch('svc.controllers.account_controller.AuthClient')
 class TestAccountRoles:
     BEARER_TOKEN = jwt.encode({}, 'fake_jwt_secret', algorithm='HS256')
     USER = 'user_name'
@@ -55,10 +56,10 @@ class TestAccountRoles:
     def test_get_roles__should_make_call_to_validate_jwt(self, mock_jwt, mock_db, mock_email):
         get_roles(self.BEARER_TOKEN)
 
-        mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
     def test_get_roles__should_make_call_to_get_roles(self, mock_jwt, mock_db, mock_email):
-        mock_jwt.is_jwt_valid.return_value = {'sub': self.USER_ID}
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
         get_roles(self.BEARER_TOKEN)
 
         mock_db.return_value.__enter__.return_value.get_roles_by_user.assert_called_with(self.USER_ID)
@@ -73,10 +74,10 @@ class TestAccountRoles:
     def test_get_roles_v2__should_validate_jwt(self, mock_jwt, mock_db, mock_email):
         get_roles_v2(self.BEARER_TOKEN)
 
-        mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
     def test_get_roles_v2__should_call_database_with_user_id(self, mock_jwt, mock_db, mock_email):
-        mock_jwt.is_jwt_valid.return_value = {'sub': self.USER_ID}
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
         get_roles_v2(self.BEARER_TOKEN)
 
         mock_db.return_value.__enter__.return_value.get_user_roles.assert_called_with(self.USER_ID)
@@ -91,10 +92,10 @@ class TestAccountRoles:
     def test_create_child_account_by_user__should_validate_bearer_token(self, mock_jwt, mock_db, mock_email):
         request = {'email': 'test', 'roles': ['stuff']}
         create_child_account_by_user(self.BEARER_TOKEN, request)
-        mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
     def test_create_child_account_by_user__should_make_call_to_database_with_user_id(self, mock_jwt, mock_db, mock_email):
-        mock_jwt.is_jwt_valid.return_value = {'sub': self.USER_ID}
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
         request = {'email': 'test', 'roles': ['stuff']}
         create_child_account_by_user(self.BEARER_TOKEN, request)
         mock_db.return_value.__enter__.return_value.create_child_account.assert_called_with(self.USER_ID, ANY, ANY, ANY)
@@ -150,10 +151,10 @@ class TestAccountRoles:
     def test_get_child_accounts_by_user__should_validate_bearer_token(self, mock_jwt, mock_db, mock_email):
         get_child_accounts_by_user(self.BEARER_TOKEN)
 
-        mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
     def test_get_child_accounts_by_user__should_call_database_with_user_id(self, mock_jwt, mock_db, mock_email):
-        mock_jwt.is_jwt_valid.return_value = {'sub': self.USER_ID}
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
         get_child_accounts_by_user(self.BEARER_TOKEN)
 
         mock_db.return_value.__enter__.return_value.get_user_child_accounts.assert_called_with(self.USER_ID)
@@ -168,16 +169,16 @@ class TestAccountRoles:
     def test_delete_child_account__should_validate_bearer_token(self, mock_jwt, mock_db, mock_email):
         child_user_id = '123asdf'
         delete_child_account(self.BEARER_TOKEN, child_user_id)
-        mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
     def test_delete_child_account__should_call_database_with_user_id(self, mock_jwt, mock_db, mock_email):
-        mock_jwt.is_jwt_valid.return_value = {'sub': self.USER_ID}
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
         child_user_id = '123acv'
         delete_child_account(self.BEARER_TOKEN, child_user_id)
         mock_db.return_value.__enter__.return_value.delete_child_user_account.assert_called_with(self.USER_ID, ANY)
 
     def test_delete_child_account__should_call_database_with_child_user_id(self, mock_jwt, mock_db, mock_email):
-        mock_jwt.is_jwt_valid.return_value = {'sub': self.USER_ID}
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
         child_user_id = '123basdf'
         delete_child_account(self.BEARER_TOKEN, child_user_id)
         mock_db.return_value.__enter__.return_value.delete_child_user_account.assert_called_with(ANY, child_user_id)

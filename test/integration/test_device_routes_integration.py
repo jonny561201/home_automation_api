@@ -1,12 +1,11 @@
 import json
 import uuid
 
-import jwt
 from sqlalchemy import delete, select
 
-from svc.db.repositories.database_base import DatabaseBase
-from svc.config.settings_state import Settings
+from integration.route_base import mock_jwks_token
 from svc.db.models.user_information_model import UserRoles, UserInformation, Roles, RoleDevices, RoleDeviceNodes
+from svc.db.repositories.database_base import DatabaseBase
 from svc.manager import app
 
 
@@ -16,12 +15,10 @@ class TestDeviceRoutesIntegration:
     USER_ROLE_ID = str(uuid.uuid4())
     DEVICE_ID = str(uuid.uuid4())
     ROLE_NAME = 'made_up_role'
-    JWT_SECRET = 'fakeSecret'
-    BEARER_TOKEN = jwt.encode({'sub': USER_ID}, JWT_SECRET, algorithm='HS256')
-    HEADER = {'Authorization': BEARER_TOKEN, 'Content-Type': 'application/json'}
 
     def setup_method(self):
-        Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET}
+        self.TOKEN = mock_jwks_token(self.USER_ID)
+        self.HEADER = {'Authorization': self.TOKEN, 'Content-Type': 'application/json'}
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')

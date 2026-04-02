@@ -1,28 +1,24 @@
 import json
 import uuid
-from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
 
 import jwt
 from sqlalchemy import delete, select
 
+from integration.route_base import mock_jwks_token
+from svc.db.models.user_information_model import UserInformation, UserPreference, ScheduleTasks, ScheduledTaskTypes
 from svc.db.repositories.database_base import DatabaseBase
-from svc.config.settings_state import Settings
-from svc.db.models.user_information_model import UserInformation, UserPreference, ScheduleTasks, ScheduledTaskTypes, \
-    RefreshToken, UserCredentials
 from svc.manager import app
 
 
 class TestAppRoutesIntegration:
-    JWT_SECRET = 'testSecret'
     USER_ID = str(uuid.uuid4())
     CITY = 'Prague'
-    GOOD_TOKEN = jwt.encode({'sub': USER_ID}, JWT_SECRET, algorithm='HS256')
-    HEADERS = {'Content-Type': 'application/json'}
-    TOKEN_HEADER = {'Authorization': GOOD_TOKEN, 'Content-Type': 'application/json'}
+    CONTENT_HEADER = {'Content-Type': 'application/json'}
 
     def setup_method(self):
-        Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET}
+        self.TOKEN = mock_jwks_token(self.USER_ID)
+        self.HEADERS = {'Authorization': f'Bearer {self.TOKEN}', 'Content-Type': 'application/json'}
+
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
@@ -44,33 +40,6 @@ class TestAppRoutesIntegration:
         assert actual.status_code == 200
         assert actual.data.decode('UTF-8') == 'Success'
 
-    def test_login__should_return_401_when_invalid_user(self):
-        user_name = 'not_real_user'
-        user_pass = 'wrongPass'
-        request = {'grant_type': 'client_credentials', 'client_id': user_name, 'client_secret': user_pass}
-
-        actual = self.TEST_CLIENT.post('token', data=json.dumps(request), headers=self.HEADERS)
-
-        assert actual.status_code == 401
-
-    def test_login__should_return_401_when_invalid_password(self):
-        user_name = 'not_real_user'
-        user_pass = 'wrongPass'
-        request = {'grant_type': 'client_credentials', 'client_id': user_name, 'client_secret': user_pass}
-
-        actual = self.TEST_CLIENT.post('token', data=json.dumps(request), headers=self.HEADERS)
-
-        assert actual.status_code == 401
-
-    def test_login__should_return_success_when_user_valid(self):
-        user_name = 'Jonny561201'
-        user_pass = 'password'
-        request = {'grant_type': 'client_credentials', 'client_id': user_name, 'client_secret': user_pass}
-
-        actual = self.TEST_CLIENT.post('token', data=json.dumps(request), headers=self.HEADERS)
-
-        assert actual.status_code == 200
-
     def test_get_user_preferences_by_user_id__should_return_401_when_unauthorized(self):
         bearer_token = jwt.encode({}, 'bad secret', algorithm='HS256')
         headers = {'Authorization': bearer_token}
@@ -80,13 +49,13 @@ class TestAppRoutesIntegration:
         assert actual.status_code == 401
 
     def test_get_user_preferences_by_user_id__should_return_success_when_valid_user(self):
-        actual = self.TEST_CLIENT.get(f'preferences', headers=self.TOKEN_HEADER)
+        actual = self.TEST_CLIENT.get(f'preferences', headers=self.HEADERS)
 
         assert actual.status_code == 200
         assert json.loads(actual.data).get('city') == self.CITY
 
     def test_update_user_preferences_by_user_id__should_return_401_when_unauthorized(self):
-        actual = self.TEST_CLIENT.post(f'preferences/update', data='{}', headers=self.HEADERS)
+        actual = self.TEST_CLIENT.post(f'preferences/update', data='{}', headers=self.CONTENT_HEADER)
 
         assert actual.status_code == 401
 
@@ -94,7 +63,7 @@ class TestAppRoutesIntegration:
         expected_city = 'Shannon'
         post_body = json.dumps({'city': expected_city, 'isFahrenheit': False})
 
-        actual = self.TEST_CLIENT.post(f'preferences/update', data=post_body, headers=self.TOKEN_HEADER)
+        actual = self.TEST_CLIENT.post(f'preferences/update', data=post_body, headers=self.HEADERS)
 
         assert actual.status_code == 200
         with DatabaseBase() as database:
@@ -110,12 +79,12 @@ class TestAppRoutesIntegration:
     #     assert actual.status_code == 401
 
     def test_get_user_tasks_by_user_id__should_successfully_retrieve_user(self):
-        actual = self.TEST_CLIENT.get(f'tasks', headers=self.TOKEN_HEADER)
+        actual = self.TEST_CLIENT.get(f'tasks', headers=self.HEADERS)
 
         assert actual.status_code == 200
 
     def test_get_user_tasks_by_user_id__should_successfully_retrieve_user_by_type(self):
-        actual = self.TEST_CLIENT.get(f'tasks/hvac', headers=self.TOKEN_HEADER)
+        actual = self.TEST_CLIENT.get(f'tasks/hvac', headers=self.HEADERS)
 
         assert actual.status_code == 200
 
@@ -131,14 +100,14 @@ class TestAppRoutesIntegration:
     def test_delete_user_tasks_by_user_id__should_successfully_update_user(self):
         task_id = str(uuid.uuid4())
 
-        actual = self.TEST_CLIENT.delete(f'tasks/{task_id}', headers=self.TOKEN_HEADER)
+        actual = self.TEST_CLIENT.delete(f'tasks/{task_id}', headers=self.HEADERS)
 
         assert actual.status_code == 200
 
     def test_insert_user_task_by_user_id__should_return_401_when_unauthorized(self):
         request_data = json.dumps({'alarm_time': '00:00:01'})
 
-        actual = self.TEST_CLIENT.post(f'tasks', data=request_data, headers=self.HEADERS)
+        actual = self.TEST_CLIENT.post(f'tasks', data=request_data, headers=self.CONTENT_HEADER)
 
         assert actual.status_code == 401
 
@@ -146,14 +115,14 @@ class TestAppRoutesIntegration:
         request_data = json.dumps({'alarmTime': '00:00:01', 'alarmGroupName': 'potty room', 'alarmLightGroup': '43', 'alarmDays': 'Wed',
                                    'taskType': 'turn on', 'enabled': True, 'hvacMode': 'HEAT', 'hvacStart': '01:01:01', 'hvacStop': '02:02:02'})
 
-        actual = self.TEST_CLIENT.post(f'tasks', data=request_data, headers=self.TOKEN_HEADER)
+        actual = self.TEST_CLIENT.post(f'tasks', data=request_data, headers=self.HEADERS)
 
         assert actual.status_code == 200
 
     def test_update_user_task_by_user_id__should_return_401_when_unauthorized(self):
         request_data = json.dumps({'alarm_time': '00:00:01'})
 
-        actual = self.TEST_CLIENT.post(f'tasks/update', data=request_data, headers=self.HEADERS)
+        actual = self.TEST_CLIENT.post(f'tasks/update', data=request_data, headers=self.CONTENT_HEADER)
 
         assert actual.status_code == 401
 
@@ -170,7 +139,7 @@ class TestAppRoutesIntegration:
         request_data = json.dumps({'taskId': task_id, 'alarmTime': '00:00:01', 'alarmGroupName': new_room, 'alarmLightGroup': '43',
                                    'alarmDays': new_day, 'taskType': 'turn off', 'enabled': False, 'hvacMode': 'COOL'})
 
-        actual = self.TEST_CLIENT.post(f'tasks/update', data=request_data, headers=self.TOKEN_HEADER)
+        actual = self.TEST_CLIENT.post(f'tasks/update', data=request_data, headers=self.HEADERS)
         assert actual.status_code == 200
 
         with DatabaseBase() as database:
@@ -178,42 +147,3 @@ class TestAppRoutesIntegration:
             assert record.alarm_group_name == new_room
             assert record.alarm_days == new_day
             assert record.hvac_mode == 'COOL'
-
-
-class TestRefreshTokenApp:
-    USER_ID = str(uuid.uuid4())
-    BAD_TOKEN = str(uuid.uuid4())
-    GOOD_TOKEN = str(uuid.uuid4())
-    FUTURE_TIME = datetime.now(tz=ZoneInfo('US/Central')) + timedelta(hours=12)
-    EXPIRED_TIME = datetime.now(tz=ZoneInfo('US/Central')) - timedelta(hours=1)
-
-    def setup_method(self):
-        settings = {'User': 'postgres', 'Password': 'password', 'Name': 'garage_door', 'Port': '5432'}
-        Settings.get_instance().Database._settings = settings
-        Settings.get_instance()._settings = {'DevJwtSecret': 'testSecret'}
-        flask_app = app
-        self.TEST_CLIENT = flask_app.test_client()
-        self.GOOD_REFRESH = RefreshToken(id=str(uuid.uuid4()), user_id=self.USER_ID, refresh=self.GOOD_TOKEN, count=1, expire_time=self.FUTURE_TIME)
-        self.BAD_REFRESH = RefreshToken(id=str(uuid.uuid4()), user_id=self.USER_ID, refresh=self.BAD_TOKEN, count=1, expire_time=self.EXPIRED_TIME)
-        self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
-        self.USER_CREDS = UserCredentials(id=str(uuid.uuid4()), user_name="test", password="test", user=self.USER, user_id=self.USER_ID)
-
-        with DatabaseBase() as database:
-            database.session.add(self.USER)
-        with DatabaseBase() as database:
-            database.session.add(self.USER_CREDS)
-            database.session.add(self.BAD_REFRESH)
-            database.session.add(self.GOOD_REFRESH)
-
-    def teardown_method(self):
-        with DatabaseBase() as database:
-            database.session.execute(delete(RefreshToken).where(RefreshToken.refresh == self.BAD_TOKEN))
-            database.session.execute(delete(RefreshToken).where(RefreshToken.refresh == self.GOOD_TOKEN))
-            database.session.execute(delete(UserCredentials).where(UserCredentials.user_id == self.USER_ID))
-            database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
-
-    def test_get_refreshed_bearer_token__should_return_forbidden_when_token_count_expired(self):
-        request_data = {'refresh_token': self.BAD_TOKEN, 'grant_type': 'refresh_token'}
-        actual = self.TEST_CLIENT.post(f'token', data=json.dumps(request_data), headers={'Content-Type': 'application/json'})
-
-        assert actual.status_code == 403

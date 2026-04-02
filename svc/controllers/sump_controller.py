@@ -1,12 +1,13 @@
+from constants.home_automation import AuthClaims
 from svc.db.repositories.sump_repository import SumpDatabase
 from svc.models.sump import SumpLevel
 from svc.utilities.conversion_utils import convert_to_imperial
-from svc.utilities.jwt_utils import is_jwt_valid
+from svc.utilities.jwt_utils import AuthClient
 
 
 def get_sump_level(bearer_token):
-    claims = is_jwt_valid(bearer_token)
-    user_id = claims['sub']
+    claims = AuthClient.get_instance().verify_jwt(bearer_token)
+    user_id = claims[AuthClaims.USER_ID]
     with SumpDatabase() as database:
         current_data = database.get_current_sump_level_by_user(user_id)
         average_data = database.get_average_sump_level_by_user(user_id)
@@ -16,8 +17,8 @@ def get_sump_level(bearer_token):
 
 
 def save_current_level(bearer_token, request_data):
-    claims = is_jwt_valid(bearer_token)
-    user_id = claims['sub']
+    claims = AuthClient.get_instance().verify_jwt(bearer_token)
+    user_id = claims[AuthClaims.USER_ID]
     with SumpDatabase() as database:
         database.insert_current_sump_level(user_id, request_data)
 

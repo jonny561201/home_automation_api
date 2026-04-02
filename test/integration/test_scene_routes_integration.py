@@ -1,12 +1,11 @@
 import json
 import uuid
 
-import jwt
 from sqlalchemy import delete
 
-from svc.db.repositories.database_base import DatabaseBase
-from svc.config.settings_state import Settings
+from integration.route_base import mock_jwks_token
 from svc.db.models.user_information_model import Scenes, SceneDetails, UserInformation
+from svc.db.repositories.database_base import DatabaseBase
 from svc.manager import app
 
 
@@ -15,12 +14,11 @@ class TestSceneRoutes:
     SCENE_ID = str(uuid.uuid4())
     SCENE_NAME = 'movie timez'
     GROUP_NAME = 'livin in the room'
-    JWT_SECRET = 'fakeKey'
-    BEAR_TOKEN = jwt.encode({'sub': USER_ID}, JWT_SECRET, algorithm='HS256')
-    HEADER = {'Authorization': f'Bearer {BEAR_TOKEN}', 'Content-Type': 'application/json'}
 
     def setup_method(self):
-        Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET}
+        self.TOKEN = mock_jwks_token(self.USER_ID)
+        self.HEADER = {'Authorization': f'Bearer {self.TOKEN}', 'Content-Type': 'application/json'}
+
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')

@@ -1,31 +1,29 @@
+import json
 import uuid
 from datetime import datetime
 
 import jwt
-import json
 from mock import patch
 from requests import Response
 from sqlalchemy import delete
 
-from svc.db.repositories.database_base import DatabaseBase
-from svc.config.settings_state import Settings
+from integration.route_base import mock_jwks_token
 from svc.db.models.user_information_model import UserInformation, Roles, UserRoles, RoleDevices, RoleDeviceNodes
+from svc.db.repositories.database_base import DatabaseBase
 from svc.manager import app
 
 
 @patch('svc.utilities.api_utils.requests')
 class TestGarageDoorRoutesIntegration:
     GARAGE_ID = 4
-    JWT_SECRET = 'testSecret'
     USER_ID = str(uuid.uuid4())
     ROLE_ID = str(uuid.uuid4())
     USER_ROLE_ID = str(uuid.uuid4())
     DEVICE_ID = str(uuid.uuid4())
-    BEARER_TOKEN = jwt.encode({'sub': USER_ID}, JWT_SECRET, algorithm='HS256')
-    HEADERS = {'Authorization': BEARER_TOKEN, 'Content-Type': 'application/json'}
 
     def setup_method(self):
-        Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET}
+        self.TOKEN = mock_jwks_token(self.USER_ID)
+        self.HEADERS = {'Authorization': self.TOKEN, 'Content-Type': 'application/json'}
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
@@ -70,11 +68,9 @@ class TestGarageDoorRoutesIntegration:
 
     def test_update_garage_door_state__should_return_success(self, mock_request):
         post_body = {'garageDoorOpen': True}
-        bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
-        headers = {'Authorization': bearer_token, 'Content-Type': 'application/json'}
 
         url = f'garageDoor/{self.GARAGE_ID}/state'
-        actual = self.TEST_CLIENT.post(url, data=json.dumps(post_body), headers=headers)
+        actual = self.TEST_CLIENT.post(url, data=json.dumps(post_body), headers=self.HEADERS)
 
         assert actual.status_code == 200
 

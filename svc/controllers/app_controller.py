@@ -1,68 +1,47 @@
-from datetime import datetime, timedelta
-
-from zoneinfo import ZoneInfo
-
+from svc.constants.home_automation import AuthClaims
 from svc.db.repositories.account_repository import AccountRepository
 from svc.db.repositories.tasks_repository import TasksRepository
-from svc.db.repositories.credential_repository import CredentialRepository
-from svc.utilities import jwt_utils
-
-
-def get_login(client_id, client_secret):
-    with CredentialRepository() as user_database:
-        user_info = user_database.validate_credentials(client_id, client_secret)
-        refresh = jwt_utils.generate_refresh_token()
-        expire = datetime.now(tz=ZoneInfo('US/Central')) + timedelta(hours=24)
-        user_database.insert_refresh_token(user_info['user_id'], refresh, expire)
-        return jwt_utils.create_jwt_token(user_info, refresh)
-
-
-def refresh_bearer_token(old_refresh):
-    with CredentialRepository() as database:
-        expire = datetime.now(tz=ZoneInfo('US/Central')) + timedelta(hours=24)
-        refresh_data = database.generate_new_refresh_token(old_refresh, expire)
-        user_info = database.get_user_info(refresh_data['user_id'])
-        return jwt_utils.create_jwt_token(user_info, refresh_data['refresh_token'])
+from svc.utilities.jwt_utils import AuthClient
 
 
 def get_user_preferences(bearer_token):
-    claims = jwt_utils.is_jwt_valid(bearer_token)
-    user_id = claims['sub']
+    claims = AuthClient.get_instance().verify_jwt(bearer_token)
+    user_id = claims[AuthClaims.USER_ID]
     with AccountRepository() as database:
         return database.get_preferences_by_user(user_id)
 
 
 #TODO: get city coordinates and save in Account Repo
 def save_user_preferences(bearer_token, request_data):
-    claims = jwt_utils.is_jwt_valid(bearer_token)
-    user_id = claims['sub']
+    claims = AuthClient.get_instance().verify_jwt(bearer_token)
+    user_id = claims[AuthClaims.USER_ID]
     with AccountRepository() as database:
         database.insert_preferences_by_user(user_id, request_data)
 
 
 def get_user_tasks(bearer_token, task_type):
-    claims = jwt_utils.is_jwt_valid(bearer_token)
-    user_id = claims['sub']
+    claims = AuthClient.get_instance().verify_jwt(bearer_token)
+    user_id = claims[AuthClaims.USER_ID]
     with TasksRepository() as database:
         return database.get_schedule_tasks_by_user(user_id, task_type)
 
 
 def delete_user_task(bearer_token, task_id):
-    claims = jwt_utils.is_jwt_valid(bearer_token)
-    user_id = claims['sub']
+    claims = AuthClient.get_instance().verify_jwt(bearer_token)
+    user_id = claims[AuthClaims.USER_ID]
     with TasksRepository() as database:
         database.delete_schedule_task_by_user(user_id, task_id)
 
 
 def insert_user_task(bearer_token, task):
-    claims = jwt_utils.is_jwt_valid(bearer_token)
-    user_id = claims['sub']
+    claims = AuthClient.get_instance().verify_jwt(bearer_token)
+    user_id = claims[AuthClaims.USER_ID]
     with TasksRepository() as database:
         return database.insert_schedule_task_by_user(user_id, task)
 
 
 def update_user_task(bearer_token, task):
-    claims = jwt_utils.is_jwt_valid(bearer_token)
-    user_id = claims['sub']
+    claims = AuthClient.get_instance().verify_jwt(bearer_token)
+    user_id = claims[AuthClaims.USER_ID]
     with TasksRepository() as database:
         return database.update_schedule_task_by_user_id(user_id, task)

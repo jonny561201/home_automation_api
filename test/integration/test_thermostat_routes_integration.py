@@ -1,26 +1,24 @@
+import json
 import uuid
 
-import jwt
-import json
 from mock import patch
 from requests import Response
 from sqlalchemy import delete
 
-from svc.db.repositories.database_base import DatabaseBase
-from svc.config.settings_state import Settings
+from integration.route_base import mock_jwks_token
 from svc.constants.home_automation import Automation
 from svc.db.models.user_information_model import UserInformation, UserPreference
+from svc.db.repositories.database_base import DatabaseBase
 from svc.manager import app
 
 
 class TestThermostatRoutesIntegration:
-    JWT_SECRET = 'fake_secret'
     USER_ID = str(uuid.uuid4())
-    BEARER_TOKEN = jwt.encode({'sub': USER_ID}, JWT_SECRET, algorithm='HS256')
-    HEADERS = {'Authorization': BEARER_TOKEN, 'Content-Type': 'application/json'}
 
     def setup_method(self):
-        Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET}
+        self.TOKEN = mock_jwks_token(self.USER_ID)
+        self.HEADERS = {'Authorization': self.TOKEN, 'Content-Type': 'application/json'}
+
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
         self.PREFERENCE = UserPreference(user_id=str(self.USER_ID), city='London', is_fahrenheit=False, is_imperial=False)
         flask_app = app
@@ -60,8 +58,6 @@ class TestThermostatRoutesIntegration:
 
     @patch('svc.controllers.thermostat_controller.write_desired_temp_to_file')
     def test_set_temperature__should_return_successfully(self, mock_file):
-        # bearer_token = jwt.encode({}, self.JWT_SECRET, algorithm='HS256')
-        # headers = {'Authorization': bearer_token}
         request = {'desiredTemp': 23.7, 'mode': Automation.HVAC.MODE.HEATING, 'isFahrenheit': True}
 
         url = f'thermostat/temperature/desired'

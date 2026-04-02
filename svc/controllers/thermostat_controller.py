@@ -1,17 +1,17 @@
-from svc.constants.home_automation import Automation
+from svc.constants.home_automation import Automation, AuthClaims
 from svc.db.repositories.account_repository import AccountRepository
 from svc.models.thermostat import ThermostatState
 from svc.services import weather_request
 from svc.utilities.conversion_utils import convert_to_celsius, convert_to_fahrenheit
 from svc.utilities.file_utils import write_desired_temp_to_file, get_desired_temp, read_temperature_file
-from svc.utilities.jwt_utils import is_jwt_valid
+from svc.utilities.jwt_utils import AuthClient
 from svc.utilities.rabbitmq_client import publish
 from svc.utilities.user_temp_utils import get_user_temperature
 
 
 def get_user_temp(bearer_token):
-    claims = is_jwt_valid(bearer_token)
-    user_id = claims['sub']
+    claims = AuthClient.get_instance().verify_jwt(bearer_token)
+    user_id = claims[AuthClaims.USER_ID]
     with AccountRepository() as database:
         preference = database.get_preferences_by_user(user_id)
         temp_text = read_temperature_file()
@@ -22,15 +22,15 @@ def get_user_temp(bearer_token):
 
 #TODO: update database account repo to store lat/lon of city
 def get_user_forecast(bearer_token):
-    claims = is_jwt_valid(bearer_token)
-    user_id = claims['sub']
+    claims = AuthClient.get_instance().verify_jwt(bearer_token)
+    user_id = claims[AuthClaims.USER_ID]
     with AccountRepository() as database:
         preference = database.get_preferences_by_user(user_id)
         return weather_request.get_weather(preference.city, preference.tempUnit)
 
 
 def set_user_temperature(request_data, bearer_token):
-    is_jwt_valid(bearer_token)
+    AuthClient.get_instance().verify_jwt(bearer_token)
     temp = request_data['desiredTemp'] if not request_data['isFahrenheit'] else convert_to_celsius(request_data['desiredTemp'])
     mode = request_data['mode']
     write_desired_temp_to_file(temp, mode)

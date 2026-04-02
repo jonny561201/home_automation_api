@@ -1,118 +1,28 @@
 import uuid
-from datetime import timedelta, datetime
 
 import jwt
 from mock import patch, ANY
-from zoneinfo import ZoneInfo
 
-from svc.controllers.app_controller import get_login, get_user_preferences, save_user_preferences, get_user_tasks, \
-    delete_user_task, insert_user_task, update_user_task, refresh_bearer_token
-
-
-@patch('svc.controllers.app_controller.CredentialRepository')
-@patch('svc.controllers.app_controller.jwt_utils')
-class TestLoginControllerCredentials:
-    BEARER_TOKEN = jwt.encode({}, 'fake_jwt_secret', algorithm='HS256')
-    USER = 'user_name'
-    PWORD = 'password'
-    USER_ID = str(uuid.uuid4())
-
-    def test_get_login__should_call_validate_credentials_with_post_body(self, mock_jwt, mock_db):
-        get_login(self.USER, self.PWORD)
-
-        mock_db.return_value.__enter__.return_value.validate_credentials.assert_called_with(self.USER, self.PWORD)
-
-    @patch('svc.controllers.app_controller.datetime')
-    def test_get_login__should_call_create_jwt_token_with_database_response(self, mock_date, mock_jwt, mock_db):
-        user_info = {'user_id': 'sdfasdf', 'role_name': 'lighting'}
-        refresh = str(uuid.uuid4())
-        mock_jwt.generate_refresh_token.return_value = refresh
-        mock_db.return_value.__enter__.return_value.validate_credentials.return_value = user_info
-        mock_jwt.extract_credentials.return_value = (self.USER, self.PWORD)
-        get_login(self.USER, self.PWORD)
-
-        mock_jwt.create_jwt_token.assert_called_with(user_info, refresh)
-
-    def test_get_login__should_return_response_from_jwt_service(self, mock_jwt, mock_db):
-        mock_jwt.extract_credentials.return_value = (self.USER, self.PWORD)
-        mock_jwt.create_jwt_token.return_value = self.BEARER_TOKEN
-        actual = get_login(self.USER, self.PWORD)
-
-        assert actual == self.BEARER_TOKEN
-
-    @patch('svc.controllers.app_controller.datetime')
-    def test_get_login__should_create_expiration_date(self, mock_date, mock_jwt, mock_db):
-        get_login(self.USER, self.PWORD)
-
-        mock_date.now.assert_called_with(tz=ZoneInfo('US/Central'))
-
-    @patch('svc.controllers.app_controller.datetime')
-    def test_get_login__should_store_refresh_token_in_db(self, mock_date, mock_jwt, mock_db):
-        now = datetime.now()
-        mock_date.now.return_value = now
-        mock_jwt.extract_credentials.return_value = (self.USER, self.PWORD)
-        mock_db.return_value.__enter__.return_value.validate_credentials.return_value = {'user_id': self.USER_ID}
-        refresh = str(uuid.uuid4())
-        mock_jwt.generate_refresh_token.return_value = refresh
-        expected_date = now + timedelta(hours=24)
-
-        get_login(self.USER, self.PWORD)
-
-        mock_db.return_value.__enter__.return_value.insert_refresh_token.assert_called_with(self.USER_ID, refresh, expected_date)
-
-    @patch('svc.controllers.app_controller.datetime')
-    def test_refresh_bearer_token__should_make_call_to_db_to_generate_new_refresh_token(self, mock_date, mock_jwt, mock_db):
-        old_refresh = str(uuid.uuid4())
-        now = datetime.now()
-        mock_date.now.return_value = now
-        refresh_bearer_token(old_refresh)
-        expected_date = now + timedelta(hours=24)
-
-        mock_db.return_value.__enter__.return_value.generate_new_refresh_token.assert_called_with(old_refresh, expected_date)
-
-    def test_refresh_bearer_token__should_make_call_to_get_user_info_from_db(self, mock_jwt, mock_db):
-        old_refresh = str(uuid.uuid4())
-        refresh_data = {'user_id': self.USER_ID, 'refresh_token': str(uuid.uuid4())}
-        mock_db.return_value.__enter__.return_value.generate_new_refresh_token.return_value = refresh_data
-        refresh_bearer_token(old_refresh)
-
-        mock_db.return_value.__enter__.return_value.get_user_info.assert_called_with(self.USER_ID)
-
-    @patch('svc.controllers.app_controller.datetime')
-    def test_refresh_bearer_token__should_have_jwt_util_create_new_bearer_token(self, mock_date, mock_jwt, mock_db):
-        old_refresh = str(uuid.uuid4())
-        new_refresh = str(uuid.uuid4())
-        user_info = {'first_name': 'Paul', 'last_name': 'Atreides'}
-        refresh_data = {'user_id': self.USER_ID, 'refresh_token': new_refresh}
-        mock_db.return_value.__enter__.return_value.generate_new_refresh_token.return_value = refresh_data
-        mock_db.return_value.__enter__.return_value.get_user_info.return_value = user_info
-        refresh_bearer_token(old_refresh)
-
-        mock_jwt.create_jwt_token.assert_called_with(user_info, new_refresh)
-
-    def test_refresh_bearer_token__should_return_the_new_bearer_token(self, mock_jwt, mock_db):
-        old_refresh = str(uuid.uuid4())
-        mock_jwt.create_jwt_token.return_value = self.BEARER_TOKEN
-        actual = refresh_bearer_token(old_refresh)
-
-        assert actual == self.BEARER_TOKEN
+from svc.constants.home_automation import AuthClaims
+from svc.controllers.app_controller import get_user_preferences, save_user_preferences, get_user_tasks, \
+    delete_user_task, insert_user_task, update_user_task
 
 
 @patch('svc.controllers.app_controller.AccountRepository')
-@patch('svc.controllers.app_controller.jwt_utils')
+@patch('svc.controllers.app_controller.AuthClient')
 class TestAppControllerAccount:
     USER_ID = str(uuid.uuid4())
-    CLAIMS = {'sub': USER_ID}
+    CLAIMS = {AuthClaims.USER_ID: USER_ID}
     BEARER_TOKEN = jwt.encode(CLAIMS, 'fake_jwt_secret', algorithm='HS256')
     USER = 'user_name'
 
     def test_get_user_preferences__should_validate_bearer_token(self, mock_jwt, mock_db):
         get_user_preferences(self.BEARER_TOKEN)
 
-        mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
     def test_get_user_preferences__should_call_get_preferences_by_user(self, mock_jwt, mock_db):
-        mock_jwt.is_jwt_valid.return_value = self.CLAIMS
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         get_user_preferences(self.BEARER_TOKEN)
 
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.assert_called_with(self.USER_ID)
@@ -129,10 +39,10 @@ class TestAppControllerAccount:
         bearer_token = 'fakeBearerToken'
         save_user_preferences(bearer_token, {})
 
-        mock_jwt.is_jwt_valid.assert_called_with(bearer_token)
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(bearer_token)
 
     def test_save_user_preferences__should_call_insert_preferences_by_user_with_user_id(self, mock_jwt, mock_db):
-        mock_jwt.is_jwt_valid.return_value = self.CLAIMS
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         bearer_token = 'fakeBearerToken'
         save_user_preferences(bearer_token, {})
 
@@ -148,7 +58,7 @@ class TestAppControllerAccount:
 
 
 @patch('svc.controllers.app_controller.TasksRepository')
-@patch('svc.controllers.app_controller.jwt_utils')
+@patch('svc.controllers.app_controller.AuthClient')
 class TestAppControllerTasks:
     BEARER_TOKEN = jwt.encode({}, 'fake_jwt_secret', algorithm='HS256')
     USER_ID = str(uuid.uuid4())
@@ -159,7 +69,7 @@ class TestAppControllerTasks:
     #     mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
 
     def test_get_user_tasks__should_call_get_schedule_tasks_by_user(self, mock_jwt, mock_db):
-        mock_jwt.is_jwt_valid.return_value = {'sub': self.USER_ID}
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
         get_user_tasks(self.BEARER_TOKEN, 'hvac')
         mock_db.return_value.__enter__.return_value.get_schedule_tasks_by_user.assert_called_with(self.USER_ID, ANY)
 
@@ -178,10 +88,10 @@ class TestAppControllerTasks:
     def test_delete_user_task__should_validate_bearer_token(self, mock_jwt, mmock_db):
         task_id = 'jklasdf89734'
         delete_user_task(self.BEARER_TOKEN, task_id)
-        mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
     def test_delete_user_task__should_call_get_schedule_tasks_by_user_with_user_id(self, mock_jwt, mock_db):
-        mock_jwt.is_jwt_valid.return_value = {'sub': self.USER_ID}
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
         task_id = 'jklasdf89734'
         delete_user_task(self.BEARER_TOKEN, task_id)
         mock_db.return_value.__enter__.return_value.delete_schedule_task_by_user.assert_called_with(self.USER_ID, ANY)
@@ -194,10 +104,10 @@ class TestAppControllerTasks:
     def test_insert_user_task__should_validate_bearer_token(self, mock_jwt, mock_db):
         task = {'test': 'data'}
         insert_user_task(self.BEARER_TOKEN, task)
-        mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
     def test_insert_user_task__should_call_insert_schedule_task_by_user_with_user_id(self, mock_jwt, mock_db):
-        mock_jwt.is_jwt_valid.return_value = {'sub': self.USER_ID}
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
         task = {'alarm_time': '00:01:00'}
         insert_user_task(self.BEARER_TOKEN, task)
         mock_db.return_value.__enter__.return_value.insert_schedule_task_by_user.assert_called_with(self.USER_ID, ANY)
@@ -219,17 +129,17 @@ class TestAppControllerTasks:
         task = {'alarm_time': '00:01:00'}
         update_user_task(self.BEARER_TOKEN, task)
 
-        mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
     def test_update_user_task__should_call_update_schedule_task_by_user_id_with_user_id(self, mock_jwt, mock_db):
-        mock_jwt.is_jwt_valid.return_value = {'sub': self.USER_ID}
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
         task = {'alarm_time': '00:01:00'}
         update_user_task(self.BEARER_TOKEN, task)
 
         mock_db.return_value.__enter__.return_value.update_schedule_task_by_user_id.assert_called_with(self.USER_ID, ANY)
 
     def test_update_user_task__should_call_update_schedule_task_by_user_id_with_new_task(self, mock_jwt, mock_db):
-        mock_jwt.is_jwt_valid.return_value = {'sub': self.USER_ID}
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
         task = {'alarm_time': '00:01:00'}
         update_user_task(self.BEARER_TOKEN, task)
 

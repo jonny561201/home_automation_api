@@ -4,27 +4,24 @@ import uuid
 import jwt
 from sqlalchemy import delete, select
 
-from svc.db.repositories.database_base import DatabaseBase
-from svc.config.settings_state import Settings
+from integration.route_base import mock_jwks_token
 from svc.db.models.user_information_model import UserCredentials, UserInformation, ChildAccounts, UserPreference
+from svc.db.repositories.database_base import DatabaseBase
 from svc.manager import app
 
 
 class TestAccountRoutesIntegration:
-    JWT_SECRET = 'testSecret'
     USER_NAME = 'Jon Rocks'
     PASSWORD = 'SuperSafePassword'
     USER_ID = str(uuid.uuid4())
     CHILD_USER_ID = str(uuid.uuid4())
     CHILD_CRED_ID = str(uuid.uuid4())
     PARENT_USER_ID = str(uuid.uuid4())
-    EMAIL_APP_ID = 'as;kljdfski;hasdf'
     CHILD_EMAIL = 'blackened_widow@gmail.com'
-    BEARER_TOKEN = jwt.encode({'sub': USER_ID}, JWT_SECRET, algorithm='HS256')
-    HEADERS = {'Authorization': BEARER_TOKEN, 'Content-Type': 'application/json'}
 
     def setup_method(self):
-        Settings.get_instance()._settings = {'JwtSecret': self.JWT_SECRET, 'EmailAppId': self.EMAIL_APP_ID}
+        self.TOKEN = mock_jwks_token(self.USER_ID)
+        self.HEADERS = {'Authorization': f'Bearer {self.TOKEN}', 'Content-Type': 'application/json'}
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
         self.USER_PREF = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city='Atlanta')

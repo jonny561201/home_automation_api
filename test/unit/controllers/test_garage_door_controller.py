@@ -5,18 +5,18 @@ import pytest
 from mock import patch
 from werkzeug.exceptions import BadRequest
 
-from constants.home_automation import Automation
+from svc.constants.home_automation import Automation, AuthClaims
 from svc.controllers.garage_door_controller import get_status, toggle_door, update_state
 
 
 @patch('svc.controllers.garage_door_controller.publish')
 @patch('svc.controllers.garage_door_controller.api_utils')
 @patch('svc.controllers.garage_door_controller.get_garage_url_by_user')
-@patch('svc.controllers.garage_door_controller.is_jwt_valid')
+@patch('svc.controllers.garage_door_controller.AuthClient')
 class TestGarageController:
     GARAGE_ID = 3
     USER_ID = 'fakeUserId'
-    CLAIMS = {'sub': USER_ID}
+    CLAIMS = {AuthClaims.USER_ID: USER_ID}
     JWT_SECRET = 'fake_jwt_secret'
     SUCCESS_STATE = 200
     FAILURE_STATUS = 500
@@ -33,17 +33,17 @@ class TestGarageController:
         mock_util.get_garage_door_status.return_value = (self.SUCCESS_STATE, {})
         get_status(self.JWT_TOKEN, self.GARAGE_ID)
 
-        mock_jwt.assert_called_with(self.JWT_TOKEN)
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.JWT_TOKEN)
 
     def test_get_status__should_get_garage_url_by_user(self, mock_jwt, mock_url, mock_util, mock_publish):
-        mock_jwt.return_value = self.CLAIMS
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         mock_util.get_garage_door_status.return_value = (self.SUCCESS_STATE, {})
         get_status(self.JWT_TOKEN, self.GARAGE_ID)
 
         mock_url.assert_called_with(self.USER_ID)
 
     def test_get_status__should_call_get_garage_door_status(self, mock_jwt, mock_url, mock_util, mock_publish):
-        mock_jwt.return_value = self.CLAIMS
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         expected_url = 'http://www.fakeurl.com/test/location'
         mock_util.get_garage_door_status.return_value = (self.SUCCESS_STATE, {})
         mock_url.return_value = expected_url
@@ -52,7 +52,7 @@ class TestGarageController:
         mock_util.get_garage_door_status.assert_called_with(self.JWT_TOKEN, expected_url, self.GARAGE_ID)
 
     def test_get_status__should_return_api_response_for_success(self, mock_jwt, mock_url, mock_util, mock_publish):
-        mock_jwt.return_value = self.CLAIMS
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         response = {'fake': 'data'}
         mock_util.get_garage_door_status.return_value = response
         actual = get_status(self.JWT_TOKEN, self.GARAGE_ID)
@@ -63,7 +63,7 @@ class TestGarageController:
         mock_util.update_garage_door_state.return_value = (self.SUCCESS_STATE, {})
         update_state(self.JWT_TOKEN, self.GARAGE_ID, self.REQUEST)
 
-        mock_jwt.assert_called_with(self.JWT_TOKEN)
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.JWT_TOKEN)
 
     def test_update_state__should_call_publish(self, mock_jwt, mock_url, mock_util, mock_publish):
         mock_util.update_garage_door_state.return_value = (self.SUCCESS_STATE, {})
@@ -85,7 +85,7 @@ class TestGarageController:
         mock_util.toggle_garage_door_state.return_value = self.SUCCESS_STATE
         toggle_door(self.JWT_TOKEN, self.GARAGE_ID)
 
-        mock_jwt.assert_called_with(self.JWT_TOKEN)
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.JWT_TOKEN)
 
     def test_toggle_garage_door_state__should_call_publish(self, mock_jwt, mock_url, mock_util, mock_publish):
         mock_util.toggle_garage_door_state.return_value = self.SUCCESS_STATE

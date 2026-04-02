@@ -6,7 +6,7 @@ from svc.config.settings_state import Settings
 from svc.controllers.light_controller import get_assigned_light_groups, set_assigned_light_groups, set_assigned_light
 
 
-@patch('svc.controllers.light_controller.is_jwt_valid')
+@patch('svc.controllers.light_controller.AuthClient')
 @patch('svc.controllers.light_controller.api_utils')
 class TestLightRequest:
     LIGHT_USERNAME = 'fakeUsername'
@@ -24,7 +24,7 @@ class TestLightRequest:
     def test_set_assigned_light_groups__should_call_is_jwt_valid(self, mock_api, mock_jwt):
         set_assigned_light_groups(self.BEARER_TOKEN, self.REQUEST)
 
-        mock_jwt.assert_called_with(self.BEARER_TOKEN)
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
     def test_set_assigned_light_groups__should_make_api_call_to_set_state(self, mock_api, mock_jwt):
         set_assigned_light_groups(self.BEARER_TOKEN, self.REQUEST)
@@ -57,7 +57,7 @@ class TestLightRequest:
         request_data = {'lightId': '4', 'on': True, 'brightness': 179}
         set_assigned_light(self.BEARER_TOKEN, request_data)
 
-        mock_jwt.assert_called_with(self.BEARER_TOKEN)
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
     def test_set_assigned_light__should_make_call_to_set_light_state(self, mock_api, mock_jwt):
         light_id = '2'
@@ -70,7 +70,7 @@ class TestLightRequest:
     def test_get_assigned_light_groups__should_call_is_jwt_valid(self, mock_api, mock_jwt):
         get_assigned_light_groups(self.BEARER_TOKEN)
 
-        mock_jwt.assert_called_with(self.BEARER_TOKEN)
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
     def test_get_assigned_light_groups__should_make_api_call_to_get_full_state(self, mock_api, mock_jwt):
         get_assigned_light_groups(self.BEARER_TOKEN)
