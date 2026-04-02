@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import select, delete
 from werkzeug.exceptions import BadRequest, Unauthorized, NotFound
 
-from svc.db.models.user_information_model import UserPreference, RoleDevices, RoleDeviceNodes, UserInformation, Roles, \
+from svc.db.models.user_information_model import UserPreference, Devices, RoleDeviceNodes, UserInformation, Roles, \
     UserRoles, ChildAccounts
 from svc.db.repositories.database_base import DatabaseBase
 from svc.db.repositories.device_repository import DeviceRepository
@@ -35,7 +35,7 @@ class TestDbDeviceIntegration:
     def teardown_method(self):
         with DatabaseBase() as database:
             database.session.execute(delete(RoleDeviceNodes))
-            database.session.execute(delete(RoleDevices))
+            database.session.execute(delete(Devices))
             database.session.execute(delete(UserPreference).where(UserPreference.user_id == self.USER_ID))
             database.session.execute(delete(ChildAccounts).where(ChildAccounts.child_user_id == self.CHILD_USER_ID))
             database.session.execute(delete(UserRoles).where(UserRoles.id == self.USER_ROLE_ID))
@@ -56,7 +56,7 @@ class TestDbDeviceIntegration:
         with DeviceRepository() as database:
             database.add_new_role_device(self.USER_ID, self.ROLE_NAME, ip_address)
 
-            actual = database.session.execute(select(RoleDevices).where(RoleDevices.user_role_id == self.USER_ROLE_ID)).scalars().first()
+            actual = database.session.execute(select(Devices).where(Devices.user_role_id == self.USER_ROLE_ID)).scalars().first()
             assert actual.ip_address == ip_address
 
     def test_add_new_device__should_register_new_device_to_parent_from_child(self):
@@ -64,7 +64,7 @@ class TestDbDeviceIntegration:
         with DeviceRepository() as database:
             device_id = database.add_new_role_device(self.CHILD_USER_ID, self.ROLE_NAME, ip_address)
 
-            actual = database.session.execute(select(RoleDevices).where(RoleDevices.id == device_id)).scalars().first()
+            actual = database.session.execute(select(Devices).where(Devices.id == device_id)).scalars().first()
 
             assert actual.ip_address == ip_address
 
@@ -73,7 +73,7 @@ class TestDbDeviceIntegration:
         device_id = str(uuid.uuid4())
         node_name = 'test node'
         with DeviceRepository() as database:
-            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
+            device = Devices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
             database.session.add(device)
 
             with pytest.raises(Unauthorized):
@@ -84,7 +84,7 @@ class TestDbDeviceIntegration:
         device_id = str(uuid.uuid4())
         node_name = 'first garage door'
         with DeviceRepository() as database:
-            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
+            device = Devices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
             database.session.add(device)
             database.session.commit()
             database.add_new_device_node(self.USER_ID, device_id, node_name, False)
@@ -98,7 +98,7 @@ class TestDbDeviceIntegration:
         device_id = str(uuid.uuid4())
         node_name = 'first garage door'
         with DeviceRepository() as database:
-            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
+            device = Devices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
             database.session.add(device)
 
             actual = database.add_new_device_node(self.USER_ID, device_id, node_name, False)
@@ -109,7 +109,7 @@ class TestDbDeviceIntegration:
         device_id = str(uuid.uuid4())
         node_name = 'first garage door'
         with DeviceRepository() as database:
-            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
+            device = Devices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
             database.session.add(device)
             database.session.commit()
             database.add_new_device_node(self.USER_ID, device_id, node_name, False)
@@ -122,7 +122,7 @@ class TestDbDeviceIntegration:
         device_id = str(uuid.uuid4())
         node_name = 'second garage door'
         with DeviceRepository() as database:
-            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
+            device = Devices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
             node = RoleDeviceNodes(node_name='test', node_device=1, role_device_id=device_id)
             database.session.add(device)
             database.session.add(node)
@@ -138,7 +138,7 @@ class TestDbDeviceIntegration:
         device_id = str(uuid.uuid4())
         node_name = 'third garage door'
         with DeviceRepository() as database:
-            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=3, ip_address=ip_address)
+            device = Devices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=3, ip_address=ip_address)
             node_one = RoleDeviceNodes(node_name='test 1', node_device=1, role_device_id=device_id)
             node_two = RoleDeviceNodes(node_name='test 2', node_device=2, role_device_id=device_id)
             database.session.add(device)
@@ -156,7 +156,7 @@ class TestDbDeviceIntegration:
         device_id = str(uuid.uuid4())
         node_name = 'third garage door'
         with DeviceRepository() as database:
-            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
+            device = Devices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
             node_one = RoleDeviceNodes(node_name='test 1', node_device=1, role_device_id=device_id)
             node_two = RoleDeviceNodes(node_name='test 2', node_device=2, role_device_id=device_id)
             database.session.add(device)
@@ -170,7 +170,7 @@ class TestDbDeviceIntegration:
         device_id = str(uuid.uuid4())
         node_name = 'Jons New'
         with DeviceRepository() as database:
-            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address='1.1.1.1')
+            device = Devices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address='1.1.1.1')
             database.session.add(device)
             database.add_new_device_node(self.USER_ID, device_id, node_name, True)
 
@@ -183,7 +183,7 @@ class TestDbDeviceIntegration:
         ip_address = '192.175.7.9'
         device_id = str(uuid.uuid4())
         with DeviceRepository() as database:
-            device = RoleDevices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
+            device = Devices(id=device_id, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address=ip_address)
             database.session.add(device)
 
             actual = database.get_user_garage_ip(self.USER_ID)

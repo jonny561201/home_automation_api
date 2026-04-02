@@ -18,16 +18,6 @@ class UserInformation(Base):
     child_accounts = relationship("ChildAccounts", primaryjoin="and_(ChildAccounts.parent_user_id == UserInformation.id)", viewonly=True)
 
 
-class RefreshToken(Base):
-    __tablename__ = 'refresh_token'
-
-    id = Column(UUID, nullable=False, primary_key=True, server_default=sqlalchemy.text("gen_random_uuid()"))
-    refresh = Column(UUID, nullable=False)
-    count = Column(SMALLINT, nullable=False)
-    expire_time = Column(TIME, nullable=False)
-    user_id = Column(UUID, ForeignKey(UserInformation.id))
-
-
 class ChildAccounts(Base):
     __tablename__ = 'child_accounts'
 
@@ -36,44 +26,24 @@ class ChildAccounts(Base):
     parent_user_id = Column(UUID, ForeignKey(UserInformation.id))
 
 
-class Roles(Base):
-    __tablename__ = 'roles'
+class DeviceType(Base):
+    __tablename__ = 'device_type'
 
-    id = Column(UUID, nullable=False, primary_key=True)
-    role_desc = Column(String, nullable=False)
-    role_name = Column(String, nullable=False)
+    id = Column(UUID, nullable=False, primary_key=True, server_default=sqlalchemy.text("gen_random_uuid()"))
+    type = Column(String, nullable=False)
 
-
-class UserRoles(Base):
-    __tablename__ = 'user_roles'
-
-    id = Column(UUID, nullable=False, primary_key=True)
-    role_id = Column(UUID, ForeignKey(Roles.id))
-    user_id = Column(UUID, ForeignKey(UserInformation.id))
-
-    role = relationship('Roles', foreign_keys='UserRoles.role_id')
-    role_devices = relationship("RoleDevices", cascade='delete', backref="parent", uselist=False, lazy='joined')
-
-
-class RoleDevices(Base):
-    __tablename__ = 'role_devices'
+class Devices(Base):
+    __tablename__ = 'devices'
 
     id = Column(UUID, nullable=False, primary_key=True, server_default=sqlalchemy.text("gen_random_uuid()"))
     ip_address = Column(INET, nullable=False)
     ip_port = Column(Integer)
-    max_nodes = Column(SMALLINT, nullable=False)
-    user_role_id = Column(UUID, ForeignKey(UserRoles.id))
+    node_name = Column(String)
+    node_device = Column(SMALLINT)
+    user_id = Column(UUID, ForeignKey(UserInformation.id))
+    device_type_id = Column(UUID, ForeignKey(DeviceType.id))
 
-    role_device_nodes = relationship("RoleDeviceNodes", cascade='delete', backref="parent", lazy='joined')
-
-
-class RoleDeviceNodes(Base):
-    __tablename__ = 'role_device_nodes'
-
-    id = Column(UUID, nullable=False, primary_key=True, server_default=sqlalchemy.text("gen_random_uuid()"))
-    node_name = Column(String, nullable=False)
-    node_device = Column(SMALLINT, nullable=True)
-    role_device_id = Column(UUID, ForeignKey(RoleDevices.id))
+    device_type = relationship('DeviceType', foreign_keys='Devices.device_type_id')
 
 
 class Scenes(Base):
@@ -137,18 +107,6 @@ class ScheduleTasks(Base):
 
     user = relationship('UserInformation', foreign_keys='ScheduleTasks.user_id')
     task_type = relationship('ScheduledTaskTypes', foreign_keys='ScheduleTasks.task_type_id')
-
-
-class UserCredentials(Base):
-    __tablename__ = 'user_login'
-
-    id = Column(UUID, nullable=False, primary_key=True)
-    user_name = Column(String, nullable=False)
-    password = Column(String, nullable=False)
-    user_id = Column(UUID, ForeignKey(UserInformation.id))
-
-    user = relationship('UserInformation', foreign_keys='UserCredentials.user_id')
-    user_roles = relationship("UserRoles", secondaryjoin="and_(UserRoles.user_id == UserInformation.id)", secondary='user_information', viewonly=True)
 
 
 class DailySumpPumpLevel(Base):

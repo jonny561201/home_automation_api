@@ -8,7 +8,7 @@ from requests import Response
 from sqlalchemy import delete
 
 from integration.route_base import mock_jwks_token
-from svc.db.models.user_information_model import UserInformation, Roles, UserRoles, RoleDevices, RoleDeviceNodes
+from svc.db.models.user_information_model import UserInformation, Roles, UserRoles, Devices, RoleDeviceNodes
 from svc.db.repositories.database_base import DatabaseBase
 from svc.manager import app
 
@@ -29,7 +29,7 @@ class TestGarageDoorRoutesIntegration:
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
         self.ROLE = Roles(id=self.ROLE_ID, role_desc="fake desc", role_name='garage_door')
         self.USER_ROLE = UserRoles(id=self.USER_ROLE_ID, user_id=self.USER_ID, role_id=self.ROLE_ID)
-        self.DEVICE = RoleDevices(id=self.DEVICE_ID, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address='1.1.1.1', ip_port=5001)
+        self.DEVICE = Devices(id=self.DEVICE_ID, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address='1.1.1.1', ip_port=5001)
         with DatabaseBase() as database:
             database.session.add(self.ROLE)
             database.session.add(self.USER_INFO)
@@ -41,7 +41,7 @@ class TestGarageDoorRoutesIntegration:
             database.session.delete(self.USER_ROLE)
         with DatabaseBase() as database:
             database.session.execute(delete(RoleDeviceNodes))
-            database.session.execute(delete(RoleDevices).where(RoleDevices.id == self.DEVICE_ID))
+            database.session.execute(delete(Devices).where(Devices.id == self.DEVICE_ID))
             database.session.execute(delete(Roles).where(Roles.id == self.ROLE_ID))
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 

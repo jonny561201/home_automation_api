@@ -22,13 +22,13 @@ class DeviceRepository(DatabaseBase):
         if role is None:
             raise Unauthorized
         device_id = uuid.uuid4()
-        device = RoleDevices(id=str(device_id), ip_address=ip_address, max_nodes=2, user_role_id=role.id)
+        device = Devices(id=str(device_id), ip_address=ip_address, max_nodes=2, user_role_id=role.id)
         self.session.add(device)
         return str(device_id)
 
     def add_new_device_node(self, user_id, device_id, node_name, preferred):
         self._validate_property(user_id)
-        stmt = select(RoleDevices).filter_by(id=device_id)
+        stmt = select(Devices).filter_by(id=device_id)
         device = self.session.execute(stmt).scalars().first()
         if device is None:
             raise Unauthorized

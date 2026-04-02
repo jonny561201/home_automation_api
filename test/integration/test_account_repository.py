@@ -6,7 +6,7 @@ from sqlalchemy import delete, select
 from werkzeug.exceptions import BadRequest, NotFound
 
 from svc.db.models.user_information_model import UserCredentials, UserInformation, Roles, UserRoles, RoleDeviceNodes, \
-    RoleDevices, UserPreference, ChildAccounts
+    Devices, UserPreference, ChildAccounts
 from svc.db.repositories.account_repository import AccountRepository
 from svc.db.repositories.database_base import DatabaseBase
 
@@ -78,7 +78,7 @@ class TestAccountIntegration:
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
         self.ROLE = Roles(id=self.ROLE_ID, role_desc="lighting", role_name=self.ROLE_NAME)
         self.USER_ROLE = UserRoles(id=self.USER_ROLE_ID, user_id=self.USER_ID, role_id=self.ROLE_ID, role=self.ROLE)
-        self.ROLE_DEVICE = RoleDevices(user_role_id=self.USER_ROLE_ID, ip_address='0.0.0.0', max_nodes=1)
+        self.ROLE_DEVICE = Devices(user_role_id=self.USER_ROLE_ID, ip_address='0.0.0.0', max_nodes=1)
         self.USER_LOGIN = UserCredentials(id=self.CRED_ID, user_name=self.USER_NAME, password=self.PASSWORD, user_id=self.USER_ID)
         self.CHILD_USER = UserCredentials(id=str(uuid.uuid4()), user_name='Steve Rogers', password='', user_id=self.CHILD_USER_ID)
         self.CHILD_ACCOUNT = ChildAccounts(parent_user_id=self.USER_ID, child_user_id=self.CHILD_USER_ID)
@@ -94,8 +94,8 @@ class TestAccountIntegration:
     def teardown_method(self):
         with DatabaseBase() as database:
             database.session.execute(delete(RoleDeviceNodes).where(RoleDeviceNodes.role_device_id == self.DEVICE_ID))
-            database.session.execute(delete(RoleDevices).where(RoleDevices.user_role_id == self.USER_ROLE_ID))
-            database.session.execute(delete(RoleDevices).where(RoleDevices.id == self.UPDATED_DEVICE_ID))
+            database.session.execute(delete(Devices).where(Devices.user_role_id == self.USER_ROLE_ID))
+            database.session.execute(delete(Devices).where(Devices.id == self.UPDATED_DEVICE_ID))
 
             database.session.execute(delete(UserPreference).where(UserPreference.user_id == self.USER_ID))
             database.session.execute(delete(UserPreference).where(UserPreference.user_id == str(self.UPDATED_USER_ID)))
@@ -140,7 +140,7 @@ class TestAccountIntegration:
         new_email = 'tony_stank@stark.com'
 
         with AccountRepository() as database:
-            database.session.execute(delete(RoleDevices).where(RoleDevices.user_role_id == self.USER_ROLE_ID))
+            database.session.execute(delete(Devices).where(Devices.user_role_id == self.USER_ROLE_ID))
 
         with AccountRepository() as database:
             database.create_child_account(self.USER_ID, new_email, [self.ROLE_NAME], self.PASSWORD)
@@ -247,8 +247,8 @@ class TestAccountIntegration:
         ip_address = '0.1.2.3'
         node_name = 'test_node'
         with AccountRepository() as database:
-            database.session.execute(delete(RoleDevices).where(RoleDevices.user_role_id == self.USER_ROLE_ID))
-            device = RoleDevices(id=self.DEVICE_ID, user_role_id=self.USER_ROLE_ID, max_nodes=1, ip_address=ip_address)
+            database.session.execute(delete(Devices).where(Devices.user_role_id == self.USER_ROLE_ID))
+            device = Devices(id=self.DEVICE_ID, user_role_id=self.USER_ROLE_ID, max_nodes=1, ip_address=ip_address)
             node = RoleDeviceNodes(role_device_id=self.DEVICE_ID, node_name=node_name, node_device=1)
             database.session.add(device)
             database.session.add(node)

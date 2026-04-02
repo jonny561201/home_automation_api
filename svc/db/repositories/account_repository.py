@@ -5,7 +5,7 @@ from werkzeug.exceptions import BadRequest
 
 from svc.db.repositories.database_base import DatabaseBase
 from svc.db.models.user_information_model import ChildAccounts, UserCredentials, UserInformation, UserPreference, \
-    UserRoles, RoleDevices, RoleDeviceNodes
+    UserRoles, Devices, RoleDeviceNodes
 
 
 class AccountRepository(DatabaseBase):
@@ -96,7 +96,7 @@ class AccountRepository(DatabaseBase):
         self.session.add(new_user_role)
         if user_role.role_devices is not None:
             device_id = str(uuid.uuid4())
-            self.session.add(RoleDevices(id=device_id, ip_address=user_role.role_devices.ip_address, max_nodes=user_role.role_devices.max_nodes, user_role_id=role_id))
+            self.session.add(Devices(id=device_id, ip_address=user_role.role_devices.ip_address, max_nodes=user_role.role_devices.max_nodes, user_role_id=role_id))
             if user_role.role_devices.role_device_nodes:
                 for node_device in user_role.role_devices.role_device_nodes:
                     self.session.add(RoleDeviceNodes(role_device_id=device_id, node_name=node_device.node_name, node_device=node_device.node_device))

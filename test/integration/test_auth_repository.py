@@ -7,7 +7,7 @@ from mock import patch
 from sqlalchemy import delete, select
 from werkzeug.exceptions import Unauthorized, Forbidden
 
-from svc.db.models.user_information_model import RoleDevices, RoleDeviceNodes, UserCredentials, UserInformation, UserRoles, \
+from svc.db.models.user_information_model import Devices, RoleDeviceNodes, UserCredentials, UserInformation, UserRoles, \
     Roles, RefreshToken
 from svc.db.repositories.credential_repository import CredentialRepository
 from svc.db.repositories.database_base import DatabaseBase
@@ -39,7 +39,7 @@ class TestDbCredentialIntegration:
     def teardown_method(self):
         with DatabaseBase() as database:
             database.session.execute(delete(RoleDeviceNodes).where(RoleDeviceNodes.role_device_id == self.DEVICE_ID))
-            database.session.execute(delete(RoleDevices).where(RoleDevices.id == self.DEVICE_ID))
+            database.session.execute(delete(Devices).where(Devices.id == self.DEVICE_ID))
             database.session.execute(delete(UserRoles).where(UserRoles.id == self.USER_ROLE_ID))
             database.session.execute(delete(Roles).where(Roles.id == self.ROLE_ID))
             database.session.execute(delete(UserCredentials).where(UserCredentials.id == self.CRED_ID))
@@ -57,7 +57,7 @@ class TestDbCredentialIntegration:
         ip_address = '0.1.2.3'
         node_name = 'test_node'
         with CredentialRepository() as database:
-            device = RoleDevices(id=self.DEVICE_ID, user_role_id=self.USER_ROLE_ID, max_nodes=1, ip_address=ip_address)
+            device = Devices(id=self.DEVICE_ID, user_role_id=self.USER_ROLE_ID, max_nodes=1, ip_address=ip_address)
             node = RoleDeviceNodes(role_device_id=self.DEVICE_ID, node_name=node_name, node_device=1)
             database.session.add(device)
             database.session.add(node)

@@ -7,7 +7,7 @@ from mock import patch, mock
 from sqlalchemy import orm
 from werkzeug.exceptions import Unauthorized, NotFound
 
-from svc.db.models.user_information_model import UserRoles, Roles, UserPreference, RoleDevices, RoleDeviceNodes
+from svc.db.models.user_information_model import UserRoles, Roles, UserPreference, Devices, RoleDeviceNodes
 from svc.db.repositories.device_repository import DeviceRepository
 
 
@@ -64,7 +64,7 @@ class TestDeviceRepository:
 
     def test_add_new_device_node__should_call_add(self):
         node_name = 'test name'
-        devices = RoleDevices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
+        devices = Devices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = devices
         self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name, False)
 
@@ -72,14 +72,14 @@ class TestDeviceRepository:
 
     def test_add_new_device_node__should_query_user_preferences_by_user_id(self):
         node_name = 'Jons Door'
-        devices = RoleDevices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
+        devices = Devices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = devices
         self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name, True)
 
         assert self.SESSION.execute.return_value.scalars.return_value.first.call_count == 2
 
     def test_add_new_device_node__should_raise_unauthorized_if_no_user_pref(self):
-        devices = RoleDevices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
+        devices = Devices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
         self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [devices, None]
 
         with pytest.raises(Unauthorized):
@@ -88,7 +88,7 @@ class TestDeviceRepository:
     def test_add_new_device_node__should_update_user_preference_door_and_id(self):
         node_name = 'Jons Door'
         pref = UserPreference(user_id=self.USER_ID)
-        devices = RoleDevices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
+        devices = Devices(max_nodes=2, role_device_nodes=[RoleDeviceNodes()])
         self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [devices, pref]
         self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name, True)
 
@@ -108,7 +108,7 @@ class TestDeviceRepository:
 
     def test_add_new_device_node__should_return_the_number_of_node_positions_open(self):
         node_name = 'test name'
-        devices = RoleDevices(max_nodes=2, role_device_nodes=[])
+        devices = Devices(max_nodes=2, role_device_nodes=[])
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = devices
         actual = self.DATABASE.add_new_device_node(self.USER_ID, self.ROLE_ID, node_name, None)
 
@@ -126,7 +126,7 @@ class TestDeviceRepository:
 
     def test_get_user_garage_ip__should_return_ip_address_of_user(self):
         ip_address = '1.1.1.1'
-        device = RoleDevices(ip_address=ip_address, ip_port=None)
+        device = Devices(ip_address=ip_address, ip_port=None)
         role = UserRoles(user_id=self.USER_ID, role_devices=device, role=Roles(role_name='doesntMatter'))
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = role
         actual = self.DATABASE.get_user_garage_ip(self.USER_ID)
@@ -136,7 +136,7 @@ class TestDeviceRepository:
     def test_get_user_garage_ip__should_return_ip_address_and_port_if_available(self):
         ip_address = '1.1.1.1'
         ip_port = 5001
-        device = RoleDevices(ip_address=ip_address, ip_port=ip_port)
+        device = Devices(ip_address=ip_address, ip_port=ip_port)
         role = UserRoles(user_id=self.USER_ID, role_devices=device, role=Roles(role_name='doesntMatter'))
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = role
         actual = self.DATABASE.get_user_garage_ip(self.USER_ID)
