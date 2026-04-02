@@ -15,20 +15,6 @@ def change_password(bearer_token, request_data):
         database.change_user_password(user_id, request_data['oldPassword'], request_data['newPassword'])
 
 
-def get_roles(bearer_token):
-    claims = AuthClient.get_instance().verify_jwt(bearer_token)
-    user_id = claims[AuthClaims.USER_ID]
-    with AccountRepository() as database:
-        return database.get_roles_by_user(user_id)
-
-
-def get_roles_v2(bearer_token):
-    claims = AuthClient.get_instance().verify_jwt(bearer_token)
-    user_id = claims[AuthClaims.USER_ID]
-    with AccountRepository() as database:
-        return database.get_user_roles(user_id)
-
-
 def create_child_account_by_user(bearer_token, request_data):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]
