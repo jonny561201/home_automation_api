@@ -89,3 +89,9 @@ class TestDbDeviceIntegration:
             assert len(actual) == 1
             assert actual[0].ip_address == self.IP_ADDRESS
             assert actual[0].node_name == 'test'
+
+    def test_get_registered_devices__should_return_empty_list_when_no_devices(self):
+        with DeviceRepository() as database:
+            actual = database.get_registered_devices(self.CHILD_USER_ID)
+
+            assert actual == []

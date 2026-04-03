@@ -1,12 +1,11 @@
 import uuid
 
 from sqlalchemy import select
-from werkzeug.exceptions import Unauthorized, BadRequest
+from werkzeug.exceptions import Unauthorized
 
 from svc.db.models.user_information_model import DeviceType, UserInformation
+from svc.db.models.user_information_model import Devices, UserPreference
 from svc.db.repositories.database_base import DatabaseBase
-from svc.db.models.user_information_model import ChildAccounts, Devices, UserPreference
-from svc.models.devices import DoorDeviceDetails, DeviceNode
 
 
 class DeviceRepository(DatabaseBase):
