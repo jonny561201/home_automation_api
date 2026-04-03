@@ -29,19 +29,19 @@ class TestDeviceController:
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         request_data = {'roleName': None, 'ipAddress': None}
         add_device_to_role(self.BEARER_TOKEN, request_data)
-        mock_db.return_value.__enter__.return_value.add_new_role_device.assert_called_with(self.USER_ID, ANY, ANY)
+        mock_db.return_value.__enter__.return_value.add_new_device.assert_called_with(self.USER_ID, ANY, ANY)
 
     def test_add_device_to_role__should_call_add_new_role_with_role_name(self, mock_jwt, mock_db):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         request_data = {'roleName': self.ROLE_NAME, 'ipAddress': None}
         add_device_to_role(self.BEARER_TOKEN, request_data)
-        mock_db.return_value.__enter__.return_value.add_new_role_device.assert_called_with(ANY, self.ROLE_NAME, ANY)
+        mock_db.return_value.__enter__.return_value.add_new_device.assert_called_with(ANY, self.ROLE_NAME, ANY)
 
     def test_add_device_to_role__should_call_add_new_role_with_ip_address(self, mock_jwt, mock_db):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         request_data = {'roleName': None, 'ipAddress': self.IP_ADDRESS}
         add_device_to_role(self.BEARER_TOKEN, request_data)
-        mock_db.return_value.__enter__.return_value.add_new_role_device.assert_called_with(ANY, ANY, self.IP_ADDRESS)
+        mock_db.return_value.__enter__.return_value.add_new_device.assert_called_with(ANY, ANY, self.IP_ADDRESS)
 
     def test_add_device_to_role__should_raise_bad_request_exception_if_key_missing(self, mock_jwt, mock_db):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
@@ -52,7 +52,7 @@ class TestDeviceController:
     def test_add_device_to_role__should_return_response_from_adding_to_database(self, mock_jwt, mock_db):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         device_id = 'fakeDeviceId'
-        mock_db.return_value.__enter__.return_value.add_new_role_device.return_value = device_id
+        mock_db.return_value.__enter__.return_value.add_new_device.return_value = device_id
         request_data = {'roleName': 'fakeName', 'ipAddress': '1.1.1.1'}
         actual = add_device_to_role(self.BEARER_TOKEN, request_data)
 

@@ -3,54 +3,34 @@ import uuid
 from sqlalchemy import select
 from werkzeug.exceptions import Unauthorized, BadRequest
 
+from svc.db.models.user_information_model import DeviceType, UserInformation
 from svc.db.repositories.database_base import DatabaseBase
-from svc.db.models.user_information_model import ChildAccounts, UserRoles, RoleDevices, RoleDeviceNodes, UserPreference
+from svc.db.models.user_information_model import ChildAccounts, Devices, UserPreference
 from svc.models.device import DoorDeviceDetails, DeviceNode
 
 
 class DeviceRepository(DatabaseBase):
 
-    def add_new_role_device(self, user_id, role_name, ip_address):
-        self._validate_property(user_id)
-        stmt = select(ChildAccounts).filter_by(child_user_id=user_id)
-        child_account = self.session.execute(stmt).scalars().first()
-        select_user_id = user_id if child_account is None else child_account.parent_user_id
+    def add_new_device(self, user_id, name, ip_address):
+        user_stmt = select(UserInformation).filter_by(id=user_id)
+        user = self.session.execute(user_stmt).scalars().first()
+        self._validate_property(user)
 
-        stmt = select(UserRoles).filter_by(user_id=select_user_id)
-        user_roles = self.session.execute(stmt).unique().scalars().all()
-        role = next((user_role for user_role in user_roles if user_role.role.role_name == role_name), None)
-        if role is None:
-            raise Unauthorized
-        device_id = uuid.uuid4()
-        device = Devices(id=str(device_id), ip_address=ip_address, max_nodes=2, user_role_id=role.id)
+        type_stmt = select(DeviceType).filter_by(type='Garage Door')
+        device_type = self.session.execute(type_stmt).scalars().first()
+
+        device_id = str(uuid.uuid4())
+        device = Devices(id=device_id, user_id=user.id, ip_address=ip_address, node_name=name, device_type_id=device_type.id)
         self.session.add(device)
-        return str(device_id)
-
-    def add_new_device_node(self, user_id, device_id, node_name, preferred):
-        self._validate_property(user_id)
-        stmt = select(Devices).filter_by(id=device_id)
-        device = self.session.execute(stmt).scalars().first()
-        if device is None:
-            raise Unauthorized
-        node_size = len(device.role_device_nodes)
-        if preferred:
-            self.__update_preference(node_name, node_size, user_id)
-        if node_size >= device.max_nodes:
-            raise BadRequest
-        node = RoleDeviceNodes(node_name=node_name, role_device_id=device_id, node_device=node_size + 1)
-        self.session.add(node)
-
-        door_device = DoorDeviceDetails(doorId=node.node_device, doorName=node.node_name)
-        return DeviceNode(availableNodes=device.max_nodes - (node_size + 1), device=door_device)
+        return device.id
 
     def get_user_garage_ip(self, user_id):
-        self._validate_property(user_id)
-        stmt = select(UserRoles).filter_by(user_id=user_id)
-        user_role = self.session.execute(stmt).scalars().first()
-        self._validate_property(user_role)
-        if user_role.role_devices.ip_port is None:
-            return user_role.role_devices.ip_address
-        return f'{user_role.role_devices.ip_address}:{user_role.role_devices.ip_port}'
+        stmt = select(Devices).where(Devices.user_id == user_id, Devices.device_type.has(DeviceType.type == 'Garage Door'))
+        device = self.session.execute(stmt).scalars().first()
+        self._validate_property(device)
+        if device.ip_port is None:
+            return device.ip_address
+        return f'{device.ip_address}:{device.ip_port}'
 
     def __update_preference(self, node_name, node_size, user_id):
         stmt = select(UserPreference).filter_by(user_id=user_id)

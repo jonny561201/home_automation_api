@@ -11,7 +11,7 @@ def add_device_to_role(bearer_token, request_data):
     user_id = claims[AuthClaims.USER_ID]
     with DeviceRepository() as database:
         try:
-            device_id = database.add_new_role_device(user_id, request_data['roleName'], request_data['ipAddress'])
+            device_id = database.add_new_device(user_id, request_data['roleName'], request_data['ipAddress'])
             return Device(deviceId=device_id)
         except KeyError:
             raise BadRequest
