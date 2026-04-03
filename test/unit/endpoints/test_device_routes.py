@@ -1,11 +1,8 @@
-import json
-
 from flask import Flask
 from mock import patch, ANY
 
-from svc.models.device import DeviceNode, DoorDeviceDetails
-from svc.models.device import Device
-from svc.endpoints.device_routes import add_device
+from svc.endpoints.device_routes import add_device, get_devices
+from svc.models.devices import Device, UserDevice, UserDevices
 from test.unit.test_helpers import setup_request
 
 
@@ -15,36 +12,37 @@ class TestDeviceRoutes:
     BEARER_TOKEN = 'IMAFAKEBEARERTOKEN'
     HEADERS = {'Authorization': BEARER_TOKEN}
     DEVICE_ID = '890xyz'
+    IP_ADDRESS = '192.168.0.1'
 
     def setup_method(self):
         self.app = Flask(__name__)
-        self.DEVICE = Device(deviceId=self.DEVICE_ID)
-        self.NODE = DeviceNode(availableNodes=1, device=DoorDeviceDetails(doorId=1, doorName='Test Door'))
+        self.DEVICE_ID = Device(deviceId=self.DEVICE_ID)
+        self.DEVICE = UserDevice(ipAddress=self.IP_ADDRESS, id=1, name='test', type='garage', registered=True, ipPort=1)
         self.ctx = setup_request(self.app, headers=self.HEADERS)
 
     def teardown_method(self):
         self.ctx.pop()
 
     def test_add_device__should_pass_bearer_token_to_controller(self, mock_controller):
-        mock_controller.add_device.return_value = self.DEVICE
+        mock_controller.add_device.return_value = self.DEVICE_ID
         add_device()
         mock_controller.add_device.assert_called_with(self.BEARER_TOKEN, ANY)
 
     def test_add_device__should_pass_the_decoded_request_body_to_controller(self, mock_controller):
-        mock_controller.add_device.return_value = self.DEVICE
+        mock_controller.add_device.return_value = self.DEVICE_ID
         request_data = {'fakeData': 'Im Not Real'}
         self.ctx = setup_request(self.app, self.ctx, request_data, self.HEADERS)
         add_device()
         mock_controller.add_device.assert_called_with(ANY, request_data)
 
     def test_add_device__should_return_status_code_200(self, mock_controller):
-        mock_controller.add_device.return_value = self.DEVICE
+        mock_controller.add_device.return_value = self.DEVICE_ID
         actual = add_device()
 
         assert actual.status_code == 200
 
     def test_add_device__should_return_default_headers(self, mock_controller):
-        mock_controller.add_device.return_value = self.DEVICE
+        mock_controller.add_device.return_value = self.DEVICE_ID
         actual = add_device()
 
         assert actual.content_type == 'application/json'
@@ -54,4 +52,28 @@ class TestDeviceRoutes:
         mock_controller.add_device.return_value = Device(deviceId=device_id)
         actual = add_device()
 
-        assert json.loads(actual.data.decode('UTF-8'))['deviceId'] == device_id
+        assert actual.json['deviceId'] == device_id
+
+    def test_get_devices__should_pass_bearer_token_to_controller(self, mock_controller):
+        get_devices()
+
+        mock_controller.get_user_devices.assert_called_with(self.BEARER_TOKEN)
+
+    def test_get_devices__should_return_status_code_200(self, mock_controller):
+        actual = get_devices()
+
+        assert actual.status_code == 200
+
+    def test_get_devices__should_return_default_headers(self, mock_controller):
+        actual = get_devices()
+
+        assert actual.content_type == 'application/json'
+
+    def test_get_devices__should_return_devices_from_controller(self, mock_controller):
+        mock_controller.get_user_devices.return_value = UserDevices(devices=[self.DEVICE])
+
+        actual = get_devices()
+
+        assert actual.json == {'devices': [
+            {'ipAddress': self.DEVICE.ipAddress, 'ipPort': self.DEVICE.ipPort, 'name': self.DEVICE.name,
+             'type': self.DEVICE.type, 'registered': self.DEVICE.registered, 'id': self.DEVICE.id}]}
