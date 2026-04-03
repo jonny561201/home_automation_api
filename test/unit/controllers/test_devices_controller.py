@@ -2,9 +2,10 @@ import pytest
 from mock import patch, ANY
 from werkzeug.exceptions import BadRequest
 
+from svc.db.models.user_information_model import Devices, DeviceType
+from svc.models.devices import Device
 from svc.constants.home_automation import AuthClaims
-from svc.controllers.devices_controller import add_device
-from svc.models.device import Device
+from svc.controllers.devices_controller import add_device, get_user_devices
 
 
 @patch('svc.controllers.devices_controller.DeviceRepository')
@@ -15,6 +16,33 @@ class TestDeviceController:
     CLAIMS = {AuthClaims.USER_ID: USER_ID}
     ROLE_NAME = 'test_role'
     IP_ADDRESS = '192.168.0.55'
+
+    def test_get_user_devices__should_validate_jwt(self, mock_jwt, mock_db):
+        get_user_devices(self.BEARER_TOKEN)
+
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
+
+    def test_get_user_devices__should_call_database_with_user_id(self, mock_jwt, mock_db):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
+        get_user_devices(self.BEARER_TOKEN)
+
+        mock_db.return_value.__enter__.return_value.get_registered_devices.assert_called_with(self.USER_ID)
+
+    def test_get_user_devices__should_map_devices_from_database(self, mock_jwt, mock_db):
+        device = Devices(ip_address=self.IP_ADDRESS, device_type=DeviceType(type='good'))
+        mock_db.return_value.__enter__.return_value.get_registered_devices.return_value = [device]
+
+        actual = get_user_devices(self.BEARER_TOKEN)
+
+        assert len(actual.devices) == 1
+        assert actual.devices[0].ipAddress == self.IP_ADDRESS
+
+    def test_get_user_devices__should_return_empty_list_if_no_devices(self, mock_jwt, mock_db):
+        mock_db.return_value.__enter__.return_value.get_registered_devices.return_value = []
+
+        actual = get_user_devices(self.BEARER_TOKEN)
+
+        assert actual.devices == []
 
     def test_add_device_to_role__should_validate_jwt(self, mock_jwt, mock_db):
         request_data = {'roleName': None, 'ipAddress': None}
