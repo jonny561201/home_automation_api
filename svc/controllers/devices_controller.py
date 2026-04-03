@@ -1,12 +1,13 @@
 from werkzeug.exceptions import BadRequest
 
+from svc.db.models.user_information_model import Devices
 from svc.constants.home_automation import AuthClaims
 from svc.db.repositories.device_repository import DeviceRepository
-from svc.models.device import Device
+from svc.models.devices import Device, UserDevices, UserDevice
 from svc.utilities.jwt_utils import AuthClient
 
 
-def add_device_to_role(bearer_token, request_data):
+def add_device(bearer_token, request_data):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]
     with DeviceRepository() as database:
@@ -17,11 +18,15 @@ def add_device_to_role(bearer_token, request_data):
             raise BadRequest
 
 
-def add_node_to_device(bearer_token, device_id, request_data):
+def get_user_devices(bearer_token):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]
     with DeviceRepository() as database:
-        try:
-            return database.add_new_device_node(user_id, device_id, request_data['nodeName'], request_data.get('preferred'))
-        except KeyError:
-            raise BadRequest
+        devices = database.get_registered_devices(user_id)
+        user_devices = [create_user_device(device) for device in devices]
+        return UserDevices(devices=user_devices)
+
+
+def create_user_device(device: Devices):
+    return UserDevice(id=device.node_device, ipAddress=device.ip_address, ipPort=device.ip_port,
+                      registered=device.registered, type=device.device_type.type, name=device.node_name)

@@ -42,6 +42,7 @@ class Devices(Base):
     node_device = Column(SMALLINT)
     user_id = Column(UUID, ForeignKey(UserInformation.id))
     device_type_id = Column(UUID, ForeignKey(DeviceType.id))
+    registered = Column(Boolean, nullable=False, default=False)
 
     device_type = relationship('DeviceType', foreign_keys='Devices.device_type_id')
 

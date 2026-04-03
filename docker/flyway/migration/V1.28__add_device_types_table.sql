@@ -22,5 +22,6 @@ CREATE TABLE devices (
     ip_address INET NOT NULL,
     ip_port INTEGER CHECK (ip_port BETWEEN 1 AND 65535),
     node_name VARCHAR(50) NOT NULL,
-    node_device SMALLINT
+    node_device SMALLINT,
+    registered BOOLEAN NOT NULL DEFAULT FALSE
 );

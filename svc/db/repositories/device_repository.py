@@ -6,10 +6,15 @@ from werkzeug.exceptions import Unauthorized, BadRequest
 from svc.db.models.user_information_model import DeviceType, UserInformation
 from svc.db.repositories.database_base import DatabaseBase
 from svc.db.models.user_information_model import ChildAccounts, Devices, UserPreference
-from svc.models.device import DoorDeviceDetails, DeviceNode
+from svc.models.devices import DoorDeviceDetails, DeviceNode
 
 
 class DeviceRepository(DatabaseBase):
+
+    def get_registered_devices(self, user_id):
+        self._validate_property(user_id)
+        stmt = select(Devices).filter_by(user_id=user_id)
+        return self.session.execute(stmt).scalars().all()
 
     def add_new_device(self, user_id, name, ip_address):
         user_stmt = select(UserInformation).filter_by(id=user_id)

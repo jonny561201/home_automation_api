@@ -81,3 +81,11 @@ class TestDbDeviceIntegration:
         with DeviceRepository() as database:
             with pytest.raises(NotFound):
                 database.get_user_garage_ip(str(uuid.uuid4()))
+
+    def test_get_registered_devices__should_return_all_user_devices(self):
+        with DeviceRepository() as database:
+            actual = database.get_registered_devices(self.USER_ID)
+
+            assert len(actual) == 1
+            assert actual[0].ip_address == self.IP_ADDRESS
+            assert actual[0].node_name == 'test'

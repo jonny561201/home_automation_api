@@ -63,3 +63,14 @@ class TestDeviceRepository:
         actual = self.DATABASE.get_user_garage_ip(self.USER_ID)
 
         assert actual == f'{ip_address}:{ip_port}'
+
+    def test_get_registered_devices__should_raise_not_found_when_user_id_none(self):
+        with pytest.raises(NotFound):
+            self.DATABASE.get_registered_devices(None)
+
+    def test_get_registered_devices__should_return_list_of_devices(self):
+        expected = [Devices(ip_address='1.1.1.1', ip_port=1), Devices(ip_address='2.2.2.2', ip_port=2)]
+        self.SESSION.execute.return_value.scalars.return_value.all.return_value = expected
+        actual = self.DATABASE.get_registered_devices(self.USER_ID)
+
+        assert actual == expected
