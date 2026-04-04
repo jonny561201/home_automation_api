@@ -36,6 +36,16 @@ class DeviceRepository(DatabaseBase):
             return device.ip_address
         return f'{device.ip_address}:{device.ip_port}'
 
+    def get_role_ids_by_device_ids(self, user_id, device_ids):
+        self._validate_property(user_id)
+        stmt = select(Devices).where(Devices.user_id == user_id, Devices.id.in_(device_ids))
+        devices = self.session.execute(stmt).scalars().all()
+        role_ids = []
+        for device in devices:
+            if device.device_type and device.device_type.auth0_role_id:
+                role_ids.append(device.device_type.auth0_role_id)
+        return role_ids
+
     def __update_preference(self, node_name, node_size, user_id):
         stmt = select(UserPreference).filter_by(user_id=user_id)
         preference = self.session.execute(stmt).scalars().first()

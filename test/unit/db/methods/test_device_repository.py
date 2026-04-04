@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -6,7 +7,7 @@ from mock import patch, mock
 from sqlalchemy import orm
 from werkzeug.exceptions import NotFound
 
-from svc.db.models.user_information_model import Devices
+from svc.db.models.user_information_model import Devices, DeviceType
 from svc.db.repositories.device_repository import DeviceRepository
 
 
@@ -74,3 +75,30 @@ class TestDeviceRepository:
         actual = self.DATABASE.get_registered_devices(self.USER_ID)
 
         assert actual == expected
+
+    def test_get_role_ids_by_device_ids__should_raise_not_found_when_user_id_is_none(self):
+        with pytest.raises(NotFound):
+            self.DATABASE.get_role_ids_by_device_ids(None, [])
+
+    def test_get_role_ids_by_device_ids__should_return_role_ids_from_device_types(self):
+        device_id_one = str(uuid.uuid4())
+        device_id_two = str(uuid.uuid4())
+        garage_type = DeviceType(auth0_role_id='role_garage')
+        thermostat_type = DeviceType(auth0_role_id='role_thermo')
+        device_one = Devices(id=device_id_one, user_id=self.USER_ID, device_type=garage_type)
+        device_two = Devices(id=device_id_two, user_id=self.USER_ID, device_type=thermostat_type)
+        self.SESSION.execute.return_value.scalars.return_value.all.return_value = [device_one, device_two]
+
+        actual = self.DATABASE.get_role_ids_by_device_ids(self.USER_ID, [device_id_one, device_id_two])
+
+        assert sorted(actual) == ['role_garage', 'role_thermo']
+
+    def test_get_role_ids_by_device_ids__should_skip_devices_without_role_id(self):
+        device_id = str(uuid.uuid4())
+        empty_type = DeviceType(auth0_role_id=None)
+        device = Devices(id=device_id, user_id=self.USER_ID, device_type=empty_type)
+        self.SESSION.execute.return_value.scalars.return_value.all.return_value = [device]
+
+        actual = self.DATABASE.get_role_ids_by_device_ids(self.USER_ID, [device_id])
+
+        assert actual == []
