@@ -1,14 +1,15 @@
 create table device_type (
     ID UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    type VARCHAR(255) NOT NULL
-);
+    type VARCHAR(255) NOT NULL,
+    auth0_role_id VARCHAR(255)
+);_
 
-INSERT INTO device_type (type) VALUES
-   ('Garage Door'),
-   ('Thermostat'),
-   ('Security System'),
-   ('Lighting'),
-   ('Sump Pump');
+INSERT INTO device_type (type, auth0_role_id) VALUES
+   ('garage_door', 'rol_3x7V3WC9NOQrFGtA'),
+   ('thermostat', 'rol_4zQ1dypKB4M5RklD'),
+   ('security_system', 'rol_OwZ41BzZImZyd2Et'),
+   ('lighting', 'rol_CQ5MOVNScenDWSAj'),
+   ('sump_pump', 'rol_nuC1Ik6zxjcWRFZn');
 
 DROP TABLE role_device_nodes;
 DROP TABLE role_devices;
