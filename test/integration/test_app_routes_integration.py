@@ -4,7 +4,7 @@ import uuid
 import jwt
 from sqlalchemy import delete, select
 
-from integration.route_base import mock_jwks_token
+from integration.integration_helpers import mock_jwks_token
 from svc.db.models.user_information_model import UserInformation, UserPreference, ScheduleTasks, ScheduledTaskTypes
 from svc.db.repositories.database_base import DatabaseBase
 from svc.manager import app

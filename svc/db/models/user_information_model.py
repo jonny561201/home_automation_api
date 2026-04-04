@@ -47,6 +47,16 @@ class Devices(Base):
     device_type = relationship('DeviceType', foreign_keys='Devices.device_type_id')
 
 
+class UserDevices(Base):
+    __tablename__ = 'user_devices'
+
+    id = Column(UUID, nullable=False, primary_key=True, server_default=sqlalchemy.text("gen_random_uuid()"))
+    user_id = Column(UUID, ForeignKey(UserInformation.id))
+    device_id = Column(UUID, ForeignKey(Devices.id))
+
+    device = relationship('Devices', foreign_keys='UserDevices.device_id')
+
+
 class Scenes(Base):
     __tablename__ = 'scenes'
 

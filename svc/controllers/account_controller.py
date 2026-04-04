@@ -3,8 +3,6 @@ from werkzeug.exceptions import BadRequest
 from svc.constants.home_automation import AuthClaims
 from svc.db.repositories.account_repository import AccountRepository
 from svc.db.repositories.credential_repository import CredentialRepository
-from svc.utilities.api_utils import send_new_account_email
-from svc.utilities.string_utils import generate_password
 from svc.utilities.jwt_utils import AuthClient
 
 
@@ -14,19 +12,19 @@ def change_password(bearer_token, request_data):
     with CredentialRepository() as database:
         database.change_user_password(user_id, request_data['oldPassword'], request_data['newPassword'])
 
-
+# TODO: create account and duplicate roles
+# TODO: the child will need to signup in auth0
+# TODO: then post registration action will need to provision and that needs to check email
 def create_child_account_by_user(bearer_token, request_data):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]
     email = request_data.get('email')
-    roles = request_data.get('roles')
-    # if email == '' or roles == []:
-    #     raise BadRequest()
-    # new_pass = generate_password(10)
+    device_ids = request_data.get('deviceIds')
+
+    if email == '' or email is None or device_ids is None or len(device_ids) == 0:
+        raise BadRequest()
     with AccountRepository() as database:
-        child_account = database.create_child_account(user_id, email)
-    # send_new_account_email(request_data['email'], new_pass)
-    return child_account
+        return database.create_child_account(user_id, email, device_ids)
 
 
 def get_child_accounts_by_user(bearer_token):

@@ -3,7 +3,7 @@ import uuid
 
 from mock import patch
 
-from integration.route_base import mock_jwks_token
+from integration.integration_helpers import mock_jwks_token
 from svc.manager import app
 
 

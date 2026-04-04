@@ -5,10 +5,10 @@ from datetime import datetime
 import jwt
 from mock import patch
 from requests import Response
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 
-from integration.route_base import mock_jwks_token
-from svc.db.models.user_information_model import UserInformation, Roles, UserRoles, Devices, RoleDeviceNodes
+from integration.integration_helpers import mock_jwks_token
+from svc.db.models.user_information_model import UserInformation, Devices, DeviceType
 from svc.db.repositories.database_base import DatabaseBase
 from svc.manager import app
 
@@ -17,9 +17,6 @@ from svc.manager import app
 class TestGarageDoorRoutesIntegration:
     GARAGE_ID = 4
     USER_ID = str(uuid.uuid4())
-    ROLE_ID = str(uuid.uuid4())
-    USER_ROLE_ID = str(uuid.uuid4())
-    DEVICE_ID = str(uuid.uuid4())
 
     def setup_method(self):
         self.TOKEN = mock_jwks_token(self.USER_ID)
@@ -27,22 +24,18 @@ class TestGarageDoorRoutesIntegration:
         flask_app = app
         self.TEST_CLIENT = flask_app.test_client()
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
-        self.ROLE = Roles(id=self.ROLE_ID, role_desc="fake desc", role_name='garage_door')
-        self.USER_ROLE = UserRoles(id=self.USER_ROLE_ID, user_id=self.USER_ID, role_id=self.ROLE_ID)
-        self.DEVICE = Devices(id=self.DEVICE_ID, user_role_id=self.USER_ROLE_ID, max_nodes=2, ip_address='1.1.1.1', ip_port=5001)
         with DatabaseBase() as database:
-            database.session.add(self.ROLE)
+            stmt = select(DeviceType).where(DeviceType.type == 'Garage Door')
+            type = database.session.execute(stmt).scalars().first()
+            self.DEVICE = Devices(user_id=self.USER_ID, registered=False, ip_address='1.1.1.1', node_name='test', device_type_id=type.id)
+
             database.session.add(self.USER_INFO)
-            database.session.add(self.USER_ROLE)
+            database.session.commit()
             database.session.add(self.DEVICE)
 
     def teardown_method(self):
         with DatabaseBase() as database:
-            database.session.delete(self.USER_ROLE)
-        with DatabaseBase() as database:
-            database.session.execute(delete(RoleDeviceNodes))
-            database.session.execute(delete(Devices).where(Devices.id == self.DEVICE_ID))
-            database.session.execute(delete(Roles).where(Roles.id == self.ROLE_ID))
+            database.session.execute(delete(Devices).where(Devices.user_id == self.USER_ID))
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 
     def test_get_garage_door_status__should_return_unauthorized_with_no_header(self, mock_request):

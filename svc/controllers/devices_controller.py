@@ -7,6 +7,7 @@ from svc.models.devices import Device, UserDevices, UserDevice
 from svc.utilities.jwt_utils import AuthClient
 
 
+# TODO: break contract and stop calling it roleName and just name
 def add_device(bearer_token, request_data):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]

@@ -5,7 +5,7 @@ from mock import patch
 from requests import Response
 from sqlalchemy import delete
 
-from integration.route_base import mock_jwks_token
+from integration.integration_helpers import mock_jwks_token
 from svc.constants.home_automation import Automation
 from svc.db.models.user_information_model import UserInformation, UserPreference
 from svc.db.repositories.database_base import DatabaseBase

@@ -5,8 +5,7 @@ from flask import Flask
 from mock import patch, ANY
 from werkzeug.exceptions import Unauthorized
 
-from svc.endpoints.account_routes import update_user_password, post_child_account_by_user, get_child_accounts, \
-    get_roles, get_roles_v2, delete_child_account
+from svc.endpoints.account_routes import update_user_password, post_child_account_by_user, get_child_accounts, delete_child_account
 from test.unit.test_helpers import setup_request
 
 
@@ -47,69 +46,6 @@ class TestAppRoutes:
         actual = update_user_password()
 
         assert actual.content_type == 'application/json'
-
-    def test_get_roles__should_call_controller_with_bearer_token(self, mock_controller):
-        mock_controller.get_roles.return_value = {}
-        get_roles()
-
-        mock_controller.get_roles.assert_called_with(self.FAKE_JWT_TOKEN)
-
-    def test_get_roles__should_not_throw_exception_when_no_header(self, mock_controller):
-        self.ctx = setup_request(self.app, self.ctx)
-        mock_controller.get_roles.return_value = {}
-        get_roles()
-
-        mock_controller.get_roles.assert_called_with(None)
-
-    def test_get_roles__should_return_success_status_code(self, mock_controller):
-        mock_controller.get_roles.return_value = {}
-        actual = get_roles()
-
-        assert actual.status_code == 200
-
-    def test_get_roles__should_return_success_headers(self, mock_controller):
-        mock_controller.get_roles.return_value = {}
-        actual = get_roles()
-
-        assert actual.content_type == 'application/json'
-
-    def test_get_roles__should_return_data_from_the_controller(self, mock_controller):
-        response = {'roles': ['admin', 'user']}
-        mock_controller.get_roles.return_value = response
-        actual = get_roles()
-
-        assert json.loads(actual.data) == response
-
-    def test_get_roles_v2__should_call_controller_with_bearer_token(self, mock_controller):
-        mock_controller.get_roles_v2.return_value.to_json.return_value = '{}'
-        get_roles_v2()
-
-        mock_controller.get_roles_v2.assert_called_with(self.FAKE_JWT_TOKEN)
-
-    def test_get_roles_v2__should_not_throw_exception_when_no_header(self, mock_controller):
-        self.ctx = setup_request(self.app, self.ctx)
-        mock_controller.get_roles_v2.return_value.to_json.return_value = '{}'
-        get_roles_v2()
-
-        mock_controller.get_roles_v2.assert_called_with(None)
-
-    def test_get_roles_v2__should_return_success_status_code(self, mock_controller):
-        mock_controller.get_roles_v2.return_value.to_json.return_value = '{}'
-        actual = get_roles_v2()
-
-        assert actual.status_code == 200
-
-    def test_get_roles_v2__should_return_success_headers(self, mock_controller):
-        mock_controller.get_roles_v2.return_value.to_json.return_value = '{}'
-        actual = get_roles_v2()
-
-        assert actual.content_type == 'application/json'
-
-    def test_get_roles_v2__should_return_data_from_the_controller(self, mock_controller):
-        mock_controller.get_roles_v2.return_value.to_json.return_value = '{"roles": ["admin", "user"]}'
-        actual = get_roles_v2()
-
-        assert json.loads(actual.data) == {'roles': ['admin', 'user']}
 
 
 @patch('svc.endpoints.account_routes.account_controller')

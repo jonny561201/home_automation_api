@@ -6,7 +6,7 @@ from mock import patch
 from sqlalchemy import orm
 from werkzeug.exceptions import BadRequest, NotFound
 
-from svc.db.models.user_information_model import ChildAccounts, UserInformation, UserPreference
+from svc.db.models.user_information_model import ChildAccounts, Devices, UserInformation, UserPreference
 from svc.db.repositories.account_repository import AccountRepository
 
 
@@ -57,18 +57,18 @@ class TestAccountRepository:
 
     def test_create_child_account__should_raise_not_found_when_user_id_is_none(self):
         with pytest.raises(NotFound):
-            self.DATABASE.create_child_account(None, 'test@test.com')
+            self.DATABASE.create_child_account(None, 'test@test.com', [])
         self.SESSION.execute.assert_not_called()
 
     def test_create_child_account__should_raise_bad_request_when_caller_is_child(self):
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = ChildAccounts()
         with pytest.raises(BadRequest):
-            self.DATABASE.create_child_account(self.USER_ID, 'test@test.com')
+            self.DATABASE.create_child_account(self.USER_ID, 'test@test.com', [])
 
     def test_create_child_account__should_raise_not_found_when_parent_not_found(self):
         self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [None, None]
         with pytest.raises(NotFound):
-            self.DATABASE.create_child_account(self.USER_ID, 'test@test.com')
+            self.DATABASE.create_child_account(self.USER_ID, 'test@test.com', [])
 
     @patch('svc.db.repositories.account_repository.uuid')
     def test_create_child_account__should_return_new_child_info(self, mock_uuid):
@@ -78,22 +78,41 @@ class TestAccountRepository:
         parent = UserInformation(id=self.USER_ID, first_name=self.FIRST_NAME, last_name=self.LAST_NAME)
         preference = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city='Des Moines')
         self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [None, parent, preference]
+        self.SESSION.execute.return_value.scalars.return_value.all.return_value = []
 
-        actual = self.DATABASE.create_child_account(self.USER_ID, email)
+        actual = self.DATABASE.create_child_account(self.USER_ID, email, [])
 
-        assert actual == {'first_name': self.FIRST_NAME, 'last_name': self.LAST_NAME, 'email': email, 'user_id': new_user_id}
+        assert actual == {'email': email, 'user_id': new_user_id}
 
     @patch('svc.db.repositories.account_repository.uuid')
-    def test_create_child_account__should_add_user_info_and_child_account(self, mock_uuid):
+    def test_create_child_account__should_add_user_info_preference_and_child_account(self, mock_uuid):
         new_user_id = str(uuid.uuid4())
         mock_uuid.uuid4.return_value = new_user_id
         parent = UserInformation(id=self.USER_ID, first_name=self.FIRST_NAME, last_name=self.LAST_NAME)
         preference = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city='Des Moines')
         self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [None, parent, preference]
+        self.SESSION.execute.return_value.scalars.return_value.all.return_value = []
 
-        self.DATABASE.create_child_account(self.USER_ID, 'child@test.com')
+        self.DATABASE.create_child_account(self.USER_ID, 'child@test.com', [])
 
         assert self.SESSION.add.call_count == 3
+
+    @patch('svc.db.repositories.account_repository.uuid')
+    def test_create_child_account__should_create_user_devices_for_each_matched_device(self, mock_uuid):
+        new_user_id = str(uuid.uuid4())
+        device_id_one = str(uuid.uuid4())
+        device_id_two = str(uuid.uuid4())
+        mock_uuid.uuid4.return_value = new_user_id
+        parent = UserInformation(id=self.USER_ID, first_name=self.FIRST_NAME, last_name=self.LAST_NAME)
+        preference = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city='Des Moines')
+        device_one = Devices(id=device_id_one, user_id=self.USER_ID)
+        device_two = Devices(id=device_id_two, user_id=self.USER_ID)
+        self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [None, parent, preference]
+        self.SESSION.execute.return_value.scalars.return_value.all.return_value = [device_one, device_two]
+
+        self.DATABASE.create_child_account(self.USER_ID, 'child@test.com', [device_id_one, device_id_two])
+
+        assert self.SESSION.add.call_count == 5
 
     def test_insert_preferences_by_user__should_raise_bad_request_when_preferences_empty(self):
         preference_info = {}

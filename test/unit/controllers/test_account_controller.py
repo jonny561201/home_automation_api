@@ -4,11 +4,10 @@ from mock import patch, ANY
 from werkzeug.exceptions import BadRequest
 
 from svc.constants.home_automation import AuthClaims
-from svc.controllers.account_controller import change_password, get_roles, get_roles_v2, create_child_account_by_user, \
+from svc.controllers.account_controller import change_password, create_child_account_by_user, \
     get_child_accounts_by_user, delete_child_account
 
 
-@patch('svc.controllers.account_controller.send_new_account_email')
 @patch('svc.controllers.account_controller.CredentialRepository')
 @patch('svc.controllers.account_controller.AuthClient')
 class TestAccountCredentials:
@@ -17,26 +16,26 @@ class TestAccountCredentials:
     PASSWORD = 'password'
     USER_ID = 'fake_user_id'
 
-    def test_change_password__should_validate_jwt_token(self, mock_jwt, mock_db, mock_email):
+    def test_change_password__should_validate_jwt_token(self, mock_jwt, mock_db):
         request = {'userName': None, 'oldPassword': None, 'newPassword': None}
         change_password(self.BEARER_TOKEN, request)
 
         mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
-    def test_change_password__should_call_database_change_user_password_with_user_id(self, mock_jwt, mock_db, mock_email):
+    def test_change_password__should_call_database_change_user_password_with_user_id(self, mock_jwt, mock_db):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
         request = {'userName': self.USER, 'oldPassword': self.PASSWORD, 'newPassword': 'new password'}
         change_password(self.BEARER_TOKEN, request)
 
         mock_db.return_value.__enter__.return_value.change_user_password.assert_called_with(self.USER_ID, ANY, ANY)
 
-    def test_change_password__should_call_database_change_user_password_with_old_password(self, mock_jwt, mock_db, mock_email):
+    def test_change_password__should_call_database_change_user_password_with_old_password(self, mock_jwt, mock_db):
         request = {'userName': self.USER, 'oldPassword': self.PASSWORD, 'newPassword': 'new password'}
         change_password(self.BEARER_TOKEN, request)
 
         mock_db.return_value.__enter__.return_value.change_user_password.assert_called_with(ANY, self.PASSWORD, ANY)
 
-    def test_change_password__should_call_database_change_user_password_with_new_password(self, mock_jwt, mock_db, mock_email):
+    def test_change_password__should_call_database_change_user_password_with_new_password(self, mock_jwt, mock_db):
         new_password = 'new password'
         request = {'userName': self.USER, 'oldPassword': self.PASSWORD, 'newPassword': new_password}
         change_password(self.BEARER_TOKEN, request)
@@ -44,7 +43,6 @@ class TestAccountCredentials:
         mock_db.return_value.__enter__.return_value.change_user_password.assert_called_with(ANY, ANY, new_password)
 
 
-@patch('svc.controllers.account_controller.send_new_account_email')
 @patch('svc.controllers.account_controller.AccountRepository')
 @patch('svc.controllers.account_controller.AuthClient')
 class TestAccountRoles:
@@ -53,131 +51,81 @@ class TestAccountRoles:
     PASSWORD = 'password'
     USER_ID = 'fake_user_id'
 
-    def test_get_roles__should_make_call_to_validate_jwt(self, mock_jwt, mock_db, mock_email):
-        get_roles(self.BEARER_TOKEN)
-
-        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
-
-    def test_get_roles__should_make_call_to_get_roles(self, mock_jwt, mock_db, mock_email):
-        mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
-        get_roles(self.BEARER_TOKEN)
-
-        mock_db.return_value.__enter__.return_value.get_roles_by_user.assert_called_with(self.USER_ID)
-
-    def test_get_roles__should_return_the_result_from_the_database(self, mock_jwt, mock_db, mock_email):
-        roles = {'roles': []}
-        mock_db.return_value.__enter__.return_value.get_roles_by_user.return_value = roles
-        actual = get_roles(self.BEARER_TOKEN)
-
-        assert actual == roles
-
-    def test_get_roles_v2__should_validate_jwt(self, mock_jwt, mock_db, mock_email):
-        get_roles_v2(self.BEARER_TOKEN)
-
-        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
-
-    def test_get_roles_v2__should_call_database_with_user_id(self, mock_jwt, mock_db, mock_email):
-        mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
-        get_roles_v2(self.BEARER_TOKEN)
-
-        mock_db.return_value.__enter__.return_value.get_user_roles.assert_called_with(self.USER_ID)
-
-    def test_get_roles_v2__should_return_result_from_database(self, mock_jwt, mock_db, mock_email):
-        roles = ['lighting', 'security']
-        mock_db.return_value.__enter__.return_value.get_user_roles.return_value = roles
-        actual = get_roles_v2(self.BEARER_TOKEN)
-
-        assert actual == roles
-
-    def test_create_child_account_by_user__should_validate_bearer_token(self, mock_jwt, mock_db, mock_email):
-        request = {'email': 'test', 'roles': ['stuff']}
+    def test_create_child_account_by_user__should_validate_bearer_token(self, mock_jwt, mock_db):
+        request = {'email': 'test', 'deviceIds': ['stuff']}
         create_child_account_by_user(self.BEARER_TOKEN, request)
         mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
-    def test_create_child_account_by_user__should_make_call_to_database_with_user_id(self, mock_jwt, mock_db, mock_email):
+    def test_create_child_account_by_user__should_make_call_to_database_with_user_id(self, mock_jwt, mock_db):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
-        request = {'email': 'test', 'roles': ['stuff']}
+        request = {'email': 'test', 'deviceIds': ['stuff']}
         create_child_account_by_user(self.BEARER_TOKEN, request)
-        mock_db.return_value.__enter__.return_value.create_child_account.assert_called_with(self.USER_ID, ANY, ANY, ANY)
+        mock_db.return_value.__enter__.return_value.create_child_account.assert_called_with(self.USER_ID, ANY, ANY)
 
-    def test_create_child_account_by_user__should_make_call_to_database_with_email(self, mock_jwt, mock_db, mock_email):
+    def test_create_child_account_by_user__should_make_call_to_database_with_email(self, mock_jwt, mock_db):
         email = 'thor_thunder@gmail.com'
-        request = {'email': email, 'roles': ['stuff']}
+        request = {'email': email, 'deviceIds': ['stuff']}
         create_child_account_by_user(self.BEARER_TOKEN, request)
-        mock_db.return_value.__enter__.return_value.create_child_account.assert_called_with(ANY, email, ANY, ANY)
+        mock_db.return_value.__enter__.return_value.create_child_account.assert_called_with(ANY, email, ANY)
 
-    def test_create_child_account_by_user__should_make_call_to_database_with_roles(self, mock_jwt, mock_db, mock_email):
-        roles = ['Im a role!!!']
-        request = {'email': 'test', 'roles': roles}
+    def test_create_child_account_by_user__should_make_call_to_database_with_device_ids(self, mock_jwt, mock_db):
+        device_ids = ['device']
+        request = {'email': 'test', 'deviceIds': device_ids}
         create_child_account_by_user(self.BEARER_TOKEN, request)
-        mock_db.return_value.__enter__.return_value.create_child_account.assert_called_with(ANY, ANY, roles, ANY)
+        mock_db.return_value.__enter__.return_value.create_child_account.assert_called_with(ANY, ANY, device_ids)
 
-    def test_create_child_account_by_user__should_raise_bad_request_when_no_email(self, mock_jwt, mock_db, mock_email):
+    def test_create_child_account_by_user__should_raise_bad_request_when_no_email(self, mock_jwt, mock_db):
         request = {'email': '', 'roles': ['sweet ass role']}
         with pytest.raises(BadRequest):
             create_child_account_by_user(self.BEARER_TOKEN, request)
 
-    def test_create_child_account_by_user__should_raise_bad_request_when_no_roles(self, mock_jwt, mock_db, mock_email):
-        request = {'email': 'test', 'roles': []}
+    def test_create_child_account_by_user__should_raise_bad_request_when_no_device_ids(self, mock_jwt, mock_db):
+        request = {'email': 'test', 'deviceIds': []}
         with pytest.raises(BadRequest):
             create_child_account_by_user(self.BEARER_TOKEN, request)
 
-    @patch('svc.controllers.account_controller.generate_password')
-    def test_create_child_account_by_user__should_make_call_to_database_with_new_password(self, mock_pass, mock_jwt, mock_db, mock_email):
-        roles = ['Im a role!!!']
-        password = 'brandNewPassword'
-        mock_pass.return_value = password
-        request = {'email': 'test', 'roles': roles}
-        create_child_account_by_user(self.BEARER_TOKEN, request)
-        mock_db.return_value.__enter__.return_value.create_child_account.assert_called_with(ANY, ANY, ANY, password)
+    def test_create_child_account_by_user__should_raise_bad_request_when_device_ids_none(self, mock_jwt, mock_db):
+        request = {'email': 'test'}
+        with pytest.raises(BadRequest):
+            create_child_account_by_user(self.BEARER_TOKEN, request)
 
-    @patch('svc.controllers.account_controller.generate_password')
-    def test_create_child_account_by_user__should_make_call_to_send_new_account_email(self, mock_pass, mock_jwt, mock_db, mock_email):
-        email = 'test@test.com'
-        password = 'brandNewPassword'
-        mock_pass.return_value = password
-        request = {'email': email, 'roles': ['stuff']}
-        create_child_account_by_user(self.BEARER_TOKEN, request)
-
-        mock_email.assert_called_with(email, password)
-
-    def test_create_child_account_by_user__should_return_response_from_database_method(self, mock_jwt, mock_db, mock_email):
-        request = {'email': 'test', 'roles': ['stuff']}
+    def test_create_child_account_by_user__should_return_response_from_database_method(self, mock_jwt, mock_db):
+        request = {'email': 'test', 'deviceIds': ['stuff']}
         response = {'user_data': 'doesnt matter'}
         mock_db.return_value.__enter__.return_value.create_child_account.return_value = response
         actual = create_child_account_by_user(self.BEARER_TOKEN, request)
         assert actual == response
 
-    def test_get_child_accounts_by_user__should_validate_bearer_token(self, mock_jwt, mock_db, mock_email):
+    def test_get_child_accounts_by_user__should_validate_bearer_token(self, mock_jwt, mock_db):
         get_child_accounts_by_user(self.BEARER_TOKEN)
 
         mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
-    def test_get_child_accounts_by_user__should_call_database_with_user_id(self, mock_jwt, mock_db, mock_email):
+    def test_get_child_accounts_by_user__should_call_database_with_user_id(self, mock_jwt, mock_db):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
         get_child_accounts_by_user(self.BEARER_TOKEN)
 
         mock_db.return_value.__enter__.return_value.get_user_child_accounts.assert_called_with(self.USER_ID)
 
-    def test_get_child_accounts_by_user__should_return_response_from_database(self, mock_jwt, mock_db, mock_email):
+    def test_get_child_accounts_by_user__should_return_response_from_database(self, mock_jwt, mock_db):
         response = {'response': 'response data'}
         mock_db.return_value.__enter__.return_value.get_user_child_accounts.return_value = response
         actual = get_child_accounts_by_user(self.BEARER_TOKEN)
 
         assert actual == response
 
-    def test_delete_child_account__should_validate_bearer_token(self, mock_jwt, mock_db, mock_email):
+    def test_delete_child_account__should_validate_bearer_token(self, mock_jwt, mock_db):
         child_user_id = '123asdf'
         delete_child_account(self.BEARER_TOKEN, child_user_id)
         mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
-    def test_delete_child_account__should_call_database_with_user_id(self, mock_jwt, mock_db, mock_email):
+    def test_delete_child_account__should_call_database_with_user_id(self, mock_jwt, mock_db):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
         child_user_id = '123acv'
         delete_child_account(self.BEARER_TOKEN, child_user_id)
         mock_db.return_value.__enter__.return_value.delete_child_user_account.assert_called_with(self.USER_ID, ANY)
 
-    def test_delete_child_account__should_call_database_with_child_user_id(self, mock_jwt, mock_db, mock_email):
+    def test_delete_child_account__should_call_database_with_child_user_id(self, mock_jwt, mock_db):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
         child_user_id = '123basdf'
         delete_child_account(self.BEARER_TOKEN, child_user_id)

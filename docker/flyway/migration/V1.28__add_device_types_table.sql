@@ -25,3 +25,9 @@ CREATE TABLE devices (
     node_device SMALLINT,
     registered BOOLEAN NOT NULL DEFAULT FALSE
 );
+
+CREATE TABLE user_devices (
+    ID UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES user_information(ID),
+    device_id UUID NOT NULL REFERENCES devices(ID)
+);

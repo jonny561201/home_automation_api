@@ -3,7 +3,7 @@ import uuid
 
 from sqlalchemy import delete
 
-from integration.route_base import mock_jwks_token
+from integration.integration_helpers import mock_jwks_token
 from svc.db.models.user_information_model import Scenes, SceneDetails, UserInformation
 from svc.db.repositories.database_base import DatabaseBase
 from svc.manager import app

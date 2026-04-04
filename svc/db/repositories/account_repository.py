@@ -4,7 +4,7 @@ from sqlalchemy import select, delete
 from werkzeug.exceptions import BadRequest
 
 from svc.db.repositories.database_base import DatabaseBase
-from svc.db.models.user_information_model import ChildAccounts, UserInformation, UserPreference
+from svc.db.models.user_information_model import ChildAccounts, Devices, UserDevices, UserInformation, UserPreference
 
 
 class AccountRepository(DatabaseBase):
@@ -20,10 +20,12 @@ class AccountRepository(DatabaseBase):
 
     def delete_child_user_account(self, user_id, child_user_id):
         self._validate_property(user_id)
+        device_stmt = delete(UserDevices).where(UserDevices.user_id == child_user_id)
+        self.session.execute(device_stmt)
         child_stmt = delete(ChildAccounts).where(ChildAccounts.parent_user_id == user_id, ChildAccounts.child_user_id == child_user_id)
         self.session.execute(child_stmt)
 
-    def create_child_account(self, user_id, email):
+    def create_child_account(self, user_id, email, device_ids):
         self._validate_property(user_id)
         stmt = select(ChildAccounts).filter_by(child_user_id=user_id)
         child_account = self.session.execute(stmt).scalars().first()
@@ -35,12 +37,18 @@ class AccountRepository(DatabaseBase):
         self._validate_property(parent)
 
         new_user_id = str(uuid.uuid4())
-        user_info = UserInformation(id=new_user_id, email=email, first_name=parent.first_name, last_name=parent.last_name)
+        user_info = UserInformation(id=new_user_id, email=email, first_name='', last_name='')
         self.session.add(user_info)
         self.__create_user_preference(new_user_id, user_id)
         child = ChildAccounts(parent_user_id=user_id, child_user_id=new_user_id)
         self.session.add(child)
-        return {'first_name': parent.first_name, 'last_name': parent.last_name, 'email': email, 'user_id': new_user_id}
+
+        stmt = select(Devices).where(Devices.user_id == user_id, Devices.id.in_(device_ids))
+        devices = self.session.execute(stmt).scalars().all()
+        for device in devices:
+            self.session.add(UserDevices(user_id=new_user_id, device_id=str(device.id)))
+
+        return {'email': email, 'user_id': new_user_id}
 
     def insert_preferences_by_user(self, user_id, preference_info):
         if len(preference_info) == 0 or user_id is None:
@@ -75,4 +83,3 @@ class AccountRepository(DatabaseBase):
         pref = self.session.execute(stmt).scalars().first()
         new_pref = UserPreference(user_id=new_user_id, is_fahrenheit=pref.is_fahrenheit, is_imperial=pref.is_imperial, city=pref.city)
         self.session.add(new_pref)
-

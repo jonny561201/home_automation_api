@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from werkzeug.exceptions import Unauthorized
 
-from db.models.user_information_model import UserInformation
+from svc.db.models.user_information_model import UserInformation
 from svc.db.repositories.database_base import DatabaseBase
 
 
@@ -21,6 +21,6 @@ class CredentialRepository(DatabaseBase):
         user = self.session.execute(stmt).scalars().first()
         if user is None:
             raise Unauthorized
-        return {'user_id': str(user.user_id),
-                'first_name': user.user.first_name,
-                'last_name': user.user.last_name}
+        return {'user_id': str(user.id),
+                'first_name': user.first_name,
+                'last_name': user.last_name}
