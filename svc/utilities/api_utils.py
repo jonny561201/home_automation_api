@@ -4,6 +4,7 @@ from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
 from svc.config.settings_state import Settings
 from svc.constants.home_automation import Mime
 from svc.models.garage import GarageStatus
+from svc.utilities.string_utils import generate_password
 
 
 def get_city_coordinates(city):
@@ -123,6 +124,55 @@ def exchange_auth0_code(code, code_verifier, redirect_uri):
     __validate_response(response)
 
     return response.json()
+
+
+def create_auth0_user(email):
+    token = __get_management_token()
+    authority = Settings.get_instance().Authority
+    password = generate_password(24)
+    request = {
+        'email': email,
+        'password': password,
+        'email_verified': False,
+        'connection': 'Username-Password-Authentication',
+    }
+    headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
+    response = requests.post(f'https://{authority.domain}/api/v2/users', json=request, headers=headers)
+    __validate_response(response)
+    return response.json()['user_id']
+
+
+def assign_auth0_roles(auth0_id, role_ids):
+    token = __get_management_token()
+    authority = Settings.get_instance().Authority
+    headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
+    request = {'roles': role_ids}
+    response = requests.post(f'https://{authority.domain}/api/v2/users/{auth0_id}/roles', json=request, headers=headers)
+    __validate_response(response)
+
+
+def send_auth0_password_reset(email):
+    authority = Settings.get_instance().Authority
+    request = {
+        'client_id': authority.client_id,
+        'email': email,
+        'connection': 'Username-Password-Authentication',
+    }
+    response = requests.post(f'https://{authority.domain}/dbconnections/change_password', json=request)
+    __validate_response(response)
+
+
+def __get_management_token():
+    authority = Settings.get_instance().Authority
+    request = {
+        'grant_type': 'client_credentials',
+        'client_id': authority.client_id,
+        'client_secret': authority.client_secret,
+        'audience': f'https://{authority.domain}/api/v2/',
+    }
+    response = requests.post(f'https://{authority.domain}/oauth/token', json=request)
+    __validate_response(response)
+    return response.json()['access_token']
 
 
 def __validate_response(response):
