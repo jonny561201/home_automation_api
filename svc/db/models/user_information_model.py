@@ -31,6 +31,7 @@ class DeviceType(Base):
 
     id = Column(UUID, nullable=False, primary_key=True, server_default=sqlalchemy.text("gen_random_uuid()"))
     type = Column(String, nullable=False)
+    auth0_role_id = Column(String, nullable=True)
 
 class Devices(Base):
     __tablename__ = 'devices'
