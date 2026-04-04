@@ -20,13 +20,13 @@ def create_child_account_by_user(bearer_token, request_data):
     user_id = claims[AuthClaims.USER_ID]
     email = request_data.get('email')
     roles = request_data.get('roles')
-    if email == '' or roles == []:
-        raise BadRequest()
-    new_pass = generate_password(10)
+    # if email == '' or roles == []:
+    #     raise BadRequest()
+    # new_pass = generate_password(10)
     with AccountRepository() as database:
-        child_accounts = database.create_child_account(user_id, email, roles, new_pass)
-    send_new_account_email(request_data['email'], new_pass)
-    return child_accounts
+        child_account = database.create_child_account(user_id, email)
+    # send_new_account_email(request_data['email'], new_pass)
+    return child_account
 
 
 def get_child_accounts_by_user(bearer_token):

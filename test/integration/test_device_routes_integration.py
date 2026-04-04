@@ -23,8 +23,8 @@ class TestDeviceRoutesIntegration:
         self.TEST_CLIENT = flask_app.test_client()
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
         with DatabaseBase() as database:
-            type = database.session.execute(select(DeviceType).where(DeviceType.type == 'Lighting')).scalars().first()
-            self.DEVICE = Devices(ip_address=self.IP_ADDRESS, ip_port=2, node_device=1, node_name='sample', device_type_id=type.id, user_id=self.USER_ID)
+            device_type = database.session.execute(select(DeviceType).where(DeviceType.type == 'Lighting')).scalars().first()
+            self.DEVICE = Devices(ip_address=self.IP_ADDRESS, ip_port=2, node_device=1, node_name='sample', device_type_id=device_type.id, user_id=self.USER_ID)
             database.session.add(self.USER_INFO)
             database.session.commit()
             database.session.add(self.DEVICE)

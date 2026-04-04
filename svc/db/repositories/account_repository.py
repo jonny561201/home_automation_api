@@ -4,7 +4,7 @@ from sqlalchemy import select, delete
 from werkzeug.exceptions import BadRequest
 
 from svc.db.repositories.database_base import DatabaseBase
-from svc.db.models.user_information_model import ChildAccounts, UserInformation, UserPreference, Devices
+from svc.db.models.user_information_model import ChildAccounts, UserInformation, UserPreference
 
 
 class AccountRepository(DatabaseBase):
@@ -22,39 +22,25 @@ class AccountRepository(DatabaseBase):
         self._validate_property(user_id)
         child_stmt = delete(ChildAccounts).where(ChildAccounts.parent_user_id == user_id, ChildAccounts.child_user_id == child_user_id)
         self.session.execute(child_stmt)
-        # user_stmt = delete(UserCredentials).where(UserCredentials.user_id == child_user_id)
-        # self.session.execute(user_stmt)
 
-    # TODO: create account and duplicate roles
-    # TODO: the child will need to signup in auth0
-    # TODO: then post registration action will need to provision and that needs to check email
-    # def create_child_account(self, user_id, email, roles, new_pass):
-    #     self._validate_property(user_id)
-    #     stmt = select(ChildAccounts).filter_by(child_user_id=user_id)
-    #     child_account = self.session.execute(stmt).scalars().first()
-    #
-    #     # stmt = select(UserCredentials).filter_by(user_id=user_id)
-    #     # user = self.session.execute(stmt).scalars().first()
-    #     if child_account is not None:
-    #         raise BadRequest
-    #
-    #     new_user_id = str(uuid.uuid4())
-    #     user_info = UserInformation(id=new_user_id, email=email, first_name=user.user.first_name, last_name=user.user.last_name)
-    #     # user_creds = UserCredentials(id=str(uuid.uuid4()), user_name=email, password=new_pass, user_id=new_user_id)
-    #     self.session.add(user_info)
-    #     # self.session.add(user_creds)
-    #
-    #     for user_role in user.user_roles:
-    #         if user_role.role.role_name in roles:
-    #             self.__duplicate_roles(new_user_id, user_role)
-    #
-    #     self.__create_user_preference(new_user_id, user_id)
-    #     child = ChildAccounts(parent_user_id=user_id, child_user_id=new_user_id)
-    #     self.session.add(child)
-    #     stmt = select(ChildAccounts).filter_by(parent_user_id=user_id)
-    #     children = self.session.execute(stmt).scalars().all()
-    #     children_ids = [child.child_user_id for child in children]
-    #     return [self.__get_user_info(child_id) for child_id in children_ids]
+    def create_child_account(self, user_id, email):
+        self._validate_property(user_id)
+        stmt = select(ChildAccounts).filter_by(child_user_id=user_id)
+        child_account = self.session.execute(stmt).scalars().first()
+        if child_account is not None:
+            raise BadRequest
+
+        stmt = select(UserInformation).filter_by(id=user_id)
+        parent = self.session.execute(stmt).scalars().first()
+        self._validate_property(parent)
+
+        new_user_id = str(uuid.uuid4())
+        user_info = UserInformation(id=new_user_id, email=email, first_name=parent.first_name, last_name=parent.last_name)
+        self.session.add(user_info)
+        self.__create_user_preference(new_user_id, user_id)
+        child = ChildAccounts(parent_user_id=user_id, child_user_id=new_user_id)
+        self.session.add(child)
+        return {'first_name': parent.first_name, 'last_name': parent.last_name, 'email': email, 'user_id': new_user_id}
 
     def insert_preferences_by_user(self, user_id, preference_info):
         if len(preference_info) == 0 or user_id is None:
@@ -79,11 +65,10 @@ class AccountRepository(DatabaseBase):
         self.session.add(user)
         return user_id
 
-    # def __get_user_info(self, user_id):
-    #     stmt = select(UserCredentials).filter_by(user_id=user_id)
-    #     user = self.session.execute(stmt).scalars().first()
-    #     return {'user_name': user.user_name, 'user_id': str(user_id),
-    #             'roles': [role.role.role_name for role in user.user_roles]}
+    def __get_user_info(self, user_id):
+        stmt = select(UserInformation).filter_by(id=user_id)
+        user = self.session.execute(stmt).scalars().first()
+        return {'first_name': user.first_name, 'last_name': user.last_name, 'email': user.email, 'user_id': str(user.id)}
 
     def __create_user_preference(self, new_user_id, user_id):
         stmt = select(UserPreference).filter_by(user_id=user_id)
@@ -91,14 +76,3 @@ class AccountRepository(DatabaseBase):
         new_pref = UserPreference(user_id=new_user_id, is_fahrenheit=pref.is_fahrenheit, is_imperial=pref.is_imperial, city=pref.city)
         self.session.add(new_pref)
 
-    # def __duplicate_roles(self, new_user_id, user_role):
-    #     role_id = str(uuid.uuid4())
-    #     new_user_role = UserRoles(user_id=new_user_id, role_id=user_role.role_id, id=role_id)
-    #     new_user_role.role = user_role.role
-    #     self.session.add(new_user_role)
-    #     if user_role.role_devices is not None:
-    #         device_id = str(uuid.uuid4())
-    #         self.session.add(Devices(id=device_id, ip_address=user_role.role_devices.ip_address, max_nodes=user_role.role_devices.max_nodes, user_role_id=role_id))
-    #         if user_role.role_devices.role_device_nodes:
-    #             for node_device in user_role.role_devices.role_device_nodes:
-    #                 self.session.add(RoleDeviceNodes(role_device_id=device_id, node_name=node_device.node_name, node_device=node_device.node_device))

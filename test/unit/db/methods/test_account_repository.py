@@ -6,15 +6,11 @@ from mock import patch
 from sqlalchemy import orm
 from werkzeug.exceptions import BadRequest, NotFound
 
-from svc.db.models.user_information_model import ChildAccounts, Roles, UserRoles, UserCredentials, UserInformation, \
-    UserPreference
+from svc.db.models.user_information_model import ChildAccounts, UserInformation, UserPreference
 from svc.db.repositories.account_repository import AccountRepository
-from svc.models.account import UserRolesResponse
 
 
 class TestAccountRepository:
-    FAKE_PASS = 'testPass'
-    ROLE_NAME = 'garage_door'
     FIRST_NAME = 'John'
     LAST_NAME = 'Grape'
     USER_ID = '1234abcd'
@@ -24,7 +20,6 @@ class TestAccountRepository:
         self.DATABASE = AccountRepository()
         self.DATABASE.session = self.SESSION
 
-
     def test_get_user_child_accounts__should_return_not_found_when_user_id_is_none(self):
         with pytest.raises(NotFound):
             self.DATABASE.get_user_child_accounts(None)
@@ -32,17 +27,13 @@ class TestAccountRepository:
 
     def test_get_user_child_accounts__should_return_user_name_and_roles_per_user(self):
         user_id = uuid.uuid4()
-        role_name = 'test_role'
-        user_name = 'im_a_test_user'
         account = ChildAccounts(child_user_id=user_id)
-        role = Roles(role_name=role_name)
-        user_roles = UserRoles(role=role)
-        creds = UserCredentials(user_roles=[user_roles], user_name=user_name)
+        user = UserInformation(id=user_id, first_name=self.FIRST_NAME, last_name=self.LAST_NAME)
         self.SESSION.execute.return_value.scalars.return_value.all.return_value = [account]
-        self.SESSION.execute.return_value.scalars.return_value.first.return_value = creds
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = user
         actual = self.DATABASE.get_user_child_accounts(self.USER_ID)
 
-        assert actual == [{'user_name': user_name, 'user_id': str(user_id), 'roles': [role_name]}]
+        assert actual == [{'first_name': user.first_name, 'last_name': user.last_name, 'user_id': str(user_id), 'email': user.email}]
 
     def test_get_user_child_accounts__should_return_empty_list_when_no_child_accounts(self):
         self.SESSION.execute.return_value.scalars.return_value.all.return_value = None
@@ -66,77 +57,43 @@ class TestAccountRepository:
 
     def test_create_child_account__should_raise_not_found_when_user_id_is_none(self):
         with pytest.raises(NotFound):
-            self.DATABASE.create_child_account(None, '', [], '')
+            self.DATABASE.create_child_account(None, 'test@test.com')
         self.SESSION.execute.assert_not_called()
 
-    @patch('svc.db.repositories.account_repository.UserRoles')
-    def test_create_child_account__should_insert_user_role(self, mock_roles):
-        role = Roles(role_name='security')
-        user_role = UserRoles(role=role)
-        mock_roles.return_value = user_role
-        self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [None, UserCredentials(user=UserInformation(), user_roles=[user_role]), UserPreference(), UserCredentials()]
-        self.DATABASE.create_child_account(self.USER_ID, "", ['security'], self.FAKE_PASS)
-
-        self.SESSION.add.assert_any_call(user_role)
-
-    def test_create_child_account__should_throw_bad_request_when_no_user(self):
-        self.SESSION.query.return_value.filter_by.return_value.first.return_value = None
+    def test_create_child_account__should_raise_bad_request_when_caller_is_child(self):
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = ChildAccounts()
         with pytest.raises(BadRequest):
-            self.DATABASE.create_child_account(self.USER_ID, "", [], self.FAKE_PASS)
+            self.DATABASE.create_child_account(self.USER_ID, 'test@test.com')
 
-    def test_create_child_account__should_return_list_of_child_accounts(self):
-        user_id = uuid.uuid4()
-        role_name = 'test_role'
-        user_name = 'im_a_test_user'
-        user_info = UserInformation()
-        role = Roles(role_name=role_name)
-        user_roles = UserRoles(role=role)
-        account = ChildAccounts(child_user_id=user_id)
-        creds = UserCredentials(user_roles=[user_roles], user_name=user_name, user=user_info)
-        self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [None, creds, UserPreference(), creds]
-        self.SESSION.execute.return_value.scalars.return_value.all.return_value = [account]
-
-        actual = self.DATABASE.create_child_account(self.USER_ID, user_name, [], self.FAKE_PASS)
-        assert actual == [{'user_name': user_name, 'user_id': str(user_id), 'roles': [role_name]}]
-
-    def test_get_roles_by_user__should_raise_not_found_when_no_user(self):
-        self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
+    def test_create_child_account__should_raise_not_found_when_parent_not_found(self):
+        self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [None, None]
         with pytest.raises(NotFound):
-            self.DATABASE.get_roles_by_user(self.USER_ID)
+            self.DATABASE.create_child_account(self.USER_ID, 'test@test.com')
 
-    def test_get_roles_by_user__should_raise_not_found_when_no_user_id(self):
-        with pytest.raises(NotFound):
-            self.DATABASE.get_roles_by_user(None)
-        self.SESSION.execute.assert_not_called()
+    @patch('svc.db.repositories.account_repository.uuid')
+    def test_create_child_account__should_return_new_child_info(self, mock_uuid):
+        new_user_id = str(uuid.uuid4())
+        email = 'child@test.com'
+        mock_uuid.uuid4.return_value = new_user_id
+        parent = UserInformation(id=self.USER_ID, first_name=self.FIRST_NAME, last_name=self.LAST_NAME)
+        preference = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city='Des Moines')
+        self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [None, parent, preference]
 
-    def test_get_user_roles__should_raise_not_found_when_user_id_is_none(self):
-        with pytest.raises(NotFound):
-            self.DATABASE.get_user_roles(None)
-        self.SESSION.execute.assert_not_called()
+        actual = self.DATABASE.create_child_account(self.USER_ID, email)
 
-    def test_get_user_roles__should_raise_not_found_when_user_not_found(self):
-        self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
-        with pytest.raises(NotFound):
-            self.DATABASE.get_user_roles(self.USER_ID)
+        assert actual == {'first_name': self.FIRST_NAME, 'last_name': self.LAST_NAME, 'email': email, 'user_id': new_user_id}
 
-    def test_get_user_roles__should_return_user_roles_response_with_role_names(self):
-        role_one = Roles(role_name='lighting')
-        role_two = Roles(role_name='security')
-        user_roles = [UserRoles(role=role_one), UserRoles(role=role_two)]
-        creds = UserCredentials(user_roles=user_roles)
-        self.SESSION.execute.return_value.scalars.return_value.first.return_value = creds
+    @patch('svc.db.repositories.account_repository.uuid')
+    def test_create_child_account__should_add_user_info_and_child_account(self, mock_uuid):
+        new_user_id = str(uuid.uuid4())
+        mock_uuid.uuid4.return_value = new_user_id
+        parent = UserInformation(id=self.USER_ID, first_name=self.FIRST_NAME, last_name=self.LAST_NAME)
+        preference = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city='Des Moines')
+        self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [None, parent, preference]
 
-        actual = self.DATABASE.get_user_roles(self.USER_ID)
+        self.DATABASE.create_child_account(self.USER_ID, 'child@test.com')
 
-        assert actual == UserRolesResponse(roles=['lighting', 'security'])
-
-    def test_get_user_roles__should_return_empty_roles_when_user_has_none(self):
-        creds = UserCredentials(user_roles=[])
-        self.SESSION.execute.return_value.scalars.return_value.first.return_value = creds
-
-        actual = self.DATABASE.get_user_roles(self.USER_ID)
-
-        assert actual == UserRolesResponse(roles=[])
+        assert self.SESSION.add.call_count == 3
 
     def test_insert_preferences_by_user__should_raise_bad_request_when_preferences_empty(self):
         preference_info = {}
@@ -190,8 +147,3 @@ class TestAccountRepository:
         actual = self.DATABASE.provision_user(self.FIRST_NAME, self.LAST_NAME, 'test@test.com')
 
         assert actual == user_id
-
-    @staticmethod
-    def __create_database_user(id=str(uuid.uuid4()), password=FAKE_PASS, first=FIRST_NAME, last=LAST_NAME):
-        user = UserInformation(first_name=first, last_name=last)
-        return UserCredentials(id=uuid.uuid4(), user_name=user, password=password, user=user, user_id=id)
