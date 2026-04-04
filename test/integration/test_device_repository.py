@@ -20,7 +20,7 @@ class TestDbDeviceIntegration:
         self.CHILD_ACCOUNT = ChildAccounts(parent_user_id=self.USER_ID, child_user_id=self.CHILD_USER_ID)
         self.USER_PREF = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=False)
         with DatabaseBase() as database:
-            stmt = select(DeviceType).where(DeviceType.type == 'Garage Door')
+            stmt = select(DeviceType).where(DeviceType.type == 'garage_door')
             self.DEVICE_TYPE = database.session.execute(stmt).scalars().first()
             self.DEVICE = Devices(ip_address=self.IP_ADDRESS, node_name='test', user_id=self.USER_ID, device_type_id=self.DEVICE_TYPE.id)
             database.session.add_all([self.USER_INFO, self.CHILD_USER])

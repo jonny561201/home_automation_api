@@ -4,7 +4,7 @@ from datetime import datetime
 
 from sqlalchemy import select, delete
 
-from integration.integration_helpers import mock_jwks_token
+from test.integration.integration_helpers import mock_jwks_token
 from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, \
     UserPreference
 from svc.db.repositories.database_base import DatabaseBase

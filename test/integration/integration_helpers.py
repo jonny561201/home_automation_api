@@ -2,7 +2,7 @@ import jwt
 from cryptography.hazmat.primitives.asymmetric import rsa
 from mock import MagicMock
 
-from constants.home_automation import AuthClaims
+from svc.constants.home_automation import AuthClaims
 from svc.config.settings_state import Settings
 from svc.utilities.jwt_utils import AuthClient
 

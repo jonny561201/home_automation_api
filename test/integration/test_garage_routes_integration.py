@@ -7,7 +7,7 @@ from mock import patch
 from requests import Response
 from sqlalchemy import delete, select
 
-from integration.integration_helpers import mock_jwks_token
+from test.integration.integration_helpers import mock_jwks_token
 from svc.db.models.user_information_model import UserInformation, Devices, DeviceType
 from svc.db.repositories.database_base import DatabaseBase
 from svc.manager import app
@@ -25,7 +25,7 @@ class TestGarageDoorRoutesIntegration:
         self.TEST_CLIENT = flask_app.test_client()
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
         with DatabaseBase() as database:
-            stmt = select(DeviceType).where(DeviceType.type == 'Garage Door')
+            stmt = select(DeviceType).where(DeviceType.type == 'garage_door')
             type = database.session.execute(stmt).scalars().first()
             self.DEVICE = Devices(user_id=self.USER_ID, registered=False, ip_address='1.1.1.1', node_name='test', device_type_id=type.id)
 

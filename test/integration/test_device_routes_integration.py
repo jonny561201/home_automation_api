@@ -3,7 +3,7 @@ import uuid
 
 from sqlalchemy import delete, select
 
-from integration.integration_helpers import mock_jwks_token
+from test.integration.integration_helpers import mock_jwks_token
 from svc.db.models.user_information_model import DeviceType
 from svc.db.models.user_information_model import UserInformation, Devices
 from svc.db.repositories.database_base import DatabaseBase
@@ -23,7 +23,7 @@ class TestDeviceRoutesIntegration:
         self.TEST_CLIENT = flask_app.test_client()
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
         with DatabaseBase() as database:
-            device_type = database.session.execute(select(DeviceType).where(DeviceType.type == 'Lighting')).scalars().first()
+            device_type = database.session.execute(select(DeviceType).where(DeviceType.type == 'lighting')).scalars().first()
             self.DEVICE = Devices(ip_address=self.IP_ADDRESS, ip_port=2, node_device=1, node_name='sample', device_type_id=device_type.id, user_id=self.USER_ID)
             database.session.add(self.USER_INFO)
             database.session.commit()

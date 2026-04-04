@@ -26,7 +26,7 @@ class TestAccountIntegration:
         with DatabaseBase() as database:
             database.session.add(self.USER_INFO)
             database.session.add(self.PREFERENCE)
-            stmt = select(DeviceType).where(DeviceType.type == 'Garage Door')
+            stmt = select(DeviceType).where(DeviceType.type == 'garage_door')
             self.GARAGE_TYPE_ID = database.session.execute(stmt).scalars().first().id
 
     def teardown_method(self):

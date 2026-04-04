@@ -20,7 +20,7 @@ class DeviceRepository(DatabaseBase):
         user = self.session.execute(user_stmt).scalars().first()
         self._validate_property(user)
 
-        type_stmt = select(DeviceType).filter_by(type='Garage Door')
+        type_stmt = select(DeviceType).filter_by(type='garage_door')
         device_type = self.session.execute(type_stmt).scalars().first()
 
         device_id = str(uuid.uuid4())
@@ -29,7 +29,7 @@ class DeviceRepository(DatabaseBase):
         return device.id
 
     def get_user_garage_ip(self, user_id):
-        stmt = select(Devices).where(Devices.user_id == user_id, Devices.device_type.has(DeviceType.type == 'Garage Door'))
+        stmt = select(Devices).where(Devices.user_id == user_id, Devices.device_type.has(DeviceType.type == 'garage_door'))
         device = self.session.execute(stmt).scalars().first()
         self._validate_property(device)
         if device.ip_port is None:

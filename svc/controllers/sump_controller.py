@@ -1,4 +1,4 @@
-from constants.home_automation import AuthClaims
+from svc.constants.home_automation import AuthClaims
 from svc.db.repositories.sump_repository import SumpDatabase
 from svc.models.sump import SumpLevel
 from svc.utilities.conversion_utils import convert_to_imperial

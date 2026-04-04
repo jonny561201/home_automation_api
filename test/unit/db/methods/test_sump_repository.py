@@ -5,7 +5,7 @@ from mock import mock
 from sqlalchemy import orm
 from werkzeug.exceptions import NotFound
 
-from db.repositories.sump_repository import SumpDatabase
+from svc.db.repositories.sump_repository import SumpDatabase
 
 
 class TestSumpDatabase:

@@ -7,7 +7,7 @@ from mock import mock, patch
 from sqlalchemy import orm
 from werkzeug.exceptions import NotFound
 
-from db.models.user_information_model import ScheduleTasks, ScheduledTaskTypes
+from svc.db.models.user_information_model import ScheduleTasks, ScheduledTaskTypes
 from svc.db.repositories.tasks_repository import TasksRepository
 
 

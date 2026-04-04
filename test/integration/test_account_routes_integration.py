@@ -2,10 +2,11 @@ import json
 import uuid
 
 import jwt
+from mock import patch
 from sqlalchemy import delete, select
 
-from db.models.user_information_model import UserDevices
-from integration.integration_helpers import mock_jwks_token
+from svc.db.models.user_information_model import UserDevices
+from test.integration.integration_helpers import mock_jwks_token
 from svc.db.models.user_information_model import UserInformation, ChildAccounts, UserPreference, Devices, DeviceType
 from svc.db.repositories.database_base import DatabaseBase
 from svc.manager import app
@@ -32,7 +33,7 @@ class TestAccountRoutesIntegration:
         self.CHILD_ACCOUNT = ChildAccounts(parent_user_id=self.USER_ID, child_user_id=self.CHILD_USER_ID)
 
         with DatabaseBase() as database:
-            stmt = select(DeviceType).where(DeviceType.type == 'Thermostat')
+            stmt = select(DeviceType).where(DeviceType.type == 'thermostat')
             type = database.session.execute(stmt).scalars().first()
             self.DEVICE = Devices(id=self.DEVICE_ID, node_name='test', node_device=1, ip_address='1.1.1.1', user_id=self.USER_ID, device_type_id=type.id)
             database.session.add(self.USER)
@@ -56,7 +57,8 @@ class TestAccountRoutesIntegration:
 
         assert actual.status_code == 401
 
-    def test_post_child_account_by_user__should_return_success_after_creating_child_account(self):
+    @patch('svc.controllers.account_controller.api_utils')
+    def test_post_child_account_by_user__should_return_success_after_creating_child_account(self, mock_api):
         post_body = json.dumps({'email': self.CHILD_EMAIL, 'deviceIds': [self.DEVICE_ID]})
         actual = self.TEST_CLIENT.post(f'account/createChildAccount', headers=self.HEADERS, data=post_body)
 

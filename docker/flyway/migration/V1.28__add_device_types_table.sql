@@ -2,7 +2,7 @@ create table device_type (
     ID UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     type VARCHAR(255) NOT NULL,
     auth0_role_id VARCHAR(255)
-);_
+);
 
 INSERT INTO device_type (type, auth0_role_id) VALUES
    ('garage_door', 'rol_3x7V3WC9NOQrFGtA'),
