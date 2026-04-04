@@ -8,7 +8,8 @@ from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
 
 from svc.config.settings_state import Settings
 from svc.utilities.api_utils import get_city_coordinates, create_light_group, set_light_groups, set_light_state, \
-    get_light_groups, get_garage_door_status, send_new_account_email, get_forecast_by_coords, exchange_auth0_code
+    get_light_groups, get_garage_door_status, send_new_account_email, get_forecast_by_coords, exchange_auth0_code, \
+    create_auth0_user, assign_auth0_roles, send_auth0_password_reset
 
 
 @patch('svc.utilities.api_utils.requests')
@@ -536,4 +537,156 @@ class TestExchangeAuth0Code:
         mock_requests.post.return_value = self.RESPONSE
         with pytest.raises(FailedDependency):
             exchange_auth0_code(self.FAKE_CODE, self.FAKE_VERIFIER, self.FAKE_REDIRECT)
+
+
+@patch('svc.utilities.api_utils.generate_password')
+@patch('svc.utilities.api_utils.requests')
+class TestCreateAuth0User:
+    EMAIL = 'child@test.com'
+    DOMAIN = 'dev-test.us.auth0.com'
+    CLIENT_ID = 'fake_client_id'
+    CLIENT_SECRET = 'fake_client_secret'
+    MANAGEMENT_TOKEN = 'fake_management_token'
+
+    def setup_method(self):
+        Settings.get_instance().Authority._settings = {
+            'Domain': self.DOMAIN,
+            'ClientId': self.CLIENT_ID,
+            'ClientSecret': self.CLIENT_SECRET
+        }
+        self.TOKEN_RESPONSE = Response()
+        self.TOKEN_RESPONSE.status_code = 200
+        self.TOKEN_RESPONSE._content = json.dumps({'access_token': self.MANAGEMENT_TOKEN}).encode()
+        self.USER_RESPONSE = Response()
+        self.USER_RESPONSE.status_code = 200
+
+    def test_create_auth0_user__should_call_users_endpoint(self, mock_requests, mock_password):
+        mock_password.return_value = 'generated_pass'
+        self.USER_RESPONSE._content = json.dumps({'user_id': 'auth0|123'}).encode()
+        mock_requests.post.side_effect = [self.TOKEN_RESPONSE, self.USER_RESPONSE]
+
+        create_auth0_user(self.EMAIL)
+
+        expected_request = {
+            'email': self.EMAIL,
+            'password': 'generated_pass',
+            'email_verified': False,
+            'connection': 'Username-Password-Authentication',
+        }
+        expected_headers = {'Authorization': f'Bearer {self.MANAGEMENT_TOKEN}', 'Content-Type': 'application/json'}
+        mock_requests.post.assert_called_with(f'https://{self.DOMAIN}/api/v2/users', json=expected_request, headers=expected_headers)
+
+    def test_create_auth0_user__should_return_user_id(self, mock_requests, mock_password):
+        mock_password.return_value = 'generated_pass'
+        self.USER_RESPONSE._content = json.dumps({'user_id': 'auth0|123'}).encode()
+        mock_requests.post.side_effect = [self.TOKEN_RESPONSE, self.USER_RESPONSE]
+
+        actual = create_auth0_user(self.EMAIL)
+
+        assert actual == 'auth0|123'
+
+    def test_create_auth0_user__should_raise_unauthorized_on_401(self, mock_requests, mock_password):
+        mock_password.return_value = 'generated_pass'
+        self.USER_RESPONSE.status_code = 401
+        mock_requests.post.side_effect = [self.TOKEN_RESPONSE, self.USER_RESPONSE]
+
+        with pytest.raises(Unauthorized):
+            create_auth0_user(self.EMAIL)
+
+    def test_create_auth0_user__should_raise_failed_dependency_on_500(self, mock_requests, mock_password):
+        mock_password.return_value = 'generated_pass'
+        self.USER_RESPONSE.status_code = 500
+        mock_requests.post.side_effect = [self.TOKEN_RESPONSE, self.USER_RESPONSE]
+
+        with pytest.raises(FailedDependency):
+            create_auth0_user(self.EMAIL)
+
+
+@patch('svc.utilities.api_utils.requests')
+class TestAssignAuth0Roles:
+    AUTH0_ID = 'auth0|abc123'
+    ROLE_IDS = ['role_1', 'role_2']
+    DOMAIN = 'dev-test.us.auth0.com'
+    CLIENT_ID = 'fake_client_id'
+    CLIENT_SECRET = 'fake_client_secret'
+    MANAGEMENT_TOKEN = 'fake_management_token'
+
+    def setup_method(self):
+        Settings.get_instance().Authority._settings = {
+            'Domain': self.DOMAIN,
+            'ClientId': self.CLIENT_ID,
+            'ClientSecret': self.CLIENT_SECRET
+        }
+        self.TOKEN_RESPONSE = Response()
+        self.TOKEN_RESPONSE.status_code = 200
+        self.TOKEN_RESPONSE._content = json.dumps({'access_token': self.MANAGEMENT_TOKEN}).encode()
+        self.ROLES_RESPONSE = Response()
+        self.ROLES_RESPONSE.status_code = 200
+        self.ROLES_RESPONSE._content = b'{}'
+
+    def test_assign_auth0_roles__should_call_roles_endpoint(self, mock_requests):
+        mock_requests.post.side_effect = [self.TOKEN_RESPONSE, self.ROLES_RESPONSE]
+
+        assign_auth0_roles(self.AUTH0_ID, self.ROLE_IDS)
+
+        expected_headers = {'Authorization': f'Bearer {self.MANAGEMENT_TOKEN}', 'Content-Type': 'application/json'}
+        mock_requests.post.assert_called_with(f'https://{self.DOMAIN}/api/v2/users/{self.AUTH0_ID}/roles', json={'roles': self.ROLE_IDS}, headers=expected_headers)
+
+    def test_assign_auth0_roles__should_raise_unauthorized_on_401(self, mock_requests):
+        self.ROLES_RESPONSE.status_code = 401
+        mock_requests.post.side_effect = [self.TOKEN_RESPONSE, self.ROLES_RESPONSE]
+
+        with pytest.raises(Unauthorized):
+            assign_auth0_roles(self.AUTH0_ID, self.ROLE_IDS)
+
+    def test_assign_auth0_roles__should_raise_failed_dependency_on_500(self, mock_requests):
+        self.ROLES_RESPONSE.status_code = 500
+        mock_requests.post.side_effect = [self.TOKEN_RESPONSE, self.ROLES_RESPONSE]
+
+        with pytest.raises(FailedDependency):
+            assign_auth0_roles(self.AUTH0_ID, self.ROLE_IDS)
+
+
+@patch('svc.utilities.api_utils.requests')
+class TestSendAuth0PasswordReset:
+    EMAIL = 'child@test.com'
+    DOMAIN = 'dev-test.us.auth0.com'
+    CLIENT_ID = 'fake_client_id'
+    CLIENT_SECRET = 'fake_client_secret'
+
+    def setup_method(self):
+        Settings.get_instance().Authority._settings = {
+            'Domain': self.DOMAIN,
+            'ClientId': self.CLIENT_ID,
+            'ClientSecret': self.CLIENT_SECRET
+        }
+        self.RESPONSE = Response()
+        self.RESPONSE.status_code = 200
+        self.RESPONSE._content = b'{}'
+
+    def test_send_auth0_password_reset__should_call_change_password_endpoint(self, mock_requests):
+        mock_requests.post.return_value = self.RESPONSE
+
+        send_auth0_password_reset(self.EMAIL)
+
+        expected_request = {
+            'client_id': self.CLIENT_ID,
+            'email': self.EMAIL,
+            'connection': 'Username-Password-Authentication',
+        }
+        mock_requests.post.assert_called_with(f'https://{self.DOMAIN}/dbconnections/change_password', json=expected_request)
+
+    def test_send_auth0_password_reset__should_raise_unauthorized_on_401(self, mock_requests):
+        self.RESPONSE.status_code = 401
+        mock_requests.post.return_value = self.RESPONSE
+
+        with pytest.raises(Unauthorized):
+            send_auth0_password_reset(self.EMAIL)
+
+    def test_send_auth0_password_reset__should_raise_failed_dependency_on_500(self, mock_requests):
+        self.RESPONSE.status_code = 500
+        mock_requests.post.return_value = self.RESPONSE
+
+        with pytest.raises(FailedDependency):
+            send_auth0_password_reset(self.EMAIL)
 
