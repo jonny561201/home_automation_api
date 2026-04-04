@@ -2,15 +2,8 @@ from werkzeug.exceptions import BadRequest
 
 from svc.constants.home_automation import AuthClaims
 from svc.db.repositories.account_repository import AccountRepository
-from svc.db.repositories.credential_repository import CredentialRepository
 from svc.utilities.jwt_utils import AuthClient
 
-
-def change_password(bearer_token, request_data):
-    claims = AuthClient.get_instance().verify_jwt(bearer_token)
-    user_id = claims[AuthClaims.USER_ID]
-    with CredentialRepository() as database:
-        database.change_user_password(user_id, request_data['oldPassword'], request_data['newPassword'])
 
 # TODO: create account and duplicate roles
 # TODO: the child will need to signup in auth0

@@ -51,26 +51,6 @@ class TestAccountRoutesIntegration:
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.CHILD_USER_ID))
 
-    def test_update_user_password__should_return_401_when_unauthorized(self):
-        bearer_token = jwt.encode({}, 'bad secret', algorithm='HS256')
-        headers = {'Authorization': bearer_token, 'Content-Type': 'application/json'}
-
-        actual = self.TEST_CLIENT.post(f'account/updateAccount', data='{}', headers=headers)
-
-        assert actual.status_code == 401
-
-    # def test_update_user_password__should_update_user_password_successfully(self):
-    #     new_pass = 'not important'
-    #     post_body = json.dumps({'userName': self.USER_NAME, 'oldPassword': self.PASSWORD, 'newPassword': new_pass})
-    #
-    #     actual = self.TEST_CLIENT.post(f'account/updateAccount', data=post_body, headers=self.HEADERS)
-    #
-    #     assert actual.status_code == 200
-    #
-    #     with DatabaseBase() as database:
-    #         creds = database.session.execute(select(UserCredentials).where(UserCredentials.user_id == self.USER_ID)).scalars().first()
-    #         assert creds.password == new_pass
-
     def test_post_child_account_by_user__should_return_unauthorized_when_bad_jwt(self):
         actual = self.TEST_CLIENT.post(f'account/createChildAccount', data='{}', headers={'Content-Type': 'application/json'})
 

@@ -5,47 +5,8 @@ from flask import Flask
 from mock import patch, ANY
 from werkzeug.exceptions import Unauthorized
 
-from svc.endpoints.account_routes import update_user_password, post_child_account_by_user, get_child_accounts, delete_child_account
+from svc.endpoints.account_routes import post_child_account_by_user, get_child_accounts, delete_child_account
 from test.unit.test_helpers import setup_request
-
-
-@patch('svc.endpoints.account_routes.account_controller')
-class TestAppRoutes:
-    USER_ID = '123bac34'
-    FAKE_JWT_TOKEN = 'fakeJwtToken'
-    HEADERS = {'Authorization': FAKE_JWT_TOKEN}
-    REQUEST = {'fakeData': 'doesnt matter'}
-
-    def setup_method(self):
-        self.app = Flask(__name__)
-        self.ctx = setup_request(self.app, headers=self.HEADERS)
-
-    def teardown_method(self):
-        self.ctx.pop()
-
-    def test_update_user_password__should_call_change_password_controller_with_bearer_token(self, mock_controller):
-        self.ctx = setup_request(self.app, self.ctx, self.REQUEST, self.HEADERS)
-        update_user_password()
-
-        mock_controller.change_password.assert_called_with(self.FAKE_JWT_TOKEN, ANY)
-
-    def test_update_user_password__should_call_change_password_controller_with_data(self, mock_controller):
-        self.ctx = setup_request(self.app, self.ctx, self.REQUEST)
-        update_user_password()
-
-        mock_controller.change_password.assert_called_with(ANY, self.REQUEST)
-
-    def test_update_user_password__should_return_success_status_code(self, mock_controller):
-        self.ctx = setup_request(self.app, self.ctx, self.REQUEST)
-        actual = update_user_password()
-
-        assert actual.status_code == 200
-
-    def test_update_user_password__should_return_success_content(self, mock_controller):
-        self.ctx = setup_request(self.app, self.ctx, self.REQUEST)
-        actual = update_user_password()
-
-        assert actual.content_type == 'application/json'
 
 
 @patch('svc.endpoints.account_routes.account_controller')

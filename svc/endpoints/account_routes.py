@@ -9,13 +9,6 @@ from svc.controllers import account_controller
 ACCOUNT_BLUEPRINT = Blueprint('account_routes', __name__, url_prefix='/account')
 
 
-@ACCOUNT_BLUEPRINT.route('/updateAccount', methods=['POST'])
-def update_user_password():
-    bearer_token = request.headers.get('Authorization')
-    account_controller.change_password(bearer_token, request.get_json())
-    return Response(status=200, mimetype=Mime.JSON)
-
-
 @ACCOUNT_BLUEPRINT.route('/createChildAccount', methods=['POST'])
 def post_child_account_by_user():
     bearer_token = request.headers.get('Authorization')

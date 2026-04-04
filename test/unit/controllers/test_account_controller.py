@@ -4,43 +4,7 @@ from mock import patch, ANY
 from werkzeug.exceptions import BadRequest
 
 from svc.constants.home_automation import AuthClaims
-from svc.controllers.account_controller import change_password, create_child_account_by_user, \
-    get_child_accounts_by_user, delete_child_account
-
-
-@patch('svc.controllers.account_controller.CredentialRepository')
-@patch('svc.controllers.account_controller.AuthClient')
-class TestAccountCredentials:
-    BEARER_TOKEN = jwt.encode({}, 'fake_jwt_secret', algorithm='HS256')
-    USER = 'user_name'
-    PASSWORD = 'password'
-    USER_ID = 'fake_user_id'
-
-    def test_change_password__should_validate_jwt_token(self, mock_jwt, mock_db):
-        request = {'userName': None, 'oldPassword': None, 'newPassword': None}
-        change_password(self.BEARER_TOKEN, request)
-
-        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
-
-    def test_change_password__should_call_database_change_user_password_with_user_id(self, mock_jwt, mock_db):
-        mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
-        request = {'userName': self.USER, 'oldPassword': self.PASSWORD, 'newPassword': 'new password'}
-        change_password(self.BEARER_TOKEN, request)
-
-        mock_db.return_value.__enter__.return_value.change_user_password.assert_called_with(self.USER_ID, ANY, ANY)
-
-    def test_change_password__should_call_database_change_user_password_with_old_password(self, mock_jwt, mock_db):
-        request = {'userName': self.USER, 'oldPassword': self.PASSWORD, 'newPassword': 'new password'}
-        change_password(self.BEARER_TOKEN, request)
-
-        mock_db.return_value.__enter__.return_value.change_user_password.assert_called_with(ANY, self.PASSWORD, ANY)
-
-    def test_change_password__should_call_database_change_user_password_with_new_password(self, mock_jwt, mock_db):
-        new_password = 'new password'
-        request = {'userName': self.USER, 'oldPassword': self.PASSWORD, 'newPassword': new_password}
-        change_password(self.BEARER_TOKEN, request)
-
-        mock_db.return_value.__enter__.return_value.change_user_password.assert_called_with(ANY, ANY, new_password)
+from svc.controllers.account_controller import create_child_account_by_user, get_child_accounts_by_user, delete_child_account
 
 
 @patch('svc.controllers.account_controller.AccountRepository')
