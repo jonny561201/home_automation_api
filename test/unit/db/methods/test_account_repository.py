@@ -114,43 +114,6 @@ class TestAccountRepository:
 
         assert self.SESSION.add.call_count == 5
 
-    def test_insert_preferences_by_user__should_raise_bad_request_when_preferences_empty(self):
-        preference_info = {}
-        user_id = uuid.uuid4()
-        with pytest.raises(BadRequest):
-            self.DATABASE.insert_preferences_by_user(user_id, preference_info)
-            self.SESSION.execute.return_value.scalars.assert_not_called()
-
-    def test_insert_preferences_by_user__should_raise_bad_request_when_no_user_id(self):
-        with pytest.raises(BadRequest):
-            self.DATABASE.insert_preferences_by_user(None, {'isFahrenheit': True})
-        self.SESSION.execute.assert_not_called()
-
-    def test_insert_preferences_by_user__should_not_throw_when_city_missing(self):
-        preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon', 'garage_id': 1, 'garage_door': 'test'}
-        user_id = str(uuid.uuid4())
-        self.DATABASE.insert_preferences_by_user(user_id, preference_info)
-
-    def test_insert_preferences_by_user__should_not_throw_when_is_fahrenheit_missing(self):
-        preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon', 'garage_id': 1, 'garage_door': 'test'}
-        user_id = str(uuid.uuid4())
-        self.DATABASE.insert_preferences_by_user(user_id, preference_info)
-
-    def test_insert_preferences_by_user__should_not_throw_when_is_imperial_missing(self):
-        preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon', 'garage_id': 1, 'garage_door': 'test'}
-        user_id = str(uuid.uuid4())
-        self.DATABASE.insert_preferences_by_user(user_id, preference_info)
-
-    def test_insert_preferences_by_user__should_not_throw_when_garage_door(self):
-        preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon', 'garage_id': 1, 'garage_door': 'test'}
-        user_id = str(uuid.uuid4())
-        self.DATABASE.insert_preferences_by_user(user_id, preference_info)
-
-    def test_insert_preferences_by_user__should_not_throw_when_garage_id(self):
-        preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'alarmDays': 'Mon', 'garage_door': 'test'}
-        user_id = str(uuid.uuid4())
-        self.DATABASE.insert_preferences_by_user(user_id, preference_info)
-
     @patch('svc.db.repositories.account_repository.uuid')
     def test_provision_user__should_add_user_to_session(self, mock_uuid):
         user_id = str(uuid.uuid4())

@@ -8,7 +8,7 @@ from svc.controllers.app_controller import get_user_preferences, save_user_prefe
     delete_user_task, insert_user_task, update_user_task
 
 
-@patch('svc.controllers.app_controller.AccountRepository')
+@patch('svc.controllers.app_controller.UserRepository')
 @patch('svc.controllers.app_controller.AuthClient')
 class TestAppControllerAccount:
     USER_ID = str(uuid.uuid4())

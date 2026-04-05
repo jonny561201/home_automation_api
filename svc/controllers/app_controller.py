@@ -1,13 +1,13 @@
 from svc.constants.home_automation import AuthClaims
-from svc.db.repositories.account_repository import AccountRepository
 from svc.db.repositories.tasks_repository import TasksRepository
+from svc.db.repositories.user_repository import UserRepository
 from svc.utilities.jwt_utils import AuthClient
 
 
 def get_user_preferences(bearer_token):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]
-    with AccountRepository() as database:
+    with UserRepository() as database:
         return database.get_preferences_by_user(user_id)
 
 
@@ -15,7 +15,7 @@ def get_user_preferences(bearer_token):
 def save_user_preferences(bearer_token, request_data):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]
-    with AccountRepository() as database:
+    with UserRepository() as database:
         database.insert_preferences_by_user(user_id, request_data)
 
 

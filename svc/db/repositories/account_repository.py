@@ -50,23 +50,6 @@ class AccountRepository(DatabaseBase):
 
         return {'email': email, 'user_id': new_user_id}
 
-    def insert_preferences_by_user(self, user_id, preference_info):
-        if len(preference_info) == 0 or user_id is None:
-            raise BadRequest
-        city = preference_info.get('city')
-        is_imperial = preference_info.get('isImperial')
-        is_fahrenheit = preference_info.get('isFahrenheit')
-        garage_door = preference_info.get('garageDoor')
-        garage_id = preference_info.get('garageId', '')
-
-        stmt = select(UserPreference).filter_by(user_id=user_id)
-        record = self.session.execute(stmt).scalars().first()
-        record.is_fahrenheit = is_fahrenheit if is_fahrenheit is not None else record.is_fahrenheit
-        record.is_imperial = is_imperial if is_imperial is not None else record.is_imperial
-        record.city = city if city is not None else record.city
-        record.garage_door = garage_door if garage_door is not None else record.garage_door
-        record.garage_id = garage_id if garage_id != '' else record.garage_id
-
     def provision_user(self, first_name, last_name, email):
         user_id = str(uuid.uuid4())
         user = UserInformation(id=user_id, first_name=first_name, last_name=last_name, email=email)

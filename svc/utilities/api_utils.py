@@ -2,7 +2,6 @@ import requests
 from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
 
 from svc.config.settings_state import Settings
-from svc.constants.home_automation import Mime
 from svc.models.garage import GarageStatus
 from svc.utilities.string_utils import generate_password
 
@@ -16,7 +15,15 @@ def get_city_coordinates(city):
 
 
 def get_forecast_by_coords(lat, lon, unit):
-    args = {'latitude': lat, 'longitude': lon, 'current_weather': True, 'temperature_unit': unit, 'daily': 'temperature_2m_max,temperature_2m_min,weathercode', 'forecast_days': 1, 'timezone': 'auto'}
+    args = {
+        'latitude': lat,
+        'longitude': lon,
+        'current_weather': True,
+        'temperature_unit': unit,
+        'daily': 'temperature_2m_max,temperature_2m_min,weathercode',
+        'forecast_days': 1,
+        'timezone': 'auto'
+    }
     base_url = Settings.get_instance().BaseUrls.weather
     response = requests.get(f'https://{base_url}/forecast', params=args)
     __validate_response(response)
@@ -92,21 +99,6 @@ def assign_light_group(api_key, group_id, light_id, name, switch_type):
 
     request = {'name': name, 'groupId': group_id, 'lightId': light_id, 'switchTypeId': switch_type}
     requests.post(f'{base_url}/group/assign', json=request, headers={'LightApiKey': api_key})
-
-
-def send_new_account_email(email, password):
-    settings = Settings.get_instance()
-    headers = {
-        'api-key': settings.email_app_id,
-        'content-type': Mime.JSON,
-        'accept': Mime.JSON}
-    request = {
-        'sender': {'name': 'Home Automation', 'email': 'senderalex@example.com'},
-        'to': [{'email': email, 'name': 'Your Name'}],
-        'subject': 'Home Automation: New Account Registration',
-        'htmlContent': f'<html><head></head><body><p>Hello,</p><p>A new Home Automation account has been setup for you.</p><p>Password: {password}</p></body></html>'
-    }
-    requests.post(settings.BaseUrls.email, json=request, headers=headers)
 
 
 def exchange_auth0_code(code, code_verifier, redirect_uri):

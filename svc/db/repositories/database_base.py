@@ -36,16 +36,6 @@ class DatabaseBase:
                           garageDoor=preference.garage_door, garageId=preference.garage_id,
                           tempUnit='fahrenheit' if preference.is_fahrenheit else 'celsius')
 
-
-    @staticmethod
-    def _create_role(role_devices, role_name):
-        if role_devices is not None:
-            return {'ip_address': role_devices.ip_address, 'role_name': role_name,
-                    'device_id': str(role_devices.id),
-                    'devices': [{'node_device': node.node_device, 'node_name': node.node_name} for node in role_devices.role_device_nodes]}
-        else:
-            return {'role_name': role_name}
-
     @staticmethod
     def _validate_property(record):
         if record is None:

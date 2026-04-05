@@ -8,7 +8,7 @@ from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
 
 from svc.config.settings_state import Settings
 from svc.utilities.api_utils import get_city_coordinates, create_light_group, set_light_groups, set_light_state, \
-    get_light_groups, get_garage_door_status, send_new_account_email, get_forecast_by_coords, exchange_auth0_code, \
+    get_light_groups, get_garage_door_status, get_forecast_by_coords, exchange_auth0_code, \
     create_auth0_user, assign_auth0_roles, send_auth0_password_reset
 
 
@@ -450,40 +450,6 @@ class TestLightApiRequests:
         response.status_code = status
         response._content = json.dumps(data).encode('UTF-8')
         return response
-
-
-@patch('svc.utilities.api_utils.requests')
-class TestEmailApiRequests:
-    EMAIL = 'test@test.com'
-    PASSWORD = 'fakePassword'
-    API_KEY = 'asdjfhv323240'
-    URL = 'https://test.email.api'
-
-    def setup_method(self):
-        Settings.get_instance()._settings = {'EmailAppId': self.API_KEY}
-        Settings.get_instance().BaseUrls._settings = {'Email': self.URL}
-
-    def test_send_new_account_email__should_pass_api_key_to_header_in_requests(self, mock_request):
-        expected_header = {'api-key': self.API_KEY, 'content-type': 'application/json', 'accept': 'application/json'}
-        send_new_account_email(self.EMAIL, self.PASSWORD)
-
-        mock_request.post.assert_called_with(ANY, json=ANY, headers=expected_header)
-
-    def test_send_new_account_email__should_call_url_in_post_method(self, mock_request):
-        send_new_account_email(self.EMAIL, self.PASSWORD)
-
-        mock_request.post.assert_called_with(self.URL, json=ANY, headers=ANY)
-
-    def test_send_new_account_email__should_make_call_to_post_request_with_correct_body(self, mock_request):
-        expected_data = {
-            "sender": {"name": "Home Automation", "email": 'senderalex@example.com'},
-            "to": [{"email": self.EMAIL, "name": "Your Name"}],
-            "subject": "Home Automation: New Account Registration",
-            "htmlContent": f"<html><head></head><body><p>Hello,</p><p>A new Home Automation account has been setup for you.</p><p>Password: {self.PASSWORD}</p></body></html>"
-        }
-        send_new_account_email(self.EMAIL, self.PASSWORD)
-
-        mock_request.post.assert_called_with(ANY, json=expected_data, headers=ANY)
 
 
 @patch('svc.utilities.api_utils.requests')
