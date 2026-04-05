@@ -1,4 +1,4 @@
-from db.repositories.user_repository import UserRepository
+from svc.db.repositories.user_repository import UserRepository
 from svc.constants.home_automation import AuthClaims
 from svc.db.repositories.sump_repository import SumpRepository
 from svc.models.sump import SumpLevel

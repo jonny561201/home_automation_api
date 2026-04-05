@@ -1,4 +1,4 @@
-from db.repositories.user_repository import UserRepository
+from svc.db.repositories.user_repository import UserRepository
 from svc.constants.home_automation import Automation, AuthClaims
 from svc.models.thermostat import ThermostatState
 from svc.services import weather_request

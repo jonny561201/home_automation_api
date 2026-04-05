@@ -1,15 +1,14 @@
 import json
 import uuid
 
-import jwt
 from mock import patch
 from sqlalchemy import delete, select
 
 from svc.db.models.user_information_model import UserDevices
-from test.integration.integration_helpers import mock_jwks_token
 from svc.db.models.user_information_model import UserInformation, ChildAccounts, UserPreference, Devices, DeviceType
 from svc.db.repositories.database_base import DatabaseBase
 from svc.manager import app
+from test.integration.integration_helpers import mock_jwks_token
 
 
 class TestAccountRoutesIntegration:

@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from werkzeug.exceptions import Unauthorized, BadRequest
 
-from models.app import Preference
+from svc.models.app import Preference
 from svc.db.models.user_information_model import UserInformation, UserPreference
 from svc.db.repositories.database_base import DatabaseBase
 
