@@ -8,7 +8,7 @@ from werkzeug.exceptions import NotFound
 from svc.db.models.user_information_model import DailySumpPumpLevel, AverageSumpPumpLevel, ChildAccounts, \
     UserInformation
 from svc.db.repositories.database_base import DatabaseBase
-from svc.db.repositories.sump_repository import SumpDatabase
+from svc.db.repositories.sump_repository import SumpRepository
 
 
 class TestDbSumpIntegration:
@@ -54,45 +54,45 @@ class TestDbSumpIntegration:
 
 
     def test_get_current_sump_level_by_user__should_return_valid_sump_level(self):
-        with SumpDatabase() as database:
+        with SumpRepository() as database:
             actual = database.get_current_sump_level_by_user(self.FIRST_USER_ID)
             assert actual['currentDepth'] == 11.0
             assert actual['warningLevel'] == 2
 
     def test_get_current_sump_level_by_user__should_return_latest_record_for_single_user(self):
-        with SumpDatabase() as database:
+        with SumpRepository() as database:
             actual = database.get_current_sump_level_by_user(self.SECOND_USER_ID)
             assert actual['currentDepth'] == 12.0
             assert actual['warningLevel'] == 2
 
     def test_get_current_sump_level_by_user__should_return_parent_records_for_child(self):
-        with SumpDatabase() as database:
+        with SumpRepository() as database:
             actual = database.get_current_sump_level_by_user(self.CHILD_USER_ID)
             assert actual['currentDepth'] == 11.0
             assert actual['warningLevel'] == 2
 
     def test_get_current_sump_level_by_user__should_raise_not_found_when_user_not_found(self):
-        with SumpDatabase() as database:
+        with SumpRepository() as database:
             with pytest.raises(NotFound):
                 database.get_current_sump_level_by_user(str(uuid.uuid4()))
 
     def test_get_average_sump_level_by_user__should_return_latest_record_for_single_user(self):
-        with SumpDatabase() as database:
+        with SumpRepository() as database:
             actual = database.get_average_sump_level_by_user(self.FIRST_USER_ID)
             assert actual == {'averageDepth': self.DEPTH, 'latestDate': self.DAY}
 
     def test_get_average_sump_level_by_user__should_return_parent_records_for_child(self):
-        with SumpDatabase() as database:
+        with SumpRepository() as database:
             actual = database.get_average_sump_level_by_user(self.CHILD_USER_ID)
             assert actual == {'averageDepth': self.DEPTH, 'latestDate': self.DAY}
 
     def test_get_average_sump_level_by_user__should_raise_not_found_when_user_not_found(self):
-        with SumpDatabase() as database:
+        with SumpRepository() as database:
             with pytest.raises(NotFound):
                 database.get_average_sump_level_by_user(str(uuid.uuid4()))
 
     def test_insert_current_sump_level__should_store_new_record(self):
-        with SumpDatabase() as database:
+        with SumpRepository() as database:
             depth_info = {'depth': self.UPDATED_DEPTH,
                           'warning_level': 3,
                           'datetime': str(self.DATE)}
@@ -107,6 +107,6 @@ class TestDbSumpIntegration:
         depth_info = {'badData': None}
         user_id = 1234
         with pytest.raises(NotFound):
-            with SumpDatabase() as database:
+            with SumpRepository() as database:
                 database.insert_current_sump_level(user_id, depth_info)
 

@@ -5,7 +5,7 @@ from mock import mock
 from sqlalchemy import orm
 from werkzeug.exceptions import NotFound
 
-from svc.db.repositories.sump_repository import SumpDatabase
+from svc.db.repositories.sump_repository import SumpRepository
 
 
 class TestSumpDatabase:
@@ -13,7 +13,7 @@ class TestSumpDatabase:
 
     def setup_method(self, _):
         self.SESSION = mock.create_autospec(orm.scoped_session)
-        self.DATABASE = SumpDatabase()
+        self.DATABASE = SumpRepository()
         self.DATABASE.session = self.SESSION
 
 

@@ -11,7 +11,7 @@ from svc.models.app import Preference
 
 @patch('svc.controllers.thermostat_controller.get_desired_temp')
 @patch('svc.controllers.thermostat_controller.get_user_temperature')
-@patch('svc.controllers.thermostat_controller.AccountRepository')
+@patch('svc.controllers.thermostat_controller.UserRepository')
 @patch('svc.controllers.thermostat_controller.AuthClient')
 class TestThermostatTempController:
     JWT_TOKEN = jwt.encode({}, 'JWT_SECRET', algorithm='HS256')
@@ -106,7 +106,7 @@ class TestThermostatTempController:
 
 
 @patch('svc.controllers.thermostat_controller.weather_request')
-@patch('svc.controllers.thermostat_controller.AccountRepository')
+@patch('svc.controllers.thermostat_controller.UserRepository')
 @patch('svc.controllers.thermostat_controller.AuthClient')
 class TestThermostatForecastController:
     JWT_TOKEN = jwt.encode({}, 'JWT_SECRET', algorithm='HS256')

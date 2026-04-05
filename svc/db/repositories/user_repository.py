@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from werkzeug.exceptions import Unauthorized, BadRequest
 
+from models.app import Preference
 from svc.db.models.user_information_model import UserInformation, UserPreference
 from svc.db.repositories.database_base import DatabaseBase
 
@@ -15,6 +16,16 @@ class UserRepository(DatabaseBase):
         return {'user_id': str(user.id),
                 'first_name': user.first_name,
                 'last_name': user.last_name}
+
+    def get_preferences_by_user(self, user_id):
+        self._validate_property(user_id)
+        stmt = select(UserPreference).filter_by(user_id=user_id)
+        preference = self.session.execute(stmt).scalars().first()
+        self._validate_property(preference)
+        return Preference(isFahrenheit=preference.is_fahrenheit, isImperial=preference.is_imperial, city=preference.city,
+                          measureUnit='imperial' if preference.is_imperial else 'metric',
+                          garageDoor=preference.garage_door, garageId=preference.garage_id,
+                          tempUnit='fahrenheit' if preference.is_fahrenheit else 'celsius')
 
     def insert_preferences_by_user(self, user_id, preference_info):
         if len(preference_info) == 0 or user_id is None:

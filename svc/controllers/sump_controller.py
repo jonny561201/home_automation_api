@@ -1,5 +1,6 @@
+from db.repositories.user_repository import UserRepository
 from svc.constants.home_automation import AuthClaims
-from svc.db.repositories.sump_repository import SumpDatabase
+from svc.db.repositories.sump_repository import SumpRepository
 from svc.models.sump import SumpLevel
 from svc.utilities.conversion_utils import convert_to_imperial
 from svc.utilities.jwt_utils import AuthClient
@@ -8,9 +9,10 @@ from svc.utilities.jwt_utils import AuthClient
 def get_sump_level(bearer_token):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]
-    with SumpDatabase() as database:
+    with SumpRepository() as database:
         current_data = database.get_current_sump_level_by_user(user_id)
         average_data = database.get_average_sump_level_by_user(user_id)
+    with UserRepository() as database:
         preferences = database.get_preferences_by_user(user_id)
 
         return __map_response(current_data, average_data, preferences.isImperial)
@@ -19,7 +21,7 @@ def get_sump_level(bearer_token):
 def save_current_level(bearer_token, request_data):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]
-    with SumpDatabase() as database:
+    with SumpRepository() as database:
         database.insert_current_sump_level(user_id, request_data)
 
 

@@ -5,7 +5,7 @@ from svc.db.models.user_information_model import ChildAccounts, DailySumpPumpLev
 from svc.db.repositories.database_base import DatabaseBase
 
 
-class SumpDatabase(DatabaseBase):
+class SumpRepository(DatabaseBase):
 
     def get_current_sump_level_by_user(self, user_id):
         self._validate_property(user_id)

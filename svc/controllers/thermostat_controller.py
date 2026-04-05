@@ -1,5 +1,5 @@
+from db.repositories.user_repository import UserRepository
 from svc.constants.home_automation import Automation, AuthClaims
-from svc.db.repositories.account_repository import AccountRepository
 from svc.models.thermostat import ThermostatState
 from svc.services import weather_request
 from svc.utilities.conversion_utils import convert_to_celsius, convert_to_fahrenheit
@@ -12,7 +12,7 @@ from svc.utilities.user_temp_utils import get_user_temperature
 def get_user_temp(bearer_token):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]
-    with AccountRepository() as database:
+    with UserRepository() as database:
         preference = database.get_preferences_by_user(user_id)
         temp_text = read_temperature_file()
         internal_temp = get_user_temperature(temp_text, preference.isFahrenheit)
@@ -24,7 +24,7 @@ def get_user_temp(bearer_token):
 def get_user_forecast(bearer_token):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]
-    with AccountRepository() as database:
+    with UserRepository() as database:
         preference = database.get_preferences_by_user(user_id)
         return weather_request.get_weather(preference.city, preference.tempUnit)
 
