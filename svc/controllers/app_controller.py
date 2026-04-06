@@ -2,6 +2,13 @@ from svc.constants.home_automation import AuthClaims
 from svc.db.repositories.tasks_repository import TasksRepository
 from svc.db.repositories.user_repository import UserRepository
 from svc.utilities.jwt_utils import AuthClient
+from svc.utilities.api_utils import send_auth0_password_reset
+
+
+def reset_password(bearer_token):
+    claims = AuthClient.get_instance().verify_jwt(bearer_token)
+    email = claims['email']
+    send_auth0_password_reset(email)
 
 
 def get_user_preferences(bearer_token):

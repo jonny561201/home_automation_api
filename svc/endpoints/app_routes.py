@@ -11,6 +11,13 @@ def health_check():
     return Response("Success", status=200)
 
 
+@APP_BLUEPRINT.route('/resetPassword', methods=['POST'])
+def reset_user_password():
+    bearer_token = request.headers.get('Authorization')
+    app_controller.reset_password(bearer_token)
+    return Response(status=204, mimetype=Mime.JSON)
+
+
 @APP_BLUEPRINT.route('/preferences', methods=['GET'])
 def get_user_preferences():
     bearer_token = request.headers.get('Authorization')

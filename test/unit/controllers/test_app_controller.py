@@ -5,7 +5,7 @@ from mock import patch, ANY
 
 from svc.constants.home_automation import AuthClaims
 from svc.controllers.app_controller import get_user_preferences, save_user_preferences, get_user_tasks, \
-    delete_user_task, insert_user_task, update_user_task
+    delete_user_task, insert_user_task, update_user_task, reset_password
 
 
 @patch('svc.controllers.app_controller.UserRepository')
@@ -15,6 +15,11 @@ class TestAppControllerAccount:
     CLAIMS = {AuthClaims.USER_ID: USER_ID}
     BEARER_TOKEN = jwt.encode(CLAIMS, 'fake_jwt_secret', algorithm='HS256')
     USER = 'user_name'
+
+    def test_reset_password__should_validate_bearer_token(self, mock_jwt, mock_db):
+        reset_password(self.BEARER_TOKEN)
+
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
     def test_get_user_preferences__should_validate_bearer_token(self, mock_jwt, mock_db):
         get_user_preferences(self.BEARER_TOKEN)
@@ -55,6 +60,26 @@ class TestAppControllerAccount:
         save_user_preferences(bearer_token, user_preferences)
 
         mock_db.return_value.__enter__.return_value.insert_preferences_by_user.assert_called_with(ANY, user_preferences)
+
+
+@patch('svc.controllers.app_controller.send_auth0_password_reset')
+@patch('svc.controllers.app_controller.AuthClient')
+class TestResetAccount:
+    USER_ID = str(uuid.uuid4())
+    EMAIL = 'test@test.com'
+    CLAIMS = {AuthClaims.USER_ID: USER_ID, 'email': EMAIL}
+    BEARER_TOKEN = jwt.encode(CLAIMS, 'fake_jwt_secret', algorithm='HS256')
+
+    def test_reset_password__should_validate_bearer_token(self, mock_jwt, mock_auth):
+        reset_password(self.BEARER_TOKEN)
+
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
+
+    def test_reset_password__should_call_auth0_service_with_email(self, mock_jwt, mock_auth):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
+        reset_password(self.BEARER_TOKEN)
+
+        mock_auth.assert_called_with(self.EMAIL)
 
 
 @patch('svc.controllers.app_controller.TasksRepository')

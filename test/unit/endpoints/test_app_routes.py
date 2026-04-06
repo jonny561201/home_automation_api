@@ -4,7 +4,7 @@ from flask import Flask
 from mock import patch, ANY
 
 from svc.endpoints.app_routes import get_user_preferences, update_user_preferences, \
-    get_user_tasks, delete_user_task, insert_user_task, update_user_task
+    get_user_tasks, delete_user_task, insert_user_task, update_user_task, reset_user_password
 from svc.models.app import Preference, Tasks, Task
 from test.unit.test_helpers import setup_request
 
@@ -27,6 +27,21 @@ class TestAppRoutes:
 
     def teardown_method(self):
         self.ctx.pop()
+
+    def test_reset_user_password__should_call_app_controller_with_bearer_token(self, mock_controller):
+        reset_user_password()
+
+        mock_controller.reset_password.assert_called_with(self.JWT_TOKEN)
+
+    def test_reset_user_password__should_return_application_json_mime(self, mock_controller):
+        actual = reset_user_password()
+
+        assert actual.mimetype == 'application/json'
+
+    def test_reset_user_password__should_return_success_status_code(self, mock_controller):
+        actual = reset_user_password()
+
+        assert actual.status_code == 204
 
     def test_get_user_preferences__should_call_app_controller_with_bearer_token(self, mock_controller):
         mock_controller.get_user_preferences.return_value = self.PREFERENCES
