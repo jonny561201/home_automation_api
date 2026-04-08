@@ -16,6 +16,14 @@ def get_status(bearer_token, garage_id):
     return api_utils.get_garage_door_status(bearer_token, base_url, garage_id)
 
 
+def get_all_status(bearer_token):
+    claims = AuthClient.get_instance().verify_jwt(bearer_token)
+    user_id = claims[AuthClaims.USER_ID]
+    base_url = get_garage_url_by_user(user_id)
+
+    return api_utils.get_all_garage_doors_status(bearer_token, base_url)
+
+
 def update_state(bearer_token, garage_id, request):
     AuthClient.get_instance().verify_jwt(bearer_token)
     garage_open = request.get('garageDoorOpen')

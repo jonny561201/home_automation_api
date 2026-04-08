@@ -8,6 +8,13 @@ from svc.controllers import garage_door_controller
 GARAGE_BLUEPRINT = Blueprint('garage_blueprint', __name__, url_prefix='/garageDoor')
 
 
+@GARAGE_BLUEPRINT.route('/status', methods=['GET'])
+def get_all_garage_door_status():
+    bearer_token = request.headers.get('Authorization')
+    status = garage_door_controller.get_all_status(bearer_token)
+    return Response(status.to_json(), status=200, mimetype=Mime.JSON)
+
+
 @GARAGE_BLUEPRINT.route('/<garage_id>/status', methods=['GET'])
 def get_garage_door_status(garage_id):
     bearer_token = request.headers.get('Authorization')

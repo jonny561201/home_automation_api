@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
+from typing import List
 
 from dataclasses_json import dataclass_json, cfg
 
@@ -26,3 +27,19 @@ class GarageStatus:
 @dataclass
 class GarageState:
     isGarageOpen: bool
+
+
+@dataclass_json
+@dataclass
+class GarageDoor:
+    garageId: str
+    isGarageOpen: bool
+    statusDuration: datetime
+
+
+@dataclass_json
+@dataclass
+class GarageOverview:
+    coordinates: Coordinates
+    doors: List[GarageDoor]
+

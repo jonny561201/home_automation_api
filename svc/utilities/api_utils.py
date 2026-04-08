@@ -2,7 +2,7 @@ import requests
 from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
 
 from svc.config.settings_state import Settings
-from svc.models.garage import GarageStatus
+from svc.models.garage import GarageOverview, GarageStatus
 from svc.utilities.string_utils import generate_password
 
 
@@ -37,7 +37,17 @@ def get_garage_door_status(bearer_token, base_url, garage_id):
     except Exception:
         raise FailedDependency()
     __validate_garage_response(response)
-    return GarageStatus.from_json(response.text)
+    return GarageStatus.from_dict(response.json())
+
+
+def get_all_garage_doors_status(bearer_token, base_url):
+    header = {'Authorization': f'Bearer {bearer_token}'}
+    try:
+        response = requests.get(f'{base_url}/garageDoor/status', headers=header, timeout=5)
+    except Exception:
+        raise FailedDependency()
+    __validate_garage_response(response)
+    return GarageOverview.from_dict(response.json())
 
 
 def get_light_groups(api_key):
