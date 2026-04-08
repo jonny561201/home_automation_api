@@ -453,13 +453,16 @@ class TestLightApiRequests:
 
 
 @patch('svc.utilities.api_utils.requests')
-class TestExchangeAuth0Code:
+class TestAuth0Requests:
     FAKE_CODE = 'fake_auth_code'
     FAKE_VERIFIER = 'fake_verifier'
     FAKE_REDIRECT = 'http://localhost:3000/callback'
     DOMAIN = 'dev-test.us.auth0.com'
     CLIENT_ID = 'fake_client_id'
     CLIENT_SECRET = 'fake_client_secret'
+    AUTH0_ID = 'auth0|abc123'
+    ROLE_IDS = ['role_1', 'role_2']
+    MANAGEMENT_TOKEN = 'fake_management_token'
 
     def setup_method(self):
         Settings.get_instance().Authority._settings = {
@@ -467,9 +470,15 @@ class TestExchangeAuth0Code:
             'ClientId': self.CLIENT_ID,
             'ClientSecret': self.CLIENT_SECRET
         }
+        self.TOKEN_RESPONSE = Response()
+        self.TOKEN_RESPONSE.status_code = 200
+        self.TOKEN_RESPONSE._content = json.dumps({'access_token': self.MANAGEMENT_TOKEN}).encode()
         self.RESPONSE = Response()
         self.RESPONSE.status_code = 200
         self.RESPONSE._content = '{}'.encode('utf-8')
+        self.ROLES_RESPONSE = Response()
+        self.ROLES_RESPONSE.status_code = 200
+        self.ROLES_RESPONSE._content = b'{}'
 
     def test_exchange_auth0_code__should_call_auth0_token_endpoint(self, mock_requests):
         mock_requests.post.return_value = self.RESPONSE
@@ -503,6 +512,28 @@ class TestExchangeAuth0Code:
         mock_requests.post.return_value = self.RESPONSE
         with pytest.raises(FailedDependency):
             exchange_auth0_code(self.FAKE_CODE, self.FAKE_VERIFIER, self.FAKE_REDIRECT)
+
+    def test_assign_auth0_roles__should_call_roles_endpoint(self, mock_requests):
+        mock_requests.post.side_effect = [self.TOKEN_RESPONSE, self.ROLES_RESPONSE]
+
+        assign_auth0_roles(self.AUTH0_ID, self.ROLE_IDS)
+
+        expected_headers = {'Authorization': f'Bearer {self.MANAGEMENT_TOKEN}', 'Content-Type': 'application/json'}
+        mock_requests.post.assert_called_with(f'https://{self.DOMAIN}/api/v2/users/{self.AUTH0_ID}/roles', json={'roles': self.ROLE_IDS}, headers=expected_headers)
+
+    def test_assign_auth0_roles__should_raise_unauthorized_on_401(self, mock_requests):
+        self.ROLES_RESPONSE.status_code = 401
+        mock_requests.post.side_effect = [self.TOKEN_RESPONSE, self.ROLES_RESPONSE]
+
+        with pytest.raises(Unauthorized):
+            assign_auth0_roles(self.AUTH0_ID, self.ROLE_IDS)
+
+    def test_assign_auth0_roles__should_raise_failed_dependency_on_500(self, mock_requests):
+        self.ROLES_RESPONSE.status_code = 500
+        mock_requests.post.side_effect = [self.TOKEN_RESPONSE, self.ROLES_RESPONSE]
+
+        with pytest.raises(FailedDependency):
+            assign_auth0_roles(self.AUTH0_ID, self.ROLE_IDS)
 
 
 @patch('svc.utilities.api_utils.generate_password')
@@ -566,51 +597,6 @@ class TestCreateAuth0User:
 
         with pytest.raises(FailedDependency):
             create_auth0_user(self.EMAIL)
-
-
-@patch('svc.utilities.api_utils.requests')
-class TestAssignAuth0Roles:
-    AUTH0_ID = 'auth0|abc123'
-    ROLE_IDS = ['role_1', 'role_2']
-    DOMAIN = 'dev-test.us.auth0.com'
-    CLIENT_ID = 'fake_client_id'
-    CLIENT_SECRET = 'fake_client_secret'
-    MANAGEMENT_TOKEN = 'fake_management_token'
-
-    def setup_method(self):
-        Settings.get_instance().Authority._settings = {
-            'Domain': self.DOMAIN,
-            'ClientId': self.CLIENT_ID,
-            'ClientSecret': self.CLIENT_SECRET
-        }
-        self.TOKEN_RESPONSE = Response()
-        self.TOKEN_RESPONSE.status_code = 200
-        self.TOKEN_RESPONSE._content = json.dumps({'access_token': self.MANAGEMENT_TOKEN}).encode()
-        self.ROLES_RESPONSE = Response()
-        self.ROLES_RESPONSE.status_code = 200
-        self.ROLES_RESPONSE._content = b'{}'
-
-    def test_assign_auth0_roles__should_call_roles_endpoint(self, mock_requests):
-        mock_requests.post.side_effect = [self.TOKEN_RESPONSE, self.ROLES_RESPONSE]
-
-        assign_auth0_roles(self.AUTH0_ID, self.ROLE_IDS)
-
-        expected_headers = {'Authorization': f'Bearer {self.MANAGEMENT_TOKEN}', 'Content-Type': 'application/json'}
-        mock_requests.post.assert_called_with(f'https://{self.DOMAIN}/api/v2/users/{self.AUTH0_ID}/roles', json={'roles': self.ROLE_IDS}, headers=expected_headers)
-
-    def test_assign_auth0_roles__should_raise_unauthorized_on_401(self, mock_requests):
-        self.ROLES_RESPONSE.status_code = 401
-        mock_requests.post.side_effect = [self.TOKEN_RESPONSE, self.ROLES_RESPONSE]
-
-        with pytest.raises(Unauthorized):
-            assign_auth0_roles(self.AUTH0_ID, self.ROLE_IDS)
-
-    def test_assign_auth0_roles__should_raise_failed_dependency_on_500(self, mock_requests):
-        self.ROLES_RESPONSE.status_code = 500
-        mock_requests.post.side_effect = [self.TOKEN_RESPONSE, self.ROLES_RESPONSE]
-
-        with pytest.raises(FailedDependency):
-            assign_auth0_roles(self.AUTH0_ID, self.ROLE_IDS)
 
 
 @patch('svc.utilities.api_utils.requests')
