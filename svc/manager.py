@@ -14,9 +14,13 @@ from svc.endpoints.scene_routes import SCENE_BLUEPRINT
 from svc.endpoints.sump_routes import SUMP_BLUEPRINT
 from svc.endpoints.thermostat_routes import THERMOSTAT_BLUEPRINT
 from svc.utilities.rabbitmq_client import initialize_queue
+from svc.utilities.mdns_utils import MdnsListener
 
 initialize_queue(Automation.GARAGE.QUEUE)
 initialize_queue(Automation.HVAC.QUEUE)
+
+browser = MdnsListener()
+browser.start()
 
 app = Flask(__name__)
 CORS(app, origins=Settings.get_instance().allowed_origins)
