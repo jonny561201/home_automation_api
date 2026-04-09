@@ -5,7 +5,7 @@ from werkzeug.exceptions import BadRequest
 from svc.db.models.user_information_model import Devices, DeviceType
 from svc.models.devices import Device
 from svc.constants.home_automation import AuthClaims
-from svc.controllers.devices_controller import add_device, get_user_devices
+from svc.controllers.devices_controller import add_device, get_user_devices, register_device
 
 
 @patch('svc.controllers.devices_controller.DeviceRepository')
@@ -16,6 +16,7 @@ class TestDeviceController:
     CLAIMS = {AuthClaims.USER_ID: USER_ID}
     ROLE_NAME = 'test_role'
     IP_ADDRESS = '192.168.0.55'
+    IP_PORT = 8080
 
     def test_get_user_devices__should_validate_jwt(self, mock_jwt, mock_db):
         get_user_devices(self.BEARER_TOKEN)
@@ -44,40 +45,65 @@ class TestDeviceController:
 
         assert actual.devices == []
 
-    def test_add_device_to_role__should_validate_jwt(self, mock_jwt, mock_db):
-        request_data = {'roleName': None, 'ipAddress': None}
+    def test_add_device__should_validate_jwt(self, mock_jwt, mock_db):
+        request_data = {'roleName': None, 'ipAddress': None, 'ipPort': None}
         add_device(self.BEARER_TOKEN, request_data)
         mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
-    def test_add_device_to_role__should_call_add_new_role_with_user_id(self, mock_jwt, mock_db):
+    def test_add_device__should_call_add_new_device_with_user_id(self, mock_jwt, mock_db):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        request_data = {'roleName': None, 'ipAddress': None}
+        request_data = {'roleName': None, 'ipAddress': None, 'ipPort': None}
         add_device(self.BEARER_TOKEN, request_data)
-        mock_db.return_value.__enter__.return_value.add_new_device.assert_called_with(self.USER_ID, ANY, ANY)
+        mock_db.return_value.__enter__.return_value.add_new_device.assert_called_with(self.USER_ID, ANY, ANY, ANY)
 
-    def test_add_device_to_role__should_call_add_new_role_with_role_name(self, mock_jwt, mock_db):
+    def test_add_device__should_call_add_new_device_with_role_name(self, mock_jwt, mock_db):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        request_data = {'roleName': self.ROLE_NAME, 'ipAddress': None}
+        request_data = {'roleName': self.ROLE_NAME, 'ipAddress': None, 'ipPort': None}
         add_device(self.BEARER_TOKEN, request_data)
-        mock_db.return_value.__enter__.return_value.add_new_device.assert_called_with(ANY, self.ROLE_NAME, ANY)
+        mock_db.return_value.__enter__.return_value.add_new_device.assert_called_with(ANY, self.ROLE_NAME, ANY, ANY)
 
-    def test_add_device_to_role__should_call_add_new_role_with_ip_address(self, mock_jwt, mock_db):
+    def test_add_device__should_call_add_new_device_with_ip_address(self, mock_jwt, mock_db):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        request_data = {'roleName': None, 'ipAddress': self.IP_ADDRESS}
+        request_data = {'roleName': None, 'ipAddress': self.IP_ADDRESS, 'ipPort': None}
         add_device(self.BEARER_TOKEN, request_data)
-        mock_db.return_value.__enter__.return_value.add_new_device.assert_called_with(ANY, ANY, self.IP_ADDRESS)
+        mock_db.return_value.__enter__.return_value.add_new_device.assert_called_with(ANY, ANY, self.IP_ADDRESS, ANY)
 
-    def test_add_device_to_role__should_raise_bad_request_exception_if_key_missing(self, mock_jwt, mock_db):
+    def test_add_device__should_call_add_new_device_with_ip_port(self, mock_jwt, mock_db):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
+        request_data = {'roleName': None, 'ipAddress': None, 'ipPort': self.IP_PORT}
+        add_device(self.BEARER_TOKEN, request_data)
+        mock_db.return_value.__enter__.return_value.add_new_device.assert_called_with(ANY, ANY, ANY, self.IP_PORT)
+
+    def test_add_device__should_raise_bad_request_exception_if_key_missing(self, mock_jwt, mock_db):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         request_data = {}
         with pytest.raises(BadRequest):
             add_device(self.BEARER_TOKEN, request_data)
 
-    def test_add_device_to_role__should_return_response_from_adding_to_database(self, mock_jwt, mock_db):
+    def test_add_device__should_return_response_from_adding_to_database(self, mock_jwt, mock_db):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         device_id = 'fakeDeviceId'
         mock_db.return_value.__enter__.return_value.add_new_device.return_value = device_id
-        request_data = {'roleName': 'fakeName', 'ipAddress': '1.1.1.1'}
+        request_data = {'roleName': 'fakeName', 'ipAddress': '1.1.1.1', 'ipPort': 443}
         actual = add_device(self.BEARER_TOKEN, request_data)
 
         assert actual == Device(deviceId=device_id)
+
+
+@patch('svc.controllers.devices_controller.register_garage_device')
+@patch('svc.controllers.devices_controller.DeviceRepository')
+class TestRegisterDevice:
+    SERVICE_NAME = 'garage_opener'
+    IP_ADDRESS = '192.168.0.100'
+    IP_PORT = 5000
+
+    def test_register_device__should_upsert_discovered_device(self, mock_db, mock_api):
+        register_device(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
+
+        mock_db.return_value.__enter__.return_value.upsert_discovered_device.assert_called_with(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
+
+    def test_register_device__should_call_register_garage_device(self, mock_db, mock_api):
+        register_device(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
+
+        mock_api.assert_called_with(self.IP_ADDRESS, self.IP_PORT)
+

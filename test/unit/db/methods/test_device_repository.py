@@ -13,6 +13,9 @@ from svc.db.repositories.device_repository import DeviceRepository
 
 class TestDeviceRepository:
     USER_ID = '1234abcd'
+    IP_ADDRESS = '0.0.0.0'
+    IP_PORT = 8080
+    DEVICE_NAME = 'garage_door'
     NOW = datetime.now(tz=ZoneInfo('US/Central'))
 
     def setup_method(self, _):
@@ -21,27 +24,47 @@ class TestDeviceRepository:
         self.DATABASE.session = self.SESSION
 
     def test_add_new_device__should_call_add(self):
-        ip_address = '0.0.0.0'
-        role_name = 'garage_door'
-        self.DATABASE.add_new_device(self.USER_ID, role_name, ip_address)
+        self.DATABASE.add_new_device(self.USER_ID, self.DEVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
 
         self.SESSION.add.assert_called()
 
-    @patch('svc.db.repositories.device_repository.uuid')
-    def test_add_new_device__should_return_device_id_in_response(self, mock_uuid):
-        ip_address = '0.0.0.0'
-        role_name = 'garage_door'
-        device_id = 'fake uuid string'
-        mock_uuid.uuid4.return_value = device_id
-        actual = self.DATABASE.add_new_device(self.USER_ID, role_name, ip_address)
-
-        assert actual == device_id
-
-    def test_add_new_device__should_raise_not_found_when_user_id_is_none(self):
+    def test_add_new_device__should_raise_not_found_when_user_not_found(self):
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
         with pytest.raises(NotFound):
-            self.DATABASE.add_new_device(None, '', '')
-        self.SESSION.query.assert_not_called()
+            self.DATABASE.add_new_device(self.USER_ID, self.DEVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
+
+    def test_upsert_discovered_device__should_insert_new_device_when_not_found(self):
+        device_type = DeviceType(id='type-id', type='garage_door')
+        self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [device_type, None]
+
+        self.DATABASE.upsert_discovered_device(self.DEVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
+
+        self.SESSION.add.assert_called()
+
+    def test_upsert_discovered_device__should_update_existing_device_ip(self):
+        device_type = DeviceType(id='type-id', type='garage_door')
+        existing = Devices(id='device-id', ip_address='10.0.0.1', ip_port=9999, node_name=self.DEVICE_NAME, device_type_id='type-id')
+        self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [device_type, existing]
+
+        self.DATABASE.upsert_discovered_device(self.DEVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
+
+        assert existing.ip_address == self.IP_ADDRESS
+        assert existing.ip_port == self.IP_PORT
+        self.SESSION.add.assert_not_called()
+
+    def test_upsert_discovered_device__should_return_existing_device_id_on_update(self):
+        device_type = DeviceType(id='type-id', type='garage_door')
+        existing = Devices(id='existing-id', ip_address='10.0.0.1', ip_port=9999, node_name=self.DEVICE_NAME, device_type_id='type-id')
+        self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [device_type, existing]
+
+        actual = self.DATABASE.upsert_discovered_device(self.DEVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
+
+        assert actual == 'existing-id'
+
+    def test_upsert_discovered_device__should_raise_not_found_when_device_type_missing(self):
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
+        with pytest.raises(NotFound):
+            self.DATABASE.upsert_discovered_device(self.DEVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
 
     def test_get_user_garage_ip__should_raise_not_found_error_when_no_user_role(self):
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = None

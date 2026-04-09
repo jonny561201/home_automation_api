@@ -50,6 +50,14 @@ def get_all_garage_doors_status(bearer_token, base_url):
     return GarageOverview.from_dict(response.json())
 
 
+def register_garage_device(ip, port):
+    try:
+        response = requests.post(f"http://{ip}:{port}/register", timeout=5)
+    except Exception:
+        raise FailedDependency()
+    __validate_response(response)
+
+
 def get_light_groups(api_key):
     base_url = Settings.get_instance().BaseUrls.lights
     try:
