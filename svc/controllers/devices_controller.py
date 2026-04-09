@@ -29,6 +29,14 @@ def get_user_devices(bearer_token):
         return UserDevices(devices=user_devices)
 
 
+def register_discovered_device_to_user(bearer_token, device_id):
+    claims = AuthClient.get_instance().verify_jwt(bearer_token)
+    user_id = claims[AuthClaims.USER_ID]
+    with DeviceRepository() as database:
+        registered_id = database.register_device_to_user(device_id, user_id)
+        return Device(deviceId=registered_id)
+
+
 def register_device(service_name, ip, port):
     with DeviceRepository() as database:
         database.upsert_discovered_device(service_name, ip, port)

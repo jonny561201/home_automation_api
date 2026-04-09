@@ -45,6 +45,18 @@ class DeviceRepository(DatabaseBase):
             return device.ip_address
         return f'{device.ip_address}:{device.ip_port}'
 
+    def register_device_to_user(self, device_id, user_id):
+        self._validate_property(user_id)
+        device_stmt = select(Devices).filter_by(id=device_id)
+        device = self.session.execute(device_stmt).scalars().first()
+        self._validate_property(device)
+        user_stmt = select(UserInformation).filter_by(id=user_id)
+        user = self.session.execute(user_stmt).scalars().first()
+        self._validate_property(user)
+        device.user_id = user_id
+        device.registered = True
+        return device.id
+
     #TODO: I think this is dead
     def get_role_ids_by_device_ids(self, user_id, device_ids):
         self._validate_property(user_id)
