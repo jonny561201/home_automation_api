@@ -40,14 +40,14 @@ class TestDeviceRoutesIntegration:
 
     def test_add_device__should_return_device_id_when_user_with_correct_role(self):
         ip_address = '1.1.1.1'
-        post_body = json.dumps({'roleName': self.ROLE_NAME, 'ipAddress': ip_address})
+        post_body = json.dumps({'roleName': self.ROLE_NAME, 'ipAddress': ip_address, 'ipPort': 50})
         actual = self.TEST_CLIENT.post(f'devices/register', headers=self.HEADER, data=post_body)
 
         assert json.loads(actual.data)['deviceId'] is not None
 
     def test_add_device__should_return_success_when_user_with_correct_role(self):
         ip_address = '1.1.1.1'
-        post_body = json.dumps({'roleName': self.ROLE_NAME, 'ipAddress': ip_address})
+        post_body = json.dumps({'roleName': self.ROLE_NAME, 'ipAddress': ip_address, 'ipPort': 501})
         actual = self.TEST_CLIENT.post(f'devices/register', headers=self.HEADER, data=post_body)
 
         assert actual.status_code == 200

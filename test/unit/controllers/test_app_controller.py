@@ -16,7 +16,8 @@ class TestAppControllerAccount:
     BEARER_TOKEN = jwt.encode(CLAIMS, 'fake_jwt_secret', algorithm='HS256')
     USER = 'user_name'
 
-    def test_reset_password__should_validate_bearer_token(self, mock_jwt, mock_db):
+    @patch('svc.controllers.app_controller.send_auth0_password_reset')
+    def test_reset_password__should_validate_bearer_token(self, mock_api, mock_jwt, mock_db):
         reset_password(self.BEARER_TOKEN)
 
         mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)

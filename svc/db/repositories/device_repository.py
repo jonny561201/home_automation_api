@@ -1,3 +1,5 @@
+import uuid
+
 from sqlalchemy import select
 
 from svc.db.models.user_information_model import DeviceType, UserInformation
@@ -20,7 +22,7 @@ class DeviceRepository(DatabaseBase):
         type_stmt = select(DeviceType).filter_by(type='garage_door')
         device_type = self.session.execute(type_stmt).scalars().first()
 
-        device = Devices(user_id=user_id, ip_address=ip_address, ip_port=ip_port, node_name=name, device_type_id=device_type.id, registered=False)
+        device = Devices(id=str(uuid.uuid4()), user_id=user_id, ip_address=ip_address, ip_port=ip_port, node_name=name, device_type_id=device_type.id, registered=False)
         self.session.add(device)
         return device.id
 

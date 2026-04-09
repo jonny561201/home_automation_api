@@ -13,6 +13,7 @@ class TestDbDeviceIntegration:
     USER_ID = str(uuid.uuid4())
     CHILD_USER_ID = str(uuid.uuid4())
     IP_ADDRESS = '192.175.7.9'
+    PORT = 5000
 
     def setup_method(self):
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='steve', last_name='rogers')
@@ -22,7 +23,7 @@ class TestDbDeviceIntegration:
         with DatabaseBase() as database:
             stmt = select(DeviceType).where(DeviceType.type == 'garage_door')
             self.DEVICE_TYPE = database.session.execute(stmt).scalars().first()
-            self.DEVICE = Devices(ip_address=self.IP_ADDRESS, node_name='test', user_id=self.USER_ID, device_type_id=self.DEVICE_TYPE.id)
+            self.DEVICE = Devices(ip_address=self.IP_ADDRESS, ip_port=self.PORT, node_name='test', user_id=self.USER_ID, device_type_id=self.DEVICE_TYPE.id)
             database.session.add_all([self.USER_INFO, self.CHILD_USER])
             database.session.add(self.USER_PREF)
             database.session.commit()
@@ -39,36 +40,38 @@ class TestDbDeviceIntegration:
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.CHILD_USER_ID))
 
     def test_add_new_device__should_raise_not_found_when_no_user_found(self):
-        role_name = 'garage_door'
-        ip_address = '0.0.0.0'
         with pytest.raises(NotFound):
             with DeviceRepository() as database:
-                database.add_new_device(str(uuid.uuid4()), role_name, ip_address)
+                database.add_new_device(str(uuid.uuid4()), 'garage_door', '0.0.0.0', 5000)
 
     def test_add_new_device__should_insert_a_new_device_into_table(self):
         ip_address = '192.168.1.145'
+        port = 5000
         node_name = 'sample test name'
         with DeviceRepository() as database:
-            database.add_new_device(self.USER_ID, node_name, ip_address)
+            database.add_new_device(self.USER_ID, node_name, ip_address, port)
 
             actual = database.session.execute(select(Devices).where(Devices.node_name == node_name)).scalars().first()
             assert actual.ip_address == ip_address
+            assert actual.ip_port == port
             assert str(actual.user_id) == self.USER_ID
 
     def test_add_new_device__should_register_new_device_to_parent_from_child(self):
         ip_address = '192.168.1.145'
+        port = 4000
         with DeviceRepository() as database:
-            device_id = database.add_new_device(self.CHILD_USER_ID, 'other name', ip_address)
+            device_id = database.add_new_device(self.CHILD_USER_ID, 'other name', ip_address, port)
 
             actual = database.session.execute(select(Devices).where(Devices.id == device_id)).scalars().first()
 
             assert actual.ip_address == ip_address
+            assert actual.ip_port == port
 
     def test_get_user_garage_ip__should_return_garage_ip(self):
         with DeviceRepository() as database:
             actual = database.get_user_garage_ip(self.USER_ID)
 
-            assert actual == self.IP_ADDRESS
+            assert actual == f'{self.IP_ADDRESS}:{self.PORT}'
 
     def test_get_user_garage_ip__should_raise_not_found_when_no_user_id_match(self):
         with DeviceRepository() as database:
