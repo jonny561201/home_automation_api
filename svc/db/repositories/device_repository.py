@@ -1,10 +1,7 @@
-import uuid
-
 from sqlalchemy import select
-from werkzeug.exceptions import Unauthorized
 
 from svc.db.models.user_information_model import DeviceType, UserInformation
-from svc.db.models.user_information_model import Devices, UserPreference
+from svc.db.models.user_information_model import Devices
 from svc.db.repositories.database_base import DatabaseBase
 
 
@@ -46,6 +43,7 @@ class DeviceRepository(DatabaseBase):
             return device.ip_address
         return f'{device.ip_address}:{device.ip_port}'
 
+    #TODO: I think this is dead
     def get_role_ids_by_device_ids(self, user_id, device_ids):
         self._validate_property(user_id)
         stmt = select(Devices).where(Devices.user_id == user_id, Devices.id.in_(device_ids))
@@ -65,11 +63,3 @@ class DeviceRepository(DatabaseBase):
     def _get_device_by_name(self, name, device_type_id):
         stmt = select(Devices).where(Devices.node_name == name, Devices.device_type_id == device_type_id)
         return self.session.execute(stmt).scalars().first()
-
-    def __update_preference(self, node_name, node_size, user_id):
-        stmt = select(UserPreference).filter_by(user_id=user_id)
-        preference = self.session.execute(stmt).scalars().first()
-        if preference is None:
-            raise Unauthorized
-        preference.garage_id = node_size + 1
-        preference.garage_door = node_name
