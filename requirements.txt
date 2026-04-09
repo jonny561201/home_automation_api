@@ -6,7 +6,6 @@ psycopg2-binary==2.9.11
 PyJWT==2.10.1
 requests==2.32.5
 SQLAlchemy==2.0.45
-cryptography==46.0.5
 RPi.GPIO==0.7.1
 uwsgi==2.0.31
 yoyo-migrations==7.2.1
