@@ -39,13 +39,26 @@ class Devices(Base):
     id = Column(UUID, nullable=False, primary_key=True, server_default=sqlalchemy.text("gen_random_uuid()"))
     ip_address = Column(INET, nullable=False)
     ip_port = Column(Integer)
-    node_name = Column(String)
-    node_device = Column(SMALLINT)
+    api_key = Column(String, nullable=False)
+    name = Column(String, nullable=False)
+    max_nodes = Column(SMALLINT, nullable=False, default=1)
     user_id = Column(UUID, ForeignKey(UserInformation.id))
     device_type_id = Column(UUID, ForeignKey(DeviceType.id))
     registered = Column(Boolean, nullable=False, default=False)
 
     device_type = relationship('DeviceType', foreign_keys='Devices.device_type_id')
+    nodes = relationship('DeviceNodes', back_populates='device', cascade='all, delete-orphan')
+
+
+class DeviceNodes(Base):
+    __tablename__ = 'device_nodes'
+
+    id = Column(UUID, nullable=False, primary_key=True, server_default=sqlalchemy.text("gen_random_uuid()"))
+    device_id = Column(UUID, ForeignKey(Devices.id), nullable=False)
+    node_device = Column(SMALLINT, nullable=False)
+    node_name = Column(String, nullable=False)
+
+    device = relationship('Devices', back_populates='nodes')
 
 
 class UserDevices(Base):

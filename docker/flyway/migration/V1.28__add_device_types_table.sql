@@ -22,9 +22,17 @@ CREATE TABLE devices (
     device_type_id UUID NOT NULL REFERENCES device_type(ID),
     ip_address INET NOT NULL,
     ip_port INTEGER CHECK (ip_port BETWEEN 1 AND 65535),
-    node_name VARCHAR(50) NOT NULL,
-    node_device SMALLINT,
+    api_key VARCHAR(64) NOT NULL,
+    name VARCHAR(50) NOT NULL,
+    max_nodes SMALLINT NOT NULL DEFAULT 1,
     registered BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE TABLE device_nodes (
+    ID UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    device_id UUID NOT NULL REFERENCES devices(ID),
+    node_device SMALLINT NOT NULL,
+    node_name VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE user_devices (
