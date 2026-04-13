@@ -1,27 +1,35 @@
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import BadRequest, FailedDependency
 
+from db.repositories.device_repository import DeviceRepository
 from svc.constants.home_automation import Automation, AuthClaims
 from svc.models.garage import GarageState
 from svc.utilities import api_utils
 from svc.utilities.jwt_utils import AuthClient
 from svc.utilities.rabbitmq_client import publish
-from svc.utilities.user_garage_utils import get_garage_url_by_user
 
 
 def get_status(bearer_token, garage_id):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]
-    base_url = get_garage_url_by_user(user_id)
+    with DeviceRepository() as db:
+        info = db.get_device_address_info(user_id)
+        if not info:
+            raise FailedDependency(description="device not registered")
+        url = f'http://{info.ip_address}:{info.ip_port}'
 
-    return api_utils.get_garage_door_status(bearer_token, base_url, garage_id)
+    return api_utils.get_garage_door_status(info.api_key, url, garage_id)
 
 
 def get_all_status(bearer_token):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]
-    base_url = get_garage_url_by_user(user_id)
+    with DeviceRepository() as db:
+        info = db.get_device_address_info(user_id)
+        if not info:
+            raise FailedDependency(description="device not registered")
+        url = f'http://{info.ip_address}:{info.ip_port}'
 
-    return api_utils.get_all_garage_doors_status(bearer_token, base_url)
+    return api_utils.get_all_garage_doors_status(info.api_key, url)
 
 
 def update_state(bearer_token, garage_id, request):

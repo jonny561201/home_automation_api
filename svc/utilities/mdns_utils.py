@@ -1,6 +1,6 @@
 from zeroconf import ServiceListener, Zeroconf, ServiceBrowser
 
-from svc.controllers.devices_controller import register_device
+from svc.controllers.devices_controller import discover_device
 
 
 class MdnsListener(ServiceListener):
@@ -28,7 +28,8 @@ class MdnsListener(ServiceListener):
         if service_name:
             ip = info.parsed_addresses()[0]
             port = info.port
-            register_device(service_name, ip, port)
+            max_nodes = int(info.properties.get(b'max_nodes', b'1'))
+            discover_device(service_name, ip, port, max_nodes)
 
     def remove_service(self, zc, type_, name):
         pass

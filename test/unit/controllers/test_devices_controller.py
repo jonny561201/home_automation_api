@@ -5,7 +5,7 @@ from werkzeug.exceptions import BadRequest
 from svc.db.models.user_information_model import Devices, DeviceType
 from svc.models.devices import Device
 from svc.constants.home_automation import AuthClaims
-from svc.controllers.devices_controller import add_device, get_user_devices, register_device
+from svc.controllers.devices_controller import add_device, get_user_devices, discover_device
 
 
 @patch('svc.controllers.devices_controller.DeviceRepository')
@@ -98,12 +98,12 @@ class TestRegisterDevice:
     IP_PORT = 5000
 
     def test_register_device__should_upsert_discovered_device(self, mock_db, mock_api):
-        register_device(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
+        discover_device(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
 
         mock_db.return_value.__enter__.return_value.upsert_discovered_device.assert_called_with(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
 
     def test_register_device__should_call_register_garage_device(self, mock_db, mock_api):
-        register_device(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
+        discover_device(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
 
         mock_api.assert_called_with(self.IP_ADDRESS, self.IP_PORT)
 

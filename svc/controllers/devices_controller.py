@@ -3,7 +3,7 @@ from werkzeug.exceptions import BadRequest
 from svc.db.models.user_information_model import Devices
 from svc.constants.home_automation import AuthClaims
 from svc.db.repositories.device_repository import DeviceRepository
-from svc.models.devices import Device, UserDevices, UserDevice
+from svc.models.devices import Device, UserDevices, UserDevice, DeviceNodeDetail
 from svc.utilities.jwt_utils import AuthClient
 from svc.utilities.api_utils import register_garage_device
 
@@ -24,25 +24,30 @@ def get_user_devices(bearer_token):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]
     with DeviceRepository() as database:
-        devices = database.get_registered_devices(user_id)
+        is_child = database.is_child_user(user_id)
+        devices = database.get_registered_devices(user_id) if is_child else database.get_all_devices()
         user_devices = [_create_user_device(device) for device in devices]
         return UserDevices(devices=user_devices)
 
 
-def register_discovered_device_to_user(bearer_token, device_id):
+def register_discovered_device_to_user(bearer_token, device_id, request_data):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]
+    nodes = request_data.get('nodes', [])
     with DeviceRepository() as database:
-        registered_id = database.register_device_to_user(device_id, user_id)
+        registered_id = database.register_device_to_user(device_id, user_id, nodes)
         return Device(deviceId=registered_id)
 
 
-def register_device(service_name, ip, port):
+def discover_device(service_name, ip, port, max_nodes):
+    response = register_garage_device(ip, port)
+    api_key = response['api_key']
     with DeviceRepository() as database:
-        database.upsert_discovered_device(service_name, ip, port)
-    register_garage_device(ip, port)
+        database.upsert_discovered_device(service_name, ip, port, api_key, max_nodes)
 
 
 def _create_user_device(device: Devices):
-    return UserDevice(id=device.node_device, ipAddress=device.ip_address, ipPort=device.ip_port,
-                      registered=device.registered, type=device.device_type.type, name=device.node_name)
+    nodes = [DeviceNodeDetail(nodeDevice=n.node_device, nodeName=n.node_name) for n in device.nodes]
+    return UserDevice(deviceId=str(device.id), ipAddress=device.ip_address, ipPort=device.ip_port,
+                      registered=device.registered, type=device.device_type.type, name=device.name,
+                      maxNodes=device.max_nodes, nodes=nodes)
