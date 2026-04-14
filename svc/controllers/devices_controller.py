@@ -3,6 +3,7 @@ from werkzeug.exceptions import BadRequest
 from svc.db.models.user_information_model import Devices
 from svc.constants.home_automation import AuthClaims
 from svc.db.repositories.device_repository import DeviceRepository
+from svc.db.repositories.user_repository import UserRepository
 from svc.models.devices import Device, UserDevices, UserDevice, DeviceNodeDetail
 from svc.utilities.jwt_utils import AuthClient
 from svc.utilities.api_utils import register_garage_device
@@ -36,7 +37,13 @@ def register_discovered_device_to_user(bearer_token, device_id, request_data):
     nodes = request_data.get('nodes', [])
     with DeviceRepository() as database:
         registered_id = database.register_device_to_user(device_id, user_id, nodes)
-        return Device(deviceId=registered_id)
+    preferred = next((n for n in nodes if n.get('preferred')), None)
+    if preferred:
+        with DeviceRepository() as database:
+            preferred_node_id = database.get_node_id_by_device(device_id, preferred['nodeDevice'])
+        with UserRepository() as database:
+            database.insert_preferences_by_user(user_id, {'preferredGarageNodeId': preferred_node_id})
+    return Device(deviceId=registered_id)
 
 
 def discover_device(service_name, ip, port, max_nodes):

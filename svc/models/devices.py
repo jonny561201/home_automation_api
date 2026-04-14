@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import Dict, List
 
 from dataclasses_json import dataclass_json
 
@@ -14,6 +14,7 @@ class DeviceInfo:
     ip_address: str
     ip_port: int
     api_key: str
+    node_names: Dict[int, str] = field(default_factory=dict)
 
 
 @dataclass_json
