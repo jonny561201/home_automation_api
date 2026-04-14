@@ -14,7 +14,7 @@ class DeviceInfo:
     ip_address: str
     ip_port: int
     api_key: str
-    node_names: Dict[int, str] = field(default_factory=dict)
+    node_names: Dict[str, str] = field(default_factory=dict)
 
 
 @dataclass_json

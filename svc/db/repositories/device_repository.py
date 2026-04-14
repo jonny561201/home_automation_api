@@ -54,7 +54,7 @@ class DeviceRepository(DatabaseBase):
         stmt = select(Devices).where(Devices.user_id == user_id, Devices.device_type.has(DeviceType.type == 'garage_door'))
         device = self.session.execute(stmt).scalars().first()
         self._validate_property(device)
-        node_names = {n.node_device: n.node_name for n in device.nodes}
+        node_names = {str(n.node_device): n.node_name for n in device.nodes}
         return DeviceInfo(ip_address=device.ip_address, ip_port=device.ip_port, api_key=device.api_key, node_names=node_names)
 
     def register_device_to_user(self, device_id, user_id, nodes):
