@@ -11,7 +11,7 @@ from svc.utilities.rabbitmq_client import publish
 def get_status(bearer_token, garage_id):
     info = _get_garage_device_info(bearer_token)
     url = f'http://{info.ip_address}:{info.ip_port}'
-    door_name = info.node_names.get(int(garage_id))
+    door_name = info.node_names.get(garage_id)
     if not door_name:
         raise BadRequest(description="garage door not registered")
     status = api_utils.get_garage_door_status(info.api_key, url, garage_id)
@@ -24,13 +24,8 @@ def get_all_status(bearer_token):
     url = f'http://{info.ip_address}:{info.ip_port}'
     status = api_utils.get_all_garage_doors_status(info.api_key, url)
 
-    registered_doors = []
-    for door in status['doors']:
-        door_name = info.node_names.get(int(door['garageId']))
-        if door_name:
-            door['doorName'] = door_name
-            registered_doors.append(door)
-    status['doors'] = registered_doors
+    user_doors = [_update_door(door, info) for door in status['doors'] if door['garageId'] in info.node_names]
+    status['doors'] = user_doors
     return GarageOverview.from_dict(status)
 
 
@@ -60,3 +55,8 @@ def _get_garage_device_info(bearer_token):
     if not info:
         raise FailedDependency(description="device not registered")
     return info
+
+
+def _update_door(door, info):
+    door['doorName'] = info.node_names.get(door['garageId'])
+    return door
