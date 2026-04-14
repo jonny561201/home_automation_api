@@ -35,16 +35,19 @@ class DeviceRepository(DatabaseBase):
         self.session.add(device)
         return device.id
 
-    def upsert_discovered_device(self, name, ip_address, ip_port, api_key, max_nodes):
+    def upsert_discovered_device(self, name, ip_address, ip_port, api_key, max_nodes, nodes):
         device_type = self._get_device_type('garage_door')
         existing = self._get_device_by_name(name, device_type.id)
         if existing:
             existing.ip_address = ip_address
             existing.ip_port = ip_port
             existing.max_nodes = max_nodes
+            self._upsert_device_nodes(existing.id, nodes)
             return existing.id
         device = Devices(ip_address=ip_address, ip_port=ip_port, name=name, device_type_id=device_type.id, registered=False, api_key=api_key, max_nodes=max_nodes)
         self.session.add(device)
+        self.session.flush()
+        self._upsert_device_nodes(device.id, nodes)
         return device.id
 
     def get_device_address_info(self, user_id):
