@@ -30,7 +30,7 @@ class TestGarageController:
     def setup_method(self):
         os.environ.update({'JWT_SECRET': self.JWT_SECRET})
         self.DEVICE_INFO = DeviceInfo(ip_address=self.IP_ADDRESS, ip_port=self.IP_PORT, api_key=self.API_KEY, node_names={self.GARAGE_ID: 'Left Garage'})
-        self.STATUS_RESPONSE = {'isGarageOpen': True, 'statusDuration': '2025-01-01T00:00:00', 'coordinates': {'latitude': 1.0, 'longitude': 2.0}}
+        self.STATUS_RESPONSE = {'isGarageOpen': True, 'duration': '2025-01-01T00:00:00', 'coordinates': {'latitude': 1.0, 'longitude': 2.0}}
         self.OVERVIEW_RESPONSE = {'coordinates': {'latitude': 1.0, 'longitude': 2.0}, 'doors': []}
 
     def teardown_method(self):

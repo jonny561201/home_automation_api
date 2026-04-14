@@ -19,7 +19,7 @@ class Coordinates:
 @dataclass
 class GarageStatus:
     isGarageOpen: bool
-    statusDuration: datetime
+    duration: datetime
     coordinates: Coordinates
     doorName: str
 
@@ -35,7 +35,7 @@ class GarageState:
 class GarageDoor:
     garageId: str
     isGarageOpen: bool
-    statusDuration: datetime
+    duration: datetime
     doorName: str
 
 

@@ -49,7 +49,7 @@ class TestGarageDoorRoutesIntegration:
 
     def test_get_garage_door_status__should_return_success_with_valid_jwt(self, mock_request):
         response = Response()
-        response._content = json.dumps({'isGarageOpen': False, 'statusDuration': datetime.now().isoformat(), 'coordinates': {'latitude': 1.12, 'longitude': -12.93}}).encode()
+        response._content = json.dumps({'isGarageOpen': False, 'duration': datetime.now().isoformat(), 'coordinates': {'latitude': 1.12, 'longitude': -12.93}}).encode()
         response.status_code = 200
         mock_request.get.return_value = response
         actual = self.TEST_CLIENT.get(f'garageDoor/{self.GARAGE_ID}/status', headers=self.HEADERS)

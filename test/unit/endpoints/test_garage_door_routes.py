@@ -25,8 +25,8 @@ class TestAppRoutes:
         self.ctx.push()
         self.STATE = GarageState(isGarageOpen=False)
         self.COORDINATES = Coordinates(latitude=19.00, longitude=-99.00)
-        self.STATUS = GarageStatus(isGarageOpen=True, statusDuration=datetime.now(), coordinates=self.COORDINATES, doorName='Left Garage')
-        self.DOORS = [GarageDoor(garageId='1', isGarageOpen=True, statusDuration=datetime.now(), doorName='Left Garage')]
+        self.STATUS = GarageStatus(isGarageOpen=True, duration=datetime.now(), coordinates=self.COORDINATES, doorName='Left Garage')
+        self.DOORS = [GarageDoor(garageId='1', isGarageOpen=True, duration=datetime.now(), doorName='Left Garage')]
         self.OVERVIEW = GarageOverview(coordinates=self.COORDINATES, doors=self.DOORS)
 
     def teardown_method(self):

@@ -90,7 +90,7 @@ class TestDeviceRepository:
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = device
         actual = self.DATABASE.get_device_address_info(self.USER_ID)
 
-        assert actual.node_names == {1: 'Left Garage'}
+        assert actual.node_names == {'1': 'Left Garage'}
 
     def test_get_registered_devices__should_raise_not_found_when_user_id_none(self):
         with pytest.raises(NotFound):
