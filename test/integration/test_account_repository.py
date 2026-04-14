@@ -78,7 +78,7 @@ class TestAccountIntegration:
         mock_uuid.uuid4.return_value = self.UPDATED_USER_ID
         device_id = str(uuid.uuid4())
         with DatabaseBase() as database:
-            device = Devices(id=device_id, user_id=self.USER_ID, ip_address='192.168.1.1', node_name='Left Garage', node_device=1, device_type_id=self.GARAGE_TYPE_ID)
+            device = Devices(id=device_id, user_id=self.USER_ID, ip_address='192.168.1.1', name='Left Garage', api_key='test-key', device_type_id=self.GARAGE_TYPE_ID)
             database.session.add(device)
 
         with AccountRepository() as database:
@@ -133,7 +133,7 @@ class TestAccountIntegration:
         user = UserInformation(id=self.CHILD_USER_ID, first_name='Steve', last_name='Rogers')
         with AccountRepository() as database:
             database.session.add(user)
-            device = Devices(id=device_id, user_id=self.USER_ID, ip_address='192.168.1.1', node_name='Left Garage', node_device=1, device_type_id=self.GARAGE_TYPE_ID)
+            device = Devices(id=device_id, user_id=self.USER_ID, ip_address='192.168.1.1', name='Left Garage', api_key='test-key', device_type_id=self.GARAGE_TYPE_ID)
             database.session.add(device)
             database.session.commit()
             database.session.add(self.CHILD_ACCOUNT)

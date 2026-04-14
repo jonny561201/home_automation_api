@@ -31,7 +31,7 @@ class DeviceRepository(DatabaseBase):
         type_stmt = select(DeviceType).filter_by(type='garage_door')
         device_type = self.session.execute(type_stmt).scalars().first()
 
-        device = Devices(id=str(uuid.uuid4()), user_id=user_id, ip_address=ip_address, ip_port=ip_port, name=name, device_type_id=device_type.id, registered=False)
+        device = Devices(id=str(uuid.uuid4()), user_id=user_id, ip_address=ip_address, ip_port=ip_port, name=name, api_key=str(uuid.uuid4()), device_type_id=device_type.id, registered=False)
         self.session.add(device)
         return device.id
 
