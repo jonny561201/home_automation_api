@@ -29,8 +29,6 @@ class UserDevice:
     deviceId: str
     name: str
     type: str
-    ipAddress: str
-    ipPort: int
     registered: bool
     maxNodes: int = 1
     nodes: List[DeviceNodeDetail] = field(default_factory=list)
