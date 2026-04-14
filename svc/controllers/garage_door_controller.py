@@ -1,6 +1,6 @@
 from werkzeug.exceptions import BadRequest, FailedDependency
 
-from db.repositories.device_repository import DeviceRepository
+from svc.db.repositories.device_repository import DeviceRepository
 from svc.constants.home_automation import Automation, AuthClaims
 from svc.models.garage import GarageState, GarageStatus, GarageOverview
 from svc.utilities import api_utils

@@ -2,7 +2,7 @@ import uuid
 
 from sqlalchemy import select
 
-from models.devices import DeviceInfo
+from svc.models.devices import DeviceInfo
 from svc.db.models.user_information_model import ChildAccounts, DeviceNodes, DeviceType, UserInformation
 from svc.db.models.user_information_model import Devices
 from svc.db.repositories.database_base import DatabaseBase
