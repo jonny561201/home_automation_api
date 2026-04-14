@@ -2,7 +2,6 @@ import requests
 from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
 
 from svc.config.settings_state import Settings
-from svc.models.garage import GarageOverview, GarageStatus
 from svc.utilities.string_utils import generate_password
 
 
@@ -37,7 +36,7 @@ def get_garage_door_status(api_key, base_url, garage_id):
     except Exception:
         raise FailedDependency()
     __validate_garage_response(response)
-    return GarageStatus.from_dict(response.json())
+    return response.json()
 
 
 def get_all_garage_doors_status(api_key, base_url):
@@ -47,7 +46,7 @@ def get_all_garage_doors_status(api_key, base_url):
     except Exception:
         raise FailedDependency()
     __validate_garage_response(response)
-    return GarageOverview.from_dict(response.json())
+    return response.json()
 
 
 def register_garage_device(ip, port):
