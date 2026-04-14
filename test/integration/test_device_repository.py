@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import select, delete
 from werkzeug.exceptions import NotFound
 
-from svc.db.models.user_information_model import UserPreference, Devices, UserInformation, ChildAccounts, DeviceType
+from svc.db.models.user_information_model import UserPreference, Devices, DeviceNodes, UserInformation, ChildAccounts, DeviceType
 from svc.db.repositories.database_base import DatabaseBase
 from svc.db.repositories.device_repository import DeviceRepository
 
@@ -23,7 +23,7 @@ class TestDbDeviceIntegration:
         with DatabaseBase() as database:
             stmt = select(DeviceType).where(DeviceType.type == 'garage_door')
             self.DEVICE_TYPE = database.session.execute(stmt).scalars().first()
-            self.DEVICE = Devices(ip_address=self.IP_ADDRESS, ip_port=self.PORT, node_name='test', user_id=self.USER_ID, device_type_id=self.DEVICE_TYPE.id)
+            self.DEVICE = Devices(ip_address=self.IP_ADDRESS, ip_port=self.PORT, name='test', api_key='test-key', user_id=self.USER_ID, device_type_id=self.DEVICE_TYPE.id)
             database.session.add_all([self.USER_INFO, self.CHILD_USER])
             database.session.add(self.USER_PREF)
             database.session.commit()
@@ -32,6 +32,7 @@ class TestDbDeviceIntegration:
 
     def teardown_method(self):
         with DatabaseBase() as database:
+            database.session.execute(delete(DeviceNodes))
             database.session.execute(delete(Devices))
             database.session.execute(delete(UserPreference).where(UserPreference.user_id == self.USER_ID))
             database.session.execute(delete(ChildAccounts).where(ChildAccounts.child_user_id == self.CHILD_USER_ID))
@@ -47,11 +48,11 @@ class TestDbDeviceIntegration:
     def test_add_new_device__should_insert_a_new_device_into_table(self):
         ip_address = '192.168.1.145'
         port = 5000
-        node_name = 'sample test name'
+        device_name = 'sample test name'
         with DeviceRepository() as database:
-            database.add_new_device(self.USER_ID, node_name, ip_address, port)
+            database.add_new_device(self.USER_ID, device_name, ip_address, port)
 
-            actual = database.session.execute(select(Devices).where(Devices.node_name == node_name)).scalars().first()
+            actual = database.session.execute(select(Devices).where(Devices.name == device_name)).scalars().first()
             assert actual.ip_address == ip_address
             assert actual.ip_port == port
             assert str(actual.user_id) == self.USER_ID
@@ -67,23 +68,24 @@ class TestDbDeviceIntegration:
             assert actual.ip_address == ip_address
             assert actual.ip_port == port
 
-    def test_get_user_garage_ip__should_return_garage_ip(self):
+    def test_get_device_address_info__should_return_device_info(self):
         with DeviceRepository() as database:
-            actual = database.get_user_garage_ip(self.USER_ID)
+            actual = database.get_device_address_info(self.USER_ID)
 
-            assert actual == f'{self.IP_ADDRESS}:{self.PORT}'
+            assert actual.ip_address == self.IP_ADDRESS
+            assert actual.ip_port == self.PORT
 
-    def test_get_user_garage_ip__should_raise_not_found_when_no_user_id_match(self):
+    def test_get_device_address_info__should_raise_not_found_when_no_user_id_match(self):
         with DeviceRepository() as database:
             with pytest.raises(NotFound):
-                database.get_user_garage_ip(str(uuid.uuid4()))
+                database.get_device_address_info(str(uuid.uuid4()))
 
-    def test_get_user_garage_ip__should_raise_not_found_when_no_device(self):
+    def test_get_device_address_info__should_raise_not_found_when_no_device(self):
         with DeviceRepository() as database:
             database.session.execute(delete(Devices).where(Devices.user_id == self.USER_ID))
         with DeviceRepository() as database:
             with pytest.raises(NotFound):
-                database.get_user_garage_ip(str(uuid.uuid4()))
+                database.get_device_address_info(str(uuid.uuid4()))
 
     def test_get_registered_devices__should_return_all_user_devices(self):
         with DeviceRepository() as database:
@@ -91,7 +93,7 @@ class TestDbDeviceIntegration:
 
             assert len(actual) == 1
             assert actual[0].ip_address == self.IP_ADDRESS
-            assert actual[0].node_name == 'test'
+            assert actual[0].name == 'test'
 
     def test_get_registered_devices__should_return_empty_list_when_no_devices(self):
         with DeviceRepository() as database:

@@ -20,7 +20,7 @@ class TestAppRoutes:
     def setup_method(self):
         self.app = Flask(__name__)
         self.TASK = Task(taskId='1', taskType='x', enabled=True, hvacMode='auto', alarmDays='M', hvacStopTemp=68, hvacStartTemp=72, alarmGroupName='Test', alarmLightGroup='1')
-        self.PREFERENCES = Preference(isImperial=False, isFahrenheit=False, city='York', tempUnit='Celsius', measureUnit='cm', garageId=1, garageDoor='Kals')
+        self.PREFERENCES = Preference(isImperial=False, isFahrenheit=False, city='York', tempUnit='Celsius', measureUnit='cm')
         self.TASKS = Tasks(tasks=[])
         self.LOGIN_REQUEST = {'grant_type': 'client_credentials', 'client_id': self.USER, 'client_secret': self.PWORD}
         self.ctx = setup_request(self.app, headers=self.HEADERS)

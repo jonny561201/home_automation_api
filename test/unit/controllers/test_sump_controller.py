@@ -15,8 +15,8 @@ class TestSumpController:
     BEARER_TOKEN = 'lkhasdhlufiou0892390784'
 
     def setup_method(self):
-        self.IMPERIAL_PREFERENCE = Preference(isImperial=True, isFahrenheit=True, garageId=1, garageDoor='Jons', tempUnit='Fahrenheit', measureUnit='in', city='Austin')
-        self.METRIC_PREFERENCE = Preference(isImperial=False, isFahrenheit=False, garageId=2, garageDoor='Kals', tempUnit='Celsius', measureUnit='cm', city='Austin')
+        self.IMPERIAL_PREFERENCE = Preference(isImperial=True, isFahrenheit=True, tempUnit='Fahrenheit', measureUnit='in', city='Austin')
+        self.METRIC_PREFERENCE = Preference(isImperial=False, isFahrenheit=False, tempUnit='Celsius', measureUnit='cm', city='Austin')
 
     def test_get_sump_level__should_call_get_current_sump_level_by_user(self, mock_sump, mock_user, mock_jwt):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS

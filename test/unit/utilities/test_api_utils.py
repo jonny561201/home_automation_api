@@ -91,7 +91,7 @@ class TestWeatherApiRequests:
 class TestGarageApiRequests:
     GARAGE_ID = 5
     BASE_URL = 'http://localhost:80'
-    FAKE_BEARER = 'fakeBearerToken'
+    API_KEY = 'fakeApiKey'
     STATE = {'isGarageOpen': False}
     STATUS = {'isGarageOpen': True, 'statusDuration': datetime.now().isoformat(), 'coordinates': {'latitude': 12.34, 'longitude': -56.78}}
 
@@ -100,7 +100,7 @@ class TestGarageApiRequests:
         response.status_code = 200
         mock_requests.get.return_value = response
         response._content = json.dumps(self.STATUS).encode('UTF-8')
-        get_garage_door_status(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
+        get_garage_door_status(self.API_KEY, self.BASE_URL, self.GARAGE_ID)
 
         expected_url = f'{self.BASE_URL}/garageDoor/{str(self.GARAGE_ID)}/status'
         mock_requests.get.assert_called_with(expected_url, headers=ANY, timeout=5)
@@ -110,8 +110,8 @@ class TestGarageApiRequests:
         response.status_code = 200
         mock_requests.get.return_value = response
         response._content = json.dumps(self.STATUS).encode('UTF-8')
-        expected_headers = {'Authorization': 'Bearer ' + self.FAKE_BEARER}
-        get_garage_door_status(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
+        expected_headers = {'X-API-Key': self.API_KEY}
+        get_garage_door_status(self.API_KEY, self.BASE_URL, self.GARAGE_ID)
 
         mock_requests.get.assert_called_with(ANY, headers=expected_headers, timeout=5)
 
@@ -120,26 +120,26 @@ class TestGarageApiRequests:
         response.status_code = 200
         response._content = json.dumps(self.STATUS).encode('UTF-8')
         mock_requests.get.return_value = response
-        actual = get_garage_door_status(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
+        actual = get_garage_door_status(self.API_KEY, self.BASE_URL, self.GARAGE_ID)
 
-        assert actual.to_dict() == self.STATUS
+        assert actual == self.STATUS
 
     def test_get_garage_door_status__should_raise_failed_dependency_when_request_raises_connection_error(self, mock_requests):
         mock_requests.get.side_effect = ConnectionError()
         with pytest.raises(FailedDependency):
-            get_garage_door_status(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
+            get_garage_door_status(self.API_KEY, self.BASE_URL, self.GARAGE_ID)
 
     def test_get_garage_door_status__should_raise_failed_dependency_when_request_raises_connection_timeout_error(self, mock_requests):
         mock_requests.get.side_effect = ConnectTimeout()
         with pytest.raises(FailedDependency):
-            get_garage_door_status(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
+            get_garage_door_status(self.API_KEY, self.BASE_URL, self.GARAGE_ID)
 
     def test_get_garage_door_status__should_raise_bad_request_when_failure_status_code(self, mock_requests):
         response = Response()
         response.status_code = 400
         mock_requests.get.return_value = response
         with pytest.raises(BadRequest) as e:
-            get_garage_door_status(self.FAKE_BEARER, self.BASE_URL, self.GARAGE_ID)
+            get_garage_door_status(self.API_KEY, self.BASE_URL, self.GARAGE_ID)
         assert e.value.description == 'Garage node returned a failure'
 
 
@@ -150,6 +150,7 @@ class TestRegisterGarageDevice:
 
     def setup_method(self):
         self.RESPONSE = Response()
+        self.RESPONSE._content = json.dumps({}).encode()
         self.RESPONSE.status_code = 200
 
     def test_register_garage_device__should_call_post_with_url(self, mock_requests):

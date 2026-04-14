@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy import delete, select
 from werkzeug.exceptions import NotFound, Unauthorized
 
-from svc.db.models.user_information_model import UserInformation, ScheduleTasks, UserPreference
+from svc.db.models.user_information_model import UserInformation, ScheduleTasks, UserPreference, Devices, DeviceNodes, DeviceType
 from svc.db.repositories.database_base import DatabaseBase
 from svc.db.repositories.user_repository import UserRepository
 
@@ -18,20 +18,30 @@ class TestUserIntegration:
     LIGHT_TIME = '02:22:22'
     GROUP_NAME = 'secret room'
     DAYS = 'MonTueWedThuFri'
-    GARAGE = 'Jons'
 
     def setup_method(self):
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
         self.TASK = ScheduleTasks(user_id=self.USER_ID, id=self.TASK_ID, alarm_light_group=self.LIGHT_GROUP, alarm_group_name=self.GROUP_NAME, alarm_days=self.DAYS, alarm_time=datetime.time.fromisoformat(self.LIGHT_TIME), enabled=True)
-        self.USER_PREFERENCES = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city=self.CITY, garage_door=self.GARAGE, garage_id=1)
+        self.USER_PREFERENCES = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city=self.CITY)
         with DatabaseBase() as database:
             database.session.add(self.USER)
+            database.session.commit()
+            device_type = database.session.execute(select(DeviceType).where(DeviceType.type == 'garage_door')).scalars().first()
+            self.DEVICE = Devices(user_id=self.USER_ID, ip_address='1.1.1.1', name='test-device', api_key='test-key', device_type_id=device_type.id)
+            database.session.add(self.DEVICE)
+            database.session.flush()
+            self.DEVICE_NODE = DeviceNodes(device_id=self.DEVICE.id, node_device=1, node_name='Left Garage')
+            database.session.add(self.DEVICE_NODE)
+            database.session.flush()
+            self.NODE_ID = str(self.DEVICE_NODE.id)
             database.session.add(self.USER_PREFERENCES)
 
     def teardown_method(self):
         with DatabaseBase() as database:
             database.session.execute(delete(ScheduleTasks))
             database.session.execute(delete(UserPreference).where(UserPreference.user_id == self.USER_ID))
+            database.session.execute(delete(DeviceNodes))
+            database.session.execute(delete(Devices).where(Devices.user_id == self.USER_ID))
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 
     def test_get_preferences_by_user__should_return_preferences_for_valid_user(self):
@@ -43,8 +53,7 @@ class TestUserIntegration:
             assert response.city == self.CITY
             assert response.isFahrenheit is True
             assert response.isImperial is True
-            assert response.garageDoor == self.GARAGE
-            assert response.garageId == 1
+            assert response.preferredGarageNodeId is None
 
     def test_get_preferences_by_user__should_raise_not_found_when_no_preferences(self):
         with pytest.raises(NotFound):
@@ -54,8 +63,7 @@ class TestUserIntegration:
 
     def test_insert_preferences_by_user__should_insert_valid_preferences(self):
         city = 'Vienna'
-        new_door = 'Kalynns'
-        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': False, 'garageDoor': new_door, 'garageId': 5}
+        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': False, 'preferredGarageNodeId': self.NODE_ID}
         with UserRepository() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
             database.session.commit()
@@ -63,12 +71,11 @@ class TestUserIntegration:
 
             assert actual.city == city
             assert actual.is_fahrenheit is True
-            assert actual.garage_door == new_door
-            assert actual.garage_id == 5
+            assert str(actual.preferred_garage_node_id) == self.NODE_ID
 
     def test_insert_preferences_by_user__should_not_fail_when_time_is_none(self):
         city = 'Vienna'
-        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': False, 'garageDoor': 3}
+        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': False}
         with UserRepository() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
             actual = database.session.execute(select(UserPreference).where(UserPreference.user_id == self.USER_ID)).scalars().first()
@@ -77,7 +84,7 @@ class TestUserIntegration:
             assert actual.is_fahrenheit is True
 
     def test_insert_preferences_by_user__should_not_nullify_city_when_missing(self):
-        preference_info = {'isFahrenheit': False, 'isImperial': True, 'garagaeDoor': 2}
+        preference_info = {'isFahrenheit': False, 'isImperial': True}
         with UserRepository() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
 
@@ -89,7 +96,7 @@ class TestUserIntegration:
 
     def test_insert_preferences_by_user__should_not_nullify_is_fahrenheit_when_missing(self):
         city = 'Lisbon'
-        preference_info = {'city': city, 'isImperial': False, 'garageDoor': 1}
+        preference_info = {'city': city, 'isImperial': False}
         with UserRepository() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
 
@@ -101,7 +108,7 @@ class TestUserIntegration:
 
     def test_insert_preferences_by_user__should_not_nullify_is_imperial_when_missing(self):
         city = 'Lisbon'
-        preference_info = {'city': city, 'isFahrenheit': True, 'garageDoor': 1}
+        preference_info = {'city': city, 'isFahrenheit': True}
         with UserRepository() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
 
@@ -122,7 +129,7 @@ class TestUserIntegration:
             assert actual.city == city
             assert actual.is_fahrenheit is True
             assert actual.is_imperial is True
-            assert actual.garage_door == self.GARAGE
+            assert actual.preferred_garage_node_id is None
 
     def test_insert_preferences_by_user__should_not_nullify_garage_id_when_missing(self):
         city = 'Lisbon'
@@ -135,12 +142,11 @@ class TestUserIntegration:
             assert actual.city == city
             assert actual.is_fahrenheit is True
             assert actual.is_imperial is True
-            assert actual.garage_door == self.GARAGE
-            assert actual.garage_id == 1
+            assert actual.preferred_garage_node_id is None
 
     def test_insert_preferences_by_user__should_set_garage_id_to_null_when_sent_null(self):
         city = 'Lisbon'
-        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': True, 'garageId': None}
+        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': True, 'preferredGarageNodeId': None}
         with UserRepository() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
 
@@ -149,8 +155,7 @@ class TestUserIntegration:
             assert actual.city == city
             assert actual.is_fahrenheit is True
             assert actual.is_imperial is True
-            assert actual.garage_door == self.GARAGE
-            assert actual.garage_id is None
+            assert actual.preferred_garage_node_id is None
 
 
 class TestDbCredentialIntegration:

@@ -19,13 +19,12 @@ class TestDbTaskIntegration:
     LIGHT_TIME = '02:22:22'
     GROUP_NAME = 'secret room'
     DAYS = 'MonTueWedThuFri'
-    GARAGE = 'Jons'
 
     def setup_method(self):
 
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
         self.TASK = ScheduleTasks(user_id=self.USER_ID, id=self.TASK_ID, alarm_light_group=self.LIGHT_GROUP, alarm_group_name=self.GROUP_NAME, alarm_days=self.DAYS, alarm_time=datetime.time.fromisoformat(self.LIGHT_TIME), enabled=True)
-        self.USER_PREFERENCES = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city=self.CITY, garage_door=self.GARAGE, garage_id=1)
+        self.USER_PREFERENCES = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=True, city=self.CITY)
         with DatabaseBase() as database:
             database.session.add(self.USER)
             database.session.add(self.USER_PREFERENCES)

@@ -4,7 +4,7 @@ import uuid
 from mock import patch
 from sqlalchemy import delete, select
 
-from svc.db.models.user_information_model import UserDevices
+from svc.db.models.user_information_model import UserDevices, DeviceNodes
 from svc.db.models.user_information_model import UserInformation, ChildAccounts, UserPreference, Devices, DeviceType
 from svc.db.repositories.database_base import DatabaseBase
 from svc.manager import app
@@ -34,7 +34,7 @@ class TestAccountRoutesIntegration:
         with DatabaseBase() as database:
             stmt = select(DeviceType).where(DeviceType.type == 'thermostat')
             type = database.session.execute(stmt).scalars().first()
-            self.DEVICE = Devices(id=self.DEVICE_ID, node_name='test', node_device=1, ip_address='1.1.1.1', user_id=self.USER_ID, device_type_id=type.id)
+            self.DEVICE = Devices(id=self.DEVICE_ID, name='test', api_key='test-key', ip_address='1.1.1.1', user_id=self.USER_ID, device_type_id=type.id)
             database.session.add(self.USER)
             database.session.add(self.CHILD_USER)
             database.session.commit()
@@ -45,6 +45,7 @@ class TestAccountRoutesIntegration:
     def teardown_method(self):
         with DatabaseBase() as database:
             database.session.execute(delete(UserDevices))
+            database.session.execute(delete(DeviceNodes))
             database.session.execute(delete(Devices).where(Devices.user_id == self.USER_ID))
             database.session.execute(delete(ChildAccounts))
             database.session.execute(delete(UserPreference).where(UserPreference.user_id == self.USER_ID))

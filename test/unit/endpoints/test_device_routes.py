@@ -17,7 +17,7 @@ class TestDeviceRoutes:
     def setup_method(self):
         self.app = Flask(__name__)
         self.DEVICE_ID = Device(deviceId=self.DEVICE_ID)
-        self.DEVICE = UserDevice(ipAddress=self.IP_ADDRESS, id=1, name='test', type='garage', registered=True, ipPort=1)
+        self.DEVICE = UserDevice(deviceId='device-1', name='test', type='garage', registered=True)
         self.ctx = setup_request(self.app, headers=self.HEADERS)
 
     def teardown_method(self):
@@ -75,5 +75,5 @@ class TestDeviceRoutes:
         actual = get_devices()
 
         assert actual.json == {'devices': [
-            {'ipAddress': self.DEVICE.ipAddress, 'ipPort': self.DEVICE.ipPort, 'name': self.DEVICE.name,
-             'type': self.DEVICE.type, 'registered': self.DEVICE.registered, 'id': self.DEVICE.id}]}
+            {'deviceId': self.DEVICE.deviceId, 'name': self.DEVICE.name,
+             'type': self.DEVICE.type, 'registered': self.DEVICE.registered, 'maxNodes': 1, 'nodes': []}]}

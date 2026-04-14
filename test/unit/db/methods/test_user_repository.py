@@ -160,21 +160,13 @@ class TestPreference:
 
         self.SESSION.execute.assert_not_called()
 
-    def test_get_preferences_by_user__should_return_garage_id_state(self):
+    def test_get_preferences_by_user__should_return_preferred_garage_node_id(self):
         user = UserInformation(first_name=self.FIRST_NAME, last_name=self.LAST_NAME)
         preference = TestPreference.__create_user_preference(user, 'Fake City', True, False)
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = preference
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
-        assert actual.garageId == 1
-
-    def test_get_preferences_by_user__should_return_garage_door_state(self):
-        user = UserInformation(first_name=self.FIRST_NAME, last_name=self.LAST_NAME)
-        preference = TestPreference.__create_user_preference(user, 'Fake City', True, False)
-        self.SESSION.execute.return_value.scalars.return_value.first.return_value = preference
-        actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
-
-        assert actual.garageDoor == 'Jons'
+        assert actual.preferredGarageNodeId is None
 
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
@@ -187,7 +179,6 @@ class TestPreference:
         preference.alarm_time = datetime.now().time()
         preference.alarm_days = 'MonTueWedThuFri'
         preference.alarm_group_name = 'bedroom'
-        preference.garage_id = 1
-        preference.garage_door = 'Jons'
+        preference.preferred_garage_node_id = None
 
         return preference

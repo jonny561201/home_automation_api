@@ -30,13 +30,14 @@ class TestDeviceController:
         mock_db.return_value.__enter__.return_value.get_registered_devices.assert_called_with(self.USER_ID)
 
     def test_get_user_devices__should_map_devices_from_database(self, mock_jwt, mock_db):
-        device = Devices(ip_address=self.IP_ADDRESS, device_type=DeviceType(type='good'))
+        device = Devices(ip_address=self.IP_ADDRESS, name='test-device', max_nodes=1, device_type=DeviceType(type='good'))
+        device.nodes = []
         mock_db.return_value.__enter__.return_value.get_registered_devices.return_value = [device]
 
         actual = get_user_devices(self.BEARER_TOKEN)
 
         assert len(actual.devices) == 1
-        assert actual.devices[0].ipAddress == self.IP_ADDRESS
+        assert actual.devices[0].name == 'test-device'
 
     def test_get_user_devices__should_return_empty_list_if_no_devices(self, mock_jwt, mock_db):
         mock_db.return_value.__enter__.return_value.get_registered_devices.return_value = []
@@ -96,14 +97,20 @@ class TestRegisterDevice:
     SERVICE_NAME = 'garage_opener'
     IP_ADDRESS = '192.168.0.100'
     IP_PORT = 5000
+    MAX_NODES = 2
 
     def test_register_device__should_upsert_discovered_device(self, mock_db, mock_api):
-        discover_device(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
+        api_key = 'test-api-key'
+        nodes = [{'nodeDevice': 1, 'nodeName': 'Left'}]
+        mock_api.return_value = {'api_key': api_key, 'nodes': nodes}
+        discover_device(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT, self.MAX_NODES)
 
-        mock_db.return_value.__enter__.return_value.upsert_discovered_device.assert_called_with(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
+        mock_db.return_value.__enter__.return_value.upsert_discovered_device.assert_called_with(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT, api_key, self.MAX_NODES, nodes)
 
     def test_register_device__should_call_register_garage_device(self, mock_db, mock_api):
-        discover_device(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
+        mock_api.return_value = {'api_key': 'key'}
+        discover_device(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT, self.MAX_NODES)
 
         mock_api.assert_called_with(self.IP_ADDRESS, self.IP_PORT)
+
 

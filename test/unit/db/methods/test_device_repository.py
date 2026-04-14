@@ -37,56 +37,60 @@ class TestDeviceRepository:
         device_type = DeviceType(id='type-id', type='garage_door')
         self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [device_type, None]
 
-        self.DATABASE.upsert_discovered_device(self.DEVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
+        self.DATABASE.upsert_discovered_device(self.DEVICE_NAME, self.IP_ADDRESS, self.IP_PORT, 'api-key', 1, [])
 
         self.SESSION.add.assert_called()
 
     def test_upsert_discovered_device__should_update_existing_device_ip(self):
         device_type = DeviceType(id='type-id', type='garage_door')
-        existing = Devices(id='device-id', ip_address='10.0.0.1', ip_port=9999, node_name=self.DEVICE_NAME, device_type_id='type-id')
+        existing = Devices(id='device-id', ip_address='10.0.0.1', ip_port=9999, name=self.DEVICE_NAME, device_type_id='type-id')
+        existing.nodes = []
         self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [device_type, existing]
 
-        self.DATABASE.upsert_discovered_device(self.DEVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
+        self.DATABASE.upsert_discovered_device(self.DEVICE_NAME, self.IP_ADDRESS, self.IP_PORT, 'api-key', 1, [])
 
         assert existing.ip_address == self.IP_ADDRESS
         assert existing.ip_port == self.IP_PORT
-        self.SESSION.add.assert_not_called()
 
     def test_upsert_discovered_device__should_return_existing_device_id_on_update(self):
         device_type = DeviceType(id='type-id', type='garage_door')
-        existing = Devices(id='existing-id', ip_address='10.0.0.1', ip_port=9999, node_name=self.DEVICE_NAME, device_type_id='type-id')
+        existing = Devices(id='existing-id', ip_address='10.0.0.1', ip_port=9999, name=self.DEVICE_NAME, device_type_id='type-id')
+        existing.nodes = []
         self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [device_type, existing]
 
-        actual = self.DATABASE.upsert_discovered_device(self.DEVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
+        actual = self.DATABASE.upsert_discovered_device(self.DEVICE_NAME, self.IP_ADDRESS, self.IP_PORT, 'api-key', 1, [])
 
         assert actual == 'existing-id'
 
     def test_upsert_discovered_device__should_raise_not_found_when_device_type_missing(self):
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
         with pytest.raises(NotFound):
-            self.DATABASE.upsert_discovered_device(self.DEVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
+            self.DATABASE.upsert_discovered_device(self.DEVICE_NAME, self.IP_ADDRESS, self.IP_PORT, 'api-key', 1, [])
 
-    def test_get_user_garage_ip__should_raise_not_found_error_when_no_user_role(self):
+    def test_get_device_address_info__should_raise_not_found_error_when_no_device(self):
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
         with pytest.raises(NotFound):
-            self.DATABASE.get_user_garage_ip(self.USER_ID)
+            self.DATABASE.get_device_address_info(self.USER_ID)
 
-    def test_get_user_garage_ip__should_return_ip_address_of_user(self):
-        ip_address = '1.1.1.1'
-        device = Devices(ip_address=ip_address, ip_port=None)
+    def test_get_device_address_info__should_return_device_info(self):
+        device = Devices(ip_address='1.1.1.1', ip_port=5000, api_key='test-key')
+        device.nodes = []
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = device
-        actual = self.DATABASE.get_user_garage_ip(self.USER_ID)
+        actual = self.DATABASE.get_device_address_info(self.USER_ID)
 
-        assert actual == ip_address
+        assert actual.ip_address == '1.1.1.1'
+        assert actual.ip_port == 5000
+        assert actual.api_key == 'test-key'
 
-    def test_get_user_garage_ip__should_return_ip_address_and_port_if_available(self):
-        ip_address = '1.1.1.1'
-        ip_port = 5001
-        device = Devices(ip_address=ip_address, ip_port=ip_port)
+    def test_get_device_address_info__should_return_node_names(self):
+        from svc.db.models.user_information_model import DeviceNodes
+        device = Devices(ip_address='1.1.1.1', ip_port=5000, api_key='test-key')
+        node = DeviceNodes(node_device=1, node_name='Left Garage')
+        device.nodes = [node]
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = device
-        actual = self.DATABASE.get_user_garage_ip(self.USER_ID)
+        actual = self.DATABASE.get_device_address_info(self.USER_ID)
 
-        assert actual == f'{ip_address}:{ip_port}'
+        assert actual.node_names == {1: 'Left Garage'}
 
     def test_get_registered_devices__should_raise_not_found_when_user_id_none(self):
         with pytest.raises(NotFound):

@@ -8,7 +8,7 @@ from requests import Response
 from sqlalchemy import delete, select
 
 from test.integration.integration_helpers import mock_jwks_token
-from svc.db.models.user_information_model import UserInformation, Devices, DeviceType
+from svc.db.models.user_information_model import UserInformation, Devices, DeviceType, DeviceNodes
 from svc.db.repositories.database_base import DatabaseBase
 from svc.manager import app
 
@@ -27,14 +27,18 @@ class TestGarageDoorRoutesIntegration:
         with DatabaseBase() as database:
             stmt = select(DeviceType).where(DeviceType.type == 'garage_door')
             type = database.session.execute(stmt).scalars().first()
-            self.DEVICE = Devices(user_id=self.USER_ID, registered=False, ip_address='1.1.1.1', node_name='test', device_type_id=type.id)
+            self.DEVICE = Devices(user_id=self.USER_ID, registered=False, ip_address='1.1.1.1', name='test', api_key='test-key', device_type_id=type.id)
 
             database.session.add(self.USER_INFO)
             database.session.commit()
             database.session.add(self.DEVICE)
+            database.session.flush()
+            self.NODE = DeviceNodes(device_id=self.DEVICE.id, node_device=self.GARAGE_ID, node_name='test')
+            database.session.add(self.NODE)
 
     def teardown_method(self):
         with DatabaseBase() as database:
+            database.session.execute(delete(DeviceNodes))
             database.session.execute(delete(Devices).where(Devices.user_id == self.USER_ID))
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 

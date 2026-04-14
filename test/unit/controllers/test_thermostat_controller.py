@@ -21,7 +21,7 @@ class TestThermostatTempController:
     TEMP_CEL = 7.56
 
     def setup_method(self):
-        self.PREFERENCE = Preference(isFahrenheit=True, isImperial=True, tempUnit='Fahrenheit', city='Des Moines', garageId=1, garageDoor='Jons', measureUnit='in')
+        self.PREFERENCE = Preference(isFahrenheit=True, isImperial=True, tempUnit='Fahrenheit', city='Des Moines', measureUnit='in')
 
     def test_get_user_temp__should_call_is_jwt_valid(self, mock_jwt, mock_db, mock_temp, mock_file):
         get_user_temp(self.JWT_TOKEN)
@@ -116,7 +116,7 @@ class TestThermostatForecastController:
     TEMP_CEL = 7.56
 
     def setup_method(self):
-        self.PREFERENCE = Preference(isFahrenheit=True, isImperial=True, tempUnit='Fahrenheit', city='Des Moines', garageId=1, garageDoor='Jons', measureUnit='in')
+        self.PREFERENCE = Preference(isFahrenheit=True, isImperial=True, tempUnit='Fahrenheit', city='Des Moines', measureUnit='in')
 
     def test_get_user_forecast__should_validate_jwt_token(self, mock_jwt, mock_db, mock_weather):
         get_user_forecast(self.JWT_TOKEN)
