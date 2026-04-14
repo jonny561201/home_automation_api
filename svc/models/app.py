@@ -14,10 +14,9 @@ class Preference:
     isFahrenheit: bool
     isImperial: bool
     city: str
-    garageId: int
-    garageDoor: str
     tempUnit: str
     measureUnit: str
+    preferredGarageNodeId: Optional[str] = None
 
 
 @dataclass_json

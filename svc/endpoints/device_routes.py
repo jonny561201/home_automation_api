@@ -21,7 +21,7 @@ def get_devices():
     return Response(devices.to_json(), status=200, mimetype=Mime.JSON)
 
 
-@DEVICES_BLUEPRINT.route('/<device_id>/register', methods=['PUT'])
+@DEVICES_BLUEPRINT.route('/<device_id>/node', methods=['POST'])
 def register_discovered_device(device_id):
     bearer_token = request.headers.get('Authorization')
     device = devices_controller.register_discovered_device_to_user(bearer_token, device_id, request.get_json())

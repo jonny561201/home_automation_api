@@ -40,3 +40,8 @@ CREATE TABLE user_devices (
     user_id UUID NOT NULL REFERENCES user_information(ID),
     device_id UUID NOT NULL REFERENCES devices(ID)
 );
+
+ALTER TABLE user_preferences DROP COLUMN garage_id;
+ALTER TABLE user_preferences DROP COLUMN garage_door;
+ALTER TABLE user_preferences ADD COLUMN preferred_garage_node_id UUID REFERENCES device_nodes(ID);
+

@@ -92,3 +92,13 @@ class DeviceRepository(DatabaseBase):
     def _get_device_by_name(self, name, device_type_id):
         stmt = select(Devices).where(Devices.name == name, Devices.device_type_id == device_type_id)
         return self.session.execute(stmt).scalars().first()
+
+    def _upsert_device_nodes(self, device_id, nodes):
+        for node in nodes:
+            stmt = select(DeviceNodes).where(DeviceNodes.device_id == device_id, DeviceNodes.node_device == node['nodeDevice'])
+            existing = self.session.execute(stmt).scalars().first()
+            if existing:
+                existing.node_name = node['nodeName']
+            else:
+                self.session.add(DeviceNodes(device_id=device_id, node_device=node['nodeDevice'], node_name=node['nodeName']))
+

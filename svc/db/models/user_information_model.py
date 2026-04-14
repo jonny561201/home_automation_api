@@ -99,10 +99,10 @@ class UserPreference(Base):
     is_fahrenheit = Column(Boolean, nullable=False)
     is_imperial = Column(Boolean, nullable=False)
     city = Column(String, nullable=True)
-    garage_id = Column(SMALLINT, nullable=True)
-    garage_door = Column(String, nullable=True)
+    preferred_garage_node_id = Column(UUID, ForeignKey(DeviceNodes.id), nullable=True)
 
     user = relationship('UserInformation', foreign_keys='UserPreference.user_id')
+    preferred_garage_node = relationship('DeviceNodes', foreign_keys='UserPreference.preferred_garage_node_id')
 
 
 class ScheduledTaskTypes(Base):

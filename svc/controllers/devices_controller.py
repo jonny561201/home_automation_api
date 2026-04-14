@@ -42,12 +42,12 @@ def register_discovered_device_to_user(bearer_token, device_id, request_data):
 def discover_device(service_name, ip, port, max_nodes):
     response = register_garage_device(ip, port)
     api_key = response['api_key']
+    nodes = response.get('nodes', [])
     with DeviceRepository() as database:
-        database.upsert_discovered_device(service_name, ip, port, api_key, max_nodes)
+        database.upsert_discovered_device(service_name, ip, port, api_key, max_nodes, nodes)
 
 
 def _create_user_device(device: Devices):
     nodes = [DeviceNodeDetail(nodeDevice=n.node_device, nodeName=n.node_name) for n in device.nodes]
-    return UserDevice(deviceId=str(device.id), ipAddress=device.ip_address, ipPort=device.ip_port,
-                      registered=device.registered, type=device.device_type.type, name=device.name,
-                      maxNodes=device.max_nodes, nodes=nodes)
+    return UserDevice(deviceId=str(device.id), registered=device.registered, type=device.device_type.type,
+                      name=device.name, maxNodes=device.max_nodes, nodes=nodes)
