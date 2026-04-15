@@ -80,8 +80,6 @@ function createEnvironmentVariableFile {
 }
 
 function createFile {
-    echo -e "Enter JWT_SECRET:${WHITE}"
-    read JWT_SECRET
     echo -e "Enter SQL_USERNAME:${WHITE}"
     read SQL_USER
     echo -e "Enter SQL_PASSWORD:${WHITE}"
@@ -92,7 +90,6 @@ function createFile {
     read WEATHER_APP
 
     echo "PYTHON_ENVIRONMENT=production" > serviceEnvVariables
-    echo "JWT_SECRET=${JWT_SECRET}" >> serviceEnvVariables
     echo "SQL_USERNAME=${SQL_USER}" >> serviceEnvVariables
     echo "SQL_PASSWORD=${SQL_PASS}" >> serviceEnvVariables
     echo "LIGHT_API_KEY=${LIGHT_API_KEY}" >> serviceEnvVariables
