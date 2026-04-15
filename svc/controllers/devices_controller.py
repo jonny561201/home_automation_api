@@ -6,7 +6,7 @@ from svc.db.repositories.device_repository import DeviceRepository
 from svc.db.repositories.user_repository import UserRepository
 from svc.models.devices import Device, UserDevices, UserDevice, DeviceNodeDetail
 from svc.utilities.jwt_utils import AuthClient
-from svc.utilities.api_utils import register_garage_device
+from svc.utilities.api_utils import register_home_automation_device
 
 
 # TODO: break contract and stop calling it roleName and just name
@@ -47,7 +47,7 @@ def register_discovered_device_to_user(bearer_token, device_id, request_data):
 
 
 def discover_device(service_name, ip, port, max_nodes):
-    response = register_garage_device(ip, port)
+    response = register_home_automation_device(ip, port)
     api_key = response['api_key']
     nodes = response.get('nodes', [])
     with DeviceRepository() as database:

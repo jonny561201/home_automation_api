@@ -9,7 +9,7 @@ from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
 from svc.config.settings_state import Settings
 from svc.utilities.api_utils import get_city_coordinates, create_light_group, set_light_groups, set_light_state, \
     get_light_groups, get_garage_door_status, get_forecast_by_coords, exchange_auth0_code, \
-    create_auth0_user, assign_auth0_roles, send_auth0_password_reset, register_garage_device
+    create_auth0_user, assign_auth0_roles, send_auth0_password_reset, register_home_automation_device
 
 
 @patch('svc.utilities.api_utils.requests')
@@ -155,31 +155,31 @@ class TestRegisterGarageDevice:
 
     def test_register_garage_device__should_call_post_with_url(self, mock_requests):
         mock_requests.post.return_value = self.RESPONSE
-        register_garage_device(self.IP_ADDRESS, self.IP_PORT)
+        register_home_automation_device(self.IP_ADDRESS, self.IP_PORT)
 
         mock_requests.post.assert_called_with(f'http://{self.IP_ADDRESS}:{self.IP_PORT}/register', timeout=5)
 
     def test_register_garage_device__should_raise_failed_dependency_when_connection_error(self, mock_requests):
         mock_requests.post.side_effect = ConnectionError()
         with pytest.raises(FailedDependency):
-            register_garage_device(self.IP_ADDRESS, self.IP_PORT)
+            register_home_automation_device(self.IP_ADDRESS, self.IP_PORT)
 
     def test_register_garage_device__should_raise_failed_dependency_when_timeout(self, mock_requests):
         mock_requests.post.side_effect = ConnectTimeout()
         with pytest.raises(FailedDependency):
-            register_garage_device(self.IP_ADDRESS, self.IP_PORT)
+            register_home_automation_device(self.IP_ADDRESS, self.IP_PORT)
 
     def test_register_garage_device__should_raise_failed_dependency_when_bad_response(self, mock_requests):
         self.RESPONSE.status_code = 500
         mock_requests.post.return_value = self.RESPONSE
         with pytest.raises(FailedDependency):
-            register_garage_device(self.IP_ADDRESS, self.IP_PORT)
+            register_home_automation_device(self.IP_ADDRESS, self.IP_PORT)
 
     def test_register_garage_device__should_raise_unauthorized_when_401_response(self, mock_requests):
         self.RESPONSE.status_code = 401
         mock_requests.post.return_value = self.RESPONSE
         with pytest.raises(Unauthorized):
-            register_garage_device(self.IP_ADDRESS, self.IP_PORT)
+            register_home_automation_device(self.IP_ADDRESS, self.IP_PORT)
 
 
 @patch('svc.utilities.api_utils.requests')

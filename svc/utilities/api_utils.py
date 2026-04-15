@@ -49,7 +49,7 @@ def get_all_garage_doors_status(api_key, base_url):
     return response.json()
 
 
-def register_garage_device(ip, port):
+def register_home_automation_device(ip, port):
     try:
         response = requests.post(f'http://{ip}:{port}/register', timeout=5)
     except Exception:
