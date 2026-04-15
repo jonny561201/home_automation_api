@@ -4,7 +4,7 @@ from svc.constants.home_automation import AuthClaims
 from svc.db.repositories.account_repository import AccountRepository
 from svc.db.repositories.device_repository import DeviceRepository
 from svc.utilities import api_utils
-from svc.utilities.jwt_utils import AuthClient
+from svc.utilities.auth_utils import AuthClient
 
 
 def create_child_account_by_user(bearer_token, request_data):

@@ -4,7 +4,7 @@ from svc.models.thermostat import ThermostatState
 from svc.services import weather_request
 from svc.utilities.conversion_utils import convert_to_celsius, convert_to_fahrenheit
 from svc.utilities.file_utils import write_desired_temp_to_file, get_desired_temp, read_temperature_file
-from svc.utilities.jwt_utils import AuthClient
+from svc.utilities.auth_utils import AuthClient
 from svc.utilities.rabbitmq_client import publish
 from svc.utilities.user_temp_utils import get_user_temperature
 

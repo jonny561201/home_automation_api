@@ -4,7 +4,7 @@ from mock import MagicMock
 
 from svc.constants.home_automation import AuthClaims
 from svc.config.settings_state import Settings
-from svc.utilities.jwt_utils import AuthClient
+from svc.utilities.auth_utils import AuthClient
 
 
 def mock_jwks_token(user_id: str):

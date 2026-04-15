@@ -3,7 +3,7 @@ from svc.constants.home_automation import AuthClaims
 from svc.db.repositories.sump_repository import SumpRepository
 from svc.models.sump import SumpLevel
 from svc.utilities.conversion_utils import convert_to_imperial
-from svc.utilities.jwt_utils import AuthClient
+from svc.utilities.auth_utils import AuthClient
 
 
 def get_sump_level(bearer_token):

@@ -157,7 +157,7 @@ class TestRegisterGarageDevice:
         mock_requests.post.return_value = self.RESPONSE
         register_home_automation_device(self.IP_ADDRESS, self.IP_PORT)
 
-        mock_requests.post.assert_called_with(f'http://{self.IP_ADDRESS}:{self.IP_PORT}/register', timeout=5)
+        mock_requests.post.assert_called_with(f'http://{self.IP_ADDRESS}:{self.IP_PORT}/register', timeout=5, json=None)
 
     def test_register_garage_device__should_raise_failed_dependency_when_connection_error(self, mock_requests):
         mock_requests.post.side_effect = ConnectionError()

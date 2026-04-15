@@ -1,7 +1,7 @@
 from svc.constants.home_automation import AuthClaims
 from svc.db.repositories.tasks_repository import TasksRepository
 from svc.db.repositories.user_repository import UserRepository
-from svc.utilities.jwt_utils import AuthClient
+from svc.utilities.auth_utils import AuthClient
 from svc.utilities.api_utils import send_auth0_password_reset
 
 

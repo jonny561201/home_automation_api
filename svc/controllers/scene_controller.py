@@ -1,5 +1,5 @@
 from svc.db.repositories.lights_repository import LightsRepository
-from svc.utilities.jwt_utils import AuthClient
+from svc.utilities.auth_utils import AuthClient
 
 
 def get_created_scenes(bearer_token):

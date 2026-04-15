@@ -5,7 +5,7 @@ from svc.constants.home_automation import AuthClaims
 from svc.db.repositories.device_repository import DeviceRepository
 from svc.db.repositories.user_repository import UserRepository
 from svc.models.devices import Device, UserDevices, UserDevice, DeviceNodeDetail
-from svc.utilities.jwt_utils import AuthClient
+from svc.utilities.auth_utils import AuthClient
 from svc.utilities.api_utils import register_home_automation_device
 
 

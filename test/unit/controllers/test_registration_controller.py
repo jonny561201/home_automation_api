@@ -3,7 +3,7 @@ from mock import patch
 from svc.controllers.registration_controller import register_garage_door
 
 
-@patch('svc.controllers.registration_controller.register_garage_device')
+@patch('svc.controllers.registration_controller.register_home_automation_device')
 @patch('svc.controllers.registration_controller.DeviceRepository')
 class TestRegisterDevice:
     SERVICE_NAME = 'garage_opener'

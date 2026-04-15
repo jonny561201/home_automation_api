@@ -4,7 +4,7 @@ from svc.db.repositories.device_repository import DeviceRepository
 from svc.constants.home_automation import Automation, AuthClaims
 from svc.models.garage import GarageState, GarageStatus, GarageOverview
 from svc.utilities import api_utils
-from svc.utilities.jwt_utils import AuthClient
+from svc.utilities.auth_utils import AuthClient
 from svc.utilities.rabbitmq_client import publish
 
 

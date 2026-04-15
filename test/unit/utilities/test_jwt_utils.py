@@ -4,11 +4,11 @@ from mock import patch
 from werkzeug.exceptions import Unauthorized, Forbidden
 
 from svc.config.settings_state import Settings
-from svc.utilities.jwt_utils import AuthClient
+from svc.utilities.auth_utils import AuthClient
 
 
-@patch('svc.utilities.jwt_utils.PyJWKClient')
-@patch('svc.utilities.jwt_utils.jwt')
+@patch('svc.utilities.auth_utils.PyJWKClient')
+@patch('svc.utilities.auth_utils.jwt')
 class TestAuthClient:
     DOMAIN = 'dev-test.us.auth0.com'
     AUDIENCE = 'https://fake.domain.com'
