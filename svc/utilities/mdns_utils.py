@@ -1,6 +1,7 @@
 from zeroconf import ServiceListener, Zeroconf, ServiceBrowser
 
-from svc.controllers.devices_controller import discover_device
+from controllers.registration_controller import register_sump_pump
+from svc.controllers.registration_controller import register_garage_door
 
 
 class MdnsListener(ServiceListener):
@@ -25,11 +26,11 @@ class MdnsListener(ServiceListener):
         if info is None:
             return
         service_name = info.properties.get(b'service', b'').decode()
-        if service_name:
+        if service_name == 'garage-door':
             ip = info.parsed_addresses()[0]
             port = info.port
             max_nodes = int(info.properties.get(b'max_nodes', b'1'))
-            discover_device(service_name, ip, port, max_nodes)
+            register_garage_door(service_name, ip, port, max_nodes)
 
     def remove_service(self, zc, type_, name):
         pass
