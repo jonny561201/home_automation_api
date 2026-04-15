@@ -36,3 +36,4 @@ class AuthClient:
             raise Forbidden()
 
         return claims
+

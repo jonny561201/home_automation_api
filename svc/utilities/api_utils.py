@@ -49,9 +49,9 @@ def get_all_garage_doors_status(api_key, base_url):
     return response.json()
 
 
-def register_home_automation_device(ip, port):
+def register_home_automation_device(ip, port, body=None):
     try:
-        response = requests.post(f'http://{ip}:{port}/register', timeout=5)
+        response = requests.post(f'http://{ip}:{port}/register', timeout=5, json=body)
     except Exception:
         raise FailedDependency()
     __validate_response(response)
