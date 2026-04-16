@@ -114,35 +114,3 @@ class TestDbDeviceIntegration:
 
             assert actual is None
 
-    def test_get_sump_device_id_by_user__should_return_device_for_parent_user(self):
-        with DatabaseBase() as database:
-            sump_type = database.session.execute(select(DeviceType).where(DeviceType.type == 'sump_pump')).scalars().first()
-            sump_device = Devices(ip_address='3.3.3.3', ip_port=5001, name='sump-test', api_key='sump-key',
-                                  user_id=self.USER_ID, device_type_id=sump_type.id, registered=True)
-            database.session.add(sump_device)
-            database.session.flush()
-            expected_id = str(sump_device.id)
-
-        with DeviceRepository() as database:
-            actual = database.get_sump_device_id_by_user(self.USER_ID)
-
-            assert actual == expected_id
-
-    def test_get_sump_device_id_by_user__should_resolve_child_to_parent_device(self):
-        with DatabaseBase() as database:
-            sump_type = database.session.execute(select(DeviceType).where(DeviceType.type == 'sump_pump')).scalars().first()
-            sump_device = Devices(ip_address='4.4.4.4', ip_port=5002, name='sump-parent', api_key='sump-parent-key',
-                                  user_id=self.USER_ID, device_type_id=sump_type.id, registered=True)
-            database.session.add(sump_device)
-            database.session.flush()
-            expected_id = str(sump_device.id)
-
-        with DeviceRepository() as database:
-            actual = database.get_sump_device_id_by_user(self.CHILD_USER_ID)
-
-            assert actual == expected_id
-
-    def test_get_sump_device_id_by_user__should_raise_not_found_when_no_sump_device(self):
-        with DeviceRepository() as database:
-            with pytest.raises(NotFound):
-                database.get_sump_device_id_by_user(self.CHILD_USER_ID)

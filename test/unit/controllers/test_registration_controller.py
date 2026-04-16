@@ -17,7 +17,7 @@ class TestRegisterGarageDoor:
         mock_api.return_value = {'api_key': api_key, 'nodes': nodes}
         register_garage_door(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT, self.MAX_NODES)
 
-        mock_db.return_value.__enter__.return_value.upsert_discovered_device.assert_called_with(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT, api_key, self.MAX_NODES, nodes)
+        mock_db.return_value.__enter__.return_value.upsert_discovered_device.assert_called_with(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT, api_key, self.MAX_NODES, nodes, 'garage_door')
 
     def test_register_garage_door__should_call_register_home_automation_device(self, mock_db, mock_api):
         mock_api.return_value = {'api_key': 'key'}
@@ -39,7 +39,7 @@ class TestRegisterSumpPump:
         register_sump_pump(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT, self.MAX_NODES)
 
         mock_db.return_value.__enter__.return_value.upsert_discovered_device.assert_called_with(
-            self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT, ANY, self.MAX_NODES, [], device_type_name='sump_pump'
+            self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT, ANY, self.MAX_NODES, [], 'sump_pump'
         )
 
     def test_register_sump_pump__should_call_register_home_automation_device(self, mock_db, mock_api, mock_host):

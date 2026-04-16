@@ -7,7 +7,7 @@ from mock import patch, mock
 from sqlalchemy import orm
 from werkzeug.exceptions import NotFound
 
-from svc.db.models.user_information_model import ChildAccounts, Devices, DeviceType
+from svc.db.models.user_information_model import Devices, DeviceType
 from svc.db.repositories.device_repository import DeviceRepository
 
 
@@ -37,7 +37,7 @@ class TestDeviceRepository:
         device_type = DeviceType(id='type-id', type='garage_door')
         self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [device_type, None]
 
-        self.DATABASE.upsert_discovered_device(self.DEVICE_NAME, self.IP_ADDRESS, self.IP_PORT, 'api-key', 1, [])
+        self.DATABASE.upsert_discovered_device(self.DEVICE_NAME, self.IP_ADDRESS, self.IP_PORT, 'api-key', 1, [], 'garage_door')
 
         self.SESSION.add.assert_called()
 
@@ -47,7 +47,7 @@ class TestDeviceRepository:
         existing.nodes = []
         self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [device_type, existing]
 
-        self.DATABASE.upsert_discovered_device(self.DEVICE_NAME, self.IP_ADDRESS, self.IP_PORT, 'api-key', 1, [])
+        self.DATABASE.upsert_discovered_device(self.DEVICE_NAME, self.IP_ADDRESS, self.IP_PORT, 'api-key', 1, [], 'garage_door')
 
         assert existing.ip_address == self.IP_ADDRESS
         assert existing.ip_port == self.IP_PORT
@@ -58,14 +58,14 @@ class TestDeviceRepository:
         existing.nodes = []
         self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [device_type, existing]
 
-        actual = self.DATABASE.upsert_discovered_device(self.DEVICE_NAME, self.IP_ADDRESS, self.IP_PORT, 'api-key', 1, [])
+        actual = self.DATABASE.upsert_discovered_device(self.DEVICE_NAME, self.IP_ADDRESS, self.IP_PORT, 'api-key', 1, [], 'garage_door')
 
         assert actual == 'existing-id'
 
     def test_upsert_discovered_device__should_raise_not_found_when_device_type_missing(self):
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
         with pytest.raises(NotFound):
-            self.DATABASE.upsert_discovered_device(self.DEVICE_NAME, self.IP_ADDRESS, self.IP_PORT, 'api-key', 1, [])
+            self.DATABASE.upsert_discovered_device(self.DEVICE_NAME, self.IP_ADDRESS, self.IP_PORT, 'api-key', 1, [], 'garage_door')
 
     def test_get_device_address_info__should_raise_not_found_error_when_no_device(self):
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
@@ -146,31 +146,3 @@ class TestDeviceRepository:
 
         assert actual is None
 
-    def test_get_sump_device_id_by_user__should_return_device_id_for_parent_user(self):
-        device_id = str(uuid.uuid4())
-        sump_device = Devices(id=device_id, user_id=self.USER_ID)
-        self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [None, sump_device]
-
-        actual = self.DATABASE.get_sump_device_id_by_user(self.USER_ID)
-
-        assert actual == device_id
-
-    def test_get_sump_device_id_by_user__should_resolve_child_to_parent_device(self):
-        parent_user_id = str(uuid.uuid4())
-        device_id = str(uuid.uuid4())
-        child_account = ChildAccounts(child_user_id=self.USER_ID, parent_user_id=parent_user_id)
-        sump_device = Devices(id=device_id, user_id=parent_user_id)
-        self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [child_account, sump_device]
-
-        actual = self.DATABASE.get_sump_device_id_by_user(self.USER_ID)
-
-        assert actual == device_id
-
-    def test_get_sump_device_id_by_user__should_raise_not_found_when_no_device(self):
-        self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [None, None]
-        with pytest.raises(NotFound):
-            self.DATABASE.get_sump_device_id_by_user(self.USER_ID)
-
-    def test_get_sump_device_id_by_user__should_raise_not_found_when_user_id_is_none(self):
-        with pytest.raises(NotFound):
-            self.DATABASE.get_sump_device_id_by_user(None)

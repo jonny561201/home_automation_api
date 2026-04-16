@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy import select, delete
 from werkzeug.exceptions import NotFound
 
-from svc.db.models.user_information_model import DailySumpPumpLevel, AverageSumpPumpLevel, \
+from svc.db.models.user_information_model import ChildAccounts, DailySumpPumpLevel, AverageSumpPumpLevel, \
     UserInformation, Devices, DeviceType
 from svc.db.repositories.database_base import DatabaseBase
 from svc.db.repositories.sump_repository import SumpRepository
@@ -16,19 +16,23 @@ class TestDbSumpIntegration:
     UPDATED_DEPTH = 12.123
     FIRST_USER_ID = str(uuid.uuid4())
     SECOND_USER_ID = str(uuid.uuid4())
+    CHILD_USER_ID = str(uuid.uuid4())
     DAY = datetime.date(datetime.now())
     DATE = datetime.now()
 
     def setup_method(self):
         self.FIRST_USER = UserInformation(id=self.FIRST_USER_ID, first_name='Jon', last_name='Test')
         self.SECOND_USER = UserInformation(id=self.SECOND_USER_ID, first_name='Dylan', last_name='Fake')
+        self.CHILD_USER = UserInformation(id=self.CHILD_USER_ID, first_name='Kalynn', last_name='Dawn')
+        self.CHILD_ACCOUNT = ChildAccounts(parent_user_id=self.FIRST_USER_ID, child_user_id=self.CHILD_USER_ID)
 
         with DatabaseBase() as database:
             stmt = select(DeviceType).where(DeviceType.type == 'sump_pump')
             device_type = database.session.execute(stmt).scalars().first()
 
-            database.session.add_all([self.FIRST_USER, self.SECOND_USER])
+            database.session.add_all([self.FIRST_USER, self.SECOND_USER, self.CHILD_USER])
             database.session.commit()
+            database.session.add(self.CHILD_ACCOUNT)
 
             self.FIRST_DEVICE = Devices(ip_address='1.1.1.1', ip_port=5001, name='sump-first', api_key='key1',
                                         user_id=self.FIRST_USER_ID, device_type_id=device_type.id, registered=True)
@@ -60,8 +64,10 @@ class TestDbSumpIntegration:
 
             database.session.execute(delete(Devices).where(Devices.user_id == self.FIRST_USER_ID))
             database.session.execute(delete(Devices).where(Devices.user_id == self.SECOND_USER_ID))
+            database.session.execute(delete(ChildAccounts).where(ChildAccounts.child_user_id == self.CHILD_USER_ID))
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.FIRST_USER_ID))
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.SECOND_USER_ID))
+            database.session.execute(delete(UserInformation).where(UserInformation.id == self.CHILD_USER_ID))
 
 
     def test_get_current_sump_level_by_device__should_return_valid_sump_level(self):
@@ -109,3 +115,20 @@ class TestDbSumpIntegration:
         with pytest.raises(NotFound):
             with SumpRepository() as database:
                 database.insert_current_sump_level(device_id, depth_info)
+
+    def test_get_sump_device_id_by_user__should_return_device_for_parent_user(self):
+        with SumpRepository() as database:
+            actual = database.get_sump_device_id_by_user(self.FIRST_USER_ID)
+
+            assert actual == self.FIRST_DEVICE_ID
+
+    def test_get_sump_device_id_by_user__should_resolve_child_to_parent_device(self):
+        with SumpRepository() as database:
+            actual = database.get_sump_device_id_by_user(self.CHILD_USER_ID)
+
+            assert actual == self.FIRST_DEVICE_ID
+
+    def test_get_sump_device_id_by_user__should_raise_not_found_when_no_sump_device(self):
+        with SumpRepository() as database:
+            with pytest.raises(NotFound):
+                database.get_sump_device_id_by_user(str(uuid.uuid4()))

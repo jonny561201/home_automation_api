@@ -46,12 +46,12 @@ def register_discovered_device_to_user(bearer_token, device_id, request_data):
     return Device(deviceId=registered_id)
 
 
-def discover_device(service_name, ip, port, max_nodes):
+def discover_device(service_name, ip, port, max_nodes, device_type_name):
     response = register_home_automation_device(ip, port)
     api_key = response['api_key']
     nodes = response.get('nodes', [])
     with DeviceRepository() as database:
-        database.upsert_discovered_device(service_name, ip, port, api_key, max_nodes, nodes)
+        database.upsert_discovered_device(service_name, ip, port, api_key, max_nodes, nodes, device_type_name)
 
 
 def _create_user_device(device: Devices):

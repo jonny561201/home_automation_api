@@ -12,9 +12,8 @@ from svc.utilities.auth_utils import AuthClient
 def get_sump_level(bearer_token: str):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]
-    with DeviceRepository() as database:
-        device_id = database.get_sump_device_id_by_user(user_id)
     with SumpRepository() as database:
+        device_id = database.get_sump_device_id_by_user(user_id)
         current_data = database.get_current_sump_level_by_device(device_id)
         average_data = database.get_average_sump_level_by_device(device_id)
     with UserRepository() as database:
