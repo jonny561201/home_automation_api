@@ -38,7 +38,7 @@ class SumpRepository(DatabaseBase):
     def insert_current_sump_level(self, device_id, depth_info):
         self._validate_property(device_id)
         try:
-            current_depth = DailySumpPumpLevel(distance=depth_info['depth'], create_date=depth_info['datetime'], warning_level=depth_info['warning_level'], device_id=device_id)
+            current_depth = DailySumpPumpLevel(distance=depth_info['depth'], create_date=depth_info['datetime'], warning_level=depth_info['alert_level'], device_id=device_id)
             self.session.add(current_depth)
         except (TypeError, KeyError):
             raise NotFound
