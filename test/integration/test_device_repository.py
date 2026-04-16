@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import select, delete
 from werkzeug.exceptions import NotFound
 
-from svc.db.models.user_information_model import UserPreference, Devices, DeviceNodes, UserInformation, ChildAccounts, DeviceType
+from svc.db.models.user_information_model import UserPreference, Devices, DeviceNodes, UserInformation, ChildAccounts, DeviceType, DailySumpPumpLevel, AverageSumpPumpLevel
 from svc.db.repositories.database_base import DatabaseBase
 from svc.db.repositories.device_repository import DeviceRepository
 
@@ -29,10 +29,14 @@ class TestDbDeviceIntegration:
             database.session.add(self.USER_PREF)
             database.session.commit()
             database.session.add(self.DEVICE)
+            database.session.flush()
+            self.DEVICE_ID = str(self.DEVICE.id)
             database.session.add(self.CHILD_ACCOUNT)
 
     def teardown_method(self):
         with DatabaseBase() as database:
+            database.session.execute(delete(DailySumpPumpLevel))
+            database.session.execute(delete(AverageSumpPumpLevel))
             database.session.execute(delete(DeviceNodes))
             database.session.execute(delete(Devices))
             database.session.execute(delete(UserPreference).where(UserPreference.user_id == self.USER_ID))
@@ -106,7 +110,7 @@ class TestDbDeviceIntegration:
         with DeviceRepository() as database:
             actual = database.get_device_id_by_api_key('test-key')
 
-            assert actual == str(self.DEVICE.id)
+            assert actual == self.DEVICE_ID
 
     def test_get_device_id_by_api_key__should_return_none_when_not_found(self):
         with DeviceRepository() as database:

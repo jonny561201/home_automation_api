@@ -58,7 +58,7 @@ class TestDbSumpIntegration:
             database.session.execute(delete(DailySumpPumpLevel).where(DailySumpPumpLevel.id == 88))
             database.session.execute(delete(DailySumpPumpLevel).where(DailySumpPumpLevel.id == 99))
             database.session.execute(delete(DailySumpPumpLevel).where(DailySumpPumpLevel.id == 100))
-            database.session.execute(delete(DailySumpPumpLevel).where(DailySumpPumpLevel.device_id == self.FIRST_DEVICE.id, DailySumpPumpLevel.distance == self.UPDATED_DEPTH))
+            database.session.execute(delete(DailySumpPumpLevel).where(DailySumpPumpLevel.device_id == self.FIRST_DEVICE_ID, DailySumpPumpLevel.distance == self.UPDATED_DEPTH))
             database.session.execute(delete(AverageSumpPumpLevel).where(AverageSumpPumpLevel.id == 34))
             database.session.execute(delete(AverageSumpPumpLevel).where(AverageSumpPumpLevel.id == 35))
 
@@ -105,7 +105,7 @@ class TestDbSumpIntegration:
                           'datetime': str(self.DATE)}
             database.insert_current_sump_level(self.FIRST_DEVICE_ID, depth_info)
 
-            stmt = select(DailySumpPumpLevel).where(DailySumpPumpLevel.device_id == self.FIRST_DEVICE.id, DailySumpPumpLevel.distance == self.UPDATED_DEPTH)
+            stmt = select(DailySumpPumpLevel).where(DailySumpPumpLevel.device_id == self.FIRST_DEVICE_ID, DailySumpPumpLevel.distance == self.UPDATED_DEPTH)
             actual = database.session.execute(stmt).scalars().first()
 
             assert float(actual.distance) == self.UPDATED_DEPTH

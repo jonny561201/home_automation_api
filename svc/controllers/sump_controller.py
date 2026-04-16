@@ -16,15 +16,19 @@ def get_sump_level(bearer_token: str):
         device_id = database.get_sump_device_id_by_user(user_id)
         current = database.get_current_sump_level_by_device(device_id)
         average = database.get_average_sump_level_by_device(device_id)
+        current_depth = float(current.distance)
+        average_depth = float(average.distance)
+        warning_level = current.warning_level
+        latest_date = average.create_day
     with UserRepository() as database:
         preferences = database.get_preferences_by_user(user_id)
 
         return SumpLevel(
-            currentDepth=convert_to_imperial(float(current.distance), preferences.isImperial),
-            averageDepth=convert_to_imperial(float(average.distance), preferences.isImperial),
+            currentDepth=convert_to_imperial(current_depth, preferences.isImperial),
+            averageDepth=convert_to_imperial(average_depth, preferences.isImperial),
             depthUnit='in' if preferences.isImperial else 'cm',
-            warningLevel=current.warning_level,
-            latest_date=average.create_day
+            warningLevel=warning_level,
+            latest_date=latest_date
         )
 
 
