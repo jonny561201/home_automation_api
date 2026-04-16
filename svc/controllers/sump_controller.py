@@ -14,12 +14,18 @@ def get_sump_level(bearer_token: str):
     user_id = claims[AuthClaims.USER_ID]
     with SumpRepository() as database:
         device_id = database.get_sump_device_id_by_user(user_id)
-        current_data = database.get_current_sump_level_by_device(device_id)
-        average_data = database.get_average_sump_level_by_device(device_id)
+        current = database.get_current_sump_level_by_device(device_id)
+        average = database.get_average_sump_level_by_device(device_id)
     with UserRepository() as database:
         preferences = database.get_preferences_by_user(user_id)
 
-        return __map_response(current_data, average_data, preferences.isImperial)
+        return SumpLevel(
+            currentDepth=convert_to_imperial(float(current.distance), preferences.isImperial),
+            averageDepth=convert_to_imperial(float(average.distance), preferences.isImperial),
+            depthUnit='in' if preferences.isImperial else 'cm',
+            warningLevel=current.warning_level,
+            latest_date=average.create_day
+        )
 
 
 def save_current_level(api_key: str, request_data: dict):
@@ -29,13 +35,3 @@ def save_current_level(api_key: str, request_data: dict):
         raise Unauthorized()
     with SumpRepository() as database:
         database.insert_current_sump_level(device_id, request_data)
-
-
-def __map_response(current_data, average_data, is_imperial):
-    return SumpLevel(
-        currentDepth=convert_to_imperial(current_data.get('currentDepth'), is_imperial),
-        averageDepth=convert_to_imperial(average_data.get('averageDepth'), is_imperial),
-        depthUnit='in' if is_imperial else 'cm',
-        warningLevel=current_data.get('warningLevel'),
-        latest_date=average_data.get('latestDate')
-    )

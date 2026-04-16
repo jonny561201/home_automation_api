@@ -26,14 +26,14 @@ class SumpRepository(DatabaseBase):
         stmt = select(DailySumpPumpLevel).where(DailySumpPumpLevel.device_id == device_id).order_by(DailySumpPumpLevel.id.desc())
         sump_level = self.session.execute(stmt).scalars().first()
         self._validate_property(sump_level)
-        return {'currentDepth': float(sump_level.distance), 'warningLevel': sump_level.warning_level}
+        return sump_level
 
     def get_average_sump_level_by_device(self, device_id):
         self._validate_property(device_id)
         stmt = select(AverageSumpPumpLevel).where(AverageSumpPumpLevel.device_id == device_id).order_by(AverageSumpPumpLevel.id.desc())
         average = self.session.execute(stmt).scalars().first()
         self._validate_property(average)
-        return {'latestDate': average.create_day, 'averageDepth': float(average.distance)}
+        return average
 
     def insert_current_sump_level(self, device_id, depth_info):
         self._validate_property(device_id)

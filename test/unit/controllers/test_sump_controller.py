@@ -1,4 +1,6 @@
-from mock import patch
+from decimal import Decimal
+
+from mock import patch, MagicMock
 
 from svc.constants.home_automation import AuthClaims
 from svc.models.app import Preference
@@ -52,22 +54,24 @@ class TestSumpController:
 
     def test_get_sump_level__should_return_response_with_distance(self, mock_sump, mock_user, mock_jwt):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        distance = 3.14159
+        distance = Decimal('3.14159')
         mock_user.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.METRIC_PREFERENCE
-        mock_sump.return_value.__enter__.return_value.get_current_sump_level_by_device.return_value = {'currentDepth': distance, 'warningLevel': 0}
-        mock_sump.return_value.__enter__.return_value.get_average_sump_level_by_device.return_value = {'averageDepth': distance, 'testItem': 123}
+        current = MagicMock(distance=distance, warning_level=0)
+        average = MagicMock(distance=distance, create_day=None)
+        mock_sump.return_value.__enter__.return_value.get_current_sump_level_by_device.return_value = current
+        mock_sump.return_value.__enter__.return_value.get_average_sump_level_by_device.return_value = average
 
         actual = get_sump_level(self.BEARER_TOKEN)
 
-        assert actual == SumpLevel(currentDepth=distance, depthUnit='cm', warningLevel=0, averageDepth=distance)
+        assert actual == SumpLevel(currentDepth=float(distance), depthUnit='cm', warningLevel=0, averageDepth=float(distance))
 
     def test_get_sump_level__should_return_response_with_distance_converted_to_imperial(self, mock_sump, mock_user, mock_jwt):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        current_distance = 2.54
-        average_distance = 5.08
         mock_user.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.IMPERIAL_PREFERENCE
-        mock_sump.return_value.__enter__.return_value.get_current_sump_level_by_device.return_value = {'currentDepth': current_distance, 'warningLevel': 0}
-        mock_sump.return_value.__enter__.return_value.get_average_sump_level_by_device.return_value = {'averageDepth': average_distance, 'testItem': 123}
+        current = MagicMock(distance=Decimal('2.54'), warning_level=0)
+        average = MagicMock(distance=Decimal('5.08'), create_day=None)
+        mock_sump.return_value.__enter__.return_value.get_current_sump_level_by_device.return_value = current
+        mock_sump.return_value.__enter__.return_value.get_average_sump_level_by_device.return_value = average
 
         actual = get_sump_level(self.BEARER_TOKEN)
 

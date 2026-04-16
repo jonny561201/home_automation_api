@@ -73,14 +73,14 @@ class TestDbSumpIntegration:
     def test_get_current_sump_level_by_device__should_return_valid_sump_level(self):
         with SumpRepository() as database:
             actual = database.get_current_sump_level_by_device(self.FIRST_DEVICE_ID)
-            assert actual['currentDepth'] == 11.0
-            assert actual['warningLevel'] == 2
+            assert float(actual.distance) == 11.0
+            assert actual.warning_level == 2
 
     def test_get_current_sump_level_by_device__should_return_latest_record_for_single_device(self):
         with SumpRepository() as database:
             actual = database.get_current_sump_level_by_device(self.SECOND_DEVICE_ID)
-            assert actual['currentDepth'] == 12.0
-            assert actual['warningLevel'] == 2
+            assert float(actual.distance) == 12.0
+            assert actual.warning_level == 2
 
     def test_get_current_sump_level_by_device__should_raise_not_found_when_device_not_found(self):
         with SumpRepository() as database:
@@ -90,7 +90,8 @@ class TestDbSumpIntegration:
     def test_get_average_sump_level_by_device__should_return_latest_record_for_single_device(self):
         with SumpRepository() as database:
             actual = database.get_average_sump_level_by_device(self.FIRST_DEVICE_ID)
-            assert actual == {'averageDepth': self.DEPTH, 'latestDate': self.DAY}
+            assert float(actual.distance) == self.DEPTH
+            assert actual.create_day == self.DAY
 
     def test_get_average_sump_level_by_device__should_raise_not_found_when_device_not_found(self):
         with SumpRepository() as database:
