@@ -88,26 +88,10 @@ def set_light_groups(api_key, group_id, on, brightness):
     __validate_response(requests.post(f'{base_url}/group/state', json=request, headers={'LightApiKey': api_key}))
 
 
-def create_light_group(api_key, group_name):
-    base_url = Settings.get_instance().BaseUrls.lights
-
-    request = {'name': group_name}
-    requests.post(f'{base_url}/group/create', json=request, headers={'LightApiKey': api_key})
-
-
-def delete_light_group(group_id):
-    base_url = Settings.get_instance().BaseUrls.lights
-
-    requests.delete(f'{base_url}/group/{group_id}')
-
-
 def set_light_state(api_key, light_id, brightness):
     base_url = Settings.get_instance().BaseUrls.lights
 
     request = {'lightId': light_id, 'on': False if brightness == 0 else True, 'brightness': brightness}
-    # if brightness != 0:
-    #     request['brightness'] = brightness
-
     __validate_response(requests.post(f'{base_url}/light/state', json=request, headers={'LightApiKey': api_key}))
 
 

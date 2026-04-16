@@ -7,7 +7,7 @@ from requests import Response, ReadTimeout, ConnectTimeout
 from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
 
 from svc.config.settings_state import Settings
-from svc.utilities.api_utils import get_city_coordinates, create_light_group, set_light_groups, set_light_state, \
+from svc.utilities.api_utils import get_city_coordinates, set_light_groups, set_light_state, \
     get_light_groups, get_garage_door_status, get_forecast_by_coords, exchange_auth0_code, \
     create_auth0_user, assign_auth0_roles, send_auth0_password_reset, register_home_automation_device
 
@@ -287,136 +287,6 @@ class TestLightApiRequests:
         expected = {'groupId': group_id, 'on': False}
 
         mock_requests.post.assert_called_with(ANY, json=expected, headers={'LightApiKey': self.API_KEY})
-
-    def test_create_light_group__should_make_api_call_to_url(self, mock_requests):
-        expected_url = f'{self.BASE_URL}/group/create'
-        create_light_group(self.API_KEY, None)
-
-        mock_requests.post.assert_called_with(expected_url, json=ANY, headers={'LightApiKey': self.API_KEY})
-
-    def test_create_light_group__should_make_api_with_group_name(self, mock_requests):
-        group_name = 'Test Group'
-        expected_data = {'name': group_name}
-        create_light_group(self.API_KEY, group_name)
-
-        mock_requests.post.assert_called_with(ANY, json=expected_data, headers={'LightApiKey': self.API_KEY})
-
-    # def test_get_all_lights__should_make_api_call_to_url(self, mock_requests):
-    #     mock_requests.get.return_value = self.__create_response()
-    #     expected_url = f'{self.BASE_URL}/{self.API_KEY}/lights'
-    #     get_all_lights(self.API_KEY)
-    #
-    #     mock_requests.get.assert_called_with(expected_url)
-    #
-    # def test_get_all_lights__should_return_response_from_api(self, mock_requests):
-    #     response_data = {'light_name': 'DoesntMatter'}
-    #     mock_requests.get.return_value = self.__create_response(data=response_data)
-    #     actual = get_all_lights(self.API_KEY)
-    #
-    #     assert actual == response_data
-    #
-    # def test_get_all_lights__should_raise_failed_dependency_when_node_returns_500(self, mock_requests):
-    #     mock_requests.get.return_value = self.__create_response(status=500)
-    #     with pytest.raises(FailedDependency):
-    #         get_all_lights(self.API_KEY)
-    #
-    # def test_get_all_lights__should_raise_failed_dependency_when_node_returns_400(self, mock_requests):
-    #     mock_requests.get.return_value = self.__create_response(status=400)
-    #     with pytest.raises(FailedDependency):
-    #         get_all_lights(self.API_KEY)
-    #
-    # def test_get_all_lights__should_raise_failed_dependency_when_request_raises_connection_error(self, mock_requests):
-    #     mock_requests.get.side_effect = ConnectionError()
-    #     with pytest.raises(FailedDependency):
-    #         get_all_lights(self.API_KEY)
-    #
-    # def test_get_all_lights__should_raise_failed_dependency_when_request_raises_connection_timeout_error(self, mock_requests):
-    #     mock_requests.get.side_effect = ConnectTimeout()
-    #     with pytest.raises(FailedDependency):
-    #         get_all_lights(self.API_KEY)
-    #
-    # def test_get_light_group_attributes__should_make_api_call_to_url(self, mock_requests):
-    #     group_id = "4"
-    #     mock_requests.get.return_value = self.__create_response()
-    #     expected_url = f'{self.BASE_URL}/{self.API_KEY}/groups/{group_id}'
-    #     get_light_group_attributes(self.API_KEY, group_id)
-    #
-    #     mock_requests.get.assert_called_with(expected_url)
-    #
-    # def test_get_light_group_attributes__should_return_response_from_api(self, mock_requests):
-    #     group_id = "12"
-    #     response_data = {'lights': ['1', '2']}
-    #     mock_requests.get.return_value = self.__create_response(data=response_data)
-    #     actual = get_light_group_attributes(self.API_KEY, group_id)
-    #
-    #     assert actual == response_data
-    #
-    # def test_get_light_group_attributes__should_raise_failed_dependency_when_node_returns_500(self, mock_requests):
-    #     group_id = '11'
-    #     mock_requests.get.return_value = self.__create_response(status=500)
-    #     with pytest.raises(FailedDependency):
-    #         get_light_group_attributes(self.API_KEY, group_id)
-    #
-    # def test_get_light_group_attributes__should_raise_failed_dependency_when_node_returns_400(self, mock_requests):
-    #     group_id = '3'
-    #     mock_requests.get.return_value = self.__create_response(status=400)
-    #     with pytest.raises(FailedDependency):
-    #         get_light_group_attributes(self.API_KEY, group_id)
-    #
-    # def test_get_light_group_attributes__should_raise_failed_dependency_when_request_raises_connection_error(self, mock_requests):
-    #     group_id = '3'
-    #     mock_requests.get.side_effect = ConnectionError()
-    #     with pytest.raises(FailedDependency):
-    #         get_light_group_attributes(self.API_KEY, group_id)
-    #
-    # def test_get_light_group_attributes__should_raise_failed_dependency_when_request_raises_connection_timeout_error(self, mock_requests):
-    #     group_id = '3'
-    #     mock_requests.get.side_effect = ConnectTimeout()
-    #     with pytest.raises(FailedDependency):
-    #         get_light_group_attributes(self.API_KEY, group_id)
-    #
-    # def test_get_light_state__should_make_api_call_to_url(self, mock_requests):
-    #     light_id = "4"
-    #     expected_url = f'{self.BASE_URL}/{self.API_KEY}/lights/{light_id}'
-    #     mock_requests.get.return_value = self.__create_response()
-    #     get_light_state(self.API_KEY, light_id)
-    #
-    #     mock_requests.get.assert_called_with(expected_url)
-    #
-    # def test_get_light_state__should_return_response_from_api(self, mock_requests):
-    #     light_id = '5'
-    #     response_data = {'name': 'livingRoomLamp', 'state': {'on': True}}
-    #     mock_requests.get.return_value = self.__create_response(data=response_data)
-    #
-    #     actual = get_light_state(self.API_KEY, light_id)
-    #
-    #     assert actual == response_data
-    #
-    # def test_get_light_state__should_raise_failed_dependency_when_node_returns_500(self, mock_requests):
-    #     light_id = '12'
-    #     mock_requests.get.return_value = self.__create_response(status=500)
-    #     with pytest.raises(FailedDependency):
-    #         get_light_state(self.API_KEY, light_id)
-    #
-    # def test_get_light_state__should_raise_failed_dependency_when_node_returns_400(self, mock_requests):
-    #     light_id = '12'
-    #     mock_requests.get.return_value = self.__create_response(status=400)
-    #     with pytest.raises(FailedDependency):
-    #         get_light_state(self.API_KEY, light_id)
-    #
-    # def test_get_light_state__should_raise_failed_dependency_when_request_raises_connection_error(self, mock_requests):
-    #     light_id = '12'
-    #     mock_requests.get.side_effect = ConnectionError()
-    #     with pytest.raises(FailedDependency):
-    #         get_light_state(self.API_KEY, light_id)
-    #
-    # def test_get_light_state__should_raise_failed_dependency_when_request_raises_connection_timeout_error(self, mock_requests):
-    #     light_id = '12'
-    #     mock_requests.get.side_effect = ConnectTimeout()
-    #     with pytest.raises(FailedDependency):
-    #         get_light_state(self.API_KEY, light_id)
-
-    # TODO: test assign light group
 
     def test_set_light_state__should_make_call_to_api(self, mock_requests):
         light_id = '7'
