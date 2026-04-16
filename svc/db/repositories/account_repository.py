@@ -13,10 +13,7 @@ class AccountRepository(DatabaseBase):
         self._validate_property(user_id)
         stmt = select(ChildAccounts).filter_by(parent_user_id=user_id)
         children = self.session.execute(stmt).scalars().all()
-        if children is None:
-            return []
-        children_ids = [child.child_user_id for child in children]
-        return [self.__get_user_info(child_id) for child_id in children_ids]
+        return [self.__get_user_info(child.child_user_id) for child in children]
 
     def delete_child_user_account(self, user_id, child_user_id):
         self._validate_property(user_id)

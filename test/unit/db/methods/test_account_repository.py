@@ -36,7 +36,7 @@ class TestAccountRepository:
         assert actual == [{'first_name': user.first_name, 'last_name': user.last_name, 'user_id': str(user_id), 'email': user.email}]
 
     def test_get_user_child_accounts__should_return_empty_list_when_no_child_accounts(self):
-        self.SESSION.execute.return_value.scalars.return_value.all.return_value = None
+        self.SESSION.execute.return_value.scalars.return_value.all.return_value = []
         actual = self.DATABASE.get_user_child_accounts(self.USER_ID)
 
         assert actual == []
