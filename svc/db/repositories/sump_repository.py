@@ -38,11 +38,15 @@ class SumpRepository(DatabaseBase):
     def insert_current_sump_level(self, device_id, depth_info):
         self._validate_property(device_id)
         try:
-            depth = depth_info['depth']
-            date = depth_info['datetime']
-            warning_level = depth_info['warning_level']
-            current_depth = DailySumpPumpLevel(distance=depth, create_date=date, warning_level=warning_level, device_id=device_id)
-
+            current_depth = DailySumpPumpLevel(distance=depth_info['depth'], create_date=depth_info['datetime'], warning_level=depth_info['warning_level'], device_id=device_id)
             self.session.add(current_depth)
+        except (TypeError, KeyError):
+            raise NotFound
+
+    def insert_average_sump_level(self, device_id, depth_info):
+        self._validate_property(device_id)
+        try:
+            average_depth = AverageSumpPumpLevel(distance=depth_info['depth'], device_id=device_id)
+            self.session.add(average_depth)
         except (TypeError, KeyError):
             raise NotFound

@@ -4,7 +4,7 @@ from flask import Flask
 from mock import patch
 
 from svc.models.sump import SumpLevel
-from svc.endpoints.sump_routes import get_current_sump_level, save_current_depth
+from svc.endpoints.sump_routes import get_current_sump_level, save_current_depth, save_average_depth
 from test.unit.test_helpers import setup_request
 
 
@@ -62,6 +62,24 @@ class TestSumpRoutes:
         self.ctx = setup_request(self.app, self.ctx, request_data, {'X-API-Key': self.API_KEY})
 
         actual = save_current_depth()
+
+        assert actual.status_code == 200
+
+    @patch('svc.endpoints.sump_routes.save_average_level')
+    def test_save_average_depth__should_call_controller(self, mock_controller):
+        request_data = {'depth': 10.5}
+        self.ctx = setup_request(self.app, self.ctx, request_data, {'X-API-Key': self.API_KEY})
+
+        save_average_depth()
+
+        mock_controller.assert_called_with(self.API_KEY, request_data)
+
+    @patch('svc.endpoints.sump_routes.save_average_level')
+    def test_save_average_depth__should_return_success_status(self, mock_controller):
+        request_data = {'depth': 10.5}
+        self.ctx = setup_request(self.app, self.ctx, request_data, {'X-API-Key': self.API_KEY})
+
+        actual = save_average_depth()
 
         assert actual.status_code == 200
 

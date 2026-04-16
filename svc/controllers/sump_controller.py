@@ -35,3 +35,12 @@ def save_current_level(api_key: str, request_data: dict):
         raise Unauthorized()
     with SumpRepository() as database:
         database.insert_current_sump_level(device_id, request_data)
+
+
+def save_average_level(api_key: str, request_data: dict):
+    with DeviceRepository() as database:
+        device_id = database.get_device_id_by_api_key(api_key)
+    if api_key is None or device_id is None:
+        raise Unauthorized()
+    with SumpRepository() as database:
+        database.insert_average_sump_level(device_id, request_data)

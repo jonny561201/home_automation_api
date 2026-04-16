@@ -68,6 +68,26 @@ class TestSumpDatabase:
         with pytest.raises(NotFound):
             self.DATABASE.insert_current_sump_level(device_id, depth_info)
 
+    def test_insert_average_sump_level__should_call_add(self):
+        device_id = 1234
+        depth_info = {'depth': None}
+        self.DATABASE.insert_average_sump_level(device_id, depth_info)
+
+        self.SESSION.add.assert_called()
+
+    def test_insert_average_sump_level__should_raise_not_found_when_depth_info_none(self):
+        with pytest.raises(NotFound):
+            self.DATABASE.insert_average_sump_level(1234, None)
+
+    def test_insert_average_sump_level__should_raise_not_found_when_device_id_is_none(self):
+        with pytest.raises(NotFound):
+            self.DATABASE.insert_average_sump_level(None, {'depth': None})
+        self.SESSION.add.assert_not_called()
+
+    def test_insert_average_sump_level__should_raise_not_found_when_depth_info_missing_keys(self):
+        with pytest.raises(NotFound):
+            self.DATABASE.insert_average_sump_level(1234, {'badKey': 1234})
+
     def test_get_sump_device_id_by_user__should_return_device_id_for_parent_user(self):
         device_id = str(uuid.uuid4())
         sump_device = Devices(id=device_id, user_id=self.USER_ID)

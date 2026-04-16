@@ -5,7 +5,7 @@ from mock import patch, MagicMock
 from svc.constants.home_automation import AuthClaims
 from svc.models.app import Preference
 from svc.models.sump import SumpLevel
-from svc.controllers.sump_controller import get_sump_level, save_current_level
+from svc.controllers.sump_controller import get_sump_level, save_current_level, save_average_level
 
 
 @patch('svc.controllers.sump_controller.AuthClient')
@@ -94,3 +94,21 @@ class TestSumpController:
         save_current_level(self.BEARER_TOKEN, depth_info)
 
         mock_sump.return_value.__enter__.return_value.insert_current_sump_level.assert_called_with(self.DEVICE_ID, depth_info)
+
+    @patch('svc.controllers.sump_controller.DeviceRepository')
+    def test_save_average_level__should_call_get_device_id_by_api_key(self, mock_device, mock_sump, mock_user, mock_jwt):
+        mock_device.return_value.__enter__.return_value.get_device_id_by_api_key.return_value = self.DEVICE_ID
+        depth_info = {'depth': 'test'}
+
+        save_average_level(self.BEARER_TOKEN, depth_info)
+
+        mock_device.return_value.__enter__.return_value.get_device_id_by_api_key.assert_called_with(self.BEARER_TOKEN)
+
+    @patch('svc.controllers.sump_controller.DeviceRepository')
+    def test_save_average_level__should_call_insert_average_sump_level(self, mock_device, mock_sump, mock_user, mock_jwt):
+        mock_device.return_value.__enter__.return_value.get_device_id_by_api_key.return_value = self.DEVICE_ID
+        depth_info = {'depth': 'test'}
+
+        save_average_level(self.BEARER_TOKEN, depth_info)
+
+        mock_sump.return_value.__enter__.return_value.insert_average_sump_level.assert_called_with(self.DEVICE_ID, depth_info)

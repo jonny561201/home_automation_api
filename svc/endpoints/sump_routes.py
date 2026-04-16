@@ -1,7 +1,7 @@
 from flask import Blueprint, request, Response
 
 from svc.constants.home_automation import Mime
-from svc.controllers.sump_controller import get_sump_level, save_current_level
+from svc.controllers.sump_controller import get_sump_level, save_current_level, save_average_level
 
 
 SUMP_BLUEPRINT = Blueprint('sump_pump_blueprint', __name__, url_prefix='/sumpPump')
@@ -21,4 +21,8 @@ def save_current_depth():
     return Response(status=200, mimetype=Mime.JSON)
 
 
-#TODO: validate if we need a averageDepth endpoint
+@SUMP_BLUEPRINT.route('/averageDepth', methods=['POST'])
+def save_average_depth():
+    api_key = request.headers.get('X-API-Key')
+    save_average_level(api_key, request.get_json())
+    return Response(status=200, mimetype=Mime.JSON)
