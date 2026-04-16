@@ -70,13 +70,13 @@ class TestDeviceRepository:
     def test_get_device_address_info__should_raise_not_found_error_when_no_device(self):
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
         with pytest.raises(NotFound):
-            self.DATABASE.get_device_address_info(self.USER_ID)
+            self.DATABASE.get_device_info(self.USER_ID)
 
     def test_get_device_address_info__should_return_device_info(self):
         device = Devices(ip_address='1.1.1.1', ip_port=5000, api_key='test-key')
         device.nodes = []
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = device
-        actual = self.DATABASE.get_device_address_info(self.USER_ID)
+        actual = self.DATABASE.get_device_info(self.USER_ID)
 
         assert actual.ip_address == '1.1.1.1'
         assert actual.ip_port == 5000
@@ -88,7 +88,7 @@ class TestDeviceRepository:
         node = DeviceNodes(node_device=1, node_name='Left Garage')
         device.nodes = [node]
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = device
-        actual = self.DATABASE.get_device_address_info(self.USER_ID)
+        actual = self.DATABASE.get_device_info(self.USER_ID)
 
         assert actual.node_names == {'1': 'Left Garage'}
 

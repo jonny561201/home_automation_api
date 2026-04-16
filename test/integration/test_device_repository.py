@@ -14,6 +14,7 @@ class TestDbDeviceIntegration:
     CHILD_USER_ID = str(uuid.uuid4())
     IP_ADDRESS = '192.175.7.9'
     PORT = 5000
+    TYPE = 'garage_door'
 
     def setup_method(self):
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='steve', last_name='rogers')
@@ -21,7 +22,7 @@ class TestDbDeviceIntegration:
         self.CHILD_ACCOUNT = ChildAccounts(parent_user_id=self.USER_ID, child_user_id=self.CHILD_USER_ID)
         self.USER_PREF = UserPreference(user_id=self.USER_ID, is_fahrenheit=True, is_imperial=False)
         with DatabaseBase() as database:
-            stmt = select(DeviceType).where(DeviceType.type == 'garage_door')
+            stmt = select(DeviceType).where(DeviceType.type == self.TYPE)
             self.DEVICE_TYPE = database.session.execute(stmt).scalars().first()
             self.DEVICE = Devices(ip_address=self.IP_ADDRESS, ip_port=self.PORT, name='test', api_key='test-key', user_id=self.USER_ID, device_type_id=self.DEVICE_TYPE.id)
             database.session.add_all([self.USER_INFO, self.CHILD_USER])
@@ -68,24 +69,24 @@ class TestDbDeviceIntegration:
             assert actual.ip_address == ip_address
             assert actual.ip_port == port
 
-    def test_get_device_address_info__should_return_device_info(self):
+    def test_get_device_info__should_return_device_info(self):
         with DeviceRepository() as database:
-            actual = database.get_device_address_info(self.USER_ID)
+            actual = database.get_device_info(self.TYPE)
 
             assert actual.ip_address == self.IP_ADDRESS
             assert actual.ip_port == self.PORT
 
-    def test_get_device_address_info__should_raise_not_found_when_no_user_id_match(self):
+    def test_get_device_info__should_raise_not_found_when_no_type_match(self):
         with DeviceRepository() as database:
             with pytest.raises(NotFound):
-                database.get_device_address_info(str(uuid.uuid4()))
+                database.get_device_info(str(uuid.uuid4()))
 
-    def test_get_device_address_info__should_raise_not_found_when_no_device(self):
+    def test_get_device_info__should_raise_not_found_when_no_device(self):
         with DeviceRepository() as database:
             database.session.execute(delete(Devices).where(Devices.user_id == self.USER_ID))
         with DeviceRepository() as database:
             with pytest.raises(NotFound):
-                database.get_device_address_info(str(uuid.uuid4()))
+                database.get_device_info(str(uuid.uuid4()))
 
     def test_get_registered_devices__should_return_all_user_devices(self):
         with DeviceRepository() as database:

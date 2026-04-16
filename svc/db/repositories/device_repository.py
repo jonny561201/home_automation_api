@@ -50,8 +50,8 @@ class DeviceRepository(DatabaseBase):
         self._upsert_device_nodes(device.id, nodes)
         return device.id
 
-    def get_device_address_info(self, user_id):
-        stmt = select(Devices).where(Devices.user_id == user_id, Devices.device_type.has(DeviceType.type == 'garage_door'))
+    def get_device_info(self, device_type: str):
+        stmt = select(Devices).where(Devices.device_type.has(DeviceType.type == device_type))
         device = self.session.execute(stmt).scalars().first()
         self._validate_property(device)
         node_names = {str(n.node_device): n.node_name for n in device.nodes}
@@ -86,6 +86,11 @@ class DeviceRepository(DatabaseBase):
             if device.device_type and device.device_type.auth0_role_id:
                 role_ids.append(device.device_type.auth0_role_id)
         return role_ids
+
+    def get_user_id_by_device_api_key(self, api_key):
+        stmt = select(Devices).filter_by(api_key=api_key)
+        device = self.session.execute(stmt).scalars().first()
+        return str(device.user_id) if device and device.user_id else None
 
     def _get_device_type(self, type_name):
         stmt = select(DeviceType).filter_by(type=type_name)

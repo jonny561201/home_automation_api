@@ -16,6 +16,9 @@ def get_current_sump_level():
 
 @SUMP_BLUEPRINT.route('/currentDepth', methods=['POST'])
 def save_current_depth():
-    bearer_token = request.headers.get('Authorization')
-    save_current_level(bearer_token, request.get_json())
+    api_key = request.headers.get('X-API-Key')
+    save_current_level(api_key, request.get_json())
     return Response(status=200, mimetype=Mime.JSON)
+
+
+#TODO: validate if we need a averageDepth endpoint

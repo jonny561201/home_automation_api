@@ -1,8 +1,16 @@
+import socket
+
 import requests
 from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
 
 from svc.config.settings_state import Settings
 from svc.utilities.string_utils import generate_password
+
+
+def get_host_ip():
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        s.connect(("8.8.8.8", 80))
+        return s.getsockname()[0]
 
 
 def get_city_coordinates(city):
@@ -55,7 +63,9 @@ def register_home_automation_device(ip, port, body=None):
     except Exception:
         raise FailedDependency()
     __validate_response(response)
-    return response.json()
+    if response.content:
+        return response.json()
+    return None
 
 
 def get_light_groups(api_key):

@@ -11,6 +11,7 @@ from test.unit.test_helpers import setup_request
 class TestSumpRoutes:
     BEARER_TOKEN = 'test123'
     HEADERS = {'Authorization': BEARER_TOKEN}
+    API_KEY = 'oi;asdfliuhasdf'
 
     def setup_method(self):
         self.app = Flask(__name__)
@@ -49,16 +50,16 @@ class TestSumpRoutes:
     @patch('svc.endpoints.sump_routes.save_current_level')
     def test_save_current_depth__should_call_controller(self, mock_controller):
         request_data = {'depth': 12.5}
-        self.ctx = setup_request(self.app, self.ctx, request_data, self.HEADERS)
+        self.ctx = setup_request(self.app, self.ctx, request_data, {'X-API-Key': self.API_KEY})
 
         save_current_depth()
 
-        mock_controller.assert_called_with(self.BEARER_TOKEN, request_data)
+        mock_controller.assert_called_with(self.API_KEY, request_data)
 
     @patch('svc.endpoints.sump_routes.save_current_level')
     def test_save_current_depth__should_return_success_status(self, mock_controller):
         request_data = {'depth': 12.5}
-        self.ctx = setup_request(self.app, self.ctx, request_data, self.HEADERS)
+        self.ctx = setup_request(self.app, self.ctx, request_data, {'X-API-Key': self.API_KEY})
 
         actual = save_current_depth()
 

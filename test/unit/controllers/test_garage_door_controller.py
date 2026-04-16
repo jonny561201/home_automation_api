@@ -15,7 +15,7 @@ from svc.models.devices import DeviceInfo
 @patch('svc.controllers.garage_door_controller.DeviceRepository')
 @patch('svc.controllers.garage_door_controller.AuthClient')
 class TestGarageController:
-    GARAGE_ID = 3
+    GARAGE_ID = '3'
     USER_ID = 'fakeUserId'
     CLAIMS = {AuthClaims.USER_ID: USER_ID}
     JWT_SECRET = 'fake_jwt_secret'
@@ -37,23 +37,23 @@ class TestGarageController:
         os.environ.pop('JWT_SECRET')
 
     def test_get_status__should_call_is_jwt_valid(self, mock_jwt, mock_db, mock_util, mock_publish):
-        mock_db.return_value.__enter__.return_value.get_device_address_info.return_value = self.DEVICE_INFO
+        mock_db.return_value.__enter__.return_value.get_device_info.return_value = self.DEVICE_INFO
         mock_util.get_garage_door_status.return_value = self.STATUS_RESPONSE
         get_status(self.JWT_TOKEN, self.GARAGE_ID)
 
         mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.JWT_TOKEN)
 
-    def test_get_status__should_get_device_address_info_by_user(self, mock_jwt, mock_db, mock_util, mock_publish):
+    def test_get_status__should_get_device_address_info(self, mock_jwt, mock_db, mock_util, mock_publish):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        mock_db.return_value.__enter__.return_value.get_device_address_info.return_value = self.DEVICE_INFO
+        mock_db.return_value.__enter__.return_value.get_device_info.return_value = self.DEVICE_INFO
         mock_util.get_garage_door_status.return_value = self.STATUS_RESPONSE
         get_status(self.JWT_TOKEN, self.GARAGE_ID)
 
-        mock_db.return_value.__enter__.return_value.get_device_address_info.assert_called_with(self.USER_ID)
+        mock_db.return_value.__enter__.return_value.get_device_info.assert_called_with('garage_door')
 
     def test_get_status__should_call_get_garage_door_status(self, mock_jwt, mock_db, mock_util, mock_publish):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        mock_db.return_value.__enter__.return_value.get_device_address_info.return_value = self.DEVICE_INFO
+        mock_db.return_value.__enter__.return_value.get_device_info.return_value = self.DEVICE_INFO
         mock_util.get_garage_door_status.return_value = self.STATUS_RESPONSE
         get_status(self.JWT_TOKEN, self.GARAGE_ID)
 
@@ -62,7 +62,7 @@ class TestGarageController:
 
     def test_get_status__should_return_garage_status(self, mock_jwt, mock_db, mock_util, mock_publish):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        mock_db.return_value.__enter__.return_value.get_device_address_info.return_value = self.DEVICE_INFO
+        mock_db.return_value.__enter__.return_value.get_device_info.return_value = self.DEVICE_INFO
         mock_util.get_garage_door_status.return_value = dict(self.STATUS_RESPONSE)
         actual = get_status(self.JWT_TOKEN, self.GARAGE_ID)
 
@@ -99,23 +99,23 @@ class TestGarageController:
         mock_publish.assert_called_with(Automation.GARAGE.QUEUE, {'id': self.GARAGE_ID, 'action': 'toggle'})
 
     def test_get_all_status__should_call_is_jwt_valid(self, mock_jwt, mock_db, mock_util, mock_publish):
-        mock_db.return_value.__enter__.return_value.get_device_address_info.return_value = self.DEVICE_INFO
+        mock_db.return_value.__enter__.return_value.get_device_info.return_value = self.DEVICE_INFO
         mock_util.get_all_garage_doors_status.return_value = self.OVERVIEW_RESPONSE
         get_all_status(self.JWT_TOKEN)
 
         mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.JWT_TOKEN)
 
-    def test_get_all_status__should_get_device_address_info_by_user(self, mock_jwt, mock_db, mock_util, mock_publish):
+    def test_get_all_status__should_get_device_address_info(self, mock_jwt, mock_db, mock_util, mock_publish):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        mock_db.return_value.__enter__.return_value.get_device_address_info.return_value = self.DEVICE_INFO
+        mock_db.return_value.__enter__.return_value.get_device_info.return_value = self.DEVICE_INFO
         mock_util.get_all_garage_doors_status.return_value = self.OVERVIEW_RESPONSE
         get_all_status(self.JWT_TOKEN)
 
-        mock_db.return_value.__enter__.return_value.get_device_address_info.assert_called_with(self.USER_ID)
+        mock_db.return_value.__enter__.return_value.get_device_info.assert_called_with('garage_door')
 
     def test_get_all_status__should_call_get_all_garage_doors_status(self, mock_jwt, mock_db, mock_util, mock_publish):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        mock_db.return_value.__enter__.return_value.get_device_address_info.return_value = self.DEVICE_INFO
+        mock_db.return_value.__enter__.return_value.get_device_info.return_value = self.DEVICE_INFO
         mock_util.get_all_garage_doors_status.return_value = self.OVERVIEW_RESPONSE
         get_all_status(self.JWT_TOKEN)
 
@@ -124,7 +124,7 @@ class TestGarageController:
 
     def test_get_all_status__should_return_api_response(self, mock_jwt, mock_db, mock_util, mock_publish):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        mock_db.return_value.__enter__.return_value.get_device_address_info.return_value = self.DEVICE_INFO
+        mock_db.return_value.__enter__.return_value.get_device_info.return_value = self.DEVICE_INFO
         response = {'coordinates': {'latitude': 1.0, 'longitude': 2.0}, 'doors': []}
         mock_util.get_all_garage_doors_status.return_value = response
         actual = get_all_status(self.JWT_TOKEN)

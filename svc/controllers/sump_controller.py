@@ -1,3 +1,6 @@
+from werkzeug.exceptions import Unauthorized
+
+from svc.db.repositories.device_repository import DeviceRepository
 from svc.db.repositories.user_repository import UserRepository
 from svc.constants.home_automation import AuthClaims
 from svc.db.repositories.sump_repository import SumpRepository
@@ -6,7 +9,7 @@ from svc.utilities.conversion_utils import convert_to_imperial
 from svc.utilities.auth_utils import AuthClient
 
 
-def get_sump_level(bearer_token):
+def get_sump_level(bearer_token: str):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]
     with SumpRepository() as database:
@@ -18,9 +21,11 @@ def get_sump_level(bearer_token):
         return __map_response(current_data, average_data, preferences.isImperial)
 
 
-def save_current_level(bearer_token, request_data):
-    claims = AuthClient.get_instance().verify_jwt(bearer_token)
-    user_id = claims[AuthClaims.USER_ID]
+def save_current_level(api_key: str, request_data: dict):
+    with DeviceRepository() as database:
+        user_id = database.get_user_id_by_device_api_key(api_key)
+    if api_key is None or user_id is None:
+        raise Unauthorized()
     with SumpRepository() as database:
         database.insert_current_sump_level(user_id, request_data)
 

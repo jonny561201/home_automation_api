@@ -64,15 +64,9 @@ class TestSumpController:
 
         mock_sump.return_value.__enter__.return_value.get_average_sump_level_by_user.assert_called_with(self.USER_ID)
 
-    def test_save_current_level__should_call_is_jwt_valid(self, mock_db, mock_user, mock_jwt):
-        request_data = {'depth': 'test'}
-
-        save_current_level(self.BEARER_TOKEN, request_data)
-
-        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
-
-    def test_save_current_level__should_call_save_current_sump_level(self, mock_db, mock_user, mock_jwt):
-        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
+    @patch('svc.controllers.sump_controller.DeviceRepository')
+    def test_save_current_level__should_call_save_current_sump_level(self, mock_device, mock_db, mock_user, mock_jwt):
+        mock_device.return_value.__enter__.return_value.get_user_id_by_device_api_key.return_value = self.USER_ID
         depth_info = {'depth': 'test'}
 
         save_current_level(self.BEARER_TOKEN, depth_info)

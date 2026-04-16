@@ -29,8 +29,13 @@ class MdnsListener(ServiceListener):
         if service_name == 'garage-door':
             ip = info.parsed_addresses()[0]
             port = info.port
-            max_nodes = int(info.properties.get(b'max_nodes', b'1'))
+            max_nodes = int(info.properties.get(b'max_nodes', b'2'))
             register_garage_door(service_name, ip, port, max_nodes)
+        if service_name == 'sump-pump':
+            ip = info.parsed_addresses()[0]
+            port = info.port
+            max_nodes = int(info.properties.get(b'max_nodes', b'0'))
+            register_sump_pump(service_name, ip, port, max_nodes)
 
     def remove_service(self, zc, type_, name):
         pass
