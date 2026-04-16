@@ -65,6 +65,17 @@ class TestSumpController:
 
         assert actual == SumpLevel(currentDepth=float(distance), depthUnit='cm', warningLevel=0, averageDepth=float(distance))
 
+    def test_get_sump_level__should_return_response_with_null_average_when_no_average_exists(self, mock_sump, mock_user, mock_jwt):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
+        mock_user.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.METRIC_PREFERENCE
+        current = MagicMock(distance=Decimal('3.14159'), warning_level=1)
+        mock_sump.return_value.__enter__.return_value.get_current_sump_level_by_device.return_value = current
+        mock_sump.return_value.__enter__.return_value.get_average_sump_level_by_device.return_value = None
+
+        actual = get_sump_level(self.BEARER_TOKEN)
+
+        assert actual == SumpLevel(currentDepth=float(Decimal('3.14159')), depthUnit='cm', warningLevel=1, averageDepth=None, latest_date=None)
+
     def test_get_sump_level__should_return_response_with_distance_converted_to_imperial(self, mock_sump, mock_user, mock_jwt):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         mock_user.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.IMPERIAL_PREFERENCE

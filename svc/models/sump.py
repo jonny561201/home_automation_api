@@ -13,6 +13,6 @@ cfg.global_config.decoders[date] = date.fromisoformat
 class SumpLevel:
     currentDepth: float
     warningLevel: int
-    averageDepth: float
+    averageDepth: Optional[float] = None
     latest_date: Optional[date] = None
     depthUnit: str = 'cm'

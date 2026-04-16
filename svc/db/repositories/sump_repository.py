@@ -31,9 +31,7 @@ class SumpRepository(DatabaseBase):
     def get_average_sump_level_by_device(self, device_id):
         self._validate_property(device_id)
         stmt = select(AverageSumpPumpLevel).where(AverageSumpPumpLevel.device_id == device_id).order_by(AverageSumpPumpLevel.id.desc())
-        average = self.session.execute(stmt).scalars().first()
-        self._validate_property(average)
-        return average
+        return self.session.execute(stmt).scalars().first()
 
     def insert_current_sump_level(self, device_id, depth_info):
         self._validate_property(device_id)
