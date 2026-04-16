@@ -10,7 +10,7 @@ from sqlalchemy import delete, select
 from test.integration.integration_helpers import mock_jwks_token
 from svc.db.models.user_information_model import UserInformation, Devices, DeviceType, DeviceNodes
 from svc.db.repositories.database_base import DatabaseBase
-from svc.manager import app
+from svc.manager import create_app
 
 
 @patch('svc.utilities.api_utils.requests')
@@ -21,7 +21,7 @@ class TestGarageDoorRoutesIntegration:
     def setup_method(self):
         self.TOKEN = mock_jwks_token(self.USER_ID)
         self.HEADERS = {'Authorization': self.TOKEN, 'Content-Type': 'application/json'}
-        flask_app = app
+        flask_app = create_app()
         self.TEST_CLIENT = flask_app.test_client()
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
         with DatabaseBase() as database:

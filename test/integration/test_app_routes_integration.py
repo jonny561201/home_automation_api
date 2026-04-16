@@ -7,7 +7,7 @@ from sqlalchemy import delete, select
 from test.integration.integration_helpers import mock_jwks_token
 from svc.db.models.user_information_model import UserInformation, UserPreference, ScheduleTasks, ScheduledTaskTypes
 from svc.db.repositories.database_base import DatabaseBase
-from svc.manager import app
+from svc.manager import create_app
 
 
 class TestAppRoutesIntegration:
@@ -19,7 +19,7 @@ class TestAppRoutesIntegration:
         self.TOKEN = mock_jwks_token(self.USER_ID)
         self.HEADERS = {'Authorization': f'Bearer {self.TOKEN}', 'Content-Type': 'application/json'}
 
-        flask_app = app
+        flask_app = create_app()
         self.TEST_CLIENT = flask_app.test_client()
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
         self.PREFERENCE = UserPreference(user_id=self.USER_ID, city=self.CITY, is_fahrenheit=True, is_imperial=True)

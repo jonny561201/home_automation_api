@@ -10,7 +10,11 @@ class TestFileUtils:
 
     def setup_method(self):
         settings = Settings.get_instance()
+        self.ORIGINAL_SETTINGS = settings._settings
         settings._settings = {'TempFileName': self.FILE_NAME}
+
+    def teardown_method(self):
+        Settings.get_instance()._settings = self.ORIGINAL_SETTINGS
 
     def test_write_desired_temp_to_file__should_default_is_auto_to_false(self):
         write_desired_temp_to_file(12.2, Automation.HVAC.MODE.HEATING)

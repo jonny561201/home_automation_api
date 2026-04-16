@@ -4,7 +4,7 @@ import uuid
 from mock import patch
 
 from test.integration.integration_helpers import mock_jwks_token
-from svc.manager import app
+from svc.manager import create_app
 
 
 class TestLightRoutesIntegration:
@@ -15,7 +15,7 @@ class TestLightRoutesIntegration:
         self.TOKEN = mock_jwks_token(self.USER_ID)
         self.HEADER = {'Authorization': self.TOKEN, 'Content-Type': 'application/json'}
 
-        flask_app = app
+        flask_app = create_app()
         self.TEST_CLIENT = flask_app.test_client()
 
     def test_get_all_assigned_lights__should_return_unauthorized_without_header(self):

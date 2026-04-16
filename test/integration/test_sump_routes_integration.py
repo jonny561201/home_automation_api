@@ -8,7 +8,7 @@ from test.integration.integration_helpers import mock_jwks_token
 from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, \
     UserPreference, DeviceType, Devices
 from svc.db.repositories.database_base import DatabaseBase
-from svc.manager import app
+from svc.manager import create_app
 
 
 class TestSumpRoutes:
@@ -21,7 +21,7 @@ class TestSumpRoutes:
         self.TOKEN = mock_jwks_token(self.USER_ID)
         self.HEADER = {'Authorization': f'Bearer {self.TOKEN}', 'Content-Type': 'application/json'}
 
-        flask_app = app
+        flask_app = create_app()
         self.TEST_CLIENT = flask_app.test_client()
         user = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
         preference = UserPreference(user=user, is_imperial=False, is_fahrenheit=True)

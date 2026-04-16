@@ -6,7 +6,7 @@ from sqlalchemy import delete
 from test.integration.integration_helpers import mock_jwks_token
 from svc.db.models.user_information_model import Scenes, SceneDetails, UserInformation
 from svc.db.repositories.database_base import DatabaseBase
-from svc.manager import app
+from svc.manager import create_app
 
 
 class TestSceneRoutes:
@@ -19,7 +19,7 @@ class TestSceneRoutes:
         self.TOKEN = mock_jwks_token(self.USER_ID)
         self.HEADER = {'Authorization': f'Bearer {self.TOKEN}', 'Content-Type': 'application/json'}
 
-        flask_app = app
+        flask_app = create_app()
         self.TEST_CLIENT = flask_app.test_client()
         self.USER_INFO = UserInformation(id=self.USER_ID, first_name='tony', last_name='stark')
         self.SCENE = Scenes(name=self.SCENE_NAME, user_id=self.USER_ID, id=self.SCENE_ID)

@@ -9,7 +9,7 @@ from test.integration.integration_helpers import mock_jwks_token
 from svc.constants.home_automation import Automation
 from svc.db.models.user_information_model import UserInformation, UserPreference
 from svc.db.repositories.database_base import DatabaseBase
-from svc.manager import app
+from svc.manager import create_app
 
 
 class TestThermostatRoutesIntegration:
@@ -21,7 +21,7 @@ class TestThermostatRoutesIntegration:
 
         self.USER = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
         self.PREFERENCE = UserPreference(user_id=str(self.USER_ID), city='London', is_fahrenheit=False, is_imperial=False)
-        flask_app = app
+        flask_app = create_app()
         self.TEST_CLIENT = flask_app.test_client()
         with DatabaseBase() as database:
             database.session.add(self.USER)

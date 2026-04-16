@@ -16,22 +16,26 @@ from svc.endpoints.thermostat_routes import THERMOSTAT_BLUEPRINT
 from svc.utilities.rabbitmq_client import initialize_queue
 from svc.utilities.mdns_utils import MdnsListener
 
-initialize_queue(Automation.GARAGE.QUEUE)
-initialize_queue(Automation.HVAC.QUEUE)
 
-browser = MdnsListener()
-browser.start()
+def create_app():
+    initialize_queue(Automation.GARAGE.QUEUE)
+    initialize_queue(Automation.HVAC.QUEUE)
 
-app = Flask(__name__)
-CORS(app, origins=Settings.get_instance().allowed_origins)
+    browser = MdnsListener()
+    browser.start()
 
-app.register_blueprint(APP_BLUEPRINT)
-app.register_blueprint(AUTH_BLUEPRINT)
-app.register_blueprint(ACCOUNT_BLUEPRINT)
-app.register_blueprint(SUMP_BLUEPRINT)
-app.register_blueprint(THERMOSTAT_BLUEPRINT)
-app.register_blueprint(GARAGE_BLUEPRINT)
-app.register_blueprint(LIGHT_BLUEPRINT)
-app.register_blueprint(DEVICES_BLUEPRINT)
-app.register_blueprint(SCENE_BLUEPRINT)
-app.after_request(add_security_headers)
+    app = Flask(__name__)
+    CORS(app, origins=Settings.get_instance().allowed_origins)
+
+    app.register_blueprint(APP_BLUEPRINT)
+    app.register_blueprint(AUTH_BLUEPRINT)
+    app.register_blueprint(ACCOUNT_BLUEPRINT)
+    app.register_blueprint(SUMP_BLUEPRINT)
+    app.register_blueprint(THERMOSTAT_BLUEPRINT)
+    app.register_blueprint(GARAGE_BLUEPRINT)
+    app.register_blueprint(LIGHT_BLUEPRINT)
+    app.register_blueprint(DEVICES_BLUEPRINT)
+    app.register_blueprint(SCENE_BLUEPRINT)
+    app.after_request(add_security_headers)
+
+    return app
