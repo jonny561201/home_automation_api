@@ -48,10 +48,9 @@ def toggle_door(bearer_token, garage_id):
 
 
 def _get_garage_device_info(bearer_token):
-    claims = AuthClient.get_instance().verify_jwt(bearer_token)
-    user_id = claims[AuthClaims.USER_ID]
+    AuthClient.get_instance().verify_jwt(bearer_token)
     with DeviceRepository() as db:
-        info = db.get_device_address_info(user_id)
+        info = db.get_device_info('garage_door')
     if not info:
         raise FailedDependency(description="device not registered")
     return info
