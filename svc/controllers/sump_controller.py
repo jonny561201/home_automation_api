@@ -12,9 +12,11 @@ from svc.utilities.auth_utils import AuthClient
 def get_sump_level(bearer_token: str):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]
+    with DeviceRepository() as database:
+        device_id = database.get_sump_device_id_by_user(user_id)
     with SumpRepository() as database:
-        current_data = database.get_current_sump_level_by_user(user_id)
-        average_data = database.get_average_sump_level_by_user(user_id)
+        current_data = database.get_current_sump_level_by_device(device_id)
+        average_data = database.get_average_sump_level_by_device(device_id)
     with UserRepository() as database:
         preferences = database.get_preferences_by_user(user_id)
 
@@ -23,11 +25,11 @@ def get_sump_level(bearer_token: str):
 
 def save_current_level(api_key: str, request_data: dict):
     with DeviceRepository() as database:
-        user_id = database.get_user_id_by_device_api_key(api_key)
-    if api_key is None or user_id is None:
+        device_id = database.get_device_id_by_api_key(api_key)
+    if api_key is None or device_id is None:
         raise Unauthorized()
     with SumpRepository() as database:
-        database.insert_current_sump_level(user_id, request_data)
+        database.insert_current_sump_level(device_id, request_data)
 
 
 def __map_response(current_data, average_data, is_imperial):

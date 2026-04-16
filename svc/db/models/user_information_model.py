@@ -138,20 +138,20 @@ class DailySumpPumpLevel(Base):
     __tablename__ = 'daily_sump_level'
 
     id = Column(Integer, nullable=False, primary_key=True)
-    user_id = Column(UUID, ForeignKey(UserInformation.id))
+    device_id = Column(UUID, ForeignKey(Devices.id))
     distance = Column(DECIMAL, nullable=False)
     warning_level = Column(Integer, nullable=False)
     create_date = Column(TIMESTAMP, nullable=False)
 
-    user = relationship('UserInformation', foreign_keys='DailySumpPumpLevel.user_id')
+    device = relationship('Devices', foreign_keys='DailySumpPumpLevel.device_id')
 
 
 class AverageSumpPumpLevel(Base):
     __tablename__ = 'average_daily_sump_level'
 
     id = Column(Integer, nullable=False, primary_key=True)
-    user_id = Column(UUID, ForeignKey(UserInformation.id))
+    device_id = Column(UUID, ForeignKey(Devices.id))
     distance = Column(DECIMAL, nullable=False)
     create_day = Column(DATE, nullable=False)
 
-    user = relationship('UserInformation', foreign_keys='AverageSumpPumpLevel.user_id')
+    device = relationship('Devices', foreign_keys='AverageSumpPumpLevel.device_id')

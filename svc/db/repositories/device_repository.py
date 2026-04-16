@@ -3,8 +3,7 @@ import uuid
 from sqlalchemy import select
 
 from svc.models.devices import DeviceInfo
-from svc.db.models.user_information_model import ChildAccounts, DeviceNodes, DeviceType, UserInformation
-from svc.db.models.user_information_model import Devices
+from svc.db.models.user_information_model import ChildAccounts, DeviceNodes, DeviceType, UserInformation, Devices
 from svc.db.repositories.database_base import DatabaseBase
 
 
@@ -35,8 +34,8 @@ class DeviceRepository(DatabaseBase):
         self.session.add(device)
         return device.id
 
-    def upsert_discovered_device(self, name, ip_address, ip_port, api_key, max_nodes, nodes):
-        device_type = self._get_device_type('garage_door')
+    def upsert_discovered_device(self, name, ip_address, ip_port, api_key, max_nodes, nodes, device_type_name):
+        device_type = self._get_device_type(device_type_name)
         existing = self._get_device_by_name(name, device_type.id)
         if existing:
             existing.ip_address = ip_address
@@ -91,6 +90,25 @@ class DeviceRepository(DatabaseBase):
         stmt = select(Devices).filter_by(api_key=api_key)
         device = self.session.execute(stmt).scalars().first()
         return str(device.user_id) if device and device.user_id else None
+
+    def get_device_id_by_api_key(self, api_key):
+        stmt = select(Devices).filter_by(api_key=api_key)
+        device = self.session.execute(stmt).scalars().first()
+        return str(device.id) if device else None
+
+    def get_sump_device_id_by_user(self, user_id):
+        self._validate_property(user_id)
+        stmt = select(ChildAccounts).filter_by(child_user_id=user_id)
+        child_account = self.session.execute(stmt).scalars().first()
+        resolved_user_id = user_id if child_account is None else child_account.parent_user_id
+
+        stmt = select(Devices).where(
+            Devices.user_id == resolved_user_id,
+            Devices.device_type.has(DeviceType.type == 'sump_pump')
+        )
+        device = self.session.execute(stmt).scalars().first()
+        self._validate_property(device)
+        return str(device.id)
 
     def _get_device_type(self, type_name):
         stmt = select(DeviceType).filter_by(type=type_name)

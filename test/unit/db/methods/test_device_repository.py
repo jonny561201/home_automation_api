@@ -7,7 +7,7 @@ from mock import patch, mock
 from sqlalchemy import orm
 from werkzeug.exceptions import NotFound
 
-from svc.db.models.user_information_model import Devices, DeviceType
+from svc.db.models.user_information_model import ChildAccounts, Devices, DeviceType
 from svc.db.repositories.device_repository import DeviceRepository
 
 
@@ -129,3 +129,48 @@ class TestDeviceRepository:
         actual = self.DATABASE.get_role_ids_by_device_ids(self.USER_ID, [device_id])
 
         assert actual == []
+
+    def test_get_device_id_by_api_key__should_return_device_id(self):
+        device_id = str(uuid.uuid4())
+        device = Devices(id=device_id, api_key='test-key')
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = device
+
+        actual = self.DATABASE.get_device_id_by_api_key('test-key')
+
+        assert actual == device_id
+
+    def test_get_device_id_by_api_key__should_return_none_when_no_device(self):
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
+
+        actual = self.DATABASE.get_device_id_by_api_key('missing-key')
+
+        assert actual is None
+
+    def test_get_sump_device_id_by_user__should_return_device_id_for_parent_user(self):
+        device_id = str(uuid.uuid4())
+        sump_device = Devices(id=device_id, user_id=self.USER_ID)
+        self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [None, sump_device]
+
+        actual = self.DATABASE.get_sump_device_id_by_user(self.USER_ID)
+
+        assert actual == device_id
+
+    def test_get_sump_device_id_by_user__should_resolve_child_to_parent_device(self):
+        parent_user_id = str(uuid.uuid4())
+        device_id = str(uuid.uuid4())
+        child_account = ChildAccounts(child_user_id=self.USER_ID, parent_user_id=parent_user_id)
+        sump_device = Devices(id=device_id, user_id=parent_user_id)
+        self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [child_account, sump_device]
+
+        actual = self.DATABASE.get_sump_device_id_by_user(self.USER_ID)
+
+        assert actual == device_id
+
+    def test_get_sump_device_id_by_user__should_raise_not_found_when_no_device(self):
+        self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [None, None]
+        with pytest.raises(NotFound):
+            self.DATABASE.get_sump_device_id_by_user(self.USER_ID)
+
+    def test_get_sump_device_id_by_user__should_raise_not_found_when_user_id_is_none(self):
+        with pytest.raises(NotFound):
+            self.DATABASE.get_sump_device_id_by_user(None)

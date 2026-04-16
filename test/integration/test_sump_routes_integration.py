@@ -25,16 +25,19 @@ class TestSumpRoutes:
         self.TEST_CLIENT = flask_app.test_client()
         user = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
         preference = UserPreference(user=user, is_imperial=False, is_fahrenheit=True)
-        sump = DailySumpPumpLevel(user=user, distance=self.DEPTH, warning_level=0, create_date=datetime.now())
-        average = AverageSumpPumpLevel(user=user, distance=self.AVG_DEPTH, create_day=datetime.date(datetime.now()))
 
         with DatabaseBase() as database:
             stmt = select(DeviceType).where(DeviceType.type == 'sump_pump')
             device_type = database.session.execute(stmt).scalars().first()
-            device = Devices(ip_address='1.1.1.1', ip_port=5123, name='test', api_key=self.API_KEY, user_id=self.USER_ID, device_type_id=device_type.id)
+            device = Devices(ip_address='1.1.1.1', ip_port=5123, name='test', api_key=self.API_KEY, user_id=self.USER_ID, device_type_id=device_type.id, registered=True)
             database.session.add(user)
             database.session.commit()
             database.session.add(device)
+            database.session.flush()
+            self.DEVICE_ID = str(device.id)
+
+            sump = DailySumpPumpLevel(device_id=device.id, distance=self.DEPTH, warning_level=0, create_date=datetime.now())
+            average = AverageSumpPumpLevel(device_id=device.id, distance=self.AVG_DEPTH, create_day=datetime.date(datetime.now()))
             database.session.add(sump)
             database.session.add(preference)
             database.session.add(average)
@@ -42,9 +45,9 @@ class TestSumpRoutes:
 
     def teardown_method(self):
         with DatabaseBase() as database:
+            database.session.execute(delete(DailySumpPumpLevel).where(DailySumpPumpLevel.device_id == self.DEVICE_ID))
+            database.session.execute(delete(AverageSumpPumpLevel).where(AverageSumpPumpLevel.device_id == self.DEVICE_ID))
             database.session.execute(delete(Devices).where(Devices.user_id == self.USER_ID))
-            database.session.execute(delete(DailySumpPumpLevel).where(DailySumpPumpLevel.user_id == self.USER_ID))
-            database.session.execute(delete(AverageSumpPumpLevel).where(AverageSumpPumpLevel.user_id == self.USER_ID))
             database.session.execute(delete(UserPreference).where(UserPreference.user_id == self.USER_ID))
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
 
@@ -75,6 +78,6 @@ class TestSumpRoutes:
         self.TEST_CLIENT.post(f'sumpPump/currentDepth', data=json.dumps(post_body), headers={'X-API-KEY': self.API_KEY,  'Content-Type': 'application/json'})
 
         with DatabaseBase() as database:
-            sump_level = database.session.execute(select(DailySumpPumpLevel).where(DailySumpPumpLevel.user_id == self.USER_ID, DailySumpPumpLevel.distance == depth)).scalars().first()
+            sump_level = database.session.execute(select(DailySumpPumpLevel).where(DailySumpPumpLevel.device_id == self.DEVICE_ID, DailySumpPumpLevel.distance == depth)).scalars().first()
             assert float(sump_level.distance) == depth
-            assert str(sump_level.user_id) == self.USER_ID
+            assert str(sump_level.device_id) == self.DEVICE_ID
