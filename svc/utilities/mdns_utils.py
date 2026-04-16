@@ -1,6 +1,6 @@
 from zeroconf import ServiceListener, Zeroconf, ServiceBrowser
 
-from controllers.registration_controller import register_sump_pump
+from svc.controllers.registration_controller import register_sump_pump
 from svc.controllers.registration_controller import register_garage_door
 
 
