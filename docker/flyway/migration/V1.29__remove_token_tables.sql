@@ -24,3 +24,5 @@ ALTER TABLE average_daily_sump_level ALTER COLUMN device_id SET NOT NULL;
 
 ALTER TABLE daily_sump_level DROP COLUMN user_id;
 ALTER TABLE average_daily_sump_level DROP COLUMN user_id;
+
+ALTER TABLE user_preferences RENAME COLUMN preferred_garage_node_id TO garage_node_id;

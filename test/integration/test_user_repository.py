@@ -51,9 +51,9 @@ class TestUserIntegration:
             assert response.tempUnit == 'fahrenheit'
             assert response.measureUnit == 'imperial'
             assert response.city == self.CITY
-            assert response.isFahrenheit is True
-            assert response.isImperial is True
-            assert response.preferredGarageNodeId is None
+            assert response.tempUnit == 'fahrenheit'
+            assert response.measureUnit == 'imperial'
+            assert response.garageNodeId is None
 
     def test_get_preferences_by_user__should_raise_not_found_when_no_preferences(self):
         with pytest.raises(NotFound):
@@ -63,7 +63,7 @@ class TestUserIntegration:
 
     def test_insert_preferences_by_user__should_insert_valid_preferences(self):
         city = 'Vienna'
-        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': False, 'preferredGarageNodeId': self.NODE_ID}
+        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': False, 'garageNodeId': self.NODE_ID}
         with UserRepository() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
             database.session.commit()
@@ -71,7 +71,7 @@ class TestUserIntegration:
 
             assert actual.city == city
             assert actual.is_fahrenheit is True
-            assert str(actual.preferred_garage_node_id) == self.NODE_ID
+            assert str(actual.garage_node_id) == self.NODE_ID
 
     def test_insert_preferences_by_user__should_not_fail_when_time_is_none(self):
         city = 'Vienna'
@@ -129,7 +129,7 @@ class TestUserIntegration:
             assert actual.city == city
             assert actual.is_fahrenheit is True
             assert actual.is_imperial is True
-            assert actual.preferred_garage_node_id is None
+            assert actual.garage_node_id is None
 
     def test_insert_preferences_by_user__should_not_nullify_garage_id_when_missing(self):
         city = 'Lisbon'
@@ -142,11 +142,11 @@ class TestUserIntegration:
             assert actual.city == city
             assert actual.is_fahrenheit is True
             assert actual.is_imperial is True
-            assert actual.preferred_garage_node_id is None
+            assert actual.garage_node_id is None
 
     def test_insert_preferences_by_user__should_set_garage_id_to_null_when_sent_null(self):
         city = 'Lisbon'
-        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': True, 'preferredGarageNodeId': None}
+        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': True, 'garageNodeId': None}
         with UserRepository() as database:
             database.insert_preferences_by_user(self.USER_ID, preference_info)
 
@@ -155,7 +155,7 @@ class TestUserIntegration:
             assert actual.city == city
             assert actual.is_fahrenheit is True
             assert actual.is_imperial is True
-            assert actual.preferred_garage_node_id is None
+            assert actual.garage_node_id is None
 
 
 class TestDbCredentialIntegration:

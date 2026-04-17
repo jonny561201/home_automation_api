@@ -23,10 +23,11 @@ def get_sump_level(bearer_token: str):
     with UserRepository() as database:
         preferences = database.get_preferences_by_user(user_id)
 
+        is_imperial = preferences.measureUnit == 'imperial'
         return SumpLevel(
-            currentDepth=convert_to_imperial(current_depth, preferences.isImperial),
-            averageDepth=convert_to_imperial(average_depth, preferences.isImperial) if average_depth else None,
-            depthUnit='in' if preferences.isImperial else 'cm',
+            currentDepth=convert_to_imperial(current_depth, is_imperial),
+            averageDepth=convert_to_imperial(average_depth, is_imperial) if average_depth else None,
+            depthUnit='in' if is_imperial else 'cm',
             warningLevel=warning_level,
             latest_date=latest_date
         )

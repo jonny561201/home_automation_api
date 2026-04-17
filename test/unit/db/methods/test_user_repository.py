@@ -8,7 +8,7 @@ from sqlalchemy import orm
 from werkzeug.exceptions import Unauthorized, BadRequest, NotFound
 
 from svc.db.repositories.user_repository import UserRepository
-from svc.db.models.user_information_model import UserInformation, UserPreference
+from svc.db.models.user_information_model import DeviceNodes, UserInformation, UserPreference
 
 
 class TestCredentialRepository:
@@ -112,23 +112,23 @@ class TestPreference:
 
         assert actual.city == city
 
-    def test_get_preferences_by_user__should_return_is_fahrenheit_preferences(self):
+    def test_get_preferences_by_user__should_return_temp_unit_fahrenheit(self):
         user = UserInformation(first_name=self.FIRST_NAME, last_name=self.LAST_NAME)
         preference = TestPreference.__create_user_preference(user, 'Fake City', True)
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = preference
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
-        assert actual.isFahrenheit is True
+        assert actual.tempUnit == 'fahrenheit'
 
-    def test_get_preferences_by_user__should_return_is_imperial_preferences(self):
+    def test_get_preferences_by_user__should_return_temp_unit_celsius(self):
         user = UserInformation(first_name=self.FIRST_NAME, last_name=self.LAST_NAME)
-        preference = TestPreference.__create_user_preference(user, 'Fake City', True, True)
+        preference = TestPreference.__create_user_preference(user, 'Fake City', False)
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = preference
 
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
-        assert actual.isImperial is True
+        assert actual.tempUnit == 'celsius'
 
     def test_get_preferences_by_user__should_return_measure_unit_preferences(self):
         user = UserInformation(first_name=self.FIRST_NAME, last_name=self.LAST_NAME)
@@ -160,13 +160,33 @@ class TestPreference:
 
         self.SESSION.execute.assert_not_called()
 
-    def test_get_preferences_by_user__should_return_preferred_garage_node_id(self):
+    def test_get_preferences_by_user__should_return_garage_node_id(self):
         user = UserInformation(first_name=self.FIRST_NAME, last_name=self.LAST_NAME)
         preference = TestPreference.__create_user_preference(user, 'Fake City', True, False)
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = preference
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
-        assert actual.preferredGarageNodeId is None
+        assert actual.garageNodeId is None
+
+    def test_get_preferences_by_user__should_return_garage_node_name(self):
+        user = UserInformation(first_name=self.FIRST_NAME, last_name=self.LAST_NAME)
+        node_id = str(uuid.uuid4())
+        node = DeviceNodes(id=node_id, node_name='Left Garage')
+        preference = TestPreference.__create_user_preference(user, 'Fake City')
+        preference.garage_node_id = node_id
+        preference.garage_node = node
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = preference
+        actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
+
+        assert actual.garageNodeName == 'Left Garage'
+
+    def test_get_preferences_by_user__should_return_none_garage_node_name_when_no_node(self):
+        user = UserInformation(first_name=self.FIRST_NAME, last_name=self.LAST_NAME)
+        preference = TestPreference.__create_user_preference(user, 'Fake City')
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = preference
+        actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
+
+        assert actual.garageNodeName is None
 
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
@@ -179,6 +199,6 @@ class TestPreference:
         preference.alarm_time = datetime.now().time()
         preference.alarm_days = 'MonTueWedThuFri'
         preference.alarm_group_name = 'bedroom'
-        preference.preferred_garage_node_id = None
+        preference.garage_node_id = None
 
         return preference

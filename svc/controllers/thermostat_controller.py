@@ -15,9 +15,10 @@ def get_user_temp(bearer_token):
     with UserRepository() as database:
         preference = database.get_preferences_by_user(user_id)
         temp_text = read_temperature_file()
-        internal_temp = get_user_temperature(temp_text, preference.isFahrenheit)
+        is_fahrenheit = preference.tempUnit == 'fahrenheit'
+        internal_temp = get_user_temperature(temp_text, is_fahrenheit)
 
-        return __create_response(internal_temp, preference.isFahrenheit)
+        return __create_response(internal_temp, is_fahrenheit)
 
 
 #TODO: update database account repo to store lat/lon of city

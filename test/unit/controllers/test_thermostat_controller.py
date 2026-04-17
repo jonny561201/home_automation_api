@@ -21,7 +21,7 @@ class TestThermostatTempController:
     TEMP_CEL = 7.56
 
     def setup_method(self):
-        self.PREFERENCE = Preference(isFahrenheit=True, isImperial=True, tempUnit='Fahrenheit', city='Des Moines', measureUnit='in')
+        self.PREFERENCE = Preference(tempUnit='fahrenheit', measureUnit='imperial', city='Des Moines')
 
     def test_get_user_temp__should_call_is_jwt_valid(self, mock_jwt, mock_db, mock_temp, mock_file):
         get_user_temp(self.JWT_TOKEN)
@@ -47,7 +47,7 @@ class TestThermostatTempController:
 
     def test_get_user_temp__should_return_thermostat_temps_in_celsius(self, mock_jwt, mock_db, mock_temp, mock_file):
         mock_jwt.return_value = self.CLAIMS
-        self.PREFERENCE.isFahrenheit = False
+        self.PREFERENCE.tempUnit = 'celsius'
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
 
         actual = get_user_temp(self.JWT_TOKEN)
@@ -57,7 +57,7 @@ class TestThermostatTempController:
 
     def test_get_user_temp__should_return_thermostat_temps_in_fahrenheit(self, mock_jwt, mock_db, mock_temp, mock_file):
         mock_jwt.return_value = self.CLAIMS
-        self.PREFERENCE.isFahrenheit = True
+        self.PREFERENCE.tempUnit = 'fahrenheit'
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
 
         actual = get_user_temp(self.JWT_TOKEN)
@@ -76,7 +76,7 @@ class TestThermostatTempController:
     def test_get_user_temp__should_return_the_hvac_desired_temp_in_fahrenheit(self, mock_jwt, mock_db, mock_temp, mock_file):
         mock_jwt.return_value = self.CLAIMS
         mock_file.return_value = {'desiredTemp': self.TEMP_CEL, 'mode': Automation.HVAC.MODE.COOLING}
-        self.PREFERENCE.isFahrenheit = True
+        self.PREFERENCE.tempUnit = 'fahrenheit'
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
 
         actual = get_user_temp(self.JWT_TOKEN)
@@ -86,7 +86,7 @@ class TestThermostatTempController:
     def test_get_user_temp__should_return_the_hvac_desired_temp_in_celsius(self, mock_jwt, mock_db, mock_temp, mock_file):
         mock_jwt.return_value = self.CLAIMS
         mock_file.return_value = {'desiredTemp': self.TEMP_CEL, 'mode': Automation.HVAC.MODE.HEATING}
-        self.PREFERENCE.isFahrenheit = False
+        self.PREFERENCE.tempUnit = 'celsius'
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
 
         actual = get_user_temp(self.JWT_TOKEN)
@@ -96,7 +96,7 @@ class TestThermostatTempController:
     def test_get_user_temp__should_return_the_hvac_internal_temp_when_desired_temp_not_set(self, mock_jwt, mock_db, mock_temp, mock_file):
         mock_jwt.return_value = self.CLAIMS
         mock_file.return_value = {'desiredTemp': None, 'mode': Automation.HVAC.MODE.HEATING}
-        self.PREFERENCE.isFahrenheit = False
+        self.PREFERENCE.tempUnit = 'celsius'
         mock_temp.return_value = self.TEMP_FAHR
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
 
@@ -116,7 +116,7 @@ class TestThermostatForecastController:
     TEMP_CEL = 7.56
 
     def setup_method(self):
-        self.PREFERENCE = Preference(isFahrenheit=True, isImperial=True, tempUnit='Fahrenheit', city='Des Moines', measureUnit='in')
+        self.PREFERENCE = Preference(tempUnit='fahrenheit', measureUnit='imperial', city='Des Moines')
 
     def test_get_user_forecast__should_validate_jwt_token(self, mock_jwt, mock_db, mock_weather):
         get_user_forecast(self.JWT_TOKEN)

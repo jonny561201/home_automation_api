@@ -18,8 +18,8 @@ class TestSumpController:
     BEARER_TOKEN = 'lkhasdhlufiou0892390784'
 
     def setup_method(self):
-        self.IMPERIAL_PREFERENCE = Preference(isImperial=True, isFahrenheit=True, tempUnit='Fahrenheit', measureUnit='in', city='Austin')
-        self.METRIC_PREFERENCE = Preference(isImperial=False, isFahrenheit=False, tempUnit='Celsius', measureUnit='cm', city='Austin')
+        self.IMPERIAL_PREFERENCE = Preference(tempUnit='fahrenheit', measureUnit='imperial', city='Austin')
+        self.METRIC_PREFERENCE = Preference(tempUnit='celsius', measureUnit='metric', city='Austin')
 
     def test_get_sump_level__should_call_is_jwt_valid(self, mock_sump, mock_user, mock_jwt):
         get_sump_level(self.BEARER_TOKEN)

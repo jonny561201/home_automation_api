@@ -22,9 +22,11 @@ class UserRepository(DatabaseBase):
         stmt = select(UserPreference).filter_by(user_id=user_id)
         preference = self.session.execute(stmt).scalars().first()
         self._validate_property(preference)
-        return Preference(isFahrenheit=preference.is_fahrenheit, isImperial=preference.is_imperial, city=preference.city,
+        garage_node = preference.garage_node
+        return Preference(city=preference.city,
                           measureUnit='imperial' if preference.is_imperial else 'metric',
-                          preferredGarageNodeId=str(preference.preferred_garage_node_id) if preference.preferred_garage_node_id else None,
+                          garageNodeId=str(preference.garage_node_id) if preference.garage_node_id else None,
+                          garageNodeName=garage_node.node_name if garage_node != None else None,
                           tempUnit='fahrenheit' if preference.is_fahrenheit else 'celsius')
 
     def insert_preferences_by_user(self, user_id, preference_info):
@@ -33,11 +35,11 @@ class UserRepository(DatabaseBase):
         city = preference_info.get('city')
         is_imperial = preference_info.get('isImperial')
         is_fahrenheit = preference_info.get('isFahrenheit')
-        preferred_garage_node_id = preference_info.get('preferredGarageNodeId')
+        garage_node_id = preference_info.get('garageNodeId')
 
         stmt = select(UserPreference).filter_by(user_id=user_id)
         record = self.session.execute(stmt).scalars().first()
         record.is_fahrenheit = is_fahrenheit if is_fahrenheit is not None else record.is_fahrenheit
         record.is_imperial = is_imperial if is_imperial is not None else record.is_imperial
         record.city = city if city is not None else record.city
-        record.preferred_garage_node_id = preferred_garage_node_id if preferred_garage_node_id is not None else record.preferred_garage_node_id
+        record.garage_node_id = garage_node_id if garage_node_id is not None else record.garage_node_id

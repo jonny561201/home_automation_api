@@ -8,15 +8,15 @@ from dataclasses_json import dataclass_json, cfg
 cfg.global_config.encoders[date] = date.isoformat
 cfg.global_config.decoders[date] = date.fromisoformat
 
+
 @dataclass_json
 @dataclass
 class Preference:
-    isFahrenheit: bool
-    isImperial: bool
     city: str
     tempUnit: str
     measureUnit: str
-    preferredGarageNodeId: Optional[str] = None
+    garageNodeId: Optional[str] = None
+    garageNodeName: Optional[str] = None
 
 
 @dataclass_json
