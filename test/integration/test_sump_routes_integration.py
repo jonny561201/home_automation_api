@@ -73,7 +73,7 @@ class TestSumpRoutes:
 
     def test_save_current_level_by_user__should_store_depth_info(self):
         depth = 12.31
-        post_body = {'depth': depth, 'warning_level': 2, 'datetime': str(datetime.now())}
+        post_body = {'depth': depth, 'alert_level': 2, 'datetime': str(datetime.now())}
 
         self.TEST_CLIENT.post(f'sumpPump/currentDepth', data=json.dumps(post_body), headers={'X-API-KEY': self.API_KEY,  'Content-Type': 'application/json'})
 

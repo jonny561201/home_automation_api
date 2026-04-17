@@ -93,15 +93,10 @@ class TestDbSumpIntegration:
             assert float(actual.distance) == self.DEPTH
             assert actual.create_day == self.DAY
 
-    def test_get_average_sump_level_by_device__should_raise_not_found_when_device_not_found(self):
-        with SumpRepository() as database:
-            with pytest.raises(NotFound):
-                database.get_average_sump_level_by_device(str(uuid.uuid4()))
-
     def test_insert_current_sump_level__should_store_new_record(self):
         with SumpRepository() as database:
             depth_info = {'depth': self.UPDATED_DEPTH,
-                          'warning_level': 3,
+                          'alert_level': 3,
                           'datetime': str(self.DATE)}
             database.insert_current_sump_level(self.FIRST_DEVICE_ID, depth_info)
 

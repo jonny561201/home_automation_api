@@ -1,6 +1,7 @@
 import json
 import uuid
 
+from mock import patch
 from sqlalchemy import delete, select
 
 from test.integration.integration_helpers import mock_jwks_token
@@ -39,14 +40,19 @@ class TestDeviceRoutesIntegration:
         actual = self.TEST_CLIENT.post(f'devices/register', headers={'Content-Type': 'application/json'}, data='{}')
         assert actual.status_code == 401
 
-    def test_add_device__should_return_device_id_when_user_with_correct_role(self):
+    @patch('svc.utilities.api_utils.requests')
+    def test_add_device__should_return_device_id_when_user_with_correct_role(self, mock_request):
+        mock_request.post.return_value.status_code = 200
         ip_address = '1.1.1.1'
         post_body = json.dumps({'roleName': self.ROLE_NAME, 'ipAddress': ip_address, 'ipPort': 50})
         actual = self.TEST_CLIENT.post(f'devices/register', headers=self.HEADER, data=post_body)
 
+        assert actual.status_code == 200
         assert json.loads(actual.data)['deviceId'] is not None
 
-    def test_add_device__should_return_success_when_user_with_correct_role(self):
+    @patch('svc.utilities.api_utils.requests')
+    def test_add_device__should_return_success_when_user_with_correct_role(self, mock_request):
+        mock_request.post.return_value.status_code = 200
         ip_address = '1.1.1.1'
         post_body = json.dumps({'roleName': self.ROLE_NAME, 'ipAddress': ip_address, 'ipPort': 501})
         actual = self.TEST_CLIENT.post(f'devices/register', headers=self.HEADER, data=post_body)

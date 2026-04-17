@@ -12,7 +12,7 @@ def mock_jwks_token(user_id: str):
     public_key = private_key.public_key()
     domain = 'dev-test.us.auth0.com'
     audience = 'http://localhost:5000'
-    claims = {AuthClaims.USER_ID: user_id, 'aud': audience, 'iss': f'https://{domain}/'}
+    claims = {AuthClaims.USER_ID: user_id, 'aud': audience, 'iss': f'https://{domain}/', 'sub': '123219usd'}
     settings = Settings.get_instance()
     settings.Authority._settings = {'Domain': domain, 'Audience': audience}
 
