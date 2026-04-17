@@ -39,6 +39,7 @@ class Time:
 class AuthClaims:
     ROLES = 'https://soaringleafsolutions.com/roles'
     USER_ID = 'https://soaringleafsolutions.com/user_id'
+    AUTH0_ID = 'sub'
 
 
 class Automation:

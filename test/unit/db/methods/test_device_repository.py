@@ -146,3 +146,4 @@ class TestDeviceRepository:
 
         assert actual is None
 
+

@@ -75,7 +75,6 @@ class DeviceRepository(DatabaseBase):
         self._validate_property(node)
         return str(node.id)
 
-    #TODO: I think this is dead
     def get_role_ids_by_device_ids(self, user_id, device_ids):
         self._validate_property(user_id)
         stmt = select(Devices).where(Devices.user_id == user_id, Devices.id.in_(device_ids))
