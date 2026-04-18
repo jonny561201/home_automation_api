@@ -25,8 +25,8 @@ class UserRepository(DatabaseBase):
         garage_node = preference.garage_node
         return Preference(city=preference.city,
                           measureUnit='imperial' if preference.is_imperial else 'metric',
-                          garageNodeId=str(preference.garage_node_id) if preference.garage_node_id else None,
-                          garageNodeName=garage_node.node_name if garage_node != None else None,
+                          garageId=str(preference.garage_node_id) if preference.garage_node_id else None,
+                          garageName=garage_node.node_name if garage_node != None else None,
                           tempUnit='fahrenheit' if preference.is_fahrenheit else 'celsius')
 
     def insert_preferences_by_user(self, user_id, preference_info):

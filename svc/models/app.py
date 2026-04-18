@@ -15,8 +15,8 @@ class Preference:
     city: str
     tempUnit: str
     measureUnit: str
-    garageNodeId: Optional[str] = None
-    garageNodeName: Optional[str] = None
+    garageId: Optional[str] = None
+    garageName: Optional[str] = None
 
 
 @dataclass_json

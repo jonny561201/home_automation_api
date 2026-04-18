@@ -53,7 +53,7 @@ class TestUserIntegration:
             assert response.city == self.CITY
             assert response.tempUnit == 'fahrenheit'
             assert response.measureUnit == 'imperial'
-            assert response.garageNodeId is None
+            assert response.garageId is None
 
     def test_get_preferences_by_user__should_raise_not_found_when_no_preferences(self):
         with pytest.raises(NotFound):

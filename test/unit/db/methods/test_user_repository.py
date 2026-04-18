@@ -166,7 +166,7 @@ class TestPreference:
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = preference
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
-        assert actual.garageNodeId is None
+        assert actual.garageId is None
 
     def test_get_preferences_by_user__should_return_garage_node_name(self):
         user = UserInformation(first_name=self.FIRST_NAME, last_name=self.LAST_NAME)
@@ -178,7 +178,7 @@ class TestPreference:
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = preference
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
-        assert actual.garageNodeName == 'Left Garage'
+        assert actual.garageName == 'Left Garage'
 
     def test_get_preferences_by_user__should_return_none_garage_node_name_when_no_node(self):
         user = UserInformation(first_name=self.FIRST_NAME, last_name=self.LAST_NAME)
@@ -186,7 +186,7 @@ class TestPreference:
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = preference
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
-        assert actual.garageNodeName is None
+        assert actual.garageName is None
 
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
