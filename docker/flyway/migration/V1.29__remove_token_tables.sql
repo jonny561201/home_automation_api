@@ -29,3 +29,5 @@ ALTER TABLE user_preferences RENAME COLUMN preferred_garage_node_id TO garage_no
 
 ALTER TABLE user_preferences ALTER COLUMN is_fahrenheit SET DEFAULT TRUE;
 ALTER TABLE user_preferences ALTER COLUMN is_imperial SET DEFAULT TRUE;
+
+ALTER TABLE user_preferences ADD COLUMN state VARCHAR(255);
