@@ -26,3 +26,6 @@ ALTER TABLE daily_sump_level DROP COLUMN user_id;
 ALTER TABLE average_daily_sump_level DROP COLUMN user_id;
 
 ALTER TABLE user_preferences RENAME COLUMN preferred_garage_node_id TO garage_node_id;
+
+ALTER TABLE user_preferences ALTER COLUMN is_fahrenheit SET DEFAULT TRUE;
+ALTER TABLE user_preferences ALTER COLUMN is_imperial SET DEFAULT TRUE;
