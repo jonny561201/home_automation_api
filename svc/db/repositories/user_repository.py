@@ -32,14 +32,12 @@ class UserRepository(DatabaseBase):
     def insert_preferences_by_user(self, user_id, preference_info):
         if len(preference_info) == 0 or user_id is None:
             raise BadRequest
-        city = preference_info.get('city')
-        is_imperial = preference_info.get('isImperial')
-        is_fahrenheit = preference_info.get('isFahrenheit')
-        garage_node_id = preference_info.get('garageNodeId')
-
         stmt = select(UserPreference).filter_by(user_id=user_id)
         record = self.session.execute(stmt).scalars().first()
-        record.is_fahrenheit = is_fahrenheit if is_fahrenheit is not None else record.is_fahrenheit
-        record.is_imperial = is_imperial if is_imperial is not None else record.is_imperial
-        record.city = city if city is not None else record.city
-        record.garage_node_id = garage_node_id if garage_node_id is not None else record.garage_node_id
+        if record == None:
+            record = UserPreference(user_id=user_id)
+            self.session.add(record)
+        record.is_fahrenheit = preference_info.get('isFahrenheit', True)
+        record.is_imperial = preference_info.get('isImperial', True)
+        record.city = preference_info.get('city', None)
+        record.garage_node_id = preference_info.get('garageNodeId', None)
