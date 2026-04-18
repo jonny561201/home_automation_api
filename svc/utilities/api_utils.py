@@ -14,8 +14,7 @@ def get_host_ip():
 
 
 def get_city_coordinates(city, state=None):
-    name = f'{city}, {state}' if state else city
-    args = {'name': name, 'count': 1}
+    args = {'name': city, 'count': 1, 'country': 'US', 'admin1': state}
     base_url = Settings.get_instance().BaseUrls.weather
     response = requests.get(f'https://geocoding-{base_url}/search', params=args)
     __validate_response(response)
