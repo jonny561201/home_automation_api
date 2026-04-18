@@ -109,7 +109,7 @@ class TestWeatherRequest:
         
     def test_get_weather__should_make_call_to_get_city_coords(self, mock_city, mock_forecast):
         get_weather(self.CITY, self.UNIT)
-        mock_city.assert_called_with(self.CITY)
+        mock_city.assert_called_with(self.CITY, None)
 
     def test_get_weather__should_call_forecast_using_coords_from_weather_call(self, mock_city, mock_forecast):
         mock_city.return_value = self.CITY_RESPONSE

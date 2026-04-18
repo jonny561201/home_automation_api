@@ -27,7 +27,7 @@ def get_user_forecast(bearer_token):
     user_id = claims[AuthClaims.USER_ID]
     with UserRepository() as database:
         preference = database.get_preferences_by_user(user_id)
-        return weather_request.get_weather(preference.city, preference.tempUnit)
+        return weather_request.get_weather(preference.city, preference.tempUnit, preference.state)
 
 
 def set_user_temperature(request_data, bearer_token):

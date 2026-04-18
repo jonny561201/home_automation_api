@@ -24,6 +24,7 @@ class UserRepository(DatabaseBase):
         self._validate_property(preference)
         garage_node = preference.garage_node
         return Preference(city=preference.city,
+                          state=preference.state,
                           measureUnit='imperial' if preference.is_imperial else 'metric',
                           garageId=str(preference.garage_node_id) if preference.garage_node_id else None,
                           garageName=garage_node.node_name if garage_node != None else None,
@@ -40,4 +41,5 @@ class UserRepository(DatabaseBase):
         record.is_fahrenheit = preference_info.get('isFahrenheit', True)
         record.is_imperial = preference_info.get('isImperial', True)
         record.city = preference_info.get('city', None)
+        record.state = preference_info.get('state', None)
         record.garage_node_id = preference_info.get('garageNodeId', None)

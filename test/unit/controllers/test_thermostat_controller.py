@@ -131,7 +131,7 @@ class TestThermostatForecastController:
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
         get_user_forecast(self.JWT_TOKEN)
-        mock_weather.get_weather.assert_called_with(self.PREFERENCE.city, self.PREFERENCE.tempUnit)
+        mock_weather.get_weather.assert_called_with(self.PREFERENCE.city, self.PREFERENCE.tempUnit, self.PREFERENCE.state)
 
     def test_get_user_forecast__should_return_response_from_getting_external_temp(self, mock_jwt, mock_db, mock_weather):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS

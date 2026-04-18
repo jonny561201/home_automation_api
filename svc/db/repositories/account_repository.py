@@ -61,5 +61,5 @@ class AccountRepository(DatabaseBase):
     def __create_user_preference(self, new_user_id, user_id):
         stmt = select(UserPreference).filter_by(user_id=user_id)
         pref = self.session.execute(stmt).scalars().first()
-        new_pref = UserPreference(user_id=new_user_id, is_fahrenheit=pref.is_fahrenheit, is_imperial=pref.is_imperial, city=pref.city)
+        new_pref = UserPreference(user_id=new_user_id, is_fahrenheit=pref.is_fahrenheit, is_imperial=pref.is_imperial, city=pref.city, state=pref.state)
         self.session.add(new_pref)

@@ -15,6 +15,7 @@ class Preference:
     city: str
     tempUnit: str
     measureUnit: str
+    state: Optional[str] = None
     garageId: Optional[str] = None
     garageName: Optional[str] = None
 
