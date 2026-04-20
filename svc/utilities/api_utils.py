@@ -57,6 +57,15 @@ def get_all_garage_doors_status(api_key, base_url):
     return response.json()
 
 
+def cancel_garage_schedule(api_key, base_url, garage_id):
+    header = {'X-API-Key': api_key}
+    try:
+        response = requests.delete(f'{base_url}/garageDoor/{garage_id}/schedule', headers=header, timeout=5)
+    except Exception:
+        raise FailedDependency()
+    __validate_garage_response(response)
+
+
 def register_home_automation_device(ip, port, body=None):
     try:
         response = requests.post(f'http://{ip}:{port}/register', timeout=5, json=body)

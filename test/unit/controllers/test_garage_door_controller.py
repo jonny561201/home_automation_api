@@ -6,7 +6,7 @@ from mock import patch
 from werkzeug.exceptions import BadRequest
 
 from svc.constants.home_automation import Automation, AuthClaims
-from svc.controllers.garage_door_controller import get_all_status, get_status, toggle_door, update_state
+from svc.controllers.garage_door_controller import get_all_status, get_status, toggle_door, update_state, cancel_scheduled_close
 from svc.models.devices import DeviceInfo
 
 
@@ -130,4 +130,17 @@ class TestGarageController:
         actual = get_all_status(self.JWT_TOKEN)
 
         assert actual.coordinates.latitude == 1.0
+
+    def test_cancel_scheduled_close__should_validate_jwt(self, mock_jwt, mock_db, mock_util, mock_publish):
+        mock_db.return_value.__enter__.return_value.get_device_info.return_value = self.DEVICE_INFO
+        cancel_scheduled_close(self.JWT_TOKEN, self.GARAGE_ID)
+
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.JWT_TOKEN)
+
+    def test_cancel_scheduled_close__should_call_cancel_garage_schedule(self, mock_jwt, mock_db, mock_util, mock_publish):
+        mock_db.return_value.__enter__.return_value.get_device_info.return_value = self.DEVICE_INFO
+        cancel_scheduled_close(self.JWT_TOKEN, self.GARAGE_ID)
+
+        expected_url = f'http://{self.IP_ADDRESS}:{self.IP_PORT}'
+        mock_util.cancel_garage_schedule.assert_called_with(self.API_KEY, expected_url, self.GARAGE_ID)
 

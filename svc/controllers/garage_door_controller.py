@@ -1,7 +1,7 @@
 from werkzeug.exceptions import BadRequest, FailedDependency
 
+from svc.constants.home_automation import Automation
 from svc.db.repositories.device_repository import DeviceRepository
-from svc.constants.home_automation import Automation, AuthClaims
 from svc.models.garage import GarageState, GarageStatus, GarageOverview
 from svc.utilities import api_utils
 from svc.utilities.auth_utils import AuthClient
@@ -45,6 +45,12 @@ def toggle_door(bearer_token, garage_id):
     message = {'id': garage_id, 'action': 'toggle'}
 
     publish(Automation.GARAGE.QUEUE, message)
+
+
+def cancel_scheduled_close(bearer_token, garage_id):
+    info = _get_garage_device_info(bearer_token)
+    url = f'http://{info.ip_address}:{info.ip_port}'
+    api_utils.cancel_garage_schedule(info.api_key, url, garage_id)
 
 
 def _get_garage_device_info(bearer_token):
