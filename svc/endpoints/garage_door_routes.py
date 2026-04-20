@@ -36,6 +36,13 @@ def toggle_garage_door(garage_id):
     return Response(status=200, mimetype=Mime.JSON)
 
 
+@GARAGE_BLUEPRINT.route('/<garage_id>/schedule', methods=['POST'])
+def schedule_garage_close(garage_id):
+    bearer_token = request.headers.get('Authorization')
+    garage_door_controller.schedule_close(bearer_token, garage_id)
+    return Response(status=200, mimetype=Mime.JSON)
+
+
 @GARAGE_BLUEPRINT.route('/<garage_id>/schedule', methods=['DELETE'])
 def cancel_garage_schedule(garage_id):
     bearer_token = request.headers.get('Authorization')

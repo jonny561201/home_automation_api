@@ -47,6 +47,12 @@ def toggle_door(bearer_token, garage_id):
     publish(Automation.GARAGE.QUEUE, message)
 
 
+def schedule_close(bearer_token, garage_id):
+    AuthClient.get_instance().verify_jwt(bearer_token)
+    message = {'id': garage_id, 'action': 'schedule'}
+    publish(Automation.GARAGE.QUEUE, message)
+
+
 def cancel_scheduled_close(bearer_token, garage_id):
     info = _get_garage_device_info(bearer_token)
     url = f'http://{info.ip_address}:{info.ip_port}'
