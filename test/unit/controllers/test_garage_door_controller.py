@@ -7,6 +7,7 @@ from werkzeug.exceptions import BadRequest
 
 from svc.constants.home_automation import Automation, AuthClaims
 from svc.controllers.garage_door_controller import get_all_status, get_status, toggle_door, update_state, schedule_close, cancel_scheduled_close
+from svc.models.app import Preference
 from svc.models.devices import DeviceInfo
 
 
@@ -131,16 +132,6 @@ class TestGarageController:
 
         assert actual.coordinates.latitude == 1.0
 
-    def test_schedule_close__should_validate_jwt(self, mock_jwt, mock_db, mock_util, mock_publish):
-        schedule_close(self.JWT_TOKEN, self.GARAGE_ID)
-
-        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.JWT_TOKEN)
-
-    def test_schedule_close__should_publish_schedule_message(self, mock_jwt, mock_db, mock_util, mock_publish):
-        schedule_close(self.JWT_TOKEN, self.GARAGE_ID)
-
-        mock_publish.assert_called_with(Automation.GARAGE.QUEUE, {'id': self.GARAGE_ID, 'action': 'schedule'})
-
     def test_cancel_scheduled_close__should_validate_jwt(self, mock_jwt, mock_db, mock_util, mock_publish):
         mock_db.return_value.__enter__.return_value.get_device_info.return_value = self.DEVICE_INFO
         cancel_scheduled_close(self.JWT_TOKEN, self.GARAGE_ID)
@@ -153,4 +144,38 @@ class TestGarageController:
 
         expected_url = f'http://{self.IP_ADDRESS}:{self.IP_PORT}'
         mock_util.cancel_garage_schedule.assert_called_with(self.API_KEY, expected_url, self.GARAGE_ID)
+
+
+@patch('svc.controllers.garage_door_controller.publish')
+@patch('svc.controllers.garage_door_controller.UserRepository')
+@patch('svc.controllers.garage_door_controller.AuthClient')
+class TestScheduleClose:
+    GARAGE_ID = '3'
+    USER_ID = 'fakeUserId'
+    CLAIMS = {AuthClaims.USER_ID: USER_ID}
+    JWT_TOKEN = jwt.encode({}, 'fake_jwt_secret', algorithm='HS256')
+
+    def setup_method(self):
+        self.PREFERENCE = Preference(city='Austin', tempUnit='fahrenheit', measureUnit='imperial', garageAlertTime=5)
+
+    def test_schedule_close__should_validate_jwt(self, mock_jwt, mock_user, mock_publish):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
+        mock_user.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
+        schedule_close(self.JWT_TOKEN, self.GARAGE_ID)
+
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.JWT_TOKEN)
+
+    def test_schedule_close__should_get_preferences_by_user(self, mock_jwt, mock_user, mock_publish):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
+        mock_user.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
+        schedule_close(self.JWT_TOKEN, self.GARAGE_ID)
+
+        mock_user.return_value.__enter__.return_value.get_preferences_by_user.assert_called_with(self.USER_ID)
+
+    def test_schedule_close__should_publish_with_delay_in_seconds(self, mock_jwt, mock_user, mock_publish):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
+        mock_user.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
+        schedule_close(self.JWT_TOKEN, self.GARAGE_ID)
+
+        mock_publish.assert_called_with(Automation.GARAGE.QUEUE, {'id': self.GARAGE_ID, 'action': 'schedule', 'delay_seconds': 300})
 

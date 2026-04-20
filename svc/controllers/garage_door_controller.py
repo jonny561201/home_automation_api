@@ -1,7 +1,8 @@
 from werkzeug.exceptions import BadRequest, FailedDependency
 
-from svc.constants.home_automation import Automation
+from svc.constants.home_automation import Automation, AuthClaims
 from svc.db.repositories.device_repository import DeviceRepository
+from svc.db.repositories.user_repository import UserRepository
 from svc.models.garage import GarageState, GarageStatus, GarageOverview
 from svc.utilities import api_utils
 from svc.utilities.auth_utils import AuthClient
@@ -48,8 +49,12 @@ def toggle_door(bearer_token, garage_id):
 
 
 def schedule_close(bearer_token, garage_id):
-    AuthClient.get_instance().verify_jwt(bearer_token)
-    message = {'id': garage_id, 'action': 'schedule'}
+    claims = AuthClient.get_instance().verify_jwt(bearer_token)
+    user_id = claims[AuthClaims.USER_ID]
+    with UserRepository() as database:
+        preferences = database.get_preferences_by_user(user_id)
+    delay_seconds = preferences.garageAlertTime * 60
+    message = {'id': garage_id, 'action': 'schedule', 'delay_seconds': delay_seconds}
     publish(Automation.GARAGE.QUEUE, message)
 
 
