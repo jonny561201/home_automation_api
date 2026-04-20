@@ -15,6 +15,7 @@ class Preference:
     city: str
     tempUnit: str
     measureUnit: str
+    garageAlertTime: int = 0
     state: Optional[str] = None
     garageId: Optional[str] = None
     garageName: Optional[str] = None

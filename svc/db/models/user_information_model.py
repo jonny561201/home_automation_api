@@ -100,6 +100,7 @@ class UserPreference(Base):
     is_imperial = Column(Boolean, nullable=False)
     city = Column(String, nullable=True)
     state = Column(String, nullable=True)
+    garage_alert_time = Column(Integer, nullable=False, server_default='0')
     garage_node_id = Column(UUID, ForeignKey(DeviceNodes.id), nullable=True)
 
     user = relationship('UserInformation', foreign_keys='UserPreference.user_id')

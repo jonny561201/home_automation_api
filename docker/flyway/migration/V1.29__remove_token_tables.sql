@@ -31,3 +31,5 @@ ALTER TABLE user_preferences ALTER COLUMN is_fahrenheit SET DEFAULT TRUE;
 ALTER TABLE user_preferences ALTER COLUMN is_imperial SET DEFAULT TRUE;
 
 ALTER TABLE user_preferences ADD COLUMN state VARCHAR(255);
+
+ALTER TABLE user_preferences ADD COLUMN garage_alert_time INTEGER NOT NULL DEFAULT 0;
