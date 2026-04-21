@@ -1,4 +1,5 @@
 from svc.constants.home_automation import AuthClaims
+from svc.db.repositories.device_repository import DeviceRepository
 from svc.db.repositories.tasks_repository import TasksRepository
 from svc.db.repositories.user_repository import UserRepository
 from svc.utilities.auth_utils import AuthClient
@@ -22,8 +23,9 @@ def get_user_preferences(bearer_token):
 def save_user_preferences(bearer_token, request_data):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]
+    node_id = _resolve_garage_node_id(request_data.get('garageId'))
     with UserRepository() as database:
-        database.insert_preferences_by_user(user_id, request_data)
+        database.insert_preferences_by_user(user_id, request_data, node_id)
 
 
 def get_user_tasks(bearer_token, task_type):
@@ -52,3 +54,11 @@ def update_user_task(bearer_token, task):
     user_id = claims[AuthClaims.USER_ID]
     with TasksRepository() as database:
         return database.update_schedule_task_by_user_id(user_id, task)
+
+
+def _resolve_garage_node_id(garage_id):
+    if garage_id == None:
+        return None
+    with DeviceRepository() as database:
+        device = database.get_device_info('garage_door')
+        return database.get_node_id_by_device(device.id, garage_id)

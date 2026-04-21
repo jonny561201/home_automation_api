@@ -52,7 +52,7 @@ class TestAppControllerAccount:
         bearer_token = 'fakeBearerToken'
         save_user_preferences(bearer_token, {})
 
-        mock_db.return_value.__enter__.return_value.insert_preferences_by_user.assert_called_with(self.USER_ID, ANY)
+        mock_db.return_value.__enter__.return_value.insert_preferences_by_user.assert_called_with(self.USER_ID, ANY, None)
 
     def test_save_user_preferences__should_call_insert_preferences_by_user_with_user_info(self, mock_jwt, mock_db):
         bearer_token = 'fakeBearerToken'
@@ -60,7 +60,38 @@ class TestAppControllerAccount:
 
         save_user_preferences(bearer_token, user_preferences)
 
-        mock_db.return_value.__enter__.return_value.insert_preferences_by_user.assert_called_with(ANY, user_preferences)
+        mock_db.return_value.__enter__.return_value.insert_preferences_by_user.assert_called_with(ANY, user_preferences, None)
+
+
+@patch('svc.controllers.app_controller.DeviceRepository')
+@patch('svc.controllers.app_controller.UserRepository')
+@patch('svc.controllers.app_controller.AuthClient')
+class TestSavePreferencesWithGarage:
+    USER_ID = str(uuid.uuid4())
+    CLAIMS = {AuthClaims.USER_ID: USER_ID}
+    BEARER_TOKEN = jwt.encode(CLAIMS, 'fake_jwt_secret', algorithm='HS256')
+    NODE_ID = str(uuid.uuid4())
+    DEVICE_ID = 'fake-device-id'
+
+    def test_save_user_preferences__should_resolve_garage_node_id_from_garage_id(self, mock_jwt, mock_user, mock_device):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
+        mock_device.return_value.__enter__.return_value.get_device_info.return_value.id = self.DEVICE_ID
+        mock_device.return_value.__enter__.return_value.get_node_id_by_device.return_value = self.NODE_ID
+        request_data = {'city': 'Austin', 'garageId': '1'}
+
+        save_user_preferences(self.BEARER_TOKEN, request_data)
+
+        mock_device.return_value.__enter__.return_value.get_node_id_by_device.assert_called_with(self.DEVICE_ID, '1')
+        mock_user.return_value.__enter__.return_value.insert_preferences_by_user.assert_called_with(self.USER_ID, request_data, self.NODE_ID)
+
+    def test_save_user_preferences__should_pass_none_node_id_when_no_garage_id(self, mock_jwt, mock_user, mock_device):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
+        request_data = {'city': 'Austin'}
+
+        save_user_preferences(self.BEARER_TOKEN, request_data)
+
+        mock_device.return_value.__enter__.return_value.get_device_info.assert_not_called()
+        mock_user.return_value.__enter__.return_value.insert_preferences_by_user.assert_called_with(self.USER_ID, request_data, None)
 
 
 @patch('svc.controllers.app_controller.send_auth0_password_reset')

@@ -11,6 +11,7 @@ class Device:
 
 @dataclass
 class DeviceInfo:
+    id: str
     ip_address: str
     ip_port: int
     api_key: str

@@ -51,7 +51,7 @@ def register_discovered_device_to_user(bearer_token, device_id, request_data):
         with DeviceRepository() as database:
             preferred_node_id = database.get_node_id_by_device(device_id, preferred['nodeDevice'])
         with UserRepository() as database:
-            database.insert_preferences_by_user(user_id, {'garageNodeId': preferred_node_id})
+            database.insert_preferences_by_user(user_id, {}, preferred_node_id)
     return Device(deviceId=registered_id)
 
 

@@ -54,7 +54,7 @@ class DeviceRepository(DatabaseBase):
         device = self.session.execute(stmt).scalars().first()
         self._validate_property(device)
         node_names = {str(n.node_device): n.node_name for n in device.nodes}
-        return DeviceInfo(ip_address=device.ip_address, ip_port=device.ip_port, api_key=device.api_key, node_names=node_names)
+        return DeviceInfo(id=str(device.id), ip_address=device.ip_address, ip_port=device.ip_port, api_key=device.api_key, node_names=node_names)
 
     def register_device_to_user(self, device_id, user_id, nodes):
         self._validate_property(user_id)
