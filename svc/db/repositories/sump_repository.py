@@ -1,4 +1,6 @@
-from sqlalchemy import select
+from datetime import date, timedelta
+
+from sqlalchemy import select, func
 from werkzeug.exceptions import NotFound
 
 from svc.db.models.user_information_model import ChildAccounts, DailySumpPumpLevel, AverageSumpPumpLevel, Devices, DeviceType
@@ -32,6 +34,20 @@ class SumpRepository(DatabaseBase):
         self._validate_property(device_id)
         stmt = select(AverageSumpPumpLevel).where(AverageSumpPumpLevel.device_id == device_id).order_by(AverageSumpPumpLevel.id.desc())
         return self.session.execute(stmt).scalars().first()
+
+    def get_daily_readings_by_device(self, device_id):
+        self._validate_property(device_id)
+        today = date.today()
+        stmt = (select(DailySumpPumpLevel).where(DailySumpPumpLevel.device_id == device_id, func.date(DailySumpPumpLevel.create_date) == today)
+                .order_by(DailySumpPumpLevel.create_date.asc()))
+        return self.session.execute(stmt).scalars().all()
+
+    def get_average_readings_by_device(self, device_id, days):
+        self._validate_property(device_id)
+        start_date = date.today() - timedelta(days=days)
+        stmt = (select(AverageSumpPumpLevel).where(AverageSumpPumpLevel.device_id == device_id, AverageSumpPumpLevel.create_day >= start_date)
+                .order_by(AverageSumpPumpLevel.create_day.asc()))
+        return self.session.execute(stmt).scalars().all()
 
     def insert_current_sump_level(self, device_id, depth_info):
         self._validate_property(device_id)

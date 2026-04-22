@@ -4,7 +4,7 @@ from svc.db.repositories.device_repository import DeviceRepository
 from svc.db.repositories.user_repository import UserRepository
 from svc.constants.home_automation import AuthClaims
 from svc.db.repositories.sump_repository import SumpRepository
-from svc.models.sump import SumpLevel
+from svc.models.sump import SumpLevel, SumpReading, SumpReadings, SumpDailyReading, SumpDailyReadings
 from svc.utilities.conversion_utils import convert_to_imperial
 from svc.utilities.auth_utils import AuthClient
 
@@ -31,6 +31,24 @@ def get_sump_level(bearer_token: str):
             warningLevel=warning_level,
             latest_date=latest_date
         )
+
+
+def get_depth_history(bearer_token):
+    claims = AuthClient.get_instance().verify_jwt(bearer_token)
+    user_id = claims[AuthClaims.USER_ID]
+    with SumpRepository() as database:
+        device_id = database.get_sump_device_id_by_user(user_id)
+        readings = database.get_daily_readings_by_device(device_id)
+        return SumpReadings(readings=[SumpReading(depth=float(r.distance), dateTime=r.create_date) for r in readings])
+
+
+def get_daily_averages(bearer_token, days):
+    claims = AuthClient.get_instance().verify_jwt(bearer_token)
+    user_id = claims[AuthClaims.USER_ID]
+    with SumpRepository() as database:
+        device_id = database.get_sump_device_id_by_user(user_id)
+        readings = database.get_average_readings_by_device(device_id, days)
+        return SumpDailyReadings(readings=[SumpDailyReading(depth=float(r.distance), date=r.create_day) for r in readings])
 
 
 def save_current_level(api_key: str, request_data: dict):
