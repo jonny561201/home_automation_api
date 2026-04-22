@@ -8,7 +8,7 @@ from flask import Flask
 from mock import patch
 
 from svc.models.garage import GarageDoor, GarageOverview, GarageStatus, Coordinates, GarageState
-from svc.endpoints.garage_door_routes import get_all_garage_door_status, get_garage_door_status, update_garage_door_state, toggle_garage_door
+from svc.endpoints.garage_door_routes import get_all_garage_door_status, update_garage_door_state, toggle_garage_door
 
 
 @patch('svc.endpoints.garage_door_routes.garage_door_controller')
@@ -26,7 +26,7 @@ class TestAppRoutes:
         self.STATE = GarageState(isGarageOpen=False)
         self.COORDINATES = Coordinates(latitude=19.00, longitude=-99.00)
         self.STATUS = GarageStatus(isGarageOpen=True, duration=datetime.now(), coordinates=self.COORDINATES, doorName='Left Garage')
-        self.DOORS = [GarageDoor(garageId='1', isGarageOpen=True, duration=datetime.now(), doorName='Left Garage')]
+        self.DOORS = [GarageDoor(garageId='1', isGarageOpen=True, duration=datetime.now(), doorName='Left Garage', nodeId=str(uuid.uuid4()))]
         self.OVERVIEW = GarageOverview(coordinates=self.COORDINATES, doors=self.DOORS)
 
     def teardown_method(self):
@@ -56,32 +56,6 @@ class TestAppRoutes:
         actual = get_all_garage_door_status()
 
         assert actual.data.decode('UTF-8') == self.OVERVIEW.to_json()
-
-    def test_garage_door_status__should_call_get_status(self, mock_controller):
-        mock_controller.get_status.return_value = self.STATUS
-        get_garage_door_status(self.GARAGE_ID)
-
-        mock_controller.get_status.assert_called_with(self.JWT_TOKEN, self.GARAGE_ID)
-
-    def test_garage_door_status__should_return_success_status_code(self, mock_controller):
-        mock_controller.get_status.return_value = self.STATUS
-        actual = get_garage_door_status(self.GARAGE_ID)
-
-        assert actual.status_code == 200
-
-    def test_garage_door_status__should_return_success_header(self, mock_controller):
-        mock_controller.get_status.return_value = self.STATUS
-
-        actual = get_garage_door_status(self.GARAGE_ID)
-
-        assert actual.content_type == 'application/json'
-
-    def test_garage_door_status__should_return_response_body(self, mock_controller):
-        mock_controller.get_status.return_value = self.STATUS
-
-        actual = get_garage_door_status(self.GARAGE_ID)
-
-        assert actual.data.decode('UTF-8') == self.STATUS.to_json()
 
     def test_update_garage_door_state__should_call_update_state(self, mock_controller):
         expected_data = {"garageDoorOpen": "True"}

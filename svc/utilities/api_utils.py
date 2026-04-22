@@ -37,16 +37,6 @@ def get_forecast_by_coords(lat, lon, unit):
     return response.json()
 
 
-def get_garage_door_status(api_key, base_url, garage_id):
-    header = {'X-API-Key': api_key}
-    try:
-        response = requests.get(f'{base_url}/garageDoor/{garage_id}/status', headers=header, timeout=5)
-    except Exception:
-        raise FailedDependency()
-    __validate_garage_response(response)
-    return response.json()
-
-
 def get_all_garage_doors_status(api_key, base_url):
     header = {'X-API-Key': api_key}
     try:

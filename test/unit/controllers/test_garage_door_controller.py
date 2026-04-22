@@ -1,4 +1,5 @@
 import os
+import uuid
 
 import jwt
 import pytest
@@ -6,9 +7,9 @@ from mock import patch
 from werkzeug.exceptions import BadRequest
 
 from svc.constants.home_automation import Automation, AuthClaims
-from svc.controllers.garage_door_controller import get_all_status, get_status, toggle_door, update_state, schedule_close, cancel_scheduled_close
+from svc.controllers.garage_door_controller import get_all_status, toggle_door, update_state, schedule_close, cancel_scheduled_close
 from svc.models.app import Preference
-from svc.models.devices import DeviceInfo
+from svc.models.devices import DeviceInfo, NodeInfo
 
 
 @patch('svc.controllers.garage_door_controller.publish')
@@ -30,44 +31,12 @@ class TestGarageController:
 
     def setup_method(self):
         os.environ.update({'JWT_SECRET': self.JWT_SECRET})
-        self.DEVICE_INFO = DeviceInfo(id='fake-device-id', ip_address=self.IP_ADDRESS, ip_port=self.IP_PORT, api_key=self.API_KEY, node_names={self.GARAGE_ID: 'Left Garage'})
+        self.DEVICE_INFO = DeviceInfo(id='fake-device-id', ip_address=self.IP_ADDRESS, ip_port=self.IP_PORT, api_key=self.API_KEY, nodes={self.GARAGE_ID: NodeInfo(name='Left Garage', nodeId=str(uuid.uuid4()))})
         self.STATUS_RESPONSE = {'isGarageOpen': True, 'duration': '2025-01-01T00:00:00', 'coordinates': {'latitude': 1.0, 'longitude': 2.0}}
         self.OVERVIEW_RESPONSE = {'coordinates': {'latitude': 1.0, 'longitude': 2.0}, 'doors': []}
 
     def teardown_method(self):
         os.environ.pop('JWT_SECRET')
-
-    def test_get_status__should_call_is_jwt_valid(self, mock_jwt, mock_db, mock_util, mock_publish):
-        mock_db.return_value.__enter__.return_value.get_device_info.return_value = self.DEVICE_INFO
-        mock_util.get_garage_door_status.return_value = self.STATUS_RESPONSE
-        get_status(self.JWT_TOKEN, self.GARAGE_ID)
-
-        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.JWT_TOKEN)
-
-    def test_get_status__should_get_device_address_info(self, mock_jwt, mock_db, mock_util, mock_publish):
-        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        mock_db.return_value.__enter__.return_value.get_device_info.return_value = self.DEVICE_INFO
-        mock_util.get_garage_door_status.return_value = self.STATUS_RESPONSE
-        get_status(self.JWT_TOKEN, self.GARAGE_ID)
-
-        mock_db.return_value.__enter__.return_value.get_device_info.assert_called_with('garage_door')
-
-    def test_get_status__should_call_get_garage_door_status(self, mock_jwt, mock_db, mock_util, mock_publish):
-        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        mock_db.return_value.__enter__.return_value.get_device_info.return_value = self.DEVICE_INFO
-        mock_util.get_garage_door_status.return_value = self.STATUS_RESPONSE
-        get_status(self.JWT_TOKEN, self.GARAGE_ID)
-
-        expected_url = f'http://{self.IP_ADDRESS}:{self.IP_PORT}'
-        mock_util.get_garage_door_status.assert_called_with(self.API_KEY, expected_url, self.GARAGE_ID)
-
-    def test_get_status__should_return_garage_status(self, mock_jwt, mock_db, mock_util, mock_publish):
-        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        mock_db.return_value.__enter__.return_value.get_device_info.return_value = self.DEVICE_INFO
-        mock_util.get_garage_door_status.return_value = dict(self.STATUS_RESPONSE)
-        actual = get_status(self.JWT_TOKEN, self.GARAGE_ID)
-
-        assert actual.doorName == 'Left Garage'
 
     def test_update_state__should_call_is_jwt_valid(self, mock_jwt, mock_db, mock_util, mock_publish):
         update_state(self.JWT_TOKEN, self.GARAGE_ID, self.REQUEST)

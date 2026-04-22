@@ -3,21 +3,10 @@ from werkzeug.exceptions import BadRequest, FailedDependency
 from svc.constants.home_automation import Automation, AuthClaims
 from svc.db.repositories.device_repository import DeviceRepository
 from svc.db.repositories.user_repository import UserRepository
-from svc.models.garage import GarageState, GarageStatus, GarageOverview
+from svc.models.garage import GarageState, GarageOverview
 from svc.utilities import api_utils
 from svc.utilities.auth_utils import AuthClient
 from svc.utilities.rabbitmq_client import publish
-
-
-def get_status(bearer_token, garage_id):
-    info = _get_garage_device_info(bearer_token)
-    url = f'http://{info.ip_address}:{info.ip_port}'
-    door_name = info.node_names.get(garage_id)
-    if not door_name:
-        raise BadRequest(description="garage door not registered")
-    status = api_utils.get_garage_door_status(info.api_key, url, garage_id)
-    status['doorName'] = door_name
-    return GarageStatus.from_dict(status)
 
 
 def get_all_status(bearer_token):
@@ -25,7 +14,7 @@ def get_all_status(bearer_token):
     url = f'http://{info.ip_address}:{info.ip_port}'
     status = api_utils.get_all_garage_doors_status(info.api_key, url)
 
-    user_doors = [_update_door(door, info) for door in status['doors'] if door['garageId'] in info.node_names]
+    user_doors = [_update_door(door, info) for door in status['doors'] if door['garageId'] in info.nodes]
     status['doors'] = user_doors
     return GarageOverview.from_dict(status)
 
@@ -74,5 +63,7 @@ def _get_garage_device_info(bearer_token):
 
 
 def _update_door(door, info):
-    door['doorName'] = info.node_names.get(door['garageId'])
+    node = info.nodes.get(door['garageId'])
+    door['doorName'] = node.name
+    door['nodeId'] = node.nodeId
     return door

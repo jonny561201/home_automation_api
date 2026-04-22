@@ -8,7 +8,7 @@ from sqlalchemy import orm
 from werkzeug.exceptions import Unauthorized, BadRequest, NotFound
 
 from svc.db.repositories.user_repository import UserRepository
-from svc.db.models.user_information_model import DeviceNodes, UserInformation, UserPreference
+from svc.db.models.user_information_model import UserInformation, UserPreference
 
 
 class TestCredentialRepository:
@@ -35,12 +35,10 @@ class TestCredentialRepository:
         with pytest.raises(Unauthorized):
             self.DATABASE.get_user_info('123abc')
 
-    def test_insert_preferences_by_user__should_raise_bad_request_when_preferences_empty(self):
+    def test_insert_preferences_by_user__should_not_throw_when_preferences_empty(self):
         preference_info = {}
         user_id = uuid.uuid4()
-        with pytest.raises(BadRequest):
-            self.DATABASE.insert_preferences_by_user(user_id, preference_info)
-            self.SESSION.execute.return_value.scalars.assert_not_called()
+        self.DATABASE.insert_preferences_by_user(user_id, preference_info)
 
     def test_insert_preferences_by_user__should_raise_bad_request_when_no_user_id(self):
         with pytest.raises(BadRequest):
@@ -162,31 +160,21 @@ class TestPreference:
 
     def test_get_preferences_by_user__should_return_garage_node_id(self):
         user = UserInformation(first_name=self.FIRST_NAME, last_name=self.LAST_NAME)
-        preference = TestPreference.__create_user_preference(user, 'Fake City', True, False)
-        self.SESSION.execute.return_value.scalars.return_value.first.return_value = preference
-        actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
-
-        assert actual.garageId is None
-
-    def test_get_preferences_by_user__should_return_garage_node_name(self):
-        user = UserInformation(first_name=self.FIRST_NAME, last_name=self.LAST_NAME)
         node_id = str(uuid.uuid4())
-        node = DeviceNodes(id=node_id, node_name='Left Garage')
         preference = TestPreference.__create_user_preference(user, 'Fake City')
         preference.garage_node_id = node_id
-        preference.garage_node = node
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = preference
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
-        assert actual.garageName == 'Left Garage'
+        assert actual.garageNodeId == node_id
 
-    def test_get_preferences_by_user__should_return_none_garage_node_name_when_no_node(self):
+    def test_get_preferences_by_user__should_return_none_garage_node_id_when_not_set(self):
         user = UserInformation(first_name=self.FIRST_NAME, last_name=self.LAST_NAME)
         preference = TestPreference.__create_user_preference(user, 'Fake City')
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = preference
         actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
 
-        assert actual.garageName is None
+        assert actual.garageNodeId is None
 
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):

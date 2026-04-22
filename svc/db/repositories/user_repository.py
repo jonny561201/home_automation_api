@@ -22,17 +22,15 @@ class UserRepository(DatabaseBase):
         stmt = select(UserPreference).filter_by(user_id=user_id)
         preference = self.session.execute(stmt).scalars().first()
         self._validate_property(preference)
-        garage_node = preference.garage_node
         return Preference(city=preference.city,
                           state=preference.state,
                           garageAlertTime=preference.garage_alert_time,
                           measureUnit='imperial' if preference.is_imperial else 'metric',
-                          garageId=str(preference.garage_node_id) if preference.garage_node_id else None,
-                          garageName=garage_node.node_name if garage_node != None else None,
+                          garageNodeId=str(preference.garage_node_id) if preference.garage_node_id else None,
                           tempUnit='fahrenheit' if preference.is_fahrenheit else 'celsius')
 
     def insert_preferences_by_user(self, user_id, preference_info, garage_node_id=None):
-        if len(preference_info) == 0 or user_id is None:
+        if user_id is None:
             raise BadRequest
         stmt = select(UserPreference).filter_by(user_id=user_id)
         record = self.session.execute(stmt).scalars().first()

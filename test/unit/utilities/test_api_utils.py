@@ -1,15 +1,14 @@
 import json
-from datetime import datetime
 
 import pytest
 from mock import patch, ANY
 from requests import Response, ReadTimeout, ConnectTimeout
-from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
+from werkzeug.exceptions import FailedDependency, Unauthorized
 
 from svc.config.settings_state import Settings
-from svc.utilities.api_utils import get_city_coordinates, set_light_groups, set_light_state, \
-    get_light_groups, get_garage_door_status, get_forecast_by_coords, exchange_auth0_code, \
-    create_auth0_user, assign_auth0_roles, send_auth0_password_reset, register_home_automation_device
+from svc.utilities.api_utils import (get_city_coordinates, set_light_groups, set_light_state, get_light_groups,
+                                     get_forecast_by_coords, exchange_auth0_code, create_auth0_user, assign_auth0_roles,
+                                     send_auth0_password_reset, register_home_automation_device)
 
 
 @patch('svc.utilities.api_utils.requests')
@@ -24,7 +23,7 @@ class TestWeatherApiRequests:
         self.RESPONSE = Response()
         self.RESPONSE.status_code = 200
         self.RESPONSE_CONTENT = {'weather': [{}]}
-        self.WEATHER_PARAMS = {'name': self.CITY, 'count': 1}
+        self.WEATHER_PARAMS = {'name': self.CITY, 'count': 1, 'country': 'US', 'admin1': None}
         self.FORECAST_PARAMS = {'latitude': self.COORDS['lat'], 'longitude': self.COORDS['lon'], 'current_weather': True, 'temperature_unit': self.UNIT_PREFERENCE, 'daily': 'temperature_2m_max,temperature_2m_min,weathercode', 'forecast_days': 1, 'timezone': 'auto'}
 
     def test_get_city_coordinates__should_call_requests_get(self, mock_requests):
@@ -85,62 +84,6 @@ class TestWeatherApiRequests:
         mock_requests.get.return_value = self.RESPONSE
         with pytest.raises(Unauthorized):
             get_forecast_by_coords(self.COORDS['lat'], self.COORDS['lon'], self.UNIT_PREFERENCE)
-
-
-@patch('svc.utilities.api_utils.requests')
-class TestGarageApiRequests:
-    GARAGE_ID = 5
-    BASE_URL = 'http://localhost:80'
-    API_KEY = 'fakeApiKey'
-    STATE = {'isGarageOpen': False}
-    STATUS = {'isGarageOpen': True, 'statusDuration': datetime.now().isoformat(), 'coordinates': {'latitude': 12.34, 'longitude': -56.78}}
-
-    def test_get_garage_door_status__should_call_requests_with_url(self, mock_requests):
-        response = Response()
-        response.status_code = 200
-        mock_requests.get.return_value = response
-        response._content = json.dumps(self.STATUS).encode('UTF-8')
-        get_garage_door_status(self.API_KEY, self.BASE_URL, self.GARAGE_ID)
-
-        expected_url = f'{self.BASE_URL}/garageDoor/{str(self.GARAGE_ID)}/status'
-        mock_requests.get.assert_called_with(expected_url, headers=ANY, timeout=5)
-
-    def test_get_garage_door_status__should_call_requests_with_headers(self, mock_requests):
-        response = Response()
-        response.status_code = 200
-        mock_requests.get.return_value = response
-        response._content = json.dumps(self.STATUS).encode('UTF-8')
-        expected_headers = {'X-API-Key': self.API_KEY}
-        get_garage_door_status(self.API_KEY, self.BASE_URL, self.GARAGE_ID)
-
-        mock_requests.get.assert_called_with(ANY, headers=expected_headers, timeout=5)
-
-    def test_get_garage_door_status__should_return_response(self, mock_requests):
-        response = Response()
-        response.status_code = 200
-        response._content = json.dumps(self.STATUS).encode('UTF-8')
-        mock_requests.get.return_value = response
-        actual = get_garage_door_status(self.API_KEY, self.BASE_URL, self.GARAGE_ID)
-
-        assert actual == self.STATUS
-
-    def test_get_garage_door_status__should_raise_failed_dependency_when_request_raises_connection_error(self, mock_requests):
-        mock_requests.get.side_effect = ConnectionError()
-        with pytest.raises(FailedDependency):
-            get_garage_door_status(self.API_KEY, self.BASE_URL, self.GARAGE_ID)
-
-    def test_get_garage_door_status__should_raise_failed_dependency_when_request_raises_connection_timeout_error(self, mock_requests):
-        mock_requests.get.side_effect = ConnectTimeout()
-        with pytest.raises(FailedDependency):
-            get_garage_door_status(self.API_KEY, self.BASE_URL, self.GARAGE_ID)
-
-    def test_get_garage_door_status__should_raise_bad_request_when_failure_status_code(self, mock_requests):
-        response = Response()
-        response.status_code = 400
-        mock_requests.get.return_value = response
-        with pytest.raises(BadRequest) as e:
-            get_garage_door_status(self.API_KEY, self.BASE_URL, self.GARAGE_ID)
-        assert e.value.description == 'Garage node returned a failure'
 
 
 @patch('svc.utilities.api_utils.requests')

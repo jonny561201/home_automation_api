@@ -1,16 +1,15 @@
 import json
 import uuid
-from datetime import datetime
 
 import jwt
 from mock import patch
 from requests import Response
 from sqlalchemy import delete, select
 
-from test.integration.integration_helpers import mock_jwks_token
 from svc.db.models.user_information_model import UserInformation, Devices, DeviceType, DeviceNodes
 from svc.db.repositories.database_base import DatabaseBase
 from svc.manager import create_app
+from test.integration.integration_helpers import mock_jwks_token
 
 
 @patch('svc.utilities.api_utils.requests')
@@ -41,20 +40,6 @@ class TestGarageDoorRoutesIntegration:
             database.session.execute(delete(DeviceNodes))
             database.session.execute(delete(Devices).where(Devices.user_id == self.USER_ID))
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
-
-    def test_get_garage_door_status__should_return_unauthorized_with_no_header(self, mock_request):
-        actual = self.TEST_CLIENT.get(f'garageDoor/{self.GARAGE_ID}/status')
-
-        assert actual.status_code == 401
-
-    def test_get_garage_door_status__should_return_success_with_valid_jwt(self, mock_request):
-        response = Response()
-        response._content = json.dumps({'isGarageOpen': False, 'duration': datetime.now().isoformat(), 'coordinates': {'latitude': 1.12, 'longitude': -12.93}}).encode()
-        response.status_code = 200
-        mock_request.get.return_value = response
-        actual = self.TEST_CLIENT.get(f'garageDoor/{self.GARAGE_ID}/status', headers=self.HEADERS)
-
-        assert actual.status_code == 200
 
     def test_update_garage_door_state__should_return_unauthorized_without_jwt(self, mock_request):
         headers = {'Content-Type': 'application/json'}

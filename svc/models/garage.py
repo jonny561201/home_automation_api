@@ -37,6 +37,7 @@ class GarageDoor:
     isGarageOpen: bool
     duration: datetime
     doorName: str
+    nodeId: str
 
 
 @dataclass_json

@@ -9,13 +9,20 @@ from dataclasses_json import dataclass_json
 class Device:
     deviceId: str  #GUID
 
+
+@dataclass
+class NodeInfo:
+    nodeId: str
+    name: str
+
+
 @dataclass
 class DeviceInfo:
     id: str
     ip_address: str
     ip_port: int
     api_key: str
-    node_names: Dict[str, str] = field(default_factory=dict)
+    nodes: Dict[str, NodeInfo] = field(default_factory=dict)
 
 
 @dataclass_json

@@ -2,7 +2,7 @@ import uuid
 
 from sqlalchemy import select
 
-from svc.models.devices import DeviceInfo
+from svc.models.devices import DeviceInfo, NodeInfo
 from svc.db.models.user_information_model import ChildAccounts, DeviceNodes, DeviceType, UserInformation, Devices
 from svc.db.repositories.database_base import DatabaseBase
 
@@ -53,8 +53,8 @@ class DeviceRepository(DatabaseBase):
         stmt = select(Devices).where(Devices.device_type.has(DeviceType.type == device_type))
         device = self.session.execute(stmt).scalars().first()
         self._validate_property(device)
-        node_names = {str(n.node_device): n.node_name for n in device.nodes}
-        return DeviceInfo(id=str(device.id), ip_address=device.ip_address, ip_port=device.ip_port, api_key=device.api_key, node_names=node_names)
+        nodes = {str(n.node_device): NodeInfo(name=n.node_name, nodeId=n.id) for n in device.nodes}
+        return DeviceInfo(id=str(device.id), ip_address=device.ip_address, ip_port=device.ip_port, api_key=device.api_key, nodes=nodes)
 
     def register_device_to_user(self, device_id, user_id, nodes):
         self._validate_property(user_id)
