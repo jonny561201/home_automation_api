@@ -3,10 +3,11 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 import pytest
-from mock import patch, mock
+from mock import mock
 from sqlalchemy import orm
 from werkzeug.exceptions import NotFound
 
+from svc.models.devices import NodeInfo
 from svc.db.models.user_information_model import Devices, DeviceType
 from svc.db.repositories.device_repository import DeviceRepository
 
@@ -90,7 +91,7 @@ class TestDeviceRepository:
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = device
         actual = self.DATABASE.get_device_info(self.USER_ID)
 
-        assert actual.node_names == {'1': 'Left Garage'}
+        assert actual.nodes == {'1': NodeInfo(name='Left Garage', nodeId=node.id)}
 
     def test_get_registered_devices__should_raise_not_found_when_user_id_none(self):
         with pytest.raises(NotFound):
