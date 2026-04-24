@@ -14,6 +14,7 @@ class LightDetail:
 @dataclass_json
 @dataclass
 class LightScene:
+    id: str
     name: str
     lights: list[LightDetail]
 

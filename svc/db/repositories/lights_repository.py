@@ -13,7 +13,8 @@ class LightsRepository(DatabaseBase):
         scenes = self.session.execute(stmt).unique().scalars().all()
         if scenes is None:
             return LightScenes(scenes=[])
-        return LightScenes(scenes=[LightScene(name=scene.name, lights=self.__create_light_scenes(scene.details)) for scene in scenes])
+        light_scenes = [LightScene(id=scene.id, name=scene.name, lights=self.__create_light_scenes(scene.details)) for scene in scenes]
+        return LightScenes(scenes=light_scenes)
 
     def create_scene(self, user_id, request):
         self._validate_property(user_id)
