@@ -10,8 +10,8 @@ SCENE_BLUEPRINT = Blueprint('scene_routes', __name__, url_prefix='/scenes')
 @SCENE_BLUEPRINT.route('', methods=['POST'])
 def create_scene():
     bearer_token = request.headers.get('Authorization')
-    scene_controller.create_scene(bearer_token, request.get_json())
-    return Response(status=200, mimetype=Mime.JSON)
+    scene = scene_controller.create_scene(bearer_token, request.get_json())
+    return Response(scene.to_json(), status=200, mimetype=Mime.JSON)
 
 
 @SCENE_BLUEPRINT.route('/list', methods=['GET'])

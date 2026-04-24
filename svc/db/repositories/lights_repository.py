@@ -29,6 +29,8 @@ class LightsRepository(DatabaseBase):
                 light_brightness=detail.get('brightness')
             )
             self.session.add(new_detail)
+        self.session.flush()
+        return LightScene(id=str(new_scene.id), name=new_scene.name, lights=self.__create_light_scenes(new_scene.details))
 
     def delete_scene_by_user(self, user_id, scene_id):
         self._validate_property(user_id)
@@ -38,4 +40,4 @@ class LightsRepository(DatabaseBase):
 
     @staticmethod
     def __create_light_scenes(light_details):
-        return [LightDetail(groupId=detail.light_group, groupName=detail.light_group_name, brightness=detail.light_brightness) for detail in light_details]
+        return [LightDetail(groupId=detail.light_group, groupName=detail.light_group_name, brightness=detail.light_brightness, lightId=detail.light_id) for detail in light_details]

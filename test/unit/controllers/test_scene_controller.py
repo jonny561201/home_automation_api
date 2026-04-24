@@ -25,6 +25,14 @@ class TestSceneController:
         create_scene(self.BEARER_TOKEN, self.REQUEST)
         mock_db.return_value.__enter__.return_value.create_scene.assert_called_with(self.USER_ID, self.REQUEST)
 
+    def test_create_scene__should_return_response_from_database(self, mock_jwt, mock_db):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
+        response = {'test_record': 'doesnt matter'}
+        mock_db.return_value.__enter__.return_value.create_scene.return_value = response
+        actual = create_scene(self.BEARER_TOKEN, self.REQUEST)
+
+        assert actual == response
+
     def test_get_created_scenes__should_validate_jwt(self, mock_jwt, mock_db):
         get_created_scenes(self.BEARER_TOKEN)
         mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)

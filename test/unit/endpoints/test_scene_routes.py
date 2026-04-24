@@ -20,7 +20,7 @@ class TestSceneRoutes:
         self.app = Flask(__name__)
         self.ctx = self.app.test_request_context(headers={'Authorization': self.BEARER_TOKEN})
         self.ctx.push()
-        self.SCENE = LightScene(name='test', lights=[(LightDetail(groupId=1, groupName='test light', brightness=75))])
+        self.SCENE = LightScene(id=self.SCENE_ID, name='test', lights=[(LightDetail(groupId=1, groupName='test light', brightness=75))])
         self.SCENES = LightScenes(scenes=[self.SCENE])
 
     def teardown_method(self):
@@ -30,6 +30,7 @@ class TestSceneRoutes:
         self.ctx.pop()
         self.ctx = self.app.test_request_context(json=self.REQUEST_BODY, headers={'Authorization': self.BEARER_TOKEN})
         self.ctx.push()
+        mock_controller.create_scene.return_value = self.SCENE
         create_scene()
 
         mock_controller.create_scene.assert_called_with(self.BEARER_TOKEN, self.REQUEST_BODY)
@@ -38,6 +39,7 @@ class TestSceneRoutes:
         self.ctx.pop()
         self.ctx = self.app.test_request_context(json=self.REQUEST_BODY)
         self.ctx.push()
+        mock_controller.create_scene.return_value = self.SCENE
         create_scene()
 
         mock_controller.create_scene.assert_called_with(None, self.REQUEST_BODY)
@@ -46,6 +48,7 @@ class TestSceneRoutes:
         self.ctx.pop()
         self.ctx = self.app.test_request_context(json=self.REQUEST_BODY, headers={'Authorization': self.BEARER_TOKEN})
         self.ctx.push()
+        mock_controller.create_scene.return_value = self.SCENE
         actual = create_scene()
 
         assert actual.status_code == 200
@@ -54,9 +57,19 @@ class TestSceneRoutes:
         self.ctx.pop()
         self.ctx = self.app.test_request_context(json=self.REQUEST_BODY, headers={'Authorization': self.BEARER_TOKEN})
         self.ctx.push()
+        mock_controller.create_scene.return_value = self.SCENE
         actual = create_scene()
 
         assert actual.content_type == 'application/json'
+
+    def test_create_scene__should_return_response_from_controller(self, mock_controller):
+        self.ctx.pop()
+        self.ctx = self.app.test_request_context(json=self.REQUEST_BODY, headers={'Authorization': self.BEARER_TOKEN})
+        self.ctx.push()
+        mock_controller.create_scene.return_value = self.SCENE
+        actual = create_scene()
+
+        assert json.loads(actual.data) == self.SCENE.to_dict()
 
     def test_get_scenes__should_call_controller_with_bearer_token(self, mock_controller):
         mock_controller.get_created_scenes.return_value = self.SCENES

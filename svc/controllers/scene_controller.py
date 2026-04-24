@@ -14,7 +14,7 @@ def create_scene(bearer_token, request):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]
     with LightsRepository() as database:
-        database.create_scene(user_id, request)
+        return database.create_scene(user_id, request)
 
 
 def delete_created_scene(bearer_token, scene_id):

@@ -9,6 +9,7 @@ class LightDetail:
     groupName: str
     groupId: int
     brightness: int
+    lightId: str = None
 
 
 @dataclass_json
