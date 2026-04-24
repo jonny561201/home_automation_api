@@ -84,7 +84,8 @@ def set_light_groups(api_key, group_id, on, brightness):
     if brightness != 0 and brightness is not None:
         request['brightness'] = brightness
 
-    __validate_response(requests.post(f'{base_url}/group/state', json=request, headers={'LightApiKey': api_key}))
+    response = requests.post(f'{base_url}/group/state', json=request, headers={'LightApiKey': api_key})
+    __validate_response(response)
 
 
 def set_light_state(api_key, light_id, brightness):
