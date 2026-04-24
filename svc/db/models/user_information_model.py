@@ -88,6 +88,7 @@ class SceneDetails(Base):
     scene_id = Column(UUID, ForeignKey(Scenes.id))
     light_group = Column(String, nullable=True)
     light_group_name = Column(String, nullable=True)
+    light_id = Column(String, nullable=True)
     light_brightness = Column(SMALLINT, nullable=True)
 
 

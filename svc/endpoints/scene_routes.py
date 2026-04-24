@@ -7,6 +7,13 @@ from svc.controllers import scene_controller
 SCENE_BLUEPRINT = Blueprint('scene_routes', __name__, url_prefix='/scenes')
 
 
+@SCENE_BLUEPRINT.route('', methods=['POST'])
+def create_scene():
+    bearer_token = request.headers.get('Authorization')
+    scene_controller.create_scene(bearer_token, request.get_json())
+    return Response(status=200, mimetype=Mime.JSON)
+
+
 @SCENE_BLUEPRINT.route('/list', methods=['GET'])
 def get_scenes():
     bearer_token = request.headers.get('Authorization')

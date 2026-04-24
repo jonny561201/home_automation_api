@@ -15,6 +15,20 @@ class LightsRepository(DatabaseBase):
             return LightScenes(scenes=[])
         return LightScenes(scenes=[LightScene(name=scene.name, lights=self.__create_light_scenes(scene.details)) for scene in scenes])
 
+    def create_scene(self, user_id, request):
+        self._validate_property(user_id)
+        new_scene = Scenes(name=request['name'], user_id=user_id)
+        self.session.add(new_scene)
+        self.session.flush()
+        for detail in request['details']:
+            new_detail = SceneDetails(
+                scene_id=new_scene.id,
+                light_group=detail.get('groupId'),
+                light_id=detail.get('lightId'),
+                light_brightness=detail.get('brightness')
+            )
+            self.session.add(new_detail)
+
     def delete_scene_by_user(self, user_id, scene_id):
         self._validate_property(user_id)
         self._validate_property(scene_id)
