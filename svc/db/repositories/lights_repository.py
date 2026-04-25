@@ -21,7 +21,7 @@ class LightsRepository(DatabaseBase):
         new_scene = Scenes(name=request['name'], user_id=user_id)
         self.session.add(new_scene)
         self.session.flush()
-        for detail in request['details']:
+        for detail in request['lights']:
             new_detail = SceneDetails(
                 scene_id=new_scene.id,
                 light_group=detail.get('groupId'),
