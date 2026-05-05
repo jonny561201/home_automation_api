@@ -68,6 +68,28 @@ class TestDeviceRepository:
         with pytest.raises(NotFound):
             self.DATABASE.upsert_discovered_device(self.DEVICE_NAME, self.IP_ADDRESS, self.IP_PORT, 'api-key', 1, [], 'garage_door')
 
+    def test_get_existing_api_key__should_return_api_key_when_device_exists(self):
+        device_type = DeviceType(id='type-id', type='garage_door')
+        existing = Devices(api_key='persisted-key')
+        self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [device_type, existing]
+
+        actual = self.DATABASE.get_existing_api_key(self.DEVICE_NAME, 'garage_door')
+
+        assert actual == 'persisted-key'
+
+    def test_get_existing_api_key__should_return_none_when_device_not_found(self):
+        device_type = DeviceType(id='type-id', type='garage_door')
+        self.SESSION.execute.return_value.scalars.return_value.first.side_effect = [device_type, None]
+
+        actual = self.DATABASE.get_existing_api_key(self.DEVICE_NAME, 'garage_door')
+
+        assert actual is None
+
+    def test_get_existing_api_key__should_raise_not_found_when_device_type_missing(self):
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
+        with pytest.raises(NotFound):
+            self.DATABASE.get_existing_api_key(self.DEVICE_NAME, 'garage_door')
+
     def test_get_device_address_info__should_raise_not_found_error_when_no_device(self):
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
         with pytest.raises(NotFound):
