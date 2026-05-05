@@ -39,3 +39,7 @@ include = ["svc*"]
 [tool.pytest.ini_options]
 testpaths = ["test/unit", "test/integration"]
 addopts = "--strict-markers"
+
+[tool.pyright]
+reportUnusedImport = "warning"
+reportUnusedVariable = "warning"
