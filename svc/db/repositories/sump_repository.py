@@ -60,7 +60,7 @@ class SumpRepository(DatabaseBase):
     def insert_average_sump_level(self, device_id, depth_info):
         self._validate_property(device_id)
         try:
-            average_depth = AverageSumpPumpLevel(distance=depth_info['depth'], device_id=device_id)
+            average_depth = AverageSumpPumpLevel(distance=depth_info['depth'], device_id=device_id, create_day=depth_info['date'])
             self.session.add(average_depth)
         except (TypeError, KeyError):
             raise NotFound
