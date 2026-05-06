@@ -10,7 +10,6 @@ def reverse_geocode(bearer_token, latitude, longitude):
         raise BadRequest()
 
     response = get_census_reverse_geocode(latitude, longitude)
-    print(response)
     geographies = response.get('result', {}).get('geographies', {})
     states = geographies.get('States', [])
     if len(states) == 0:

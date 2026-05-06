@@ -105,7 +105,7 @@ class Queue:
 class BaseUrls:
 
     def __init__(self, settings):
-        self._settings = settings.get('BaseURls', {}) if settings is not None else {}
+        self._settings = settings.get('BaseUrls', {}) if settings is not None else {}
 
     @property
     def lights(self):
