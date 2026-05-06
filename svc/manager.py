@@ -9,6 +9,7 @@ from svc.endpoints.app_routes import APP_BLUEPRINT
 from svc.endpoints.auth_routes import AUTH_BLUEPRINT
 from svc.endpoints.device_routes import DEVICES_BLUEPRINT
 from svc.endpoints.garage_door_routes import GARAGE_BLUEPRINT
+from svc.endpoints.geocode_routes import GEOCODE_BLUEPRINT
 from svc.endpoints.light_routes import LIGHT_BLUEPRINT
 from svc.endpoints.scene_routes import SCENE_BLUEPRINT
 from svc.endpoints.sump_routes import SUMP_BLUEPRINT
@@ -36,6 +37,7 @@ def create_app():
     app.register_blueprint(LIGHT_BLUEPRINT)
     app.register_blueprint(DEVICES_BLUEPRINT)
     app.register_blueprint(SCENE_BLUEPRINT)
+    app.register_blueprint(GEOCODE_BLUEPRINT)
     app.after_request(add_security_headers)
 
     return app

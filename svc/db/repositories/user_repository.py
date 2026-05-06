@@ -24,6 +24,8 @@ class UserRepository(DatabaseBase):
         self._validate_property(preference)
         return Preference(city=preference.city,
                           state=preference.state,
+                          latitude=float(preference.latitude) if preference.latitude is not None else None,
+                          longitude=float(preference.longitude) if preference.longitude is not None else None,
                           garageAlertTime=preference.garage_alert_time,
                           measureUnit='imperial' if preference.is_imperial else 'metric',
                           garageNodeId=str(preference.garage_node_id) if preference.garage_node_id else None,
@@ -41,5 +43,7 @@ class UserRepository(DatabaseBase):
         record.is_imperial = preference_info.get('isImperial', True)
         record.city = preference_info.get('city', None)
         record.state = preference_info.get('state', None)
+        record.latitude = preference_info.get('latitude', None)
+        record.longitude = preference_info.get('longitude', None)
         record.garage_alert_time = preference_info.get('garageAlertTime', 0)
         record.garage_node_id = garage_node_id

@@ -176,6 +176,58 @@ class TestPreference:
 
         assert actual.garageNodeId is None
 
+    def test_get_preferences_by_user__should_return_latitude_and_longitude(self):
+        user = UserInformation(first_name=self.FIRST_NAME, last_name=self.LAST_NAME)
+        preference = TestPreference.__create_user_preference(user, 'Fake City')
+        preference.latitude = 41.5868
+        preference.longitude = -93.625
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = preference
+        actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
+
+        assert actual.latitude == 41.5868
+        assert actual.longitude == -93.625
+
+    def test_get_preferences_by_user__should_return_none_lat_lon_when_not_set(self):
+        user = UserInformation(first_name=self.FIRST_NAME, last_name=self.LAST_NAME)
+        preference = TestPreference.__create_user_preference(user, 'Fake City')
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = preference
+        actual = self.DATABASE.get_preferences_by_user(uuid.uuid4())
+
+        assert actual.latitude is None
+        assert actual.longitude is None
+
+    def test_insert_preferences_by_user__should_persist_latitude_and_longitude(self):
+        preference_info = {'latitude': 41.5868, 'longitude': -93.625}
+        record = UserPreference()
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = record
+        user_id = str(uuid.uuid4())
+
+        self.DATABASE.insert_preferences_by_user(user_id, preference_info)
+
+        assert record.latitude == 41.5868
+        assert record.longitude == -93.625
+
+    def test_insert_preferences_by_user__should_persist_city_and_state(self):
+        preference_info = {'city': 'Des Moines', 'state': 'IA'}
+        record = UserPreference()
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = record
+        user_id = str(uuid.uuid4())
+
+        self.DATABASE.insert_preferences_by_user(user_id, preference_info)
+
+        assert record.city == 'Des Moines'
+        assert record.state == 'IA'
+
+    def test_insert_preferences_by_user__should_default_lat_lon_to_none(self):
+        record = UserPreference()
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = record
+        user_id = str(uuid.uuid4())
+
+        self.DATABASE.insert_preferences_by_user(user_id, {})
+
+        assert record.latitude is None
+        assert record.longitude is None
+
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()

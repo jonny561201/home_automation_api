@@ -21,6 +21,19 @@ def get_city_coordinates(city, state=None):
     return response.json()
 
 
+def get_census_reverse_geocode(latitude, longitude):
+    args = {
+        'x': longitude,
+        'y': latitude,
+        'benchmark': 'Public_AR_Current',
+        'vintage': 'Current_Current',
+        'format': 'json',
+    }
+    response = requests.get('https://geocoding.geo.census.gov/geocoder/geographies/coordinates', params=args, timeout=10)
+    __validate_response(response)
+    return response.json()
+
+
 def get_forecast_by_coords(lat, lon, unit):
     args = {
         'latitude': lat,

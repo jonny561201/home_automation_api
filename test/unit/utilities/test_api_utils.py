@@ -8,7 +8,8 @@ from werkzeug.exceptions import FailedDependency, Unauthorized
 from svc.config.settings_state import Settings
 from svc.utilities.api_utils import (get_city_coordinates, set_light_groups, set_light_state, get_light_groups,
                                      get_forecast_by_coords, exchange_auth0_code, create_auth0_user, assign_auth0_roles,
-                                     send_auth0_password_reset, register_home_automation_device)
+                                     send_auth0_password_reset, register_home_automation_device,
+                                     get_census_reverse_geocode)
 
 
 @patch('svc.utilities.api_utils.requests')
@@ -84,6 +85,48 @@ class TestWeatherApiRequests:
         mock_requests.get.return_value = self.RESPONSE
         with pytest.raises(Unauthorized):
             get_forecast_by_coords(self.COORDS['lat'], self.COORDS['lon'], self.UNIT_PREFERENCE)
+
+
+@patch('svc.utilities.api_utils.requests')
+class TestCensusReverseGeocode:
+    LATITUDE = 41.5868
+    LONGITUDE = -93.625
+    URL = 'https://geocoding.geo.census.gov/geocoder/geographies/coordinates'
+
+    def setup_method(self):
+        self.RESPONSE = Response()
+        self.RESPONSE.status_code = 200
+        self.CONTENT = {'result': {'geographies': {'States': [{'STUSAB': 'IA'}]}}}
+        self.RESPONSE._content = json.dumps(self.CONTENT).encode('UTF-8')
+        self.PARAMS = {
+            'x': self.LONGITUDE,
+            'y': self.LATITUDE,
+            'benchmark': 'Public_AR_Current',
+            'vintage': 'Current_Current',
+            'format': 'json',
+        }
+
+    def test_get_census_reverse_geocode__should_call_requests_get_with_url_and_params(self, mock_requests):
+        mock_requests.get.return_value = self.RESPONSE
+        get_census_reverse_geocode(self.LATITUDE, self.LONGITUDE)
+        mock_requests.get.assert_called_with(self.URL, params=self.PARAMS, timeout=10)
+
+    def test_get_census_reverse_geocode__should_return_response_json(self, mock_requests):
+        mock_requests.get.return_value = self.RESPONSE
+        actual = get_census_reverse_geocode(self.LATITUDE, self.LONGITUDE)
+        assert actual == self.CONTENT
+
+    def test_get_census_reverse_geocode__should_raise_failed_dependency_on_bad_response(self, mock_requests):
+        self.RESPONSE.status_code = 500
+        mock_requests.get.return_value = self.RESPONSE
+        with pytest.raises(FailedDependency):
+            get_census_reverse_geocode(self.LATITUDE, self.LONGITUDE)
+
+    def test_get_census_reverse_geocode__should_raise_unauthorized_on_401(self, mock_requests):
+        self.RESPONSE.status_code = 401
+        mock_requests.get.return_value = self.RESPONSE
+        with pytest.raises(Unauthorized):
+            get_census_reverse_geocode(self.LATITUDE, self.LONGITUDE)
 
 
 @patch('svc.utilities.api_utils.requests')

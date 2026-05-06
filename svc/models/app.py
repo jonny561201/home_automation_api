@@ -17,6 +17,8 @@ class Preference:
     measureUnit: str
     garageAlertTime: int = 0
     state: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     garageNodeId: Optional[str] = None
 
 
