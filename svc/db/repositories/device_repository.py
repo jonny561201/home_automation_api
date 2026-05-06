@@ -79,11 +79,8 @@ class DeviceRepository(DatabaseBase):
         self._validate_property(user_id)
         stmt = select(Devices).where(Devices.user_id == user_id, Devices.id.in_(device_ids))
         devices = self.session.execute(stmt).scalars().all()
-        role_ids = []
-        for device in devices:
-            if device.device_type != None and device.device_type.auth0_role_id != None:
-                role_ids.append(device.device_type.auth0_role_id)
-        return role_ids
+        return [device.device_type.auth0_role_id for device in devices
+                if device.device_type != None and device.device_type.auth0_role_id != None]
 
     def get_device_id_by_api_key(self, api_key):
         stmt = select(Devices).filter_by(api_key=api_key)

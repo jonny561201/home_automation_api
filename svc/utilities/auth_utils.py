@@ -17,7 +17,7 @@ class AuthClient:
 
     def verify_jwt(self, token: str):
         try:
-            stripped_token = token.replace('Bearer ', '')
+            stripped_token = token.removeprefix('Bearer ')
             signing_key = self.jwks_client.get_signing_key_from_jwt(stripped_token)
             return jwt.decode(
                 stripped_token,
