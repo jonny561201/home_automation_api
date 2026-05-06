@@ -40,3 +40,8 @@ def test_get_user_temperature__should_throw_conflict_when_no_temp_text_found():
     with pytest.raises(Conflict):
         get_user_temperature(temp_text, False)
 
+
+def test_get_user_temperature__should_throw_conflict_when_temp_text_empty():
+    with pytest.raises(Conflict):
+        get_user_temperature([], False)
+

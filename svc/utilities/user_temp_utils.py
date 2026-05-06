@@ -6,9 +6,9 @@ from svc.utilities.conversion_utils import convert_to_fahrenheit
 
 
 def get_user_temperature(temp_text, is_fahrenheit):
-    if temp_text[0][-3:] != 'YES':
+    if len(temp_text) < 2 or temp_text[0][-3:] != 'YES':
         raise Conflict
-    temp_string = re.search('(t=\d*)', temp_text[1])
+    temp_string = re.search(r'(t=\d*)', temp_text[1])
     if temp_string is None:
         raise Conflict
 

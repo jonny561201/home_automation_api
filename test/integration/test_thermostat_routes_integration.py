@@ -37,12 +37,15 @@ class TestThermostatRoutesIntegration:
 
         assert actual.status_code == 401
 
+    @patch('svc.controllers.thermostat_controller.read_temperature_file')
     @patch('svc.controllers.thermostat_controller.get_desired_temp')
     @patch('svc.utilities.api_utils.requests')
-    def test_get_temperature__should_return_temperature(self, mock_requests, mock_file):
+    def test_get_temperature__should_return_temperature(self, mock_requests, mock_file, mock_temp_file):
         first = self._create_response(content={'results': [{'latitude': -93.1232, 'longitude': 12.323}]})
         second = self._create_response(content={'daily': {'temp': {'min': 21.0, 'max': 25.1}}})
         mock_file.return_value = {'desiredTemp': 22.2, 'mode': Automation.HVAC.MODE.HEATING}
+        mock_temp_file.return_value = ['72 01 4b 46 7f ff 0e 10 57 : crc=57 YES',
+                                       '72 01 4b 46 7f ff 0e 10 57 t=23125']
 
         mock_requests.get.side_effect = [first, second]
 
