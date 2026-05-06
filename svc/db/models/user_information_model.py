@@ -101,6 +101,8 @@ class UserPreference(Base):
     is_imperial = Column(Boolean, nullable=False)
     city = Column(String, nullable=True)
     state = Column(String, nullable=True)
+    latitude = Column(DECIMAL(9, 6), nullable=True)
+    longitude = Column(DECIMAL(9, 6), nullable=True)
     garage_alert_time = Column(Integer, nullable=False, server_default='0')
     garage_node_id = Column(UUID, ForeignKey(DeviceNodes.id), nullable=True)
 
