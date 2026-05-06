@@ -53,7 +53,7 @@ class TestUserIntegration:
             assert response.city == self.CITY
             assert response.tempUnit == 'fahrenheit'
             assert response.measureUnit == 'imperial'
-            assert response.garageId is None
+            assert response.garageNodeId is None
 
     def test_get_preferences_by_user__should_raise_not_found_when_no_preferences(self):
         with pytest.raises(NotFound):
@@ -63,9 +63,9 @@ class TestUserIntegration:
 
     def test_insert_preferences_by_user__should_insert_valid_preferences(self):
         city = 'Vienna'
-        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': False, 'garageNodeId': self.NODE_ID}
+        preference_info = {'city': city, 'isFahrenheit': True, 'isImperial': False}
         with UserRepository() as database:
-            database.insert_preferences_by_user(self.USER_ID, preference_info)
+            database.insert_preferences_by_user(self.USER_ID, preference_info, self.NODE_ID)
             database.session.commit()
             actual = database.session.execute(select(UserPreference).where(UserPreference.user_id == self.USER_ID)).scalars().first()
 

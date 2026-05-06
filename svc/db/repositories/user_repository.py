@@ -33,17 +33,25 @@ class UserRepository(DatabaseBase):
 
     def insert_preferences_by_user(self, user_id, preference_info, garage_node_id=None):
         if user_id is None:
-            raise BadRequest
+            raise BadRequest()
         stmt = select(UserPreference).filter_by(user_id=user_id)
         record = self.session.execute(stmt).scalars().first()
         if record is None:
-            record = UserPreference(user_id=user_id)
+            record = UserPreference(user_id=user_id, is_fahrenheit=True, is_imperial=True, garage_alert_time=0)
             self.session.add(record)
-        record.is_fahrenheit = preference_info.get('isFahrenheit', True)
-        record.is_imperial = preference_info.get('isImperial', True)
-        record.city = preference_info.get('city', None)
-        record.state = preference_info.get('state', None)
-        record.latitude = preference_info.get('latitude', None)
-        record.longitude = preference_info.get('longitude', None)
-        record.garage_alert_time = preference_info.get('garageAlertTime', 0)
-        record.garage_node_id = garage_node_id
+        if 'isFahrenheit' in preference_info:
+            record.is_fahrenheit = preference_info['isFahrenheit']
+        if 'isImperial' in preference_info:
+            record.is_imperial = preference_info['isImperial']
+        if 'city' in preference_info:
+            record.city = preference_info['city']
+        if 'state' in preference_info:
+            record.state = preference_info['state']
+        if 'latitude' in preference_info:
+            record.latitude = preference_info['latitude']
+        if 'longitude' in preference_info:
+            record.longitude = preference_info['longitude']
+        if 'garageAlertTime' in preference_info:
+            record.garage_alert_time = preference_info['garageAlertTime']
+        if garage_node_id is not None:
+            record.garage_node_id = garage_node_id
