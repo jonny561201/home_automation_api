@@ -54,7 +54,7 @@ function runWindowsUnitTests {
 }
 
 function waitForContainerToBeHealthy {
-    until [[ $(docker inspect postgres-test -f='{{.State.Health.Status}}') = "healthy" ]]; do
+    until [[ $(docker inspect postgres-home-automation -f='{{.State.Health.Status}}') = "healthy" ]]; do
         echo "...waiting for healthy..."
         sleep 1
     done
