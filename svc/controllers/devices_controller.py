@@ -10,7 +10,6 @@ from svc.utilities import api_utils
 from svc.utilities.api_utils import register_home_automation_device
 
 
-# TODO: break contract and stop calling it roleName and just name
 def add_device(bearer_token, request_data):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]

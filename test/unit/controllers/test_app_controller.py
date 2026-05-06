@@ -120,7 +120,7 @@ class TestAppControllerTasks:
 
         assert actual == response
 
-    def test_delete_user_task__should_validate_bearer_token(self, mock_jwt, mmock_db):
+    def test_delete_user_task__should_validate_bearer_token(self, mock_jwt, mock_db):
         task_id = 'jklasdf89734'
         delete_user_task(self.BEARER_TOKEN, task_id)
         mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)

@@ -1,5 +1,5 @@
 import jwt
-from jwt import DecodeError, ExpiredSignatureError, InvalidSignatureError, PyJWKClient
+from jwt import PyJWKClient
 from werkzeug.exceptions import Unauthorized, Forbidden
 
 from svc.config.settings_state import Settings
@@ -26,7 +26,7 @@ class AuthClient:
                 audience=self.settings.Authority.audience,
                 issuer=f"https://{self.settings.Authority.domain}/",
             )
-        except (InvalidSignatureError, ExpiredSignatureError, DecodeError, KeyError, Exception) as e:
+        except Exception:
             raise Unauthorized()
 
     def verify_and_authorize(self, token: str, *required_roles: str):

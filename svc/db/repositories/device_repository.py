@@ -81,7 +81,7 @@ class DeviceRepository(DatabaseBase):
         devices = self.session.execute(stmt).scalars().all()
         role_ids = []
         for device in devices:
-            if device.device_type and device.device_type.auth0_role_id:
+            if device.device_type != None and device.device_type.auth0_role_id != None:
                 role_ids.append(device.device_type.auth0_role_id)
         return role_ids
 
