@@ -4,8 +4,8 @@ import jwt
 from flask import Flask
 from mock import patch, ANY
 
-from svc.models.thermostat import ThermostatState, DailyForecast
-from svc.endpoints.thermostat_routes import get_temperature, set_desired_temperature, get_forecast_data
+from svc.models.thermostat import ThermostatState, DailyForecast, ExtendedForecast, ForecastDay
+from svc.endpoints.thermostat_routes import get_temperature, set_desired_temperature, get_forecast_data, get_extended_forecast_data
 from test.unit.test_helpers import setup_request
 
 
@@ -85,3 +85,26 @@ class TestThermostatRoutes:
         mock_controller.get_user_forecast.return_value = self.DAILY_FORECAST
         actual = get_forecast_data()
         assert json.loads(actual.data) == self.DAILY_FORECAST.to_dict()
+
+    def test_get_extended_forecast_data__should_call_controller_with_bearer_token(self, mock_controller):
+        mock_controller.get_user_extended_forecast.return_value = ExtendedForecast(forecast=[])
+        get_extended_forecast_data()
+        mock_controller.get_user_extended_forecast.assert_called_with(self.BEARER_TOKEN)
+
+    def test_get_extended_forecast_data__should_call_controller_with_none_when_no_auth_header(self, mock_controller):
+        self.ctx = setup_request(self.app, self.ctx)
+        mock_controller.get_user_extended_forecast.return_value = ExtendedForecast(forecast=[])
+        get_extended_forecast_data()
+        mock_controller.get_user_extended_forecast.assert_called_with(None)
+
+    def test_get_extended_forecast_data__should_return_success_response(self, mock_controller):
+        mock_controller.get_user_extended_forecast.return_value = ExtendedForecast(forecast=[])
+        actual = get_extended_forecast_data()
+        assert actual.status_code == 200
+        assert actual.content_type == 'application/json'
+
+    def test_get_extended_forecast_data__should_return_response_from_controller(self, mock_controller):
+        forecast = ExtendedForecast(forecast=[ForecastDay(date='2026-05-06', minTemp=10.0, maxTemp=20.0, description='sunny')])
+        mock_controller.get_user_extended_forecast.return_value = forecast
+        actual = get_extended_forecast_data()
+        assert json.loads(actual.data) == forecast.to_dict()

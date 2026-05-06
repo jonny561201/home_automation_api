@@ -7,9 +7,9 @@ from werkzeug.exceptions import FailedDependency, Unauthorized
 
 from svc.config.settings_state import Settings
 from svc.utilities.api_utils import (get_city_coordinates, set_light_groups, set_light_state, get_light_groups,
-                                     get_forecast_by_coords, exchange_auth0_code, create_auth0_user, assign_auth0_roles,
-                                     send_auth0_password_reset, register_home_automation_device,
-                                     get_census_reverse_geocode)
+                                     get_forecast_by_coords, get_extended_forecast_by_coords, exchange_auth0_code,
+                                     create_auth0_user, assign_auth0_roles, send_auth0_password_reset,
+                                     register_home_automation_device, get_census_reverse_geocode)
 
 
 @patch('svc.utilities.api_utils.requests')
@@ -85,6 +85,52 @@ class TestWeatherApiRequests:
         mock_requests.get.return_value = self.RESPONSE
         with pytest.raises(Unauthorized):
             get_forecast_by_coords(self.COORDS['lat'], self.COORDS['lon'], self.UNIT_PREFERENCE)
+
+
+@patch('svc.utilities.api_utils.requests')
+class TestExtendedForecastApiRequest:
+    LATITUDE = 41.5868
+    LONGITUDE = -93.625
+    UNIT = 'fahrenheit'
+    DAYS = 7
+    URL = 'test.weather.api'
+
+    def setup_method(self):
+        Settings.get_instance().BaseUrls._settings = {'Weather': self.URL}
+        self.RESPONSE = Response()
+        self.RESPONSE.status_code = 200
+        self.PAYLOAD = {'daily': {'time': ['2026-05-06']}}
+        self.RESPONSE._content = json.dumps(self.PAYLOAD).encode('UTF-8')
+        self.PARAMS = {
+            'latitude': self.LATITUDE,
+            'longitude': self.LONGITUDE,
+            'temperature_unit': self.UNIT,
+            'daily': 'temperature_2m_max,temperature_2m_min,weathercode',
+            'forecast_days': self.DAYS,
+            'timezone': 'auto',
+        }
+
+    def test_get_extended_forecast_by_coords__should_call_requests_get_with_url_and_params(self, mock_requests):
+        mock_requests.get.return_value = self.RESPONSE
+        get_extended_forecast_by_coords(self.LATITUDE, self.LONGITUDE, self.UNIT, self.DAYS)
+        mock_requests.get.assert_called_with(f'https://{self.URL}/forecast', params=self.PARAMS)
+
+    def test_get_extended_forecast_by_coords__should_return_response_json(self, mock_requests):
+        mock_requests.get.return_value = self.RESPONSE
+        actual = get_extended_forecast_by_coords(self.LATITUDE, self.LONGITUDE, self.UNIT, self.DAYS)
+        assert actual == self.PAYLOAD
+
+    def test_get_extended_forecast_by_coords__should_raise_failed_dependency_on_bad_response(self, mock_requests):
+        self.RESPONSE.status_code = 500
+        mock_requests.get.return_value = self.RESPONSE
+        with pytest.raises(FailedDependency):
+            get_extended_forecast_by_coords(self.LATITUDE, self.LONGITUDE, self.UNIT, self.DAYS)
+
+    def test_get_extended_forecast_by_coords__should_raise_unauthorized_on_401(self, mock_requests):
+        self.RESPONSE.status_code = 401
+        mock_requests.get.return_value = self.RESPONSE
+        with pytest.raises(Unauthorized):
+            get_extended_forecast_by_coords(self.LATITUDE, self.LONGITUDE, self.UNIT, self.DAYS)
 
 
 @patch('svc.utilities.api_utils.requests')

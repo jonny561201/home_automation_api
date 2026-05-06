@@ -5,7 +5,7 @@ from mock import patch, ANY
 
 from svc.constants.home_automation import AuthClaims
 from svc.constants.home_automation import Automation
-from svc.controllers.thermostat_controller import get_user_temp, set_user_temperature, get_user_forecast
+from svc.controllers.thermostat_controller import get_user_temp, set_user_temperature, get_user_forecast, get_user_extended_forecast
 from svc.models.app import Preference
 
 
@@ -175,6 +175,63 @@ class TestThermostatForecastController:
         response = {'myData': 'some value'}
         mock_weather.get_weather_by_city.return_value = response
         actual = get_user_forecast(self.JWT_TOKEN)
+        assert actual == response
+
+
+@patch('svc.controllers.thermostat_controller.weather_request')
+@patch('svc.controllers.thermostat_controller.UserRepository')
+@patch('svc.controllers.thermostat_controller.AuthClient')
+class TestThermostatExtendedForecastController:
+    JWT_TOKEN = jwt.encode({}, 'JWT_SECRET', algorithm='HS256')
+    USER_ID = uuid.uuid4().hex
+    CLAIMS = {AuthClaims.USER_ID: USER_ID}
+    LATITUDE = 41.5868
+    LONGITUDE = -93.625
+
+    def setup_method(self):
+        self.CITY_PREFERENCE = Preference(tempUnit='fahrenheit', measureUnit='imperial', city='Des Moines', state='IA')
+        self.COORDS_PREFERENCE = Preference(
+            tempUnit='fahrenheit', measureUnit='imperial', city='Des Moines', state='IA',
+            latitude=self.LATITUDE, longitude=self.LONGITUDE,
+        )
+
+    def test_get_user_extended_forecast__should_validate_jwt_token(self, mock_jwt, mock_db, mock_weather):
+        get_user_extended_forecast(self.JWT_TOKEN)
+        mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.JWT_TOKEN)
+
+    def test_get_user_extended_forecast__should_get_preferences_by_user(self, mock_jwt, mock_db, mock_weather):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
+        get_user_extended_forecast(self.JWT_TOKEN)
+        mock_db.return_value.__enter__.return_value.get_preferences_by_user.assert_called_with(self.USER_ID)
+
+    def test_get_user_extended_forecast__should_call_get_extended_weather_by_coords_when_coords_saved(self, mock_jwt, mock_db, mock_weather):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
+        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.COORDS_PREFERENCE
+        get_user_extended_forecast(self.JWT_TOKEN)
+        mock_weather.get_extended_weather_by_coords.assert_called_with(self.LATITUDE, self.LONGITUDE, self.COORDS_PREFERENCE.tempUnit)
+        mock_weather.get_extended_weather_by_city.assert_not_called()
+
+    def test_get_user_extended_forecast__should_call_get_extended_weather_by_city_when_coords_missing(self, mock_jwt, mock_db, mock_weather):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
+        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.CITY_PREFERENCE
+        get_user_extended_forecast(self.JWT_TOKEN)
+        mock_weather.get_extended_weather_by_city.assert_called_with(self.CITY_PREFERENCE.city, self.CITY_PREFERENCE.tempUnit, self.CITY_PREFERENCE.state)
+        mock_weather.get_extended_weather_by_coords.assert_not_called()
+
+    def test_get_user_extended_forecast__should_return_response_from_coords_path(self, mock_jwt, mock_db, mock_weather):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
+        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.COORDS_PREFERENCE
+        response = {'forecast': []}
+        mock_weather.get_extended_weather_by_coords.return_value = response
+        actual = get_user_extended_forecast(self.JWT_TOKEN)
+        assert actual == response
+
+    def test_get_user_extended_forecast__should_return_response_from_city_path(self, mock_jwt, mock_db, mock_weather):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
+        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.CITY_PREFERENCE
+        response = {'forecast': []}
+        mock_weather.get_extended_weather_by_city.return_value = response
+        actual = get_user_extended_forecast(self.JWT_TOKEN)
         assert actual == response
 
 

@@ -50,6 +50,21 @@ def get_forecast_by_coords(lat, lon, unit):
     return response.json()
 
 
+def get_extended_forecast_by_coords(lat, lon, unit, days):
+    args = {
+        'latitude': lat,
+        'longitude': lon,
+        'temperature_unit': unit,
+        'daily': 'temperature_2m_max,temperature_2m_min,weathercode',
+        'forecast_days': days,
+        'timezone': 'auto'
+    }
+    base_url = Settings.get_instance().BaseUrls.weather
+    response = requests.get(f'https://{base_url}/forecast', params=args)
+    __validate_response(response)
+    return response.json()
+
+
 def get_all_garage_doors_status(api_key, base_url):
     header = {'X-API-Key': api_key}
     try:

@@ -26,3 +26,10 @@ def get_forecast_data():
     bearer_token = request.headers.get('Authorization')
     forecast = thermostat_controller.get_user_forecast(bearer_token)
     return Response(forecast.to_json(), status=200, mimetype=Mime.JSON)
+
+
+@THERMOSTAT_BLUEPRINT.route('/forecast/extended', methods=['GET'])
+def get_extended_forecast_data():
+    bearer_token = request.headers.get('Authorization')
+    forecast = thermostat_controller.get_user_extended_forecast(bearer_token)
+    return Response(forecast.to_json(), status=200, mimetype=Mime.JSON)

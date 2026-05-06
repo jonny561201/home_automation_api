@@ -19,3 +19,18 @@ class DailyForecast:
     minTemp: float
     maxTemp: float
     description: str
+
+
+@dataclass_json
+@dataclass
+class ForecastDay:
+    date: str
+    minTemp: float
+    maxTemp: float
+    description: str
+
+
+@dataclass_json
+@dataclass
+class ExtendedForecast:
+    forecast: list[ForecastDay]
