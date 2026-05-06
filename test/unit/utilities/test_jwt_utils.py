@@ -17,7 +17,15 @@ class TestAuthClient:
 
     def setup_method(self):
         self.SETTINGS = Settings.get_instance()
+        self._original_auth = self.SETTINGS.Authority._settings
         self.SETTINGS.Authority._settings = {'Domain': self.DOMAIN, 'Audience': self.AUDIENCE}
+        try:
+            del AuthClient._instance
+        except AttributeError:
+            pass
+
+    def teardown_method(self):
+        self.SETTINGS.Authority._settings = self._original_auth
         try:
             del AuthClient._instance
         except AttributeError:

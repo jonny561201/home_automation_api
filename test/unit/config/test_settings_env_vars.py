@@ -16,6 +16,9 @@ class TestSettingsEnvVars:
     def setup_method(self):
         os.environ.update(self.ENV_VARS)
         self.SETTINGS = Settings.get_instance()
+        self._original_settings = self.SETTINGS._settings
+        self._original_db = self.SETTINGS.Database._settings
+        self._original_queue = self.SETTINGS.Queue._settings
         self.SETTINGS._settings = None
         self.SETTINGS.Database._settings = None
         self.SETTINGS.Queue._settings = None
@@ -37,6 +40,9 @@ class TestSettingsEnvVars:
         os.environ.pop('QUEUE_PORT')
         os.environ.pop('QUEUE_VHOST')
         os.environ.pop('QUEUE_EXCHANGE')
+        self.SETTINGS._settings = self._original_settings
+        self.SETTINGS.Database._settings = self._original_db
+        self.SETTINGS.Queue._settings = self._original_queue
 
     def test_database_user__should_return_value(self):
         assert self.SETTINGS.Database.user == self.ENV_VARS['SQL_USERNAME']

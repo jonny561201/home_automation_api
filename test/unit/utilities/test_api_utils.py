@@ -20,12 +20,16 @@ class TestWeatherApiRequests:
     URL = 'test.weather.api'
 
     def setup_method(self):
+        self._original_baseurls = Settings.get_instance().BaseUrls._settings
         Settings.get_instance().BaseUrls._settings = {'Weather': self.URL}
         self.RESPONSE = Response()
         self.RESPONSE.status_code = 200
         self.RESPONSE_CONTENT = {'weather': [{}]}
         self.WEATHER_PARAMS = {'name': self.CITY, 'count': 1, 'country': 'US', 'admin1': None}
         self.FORECAST_PARAMS = {'latitude': self.COORDS['lat'], 'longitude': self.COORDS['lon'], 'current_weather': True, 'temperature_unit': self.UNIT_PREFERENCE, 'daily': 'temperature_2m_max,temperature_2m_min,weathercode', 'forecast_days': 1, 'timezone': 'auto'}
+
+    def teardown_method(self):
+        Settings.get_instance().BaseUrls._settings = self._original_baseurls
 
     def test_get_city_coordinates__should_call_requests_get(self, mock_requests):
         self.RESPONSE._content = json.dumps(self.RESPONSE_CONTENT).encode('UTF-8')
@@ -96,6 +100,7 @@ class TestExtendedForecastApiRequest:
     URL = 'test.weather.api'
 
     def setup_method(self):
+        self._original_baseurls = Settings.get_instance().BaseUrls._settings
         Settings.get_instance().BaseUrls._settings = {'Weather': self.URL}
         self.RESPONSE = Response()
         self.RESPONSE.status_code = 200
@@ -109,6 +114,9 @@ class TestExtendedForecastApiRequest:
             'forecast_days': self.DAYS,
             'timezone': 'auto',
         }
+
+    def teardown_method(self):
+        Settings.get_instance().BaseUrls._settings = self._original_baseurls
 
     def test_get_extended_forecast_by_coords__should_call_requests_get_with_url_and_params(self, mock_requests):
         mock_requests.get.return_value = self.RESPONSE
@@ -221,8 +229,14 @@ class TestLightApiRequests:
     BASE_URL = 'http://lights.test.api'
     API_KEY = 'fake api key'
 
-    def test_get_light_groups__should_call_groups_url(self, mock_requests):
+    def setup_method(self):
+        self._original_baseurls = Settings.get_instance().BaseUrls._settings
         Settings.get_instance().BaseUrls._settings = {'Lights': self.BASE_URL}
+
+    def teardown_method(self):
+        Settings.get_instance().BaseUrls._settings = self._original_baseurls
+
+    def test_get_light_groups__should_call_groups_url(self, mock_requests):
         expected_url = f'{self.BASE_URL}/groups'
         mock_requests.get.return_value = self.__create_response()
         get_light_groups(self.API_KEY)
@@ -406,6 +420,7 @@ class TestAuth0Requests:
     MANAGEMENT_TOKEN = 'fake_management_token'
 
     def setup_method(self):
+        self._original_authority = Settings.get_instance().Authority._settings
         Settings.get_instance().Authority._settings = {
             'Domain': self.DOMAIN,
             'ClientId': self.CLIENT_ID,
@@ -420,6 +435,9 @@ class TestAuth0Requests:
         self.ROLES_RESPONSE = Response()
         self.ROLES_RESPONSE.status_code = 200
         self.ROLES_RESPONSE._content = b'{}'
+
+    def teardown_method(self):
+        Settings.get_instance().Authority._settings = self._original_authority
 
     def test_exchange_auth0_code__should_call_auth0_token_endpoint(self, mock_requests):
         mock_requests.post.return_value = self.RESPONSE
@@ -487,6 +505,7 @@ class TestCreateAuth0User:
     MANAGEMENT_TOKEN = 'fake_management_token'
 
     def setup_method(self):
+        self._original_authority = Settings.get_instance().Authority._settings
         Settings.get_instance().Authority._settings = {
             'Domain': self.DOMAIN,
             'ClientId': self.CLIENT_ID,
@@ -497,6 +516,9 @@ class TestCreateAuth0User:
         self.TOKEN_RESPONSE._content = json.dumps({'access_token': self.MANAGEMENT_TOKEN}).encode()
         self.USER_RESPONSE = Response()
         self.USER_RESPONSE.status_code = 200
+
+    def teardown_method(self):
+        Settings.get_instance().Authority._settings = self._original_authority
 
     def test_create_auth0_user__should_call_users_endpoint(self, mock_requests, mock_password):
         mock_password.return_value = 'generated_pass'
@@ -548,6 +570,7 @@ class TestSendAuth0PasswordReset:
     CLIENT_SECRET = 'fake_client_secret'
 
     def setup_method(self):
+        self._original_authority = Settings.get_instance().Authority._settings
         Settings.get_instance().Authority._settings = {
             'Domain': self.DOMAIN,
             'ClientId': self.CLIENT_ID,
@@ -556,6 +579,9 @@ class TestSendAuth0PasswordReset:
         self.RESPONSE = Response()
         self.RESPONSE.status_code = 200
         self.RESPONSE._content = b'{}'
+
+    def teardown_method(self):
+        Settings.get_instance().Authority._settings = self._original_authority
 
     def test_send_auth0_password_reset__should_call_change_password_endpoint(self, mock_requests):
         mock_requests.post.return_value = self.RESPONSE

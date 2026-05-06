@@ -21,11 +21,24 @@ class TestSettings:
 
     def setup_method(self):
         self.SETTINGS = Settings.get_instance()
+        self._original_settings = self.SETTINGS._settings
+        self._original_db = self.SETTINGS.Database._settings
+        self._original_queue = self.SETTINGS.Queue._settings
+        self._original_urls = self.SETTINGS.BaseUrls._settings
+        self._original_auth = self.SETTINGS.Authority._settings
+
         self.SETTINGS._settings = self.test_settings
         self.SETTINGS.Database._settings = self.db_settings
         self.SETTINGS.Queue._settings = self.q_settings
         self.SETTINGS.BaseUrls._settings = self.urls
         self.SETTINGS.Authority._settings = self.auth_settings
+
+    def teardown_method(self):
+        self.SETTINGS._settings = self._original_settings
+        self.SETTINGS.Database._settings = self._original_db
+        self.SETTINGS.Queue._settings = self._original_queue
+        self.SETTINGS.BaseUrls._settings = self._original_urls
+        self.SETTINGS.Authority._settings = self._original_auth
 
     def test_environment__should_pull_from_settings(self):
         assert self.SETTINGS.environment == self.test_settings['Environment']
