@@ -1,10 +1,9 @@
 import sqlalchemy
 from sqlalchemy import Column, String, Boolean, Integer, ForeignKey, DECIMAL, TIMESTAMP, DATE
 from sqlalchemy.dialects.postgresql import UUID, INET, SMALLINT, TIME
-from sqlalchemy.ext import declarative
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import declarative_base, relationship
 
-Base = declarative.declarative_base()
+Base = declarative_base()
 
 
 class UserInformation(Base):
