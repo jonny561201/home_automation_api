@@ -23,25 +23,36 @@
     * create virtual environment: `virtualenv venv`
     * activate virtual environment: `source ./venv/scripts/activate`
     * install production dependencies: `pip install -Ur requirements.txt`
-    * install test dependencies: `pip install -Ur test_requirements.txt`
+    * install test dependencies: `pip install -Ur requirements_test.txt`
 2. Install docker desktop for linux containers
 3. Create `settings.local.json` file to create local test values for keys
     * `Environment` flag to know what environment you are in based on PYTHON_ENVIRONMENT env var
-    * `LightApiUser` username for dresden raspberry pi app
-    * `LightApiPass` password for dresden raspberry pi app
-    * `DevWeatherAppId` app id for Open Weather free account
-    * `DevJwtSecret` jwt secret for encoding/decoding jwts 
+    * `LightApiKey` api key for the lights microservice
+    * `WeatherAppId` app id for the weather provider
+    * `JwtSecret` jwt secret for encoding/decoding jwts
+    * `EmailAppId` app id for the email provider
+    * `TempFileName` filename used to persist desired temperature state
     * `Database` object to be created for persistent storage
       * `Port` database port
-      * `DbName` database name
+      * `Name` database name
       * `User` database username
       * `Password` database password
     * `Queue` object to be created for rabbitmq connection
       * `Host` rabbitmq host
-      * `VHost` rabbitmq host
+      * `VHost` rabbitmq vhost
       * `Port` rabbitmq port
       * `User` rabbitmq username
       * `Password` rabbitmq password
+      * `Exchange` rabbitmq exchange name
+    * `BaseUrls` object with external service base urls
+      * `Lights` lights microservice url
+      * `Weather` weather api url
+      * `Email` email api url
+    * `Authority` Auth0 configuration
+      * `Domain` Auth0 tenant domain
+      * `Audience` Auth0 audience
+      * `ClientId` Auth0 client id
+      * `ClientSecret` Auth0 client secret
 4. Provide any corresponding test coverage in directories `/test/integration` and `/test/unit`
 5. Prior to committing code execute `./run_all_tests.sh`
     * will start/stop a postgres docker container
