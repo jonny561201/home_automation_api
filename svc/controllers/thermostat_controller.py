@@ -21,13 +21,14 @@ def get_user_temp(bearer_token):
         return __create_response(internal_temp, is_fahrenheit)
 
 
-#TODO: update database account repo to store lat/lon of city
 def get_user_forecast(bearer_token):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]
     with UserRepository() as database:
         preference = database.get_preferences_by_user(user_id)
-        return weather_request.get_weather(preference.city, preference.tempUnit, preference.state)
+    if preference.latitude is not None and preference.longitude is not None:
+        return weather_request.get_weather_by_coords(preference.latitude, preference.longitude, preference.tempUnit)
+    return weather_request.get_weather_by_city(preference.city, preference.tempUnit, preference.state)
 
 
 def set_user_temperature(request_data, bearer_token):

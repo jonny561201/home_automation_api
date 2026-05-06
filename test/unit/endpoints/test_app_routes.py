@@ -20,7 +20,7 @@ class TestAppRoutes:
     def setup_method(self):
         self.app = Flask(__name__)
         self.TASK = Task(taskId='1', taskType='x', enabled=True, hvacMode='auto', alarmDays='M', hvacStopTemp=68, hvacStartTemp=72, alarmGroupName='Test', alarmLightGroup='1')
-        self.PREFERENCES = Preference(city='York', tempUnit='celsius', measureUnit='metric')
+        self.PREFERENCES = Preference(city='York', tempUnit='celsius', measureUnit='metric', state='IA', latitude=41.5868, longitude=-93.625)
         self.TASKS = Tasks(tasks=[])
         self.LOGIN_REQUEST = {'grant_type': 'client_credentials', 'client_id': self.USER, 'client_secret': self.PWORD}
         self.ctx = setup_request(self.app, headers=self.HEADERS)
@@ -55,6 +55,17 @@ class TestAppRoutes:
         actual = get_user_preferences()
 
         assert json.loads(actual.data) == self.PREFERENCES.to_dict()
+
+    def test_get_user_preferences__should_include_city_state_and_coordinates_in_response(self, mock_controller):
+        mock_controller.get_user_preferences.return_value = self.PREFERENCES
+
+        actual = get_user_preferences()
+        body = json.loads(actual.data)
+
+        assert body['city'] == 'York'
+        assert body['state'] == 'IA'
+        assert body['latitude'] == 41.5868
+        assert body['longitude'] == -93.625
 
     def test_get_user_preferences__should_return_success_status_code(self, mock_controller):
         mock_controller.get_user_preferences.return_value = self.PREFERENCES
