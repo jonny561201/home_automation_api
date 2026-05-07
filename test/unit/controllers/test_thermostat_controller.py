@@ -45,6 +45,17 @@ class TestThermostatTempController:
         assert actual.currentTemp == expected_temp
         assert actual.isFahrenheit is True
 
+    def test_get_user_temp__should_return_none_current_temp_when_sensor_unavailable(self, mock_jwt, mock_db, mock_temp, mock_file):
+        mock_jwt.return_value = self.CLAIMS
+        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
+        mock_temp.return_value = None
+        mock_file.return_value = {'desiredTemp': None, 'mode': Automation.HVAC.MODE.TURN_OFF}
+
+        actual = get_user_temp(self.JWT_TOKEN)
+
+        assert actual.currentTemp is None
+        assert actual.desiredTemp is None
+
     def test_get_user_temp__should_return_thermostat_temps_in_celsius(self, mock_jwt, mock_db, mock_temp, mock_file):
         mock_jwt.return_value = self.CLAIMS
         self.PREFERENCE.tempUnit = 'celsius'
