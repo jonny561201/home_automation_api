@@ -9,6 +9,7 @@
     "Audience": "http://localhost:5000"
   },
   "UserId": "e97febc0-fd10-11e9-8f0b-362b9e155667",
+  "VapidSubject": "mailto:admin@soaringleafsolutions.com",
   "TempFileName": "temperatureFile.json",
   "BaseUrls": {
     "Lights": "http://127.0.0.1:5002/api/lights",
