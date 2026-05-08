@@ -26,3 +26,18 @@ class TestPushSubscriptionRepository:
         self.DATABASE.upsert_subscription(self.USER_ID, self.ENDPOINT, self.P256DH_KEY, self.AUTH_KEY)
 
         self.SESSION.execute.assert_called_once()
+
+    def test_delete_subscription__should_raise_bad_request_when_user_id_is_none(self):
+        with pytest.raises(BadRequest):
+            self.DATABASE.delete_subscription(None, self.ENDPOINT)
+        self.SESSION.execute.assert_not_called()
+
+    def test_delete_subscription__should_raise_bad_request_when_endpoint_is_none(self):
+        with pytest.raises(BadRequest):
+            self.DATABASE.delete_subscription(self.USER_ID, None)
+        self.SESSION.execute.assert_not_called()
+
+    def test_delete_subscription__should_execute_statement(self):
+        self.DATABASE.delete_subscription(self.USER_ID, self.ENDPOINT)
+
+        self.SESSION.execute.assert_called_once()
