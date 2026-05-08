@@ -36,6 +36,14 @@ class Settings:
         return _get_setting('LIGHT_API_KEY', 'LightApiKey', self._settings)
 
     @property
+    def vapid_public_key(self):
+        return _get_setting('VAPID_PUBLIC_KEY', 'VapidPublicKey', self._settings)
+
+    @property
+    def vapid_private_key(self):
+        return _get_setting('VAPID_PRIVATE_KEY', 'VapidPrivateKey', self._settings)
+
+    @property
     def temp_file_name(self):
         return _get_setting('TEMP_FILE_NAME', 'TempFileName', self._settings)
 
