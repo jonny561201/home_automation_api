@@ -36,3 +36,9 @@ class MdnsListener(ServiceListener):
             port = info.port
             max_nodes = int(info.properties.get(b'max_nodes', b'0'))
             register_sump_pump(service_name, ip, port, max_nodes)
+
+    def remove_service(self, zc, type_, name):
+        pass
+
+    def update_service(self, zc, type_, name):
+        pass

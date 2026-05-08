@@ -1,9 +1,8 @@
 from svc.db.repositories.user_repository import UserRepository
 from svc.constants.home_automation import Automation, AuthClaims
-from svc.models.thermostat import ThermostatState
-from svc.services import weather_request
-from svc.utilities.conversion_utils import convert_to_celsius, convert_to_fahrenheit
-from svc.utilities.file_utils import write_desired_temp_to_file, get_desired_temp, read_temperature_file
+from svc.services import thermostat_service
+from svc.utilities.conversion_utils import convert_to_celsius
+from svc.utilities.file_utils import write_desired_temp_to_file, read_temperature_file
 from svc.utilities.auth_utils import AuthClient
 from svc.utilities.rabbitmq_client import publish
 from svc.utilities.user_temp_utils import get_user_temperature
@@ -18,7 +17,7 @@ def get_user_temp(bearer_token):
         is_fahrenheit = preference.tempUnit == 'fahrenheit'
         internal_temp = get_user_temperature(temp_text, is_fahrenheit)
 
-        return __create_response(internal_temp, is_fahrenheit)
+        return thermostat_service.build_thermostat_state(internal_temp, is_fahrenheit)
 
 
 def get_user_forecast(bearer_token):
@@ -26,9 +25,7 @@ def get_user_forecast(bearer_token):
     user_id = claims[AuthClaims.USER_ID]
     with UserRepository() as database:
         preference = database.get_preferences_by_user(user_id)
-    if preference.latitude is not None and preference.longitude is not None:
-        return weather_request.get_weather_by_coords(preference.latitude, preference.longitude, preference.tempUnit)
-    return weather_request.get_weather_by_city(preference.city, preference.tempUnit, preference.state)
+    return thermostat_service.get_forecast_for_preference(preference)
 
 
 def get_user_extended_forecast(bearer_token):
@@ -36,9 +33,7 @@ def get_user_extended_forecast(bearer_token):
     user_id = claims[AuthClaims.USER_ID]
     with UserRepository() as database:
         preference = database.get_preferences_by_user(user_id)
-    if preference.latitude is not None and preference.longitude is not None:
-        return weather_request.get_extended_weather_by_coords(preference.latitude, preference.longitude, preference.tempUnit)
-    return weather_request.get_extended_weather_by_city(preference.city, preference.tempUnit, preference.state)
+    return thermostat_service.get_extended_forecast_for_preference(preference)
 
 
 def set_user_temperature(request_data, bearer_token):
@@ -47,26 +42,3 @@ def set_user_temperature(request_data, bearer_token):
     mode = request_data['mode']
     write_desired_temp_to_file(temp, mode)
     publish(Automation.HVAC.QUEUE, {'desiredTemp': temp, 'mode': mode, 'isAuto': mode == 'auto'})
-
-
-def __create_response(internal_temp, is_fahren):
-    state = get_desired_temp()
-    desired_temp = __convert_desired_temp(is_fahren, internal_temp, state)
-    return ThermostatState(
-        currentTemp=internal_temp,
-        isFahrenheit=is_fahren,
-        minThermostatTemp=50.0 if is_fahren else 10.0,
-        maxThermostatTemp=90.0 if is_fahren else 32.0,
-        mode=state['mode'],
-        desiredTemp=desired_temp
-    )
-
-
-def __convert_desired_temp(is_fahren, internal_temp, state):
-    desired_temp = state.get('desiredTemp')
-    if desired_temp is None:
-        return internal_temp
-    elif is_fahren:
-        return convert_to_fahrenheit(desired_temp)
-    else:
-        return desired_temp

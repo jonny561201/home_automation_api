@@ -9,7 +9,7 @@ from svc.models.sump import SumpLevel, SumpReading, SumpReadings, SumpDailyReadi
 from svc.controllers.sump_controller import get_sump_level, get_depth_history, get_daily_averages, save_current_level, save_average_level
 
 
-@patch('svc.controllers.sump_controller.notify_household_for_device')
+@patch('svc.controllers.sump_controller.notify_sump_alert')
 @patch('svc.controllers.sump_controller.AuthClient')
 @patch('svc.controllers.sump_controller.UserRepository')
 @patch('svc.controllers.sump_controller.SumpRepository')
@@ -109,38 +109,20 @@ class TestSumpController:
         mock_sump.return_value.__enter__.return_value.insert_current_sump_level.assert_called_with(self.DEVICE_ID, depth_info)
 
     @patch('svc.controllers.sump_controller.DeviceRepository')
-    def test_save_current_level__should_not_notify_when_alert_level_is_below_warning(self, mock_device, mock_sump, mock_user, mock_jwt, mock_notify):
-        mock_device.return_value.__enter__.return_value.get_device_id_by_api_key.return_value = self.DEVICE_ID
-
-        save_current_level(self.BEARER_TOKEN, {'depth': 'test', 'alert_level': 1})
-
-        mock_notify.assert_not_called()
-
-    @patch('svc.controllers.sump_controller.DeviceRepository')
-    def test_save_current_level__should_not_notify_when_alert_level_missing(self, mock_device, mock_sump, mock_user, mock_jwt, mock_notify):
-        mock_device.return_value.__enter__.return_value.get_device_id_by_api_key.return_value = self.DEVICE_ID
-
-        save_current_level(self.BEARER_TOKEN, {'depth': 'test'})
-
-        mock_notify.assert_not_called()
-
-    @patch('svc.controllers.sump_controller.DeviceRepository')
-    def test_save_current_level__should_notify_with_warning_payload_when_alert_level_two(self, mock_device, mock_sump, mock_user, mock_jwt, mock_notify):
+    def test_save_current_level__should_call_notify_sump_alert_with_device_and_alert_level(self, mock_device, mock_sump, mock_user, mock_jwt, mock_notify):
         mock_device.return_value.__enter__.return_value.get_device_id_by_api_key.return_value = self.DEVICE_ID
 
         save_current_level(self.BEARER_TOKEN, {'depth': 'test', 'alert_level': 2})
 
-        expected = {'title': 'Sump Pump Warning', 'body': 'Elevated water level detected in the sump pit.', 'tag': 'sump-alert', 'data': {'warningLevel': 2}}
-        mock_notify.assert_called_with(self.DEVICE_ID, expected)
+        mock_notify.assert_called_with(self.DEVICE_ID, 2)
 
     @patch('svc.controllers.sump_controller.DeviceRepository')
-    def test_save_current_level__should_notify_with_alert_payload_when_alert_level_three(self, mock_device, mock_sump, mock_user, mock_jwt, mock_notify):
+    def test_save_current_level__should_call_notify_sump_alert_with_none_when_alert_level_missing(self, mock_device, mock_sump, mock_user, mock_jwt, mock_notify):
         mock_device.return_value.__enter__.return_value.get_device_id_by_api_key.return_value = self.DEVICE_ID
 
-        save_current_level(self.BEARER_TOKEN, {'depth': 'test', 'alert_level': 3})
+        save_current_level(self.BEARER_TOKEN, {'depth': 'test'})
 
-        expected = {'title': 'Sump Pump Alert', 'body': 'Critical water level detected in the sump pit.', 'tag': 'sump-alert', 'data': {'warningLevel': 3}}
-        mock_notify.assert_called_with(self.DEVICE_ID, expected)
+        mock_notify.assert_called_with(self.DEVICE_ID, None)
 
     @patch('svc.controllers.sump_controller.DeviceRepository')
     def test_save_average_level__should_call_get_device_id_by_api_key(self, mock_device, mock_sump, mock_user, mock_jwt, mock_notify):

@@ -9,7 +9,8 @@ from svc.controllers.thermostat_controller import get_user_temp, set_user_temper
 from svc.models.app import Preference
 
 
-@patch('svc.controllers.thermostat_controller.get_desired_temp')
+@patch('svc.controllers.thermostat_controller.thermostat_service')
+@patch('svc.controllers.thermostat_controller.read_temperature_file')
 @patch('svc.controllers.thermostat_controller.get_user_temperature')
 @patch('svc.controllers.thermostat_controller.UserRepository')
 @patch('svc.controllers.thermostat_controller.AuthClient')
@@ -17,232 +18,143 @@ class TestThermostatTempController:
     JWT_TOKEN = jwt.encode({}, 'JWT_SECRET', algorithm='HS256')
     USER_ID = uuid.uuid4().hex
     CLAIMS = {AuthClaims.USER_ID: USER_ID}
-    TEMP_FAHR = 45.608
-    TEMP_CEL = 7.56
 
     def setup_method(self):
         self.PREFERENCE = Preference(tempUnit='fahrenheit', measureUnit='imperial', city='Des Moines')
 
-    def test_get_user_temp__should_call_is_jwt_valid(self, mock_jwt, mock_db, mock_temp, mock_file):
+    def test_get_user_temp__should_call_is_jwt_valid(self, mock_jwt, mock_db, mock_temp, mock_file, mock_service):
         get_user_temp(self.JWT_TOKEN)
 
         mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.JWT_TOKEN)
 
-    def test_get_user_temp__should_call_get_preferences_by_user(self, mock_jwt, mock_db, mock_temp, mock_file):
+    def test_get_user_temp__should_call_get_preferences_by_user(self, mock_jwt, mock_db, mock_temp, mock_file, mock_service):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
+
         get_user_temp(self.JWT_TOKEN)
 
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.assert_called_with(self.USER_ID)
 
-    def test_get_user_temp__should_return_response_from_get_user_temp(self, mock_jwt, mock_db, mock_temp, mock_file):
-        mock_jwt.return_value = self.CLAIMS
-        expected_temp = 23.45
+    def test_get_user_temp__should_compute_internal_temp_from_temperature_file(self, mock_jwt, mock_db, mock_temp, mock_file, mock_service):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
-        mock_temp.return_value = expected_temp
+        temp_text = ['line1', 'line2']
+        mock_file.return_value = temp_text
 
-        actual = get_user_temp(self.JWT_TOKEN)
+        get_user_temp(self.JWT_TOKEN)
 
-        assert actual.currentTemp == expected_temp
-        assert actual.isFahrenheit is True
+        mock_temp.assert_called_with(temp_text, True)
 
-    def test_get_user_temp__should_return_none_current_temp_when_sensor_unavailable(self, mock_jwt, mock_db, mock_temp, mock_file):
-        mock_jwt.return_value = self.CLAIMS
+    def test_get_user_temp__should_delegate_to_service_with_internal_temp_and_fahrenheit_flag(self, mock_jwt, mock_db, mock_temp, mock_file, mock_service):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
-        mock_temp.return_value = None
-        mock_file.return_value = {'desiredTemp': None, 'mode': Automation.HVAC.MODE.TURN_OFF}
+        mock_temp.return_value = 23.45
 
-        actual = get_user_temp(self.JWT_TOKEN)
+        get_user_temp(self.JWT_TOKEN)
 
-        assert actual.currentTemp is None
-        assert actual.desiredTemp is None
+        mock_service.build_thermostat_state.assert_called_with(23.45, True)
 
-    def test_get_user_temp__should_return_thermostat_temps_in_celsius(self, mock_jwt, mock_db, mock_temp, mock_file):
-        mock_jwt.return_value = self.CLAIMS
+    def test_get_user_temp__should_pass_celsius_flag_when_unit_is_celsius(self, mock_jwt, mock_db, mock_temp, mock_file, mock_service):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         self.PREFERENCE.tempUnit = 'celsius'
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
+        mock_temp.return_value = 7.56
 
-        actual = get_user_temp(self.JWT_TOKEN)
+        get_user_temp(self.JWT_TOKEN)
 
-        assert actual.minThermostatTemp == 10.0
-        assert actual.maxThermostatTemp == 32.0
+        mock_service.build_thermostat_state.assert_called_with(7.56, False)
 
-    def test_get_user_temp__should_return_thermostat_temps_in_fahrenheit(self, mock_jwt, mock_db, mock_temp, mock_file):
-        mock_jwt.return_value = self.CLAIMS
-        self.PREFERENCE.tempUnit = 'fahrenheit'
+    def test_get_user_temp__should_return_response_from_service(self, mock_jwt, mock_db, mock_temp, mock_file, mock_service):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
+        expected = object()
+        mock_service.build_thermostat_state.return_value = expected
 
         actual = get_user_temp(self.JWT_TOKEN)
 
-        assert actual.minThermostatTemp == 50.0
-        assert actual.maxThermostatTemp == 90.0
-
-    def test_get_user_temp__should_return_the_hvac_mode(self, mock_jwt, mock_db, mock_temp, mock_file):
-        mock_jwt.return_value = self.CLAIMS
-        mock_file.return_value = {'desiredTemp': 22.2, 'mode': Automation.HVAC.MODE.HEATING}
-
-        actual = get_user_temp(self.JWT_TOKEN)
-
-        assert actual.mode == Automation.HVAC.MODE.HEATING
-
-    def test_get_user_temp__should_return_the_hvac_desired_temp_in_fahrenheit(self, mock_jwt, mock_db, mock_temp, mock_file):
-        mock_jwt.return_value = self.CLAIMS
-        mock_file.return_value = {'desiredTemp': self.TEMP_CEL, 'mode': Automation.HVAC.MODE.COOLING}
-        self.PREFERENCE.tempUnit = 'fahrenheit'
-        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
-
-        actual = get_user_temp(self.JWT_TOKEN)
-
-        assert actual.desiredTemp == self.TEMP_FAHR
-
-    def test_get_user_temp__should_return_the_hvac_desired_temp_in_celsius(self, mock_jwt, mock_db, mock_temp, mock_file):
-        mock_jwt.return_value = self.CLAIMS
-        mock_file.return_value = {'desiredTemp': self.TEMP_CEL, 'mode': Automation.HVAC.MODE.HEATING}
-        self.PREFERENCE.tempUnit = 'celsius'
-        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
-
-        actual = get_user_temp(self.JWT_TOKEN)
-
-        assert actual.desiredTemp == self.TEMP_CEL
-
-    def test_get_user_temp__should_return_the_hvac_internal_temp_when_desired_temp_not_set(self, mock_jwt, mock_db, mock_temp, mock_file):
-        mock_jwt.return_value = self.CLAIMS
-        mock_file.return_value = {'desiredTemp': None, 'mode': Automation.HVAC.MODE.HEATING}
-        self.PREFERENCE.tempUnit = 'celsius'
-        mock_temp.return_value = self.TEMP_FAHR
-        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
-
-        actual = get_user_temp(self.JWT_TOKEN)
-
-        assert actual.desiredTemp == self.TEMP_FAHR
+        assert actual is expected
 
 
-@patch('svc.controllers.thermostat_controller.weather_request')
+@patch('svc.controllers.thermostat_controller.thermostat_service')
 @patch('svc.controllers.thermostat_controller.UserRepository')
 @patch('svc.controllers.thermostat_controller.AuthClient')
 class TestThermostatForecastController:
     JWT_TOKEN = jwt.encode({}, 'JWT_SECRET', algorithm='HS256')
     USER_ID = uuid.uuid4().hex
     CLAIMS = {AuthClaims.USER_ID: USER_ID}
-    LATITUDE = 41.5868
-    LONGITUDE = -93.625
 
     def setup_method(self):
-        self.CITY_PREFERENCE = Preference(tempUnit='fahrenheit', measureUnit='imperial', city='Des Moines', state='IA')
-        self.COORDS_PREFERENCE = Preference(
-            tempUnit='fahrenheit', measureUnit='imperial', city='Des Moines', state='IA',
-            latitude=self.LATITUDE, longitude=self.LONGITUDE,
-        )
+        self.PREFERENCE = Preference(tempUnit='fahrenheit', measureUnit='imperial', city='Des Moines', state='IA')
 
-    def test_get_user_forecast__should_validate_jwt_token(self, mock_jwt, mock_db, mock_weather):
+    def test_get_user_forecast__should_validate_jwt_token(self, mock_jwt, mock_db, mock_service):
         get_user_forecast(self.JWT_TOKEN)
+
         mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.JWT_TOKEN)
 
-    def test_get_user_forecast__should_get_the_preferences_by_user(self, mock_jwt, mock_db, mock_weather):
+    def test_get_user_forecast__should_get_the_preferences_by_user(self, mock_jwt, mock_db, mock_service):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
+
         get_user_forecast(self.JWT_TOKEN)
+
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.assert_called_with(self.USER_ID)
 
-    def test_get_user_forecast__should_call_get_weather_by_coords_when_coords_saved(self, mock_jwt, mock_db, mock_weather):
+    def test_get_user_forecast__should_delegate_to_service_with_preference(self, mock_jwt, mock_db, mock_service):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.COORDS_PREFERENCE
-        get_user_forecast(self.JWT_TOKEN)
-        mock_weather.get_weather_by_coords.assert_called_with(self.LATITUDE, self.LONGITUDE, self.COORDS_PREFERENCE.tempUnit)
-        mock_weather.get_weather_by_city.assert_not_called()
+        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
 
-    def test_get_user_forecast__should_call_get_weather_by_city_when_coords_missing(self, mock_jwt, mock_db, mock_weather):
-        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.CITY_PREFERENCE
         get_user_forecast(self.JWT_TOKEN)
-        mock_weather.get_weather_by_city.assert_called_with(self.CITY_PREFERENCE.city, self.CITY_PREFERENCE.tempUnit, self.CITY_PREFERENCE.state)
-        mock_weather.get_weather_by_coords.assert_not_called()
 
-    def test_get_user_forecast__should_fallback_to_city_when_only_latitude_saved(self, mock_jwt, mock_db, mock_weather):
-        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        partial = Preference(tempUnit='fahrenheit', measureUnit='imperial', city='Des Moines', state='IA', latitude=self.LATITUDE)
-        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = partial
-        get_user_forecast(self.JWT_TOKEN)
-        mock_weather.get_weather_by_city.assert_called_with(partial.city, partial.tempUnit, partial.state)
-        mock_weather.get_weather_by_coords.assert_not_called()
+        mock_service.get_forecast_for_preference.assert_called_with(self.PREFERENCE)
 
-    def test_get_user_forecast__should_fallback_to_city_when_only_longitude_saved(self, mock_jwt, mock_db, mock_weather):
+    def test_get_user_forecast__should_return_response_from_service(self, mock_jwt, mock_db, mock_service):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        partial = Preference(tempUnit='fahrenheit', measureUnit='imperial', city='Des Moines', state='IA', longitude=self.LONGITUDE)
-        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = partial
-        get_user_forecast(self.JWT_TOKEN)
-        mock_weather.get_weather_by_city.assert_called_with(partial.city, partial.tempUnit, partial.state)
-        mock_weather.get_weather_by_coords.assert_not_called()
-
-    def test_get_user_forecast__should_return_response_from_coords_path(self, mock_jwt, mock_db, mock_weather):
-        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.COORDS_PREFERENCE
+        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
         response = {'myData': 'some value'}
-        mock_weather.get_weather_by_coords.return_value = response
-        actual = get_user_forecast(self.JWT_TOKEN)
-        assert actual == response
+        mock_service.get_forecast_for_preference.return_value = response
 
-    def test_get_user_forecast__should_return_response_from_city_path(self, mock_jwt, mock_db, mock_weather):
-        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.CITY_PREFERENCE
-        response = {'myData': 'some value'}
-        mock_weather.get_weather_by_city.return_value = response
         actual = get_user_forecast(self.JWT_TOKEN)
+
         assert actual == response
 
 
-@patch('svc.controllers.thermostat_controller.weather_request')
+@patch('svc.controllers.thermostat_controller.thermostat_service')
 @patch('svc.controllers.thermostat_controller.UserRepository')
 @patch('svc.controllers.thermostat_controller.AuthClient')
 class TestThermostatExtendedForecastController:
     JWT_TOKEN = jwt.encode({}, 'JWT_SECRET', algorithm='HS256')
     USER_ID = uuid.uuid4().hex
     CLAIMS = {AuthClaims.USER_ID: USER_ID}
-    LATITUDE = 41.5868
-    LONGITUDE = -93.625
 
     def setup_method(self):
-        self.CITY_PREFERENCE = Preference(tempUnit='fahrenheit', measureUnit='imperial', city='Des Moines', state='IA')
-        self.COORDS_PREFERENCE = Preference(
-            tempUnit='fahrenheit', measureUnit='imperial', city='Des Moines', state='IA',
-            latitude=self.LATITUDE, longitude=self.LONGITUDE,
-        )
+        self.PREFERENCE = Preference(tempUnit='fahrenheit', measureUnit='imperial', city='Des Moines', state='IA')
 
-    def test_get_user_extended_forecast__should_validate_jwt_token(self, mock_jwt, mock_db, mock_weather):
+    def test_get_user_extended_forecast__should_validate_jwt_token(self, mock_jwt, mock_db, mock_service):
         get_user_extended_forecast(self.JWT_TOKEN)
+
         mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.JWT_TOKEN)
 
-    def test_get_user_extended_forecast__should_get_preferences_by_user(self, mock_jwt, mock_db, mock_weather):
+    def test_get_user_extended_forecast__should_get_preferences_by_user(self, mock_jwt, mock_db, mock_service):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
+
         get_user_extended_forecast(self.JWT_TOKEN)
+
         mock_db.return_value.__enter__.return_value.get_preferences_by_user.assert_called_with(self.USER_ID)
 
-    def test_get_user_extended_forecast__should_call_get_extended_weather_by_coords_when_coords_saved(self, mock_jwt, mock_db, mock_weather):
+    def test_get_user_extended_forecast__should_delegate_to_service_with_preference(self, mock_jwt, mock_db, mock_service):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.COORDS_PREFERENCE
+        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
+
         get_user_extended_forecast(self.JWT_TOKEN)
-        mock_weather.get_extended_weather_by_coords.assert_called_with(self.LATITUDE, self.LONGITUDE, self.COORDS_PREFERENCE.tempUnit)
-        mock_weather.get_extended_weather_by_city.assert_not_called()
 
-    def test_get_user_extended_forecast__should_call_get_extended_weather_by_city_when_coords_missing(self, mock_jwt, mock_db, mock_weather):
-        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.CITY_PREFERENCE
-        get_user_extended_forecast(self.JWT_TOKEN)
-        mock_weather.get_extended_weather_by_city.assert_called_with(self.CITY_PREFERENCE.city, self.CITY_PREFERENCE.tempUnit, self.CITY_PREFERENCE.state)
-        mock_weather.get_extended_weather_by_coords.assert_not_called()
+        mock_service.get_extended_forecast_for_preference.assert_called_with(self.PREFERENCE)
 
-    def test_get_user_extended_forecast__should_return_response_from_coords_path(self, mock_jwt, mock_db, mock_weather):
+    def test_get_user_extended_forecast__should_return_response_from_service(self, mock_jwt, mock_db, mock_service):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.COORDS_PREFERENCE
+        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
         response = {'forecast': []}
-        mock_weather.get_extended_weather_by_coords.return_value = response
-        actual = get_user_extended_forecast(self.JWT_TOKEN)
-        assert actual == response
+        mock_service.get_extended_forecast_for_preference.return_value = response
 
-    def test_get_user_extended_forecast__should_return_response_from_city_path(self, mock_jwt, mock_db, mock_weather):
-        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        mock_db.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.CITY_PREFERENCE
-        response = {'forecast': []}
-        mock_weather.get_extended_weather_by_city.return_value = response
         actual = get_user_extended_forecast(self.JWT_TOKEN)
+
         assert actual == response
 
 

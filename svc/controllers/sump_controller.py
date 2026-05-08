@@ -1,18 +1,13 @@
 from werkzeug.exceptions import Unauthorized
 
-from svc.controllers.push_notification_controller import notify_household_for_device
 from svc.db.repositories.device_repository import DeviceRepository
 from svc.db.repositories.user_repository import UserRepository
 from svc.constants.home_automation import AuthClaims
 from svc.db.repositories.sump_repository import SumpRepository
 from svc.models.sump import SumpLevel, SumpReading, SumpReadings, SumpDailyReading, SumpDailyReadings
+from svc.services.notification_service import notify_sump_alert
 from svc.utilities.conversion_utils import convert_to_imperial
 from svc.utilities.auth_utils import AuthClient
-
-
-SUMP_ALERT_TAG = 'sump-alert'
-SUMP_WARNING_LEVEL = 2
-SUMP_CRITICAL_LEVEL = 3
 
 
 def get_sump_level(bearer_token: str):
@@ -64,9 +59,7 @@ def save_current_level(api_key: str, request_data: dict):
         raise Unauthorized()
     with SumpRepository() as database:
         database.insert_current_sump_level(device_id, request_data)
-    alert_level = request_data.get('alert_level')
-    if alert_level == SUMP_WARNING_LEVEL or alert_level == SUMP_CRITICAL_LEVEL:
-        notify_household_for_device(device_id, __build_sump_payload(alert_level))
+    notify_sump_alert(device_id, request_data.get('alert_level'))
 
 
 def save_average_level(api_key: str, request_data: dict):
@@ -76,9 +69,3 @@ def save_average_level(api_key: str, request_data: dict):
         raise Unauthorized()
     with SumpRepository() as database:
         database.insert_average_sump_level(device_id, request_data)
-
-
-def __build_sump_payload(alert_level):
-    if alert_level == SUMP_CRITICAL_LEVEL:
-        return {'title': 'Sump Pump Alert', 'body': 'Critical water level detected in the sump pit.', 'tag': SUMP_ALERT_TAG, 'data': {'warningLevel': alert_level}}
-    return {'title': 'Sump Pump Warning', 'body': 'Elevated water level detected in the sump pit.', 'tag': SUMP_ALERT_TAG, 'data': {'warningLevel': alert_level}}
