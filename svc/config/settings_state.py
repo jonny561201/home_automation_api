@@ -44,6 +44,10 @@ class Settings:
         return _get_setting('VAPID_PRIVATE_KEY', 'VapidPrivateKey', self._settings)
 
     @property
+    def vapid_subject(self):
+        return _get_setting('VAPID_SUBJECT', 'VapidSubject', self._settings)
+
+    @property
     def temp_file_name(self):
         return _get_setting('TEMP_FILE_NAME', 'TempFileName', self._settings)
 
