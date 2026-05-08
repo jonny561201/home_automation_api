@@ -159,3 +159,13 @@ class AverageSumpPumpLevel(Base):
     create_day = Column(DATE, nullable=False)
 
     device = relationship('Devices', foreign_keys='AverageSumpPumpLevel.device_id')
+
+
+class PushSubscription(Base):
+    __tablename__ = 'push_subscriptions'
+
+    id = Column(UUID, nullable=False, primary_key=True, server_default=sqlalchemy.text("gen_random_uuid()"))
+    user_id = Column(UUID, ForeignKey(UserInformation.id), nullable=False)
+    endpoint = Column(String, nullable=False, unique=True)
+    p256dh_key = Column(String, nullable=False)
+    auth_key = Column(String, nullable=False)
