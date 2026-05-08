@@ -169,4 +169,27 @@ class TestDeviceRepository:
 
         assert actual is None
 
+    def test_get_user_id_by_device__should_return_user_id(self):
+        device = Devices(id=str(uuid.uuid4()), api_key='k', user_id=self.USER_ID, ip_address=self.IP_ADDRESS, ip_port=self.IP_PORT, name=self.DEVICE_NAME)
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = device
+
+        actual = self.DATABASE.get_user_id_by_device(str(device.id))
+
+        assert actual == self.USER_ID
+
+    def test_get_user_id_by_device__should_return_none_when_no_device(self):
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
+
+        actual = self.DATABASE.get_user_id_by_device('missing')
+
+        assert actual is None
+
+    def test_get_user_id_by_device__should_return_none_when_user_id_missing(self):
+        device = Devices(id=str(uuid.uuid4()), api_key='k', user_id=None, ip_address=self.IP_ADDRESS, ip_port=self.IP_PORT, name=self.DEVICE_NAME)
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = device
+
+        actual = self.DATABASE.get_user_id_by_device(str(device.id))
+
+        assert actual is None
+
 

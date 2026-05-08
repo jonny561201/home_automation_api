@@ -87,6 +87,13 @@ class DeviceRepository(DatabaseBase):
         device = self.session.execute(stmt).scalars().first()
         return str(device.id) if device else None
 
+    def get_user_id_by_device(self, device_id):
+        stmt = select(Devices).filter_by(id=device_id)
+        device = self.session.execute(stmt).scalars().first()
+        if device is None or device.user_id is None:
+            return None
+        return str(device.user_id)
+
     def get_existing_api_key(self, name, device_type_name):
         device_type = self._get_device_type(device_type_name)
         existing = self._get_device_by_name(name, device_type.id)

@@ -41,3 +41,27 @@ class TestPushSubscriptionRepository:
         self.DATABASE.delete_subscription(self.USER_ID, self.ENDPOINT)
 
         self.SESSION.execute.assert_called_once()
+
+    def test_delete_subscription_by_endpoint__should_raise_bad_request_when_endpoint_is_none(self):
+        with pytest.raises(BadRequest):
+            self.DATABASE.delete_subscription_by_endpoint(None)
+        self.SESSION.execute.assert_not_called()
+
+    def test_delete_subscription_by_endpoint__should_execute_statement(self):
+        self.DATABASE.delete_subscription_by_endpoint(self.ENDPOINT)
+
+        self.SESSION.execute.assert_called_once()
+
+    def test_get_subscriptions_for_household__should_raise_bad_request_when_user_id_is_none(self):
+        with pytest.raises(BadRequest):
+            self.DATABASE.get_subscriptions_for_household(None)
+        self.SESSION.execute.assert_not_called()
+
+    def test_get_subscriptions_for_household__should_return_query_results(self):
+        results = [mock.MagicMock(), mock.MagicMock()]
+        self.SESSION.execute.return_value.scalars.return_value.all.return_value = results
+
+        actual = self.DATABASE.get_subscriptions_for_household(self.USER_ID)
+
+        self.SESSION.execute.assert_called_once()
+        assert actual == results

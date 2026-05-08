@@ -9,6 +9,7 @@ from svc.models.sump import SumpLevel, SumpReading, SumpReadings, SumpDailyReadi
 from svc.controllers.sump_controller import get_sump_level, get_depth_history, get_daily_averages, save_current_level, save_average_level
 
 
+@patch('svc.controllers.sump_controller.notify_household_for_device')
 @patch('svc.controllers.sump_controller.AuthClient')
 @patch('svc.controllers.sump_controller.UserRepository')
 @patch('svc.controllers.sump_controller.SumpRepository')
@@ -22,38 +23,38 @@ class TestSumpController:
         self.IMPERIAL_PREFERENCE = Preference(tempUnit='fahrenheit', measureUnit='imperial', city='Austin')
         self.METRIC_PREFERENCE = Preference(tempUnit='celsius', measureUnit='metric', city='Austin')
 
-    def test_get_sump_level__should_call_is_jwt_valid(self, mock_sump, mock_user, mock_jwt):
+    def test_get_sump_level__should_call_is_jwt_valid(self, mock_sump, mock_user, mock_jwt, mock_notify):
         get_sump_level(self.BEARER_TOKEN)
 
         mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
-    def test_get_sump_level__should_call_get_sump_device_id_by_user(self, mock_sump, mock_user, mock_jwt):
+    def test_get_sump_level__should_call_get_sump_device_id_by_user(self, mock_sump, mock_user, mock_jwt, mock_notify):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         get_sump_level(self.BEARER_TOKEN)
 
         mock_sump.return_value.__enter__.return_value.get_sump_device_id_by_user.assert_called_with(self.USER_ID)
 
-    def test_get_sump_level__should_call_get_current_sump_level_by_device(self, mock_sump, mock_user, mock_jwt):
+    def test_get_sump_level__should_call_get_current_sump_level_by_device(self, mock_sump, mock_user, mock_jwt, mock_notify):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         mock_sump.return_value.__enter__.return_value.get_sump_device_id_by_user.return_value = self.DEVICE_ID
         get_sump_level(self.BEARER_TOKEN)
 
         mock_sump.return_value.__enter__.return_value.get_current_sump_level_by_device.assert_called_with(self.DEVICE_ID)
 
-    def test_get_sump_level__should_call_get_average_sump_level_by_device(self, mock_sump, mock_user, mock_jwt):
+    def test_get_sump_level__should_call_get_average_sump_level_by_device(self, mock_sump, mock_user, mock_jwt, mock_notify):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         mock_sump.return_value.__enter__.return_value.get_sump_device_id_by_user.return_value = self.DEVICE_ID
         get_sump_level(self.BEARER_TOKEN)
 
         mock_sump.return_value.__enter__.return_value.get_average_sump_level_by_device.assert_called_with(self.DEVICE_ID)
 
-    def test_get_sump_level__should_call_get_preferences_by_user(self, mock_sump, mock_user, mock_jwt):
+    def test_get_sump_level__should_call_get_preferences_by_user(self, mock_sump, mock_user, mock_jwt, mock_notify):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         get_sump_level(self.BEARER_TOKEN)
 
         mock_user.return_value.__enter__.return_value.get_preferences_by_user.assert_called_with(self.USER_ID)
 
-    def test_get_sump_level__should_return_response_with_distance(self, mock_sump, mock_user, mock_jwt):
+    def test_get_sump_level__should_return_response_with_distance(self, mock_sump, mock_user, mock_jwt, mock_notify):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         distance = Decimal('3.14159')
         mock_user.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.METRIC_PREFERENCE
@@ -66,7 +67,7 @@ class TestSumpController:
 
         assert actual == SumpLevel(currentDepth=float(distance), depthUnit='cm', warningLevel=0, averageDepth=float(distance))
 
-    def test_get_sump_level__should_return_response_with_null_average_when_no_average_exists(self, mock_sump, mock_user, mock_jwt):
+    def test_get_sump_level__should_return_response_with_null_average_when_no_average_exists(self, mock_sump, mock_user, mock_jwt, mock_notify):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         mock_user.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.METRIC_PREFERENCE
         current = MagicMock(distance=Decimal('3.14159'), warning_level=1)
@@ -77,7 +78,7 @@ class TestSumpController:
 
         assert actual == SumpLevel(currentDepth=float(Decimal('3.14159')), depthUnit='cm', warningLevel=1, averageDepth=None, latest_date=None)
 
-    def test_get_sump_level__should_return_response_with_distance_converted_to_imperial(self, mock_sump, mock_user, mock_jwt):
+    def test_get_sump_level__should_return_response_with_distance_converted_to_imperial(self, mock_sump, mock_user, mock_jwt, mock_notify):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
         mock_user.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.IMPERIAL_PREFERENCE
         current = MagicMock(distance=Decimal('2.54'), warning_level=0)
@@ -90,7 +91,7 @@ class TestSumpController:
         assert actual == SumpLevel(currentDepth=1.0, depthUnit='in', warningLevel=0, averageDepth=2.0)
 
     @patch('svc.controllers.sump_controller.DeviceRepository')
-    def test_save_current_level__should_call_get_device_id_by_api_key(self, mock_device, mock_sump, mock_user, mock_jwt):
+    def test_save_current_level__should_call_get_device_id_by_api_key(self, mock_device, mock_sump, mock_user, mock_jwt, mock_notify):
         mock_device.return_value.__enter__.return_value.get_device_id_by_api_key.return_value = self.DEVICE_ID
         depth_info = {'depth': 'test'}
 
@@ -99,7 +100,7 @@ class TestSumpController:
         mock_device.return_value.__enter__.return_value.get_device_id_by_api_key.assert_called_with(self.BEARER_TOKEN)
 
     @patch('svc.controllers.sump_controller.DeviceRepository')
-    def test_save_current_level__should_call_insert_current_sump_level(self, mock_device, mock_sump, mock_user, mock_jwt):
+    def test_save_current_level__should_call_insert_current_sump_level(self, mock_device, mock_sump, mock_user, mock_jwt, mock_notify):
         mock_device.return_value.__enter__.return_value.get_device_id_by_api_key.return_value = self.DEVICE_ID
         depth_info = {'depth': 'test'}
 
@@ -108,7 +109,41 @@ class TestSumpController:
         mock_sump.return_value.__enter__.return_value.insert_current_sump_level.assert_called_with(self.DEVICE_ID, depth_info)
 
     @patch('svc.controllers.sump_controller.DeviceRepository')
-    def test_save_average_level__should_call_get_device_id_by_api_key(self, mock_device, mock_sump, mock_user, mock_jwt):
+    def test_save_current_level__should_not_notify_when_alert_level_is_below_warning(self, mock_device, mock_sump, mock_user, mock_jwt, mock_notify):
+        mock_device.return_value.__enter__.return_value.get_device_id_by_api_key.return_value = self.DEVICE_ID
+
+        save_current_level(self.BEARER_TOKEN, {'depth': 'test', 'alert_level': 1})
+
+        mock_notify.assert_not_called()
+
+    @patch('svc.controllers.sump_controller.DeviceRepository')
+    def test_save_current_level__should_not_notify_when_alert_level_missing(self, mock_device, mock_sump, mock_user, mock_jwt, mock_notify):
+        mock_device.return_value.__enter__.return_value.get_device_id_by_api_key.return_value = self.DEVICE_ID
+
+        save_current_level(self.BEARER_TOKEN, {'depth': 'test'})
+
+        mock_notify.assert_not_called()
+
+    @patch('svc.controllers.sump_controller.DeviceRepository')
+    def test_save_current_level__should_notify_with_warning_payload_when_alert_level_two(self, mock_device, mock_sump, mock_user, mock_jwt, mock_notify):
+        mock_device.return_value.__enter__.return_value.get_device_id_by_api_key.return_value = self.DEVICE_ID
+
+        save_current_level(self.BEARER_TOKEN, {'depth': 'test', 'alert_level': 2})
+
+        expected = {'title': 'Sump Pump Warning', 'body': 'Elevated water level detected in the sump pit.', 'tag': 'sump-alert', 'data': {'warningLevel': 2}}
+        mock_notify.assert_called_with(self.DEVICE_ID, expected)
+
+    @patch('svc.controllers.sump_controller.DeviceRepository')
+    def test_save_current_level__should_notify_with_alert_payload_when_alert_level_three(self, mock_device, mock_sump, mock_user, mock_jwt, mock_notify):
+        mock_device.return_value.__enter__.return_value.get_device_id_by_api_key.return_value = self.DEVICE_ID
+
+        save_current_level(self.BEARER_TOKEN, {'depth': 'test', 'alert_level': 3})
+
+        expected = {'title': 'Sump Pump Alert', 'body': 'Critical water level detected in the sump pit.', 'tag': 'sump-alert', 'data': {'warningLevel': 3}}
+        mock_notify.assert_called_with(self.DEVICE_ID, expected)
+
+    @patch('svc.controllers.sump_controller.DeviceRepository')
+    def test_save_average_level__should_call_get_device_id_by_api_key(self, mock_device, mock_sump, mock_user, mock_jwt, mock_notify):
         mock_device.return_value.__enter__.return_value.get_device_id_by_api_key.return_value = self.DEVICE_ID
         depth_info = {'depth': 'test'}
 
@@ -117,13 +152,21 @@ class TestSumpController:
         mock_device.return_value.__enter__.return_value.get_device_id_by_api_key.assert_called_with(self.BEARER_TOKEN)
 
     @patch('svc.controllers.sump_controller.DeviceRepository')
-    def test_save_average_level__should_call_insert_average_sump_level(self, mock_device, mock_sump, mock_user, mock_jwt):
+    def test_save_average_level__should_call_insert_average_sump_level(self, mock_device, mock_sump, mock_user, mock_jwt, mock_notify):
         mock_device.return_value.__enter__.return_value.get_device_id_by_api_key.return_value = self.DEVICE_ID
         depth_info = {'depth': 'test'}
 
         save_average_level(self.BEARER_TOKEN, depth_info)
 
         mock_sump.return_value.__enter__.return_value.insert_average_sump_level.assert_called_with(self.DEVICE_ID, depth_info)
+
+    @patch('svc.controllers.sump_controller.DeviceRepository')
+    def test_save_average_level__should_not_notify(self, mock_device, mock_sump, mock_user, mock_jwt, mock_notify):
+        mock_device.return_value.__enter__.return_value.get_device_id_by_api_key.return_value = self.DEVICE_ID
+
+        save_average_level(self.BEARER_TOKEN, {'depth': 'test'})
+
+        mock_notify.assert_not_called()
 
 
 @patch('svc.controllers.sump_controller.AuthClient')
