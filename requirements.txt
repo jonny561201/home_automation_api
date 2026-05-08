@@ -10,3 +10,4 @@ RPi.GPIO==0.7.1
 uwsgi==2.0.31
 yoyo-migrations==7.2.1
 zeroconf==0.148.0
+pywebpush==2.0.0
