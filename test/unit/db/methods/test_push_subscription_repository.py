@@ -59,7 +59,7 @@ class TestPushSubscriptionRepository:
 
     def test_get_subscriptions_for_household__should_return_query_results(self):
         results = [mock.MagicMock(), mock.MagicMock()]
-        self.SESSION.execute.return_value.scalars.return_value.all.return_value = results
+        self.SESSION.execute.return_value.all.return_value = results
 
         actual = self.DATABASE.get_subscriptions_for_household(self.USER_ID)
 

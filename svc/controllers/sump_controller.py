@@ -30,7 +30,8 @@ def get_sump_level(bearer_token: str):
             averageDepth=convert_to_imperial(average_depth, is_imperial) if average_depth else None,
             depthUnit='in' if is_imperial else 'cm',
             warningLevel=warning_level,
-            latest_date=latest_date
+            latest_date=latest_date,
+            trend=_compute_trend(current_depth, average_depth)
         )
 
 
@@ -69,3 +70,13 @@ def save_average_level(api_key: str, request_data: dict):
         raise Unauthorized()
     with SumpRepository() as database:
         database.insert_average_sump_level(device_id, request_data)
+
+
+def _compute_trend(current_depth, average_depth):
+    if average_depth is None:
+        return 'stable'
+    if current_depth < average_depth:
+        return 'rising'
+    if current_depth > average_depth:
+        return 'falling'
+    return 'stable'

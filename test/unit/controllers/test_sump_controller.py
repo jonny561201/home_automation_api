@@ -88,7 +88,54 @@ class TestSumpController:
 
         actual = get_sump_level(self.BEARER_TOKEN)
 
-        assert actual == SumpLevel(currentDepth=1.0, depthUnit='in', warningLevel=0, averageDepth=2.0)
+        assert actual == SumpLevel(currentDepth=1.0, depthUnit='in', warningLevel=0, averageDepth=2.0, trend='rising')
+
+    def test_get_sump_level__should_return_rising_trend_when_current_below_average(self, mock_sump, mock_user, mock_jwt, mock_notify):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
+        mock_user.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.METRIC_PREFERENCE
+        current = MagicMock(distance=Decimal('3.0'), warning_level=0)
+        average = MagicMock(distance=Decimal('5.0'), create_day=None)
+        mock_sump.return_value.__enter__.return_value.get_current_sump_level_by_device.return_value = current
+        mock_sump.return_value.__enter__.return_value.get_average_sump_level_by_device.return_value = average
+
+        actual = get_sump_level(self.BEARER_TOKEN)
+
+        assert actual.trend == 'rising'
+
+    def test_get_sump_level__should_return_falling_trend_when_current_above_average(self, mock_sump, mock_user, mock_jwt, mock_notify):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
+        mock_user.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.METRIC_PREFERENCE
+        current = MagicMock(distance=Decimal('7.0'), warning_level=0)
+        average = MagicMock(distance=Decimal('5.0'), create_day=None)
+        mock_sump.return_value.__enter__.return_value.get_current_sump_level_by_device.return_value = current
+        mock_sump.return_value.__enter__.return_value.get_average_sump_level_by_device.return_value = average
+
+        actual = get_sump_level(self.BEARER_TOKEN)
+
+        assert actual.trend == 'falling'
+
+    def test_get_sump_level__should_return_stable_trend_when_equal(self, mock_sump, mock_user, mock_jwt, mock_notify):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
+        mock_user.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.METRIC_PREFERENCE
+        current = MagicMock(distance=Decimal('5.0'), warning_level=0)
+        average = MagicMock(distance=Decimal('5.0'), create_day=None)
+        mock_sump.return_value.__enter__.return_value.get_current_sump_level_by_device.return_value = current
+        mock_sump.return_value.__enter__.return_value.get_average_sump_level_by_device.return_value = average
+
+        actual = get_sump_level(self.BEARER_TOKEN)
+
+        assert actual.trend == 'stable'
+
+    def test_get_sump_level__should_return_stable_trend_when_no_average(self, mock_sump, mock_user, mock_jwt, mock_notify):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
+        mock_user.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.METRIC_PREFERENCE
+        current = MagicMock(distance=Decimal('5.0'), warning_level=0)
+        mock_sump.return_value.__enter__.return_value.get_current_sump_level_by_device.return_value = current
+        mock_sump.return_value.__enter__.return_value.get_average_sump_level_by_device.return_value = None
+
+        actual = get_sump_level(self.BEARER_TOKEN)
+
+        assert actual.trend == 'stable'
 
     @patch('svc.controllers.sump_controller.DeviceRepository')
     def test_save_current_level__should_call_get_device_id_by_api_key(self, mock_device, mock_sump, mock_user, mock_jwt, mock_notify):

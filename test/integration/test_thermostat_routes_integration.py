@@ -52,7 +52,8 @@ class TestThermostatRoutesIntegration:
         actual = self.TEST_CLIENT.get(f'thermostat/temperature', headers=self.HEADERS)
 
         assert actual.status_code == 200
-        assert {'currentTemp', 'mode', 'minThermostatTemp', 'maxThermostatTemp', 'isFahrenheit', 'desiredTemp'} == set(json.loads(actual.data))
+        assert {'currentTemp', 'mode', 'minThermostatTemp', 'maxThermostatTemp', 'isFahrenheit', 'desiredTemp',
+                'currentDesiredTemp', 'activeTask', 'nextTask'} == set(json.loads(actual.data))
 
     def test_set_temperature__should_return_unauthorized_error_when_invalid_user(self):
         actual = self.TEST_CLIENT.post('thermostat/temperature/desired', data='{}', headers={'Content-Type': 'application/json'})

@@ -38,6 +38,8 @@ class GarageDoor:
     duration: datetime
     doorName: str
     nodeId: str
+    isPastAlertTime: bool = False
+    openTooLong: bool = False
 
 
 @dataclass_json

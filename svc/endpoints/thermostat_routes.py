@@ -10,7 +10,8 @@ THERMOSTAT_BLUEPRINT = Blueprint('thermostat_blueprint', __name__, url_prefix='/
 @THERMOSTAT_BLUEPRINT.route('/temperature', methods=['GET'])
 def get_temperature():
     bearer_token = request.headers.get('Authorization')
-    temp = thermostat_controller.get_user_temp(bearer_token)
+    timezone_header = request.headers.get('X-User-Timezone')
+    temp = thermostat_controller.get_user_temp(bearer_token, timezone_header)
     return Response(temp.to_json(), status=200, mimetype=Mime.JSON)
 
 
@@ -31,5 +32,6 @@ def get_forecast_data():
 @THERMOSTAT_BLUEPRINT.route('/forecast/extended', methods=['GET'])
 def get_extended_forecast_data():
     bearer_token = request.headers.get('Authorization')
-    forecast = thermostat_controller.get_user_extended_forecast(bearer_token)
+    timezone_header = request.headers.get('X-User-Timezone')
+    forecast = thermostat_controller.get_user_extended_forecast(bearer_token, timezone_header)
     return Response(forecast.to_json(), status=200, mimetype=Mime.JSON)

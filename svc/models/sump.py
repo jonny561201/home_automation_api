@@ -18,6 +18,7 @@ class SumpLevel:
     averageDepth: Optional[float] = None
     latest_date: Optional[date] = None
     depthUnit: str = 'cm'
+    trend: str = 'stable'
 
 
 @dataclass_json

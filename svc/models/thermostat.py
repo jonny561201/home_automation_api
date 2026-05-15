@@ -5,6 +5,22 @@ from dataclasses_json import dataclass_json
 
 @dataclass_json
 @dataclass
+class ActiveTask:
+    startTemp: int
+    stopTemp: int
+    stop: str
+
+
+@dataclass_json
+@dataclass
+class NextTask:
+    startTemp: int
+    start: str
+    dayLabel: str
+
+
+@dataclass_json
+@dataclass
 class ThermostatState:
     currentTemp: Optional[float]
     isFahrenheit: bool
@@ -12,6 +28,9 @@ class ThermostatState:
     maxThermostatTemp: float
     mode: str
     desiredTemp: Optional[float]
+    currentDesiredTemp: Optional[float] = None
+    activeTask: Optional[ActiveTask] = None
+    nextTask: Optional[NextTask] = None
 
 
 @dataclass_json
@@ -30,6 +49,9 @@ class ForecastDay:
     minTemp: float
     maxTemp: float
     description: str
+    day: Optional[str] = None
+    high: Optional[int] = None
+    low: Optional[int] = None
 
 
 @dataclass_json

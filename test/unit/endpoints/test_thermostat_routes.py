@@ -32,7 +32,14 @@ class TestThermostatRoutes:
     def test_get_temperature__should_call_thermostat_controller_with_correct_parameters(self, mock_controller):
         get_temperature()
 
-        mock_controller.get_user_temp.assert_called_with(self.BEARER_TOKEN)
+        mock_controller.get_user_temp.assert_called_with(self.BEARER_TOKEN, None)
+
+    def test_get_temperature__should_forward_timezone_header_to_controller(self, mock_controller):
+        self.ctx = setup_request(self.app, self.ctx, headers={'Authorization': self.BEARER_TOKEN, 'X-User-Timezone': 'America/Chicago'})
+
+        get_temperature()
+
+        mock_controller.get_user_temp.assert_called_with(self.BEARER_TOKEN, 'America/Chicago')
 
     def test_get_temperature__should_return_response_from_controller(self, mock_controller):
         expected_temp = ThermostatState(currentTemp=12.0, isFahrenheit=False, minThermostatTemp=50.0, maxThermostatTemp=90.0, mode='test', desiredTemp=71.0)
@@ -71,6 +78,7 @@ class TestThermostatRoutes:
         get_forecast_data()
         mock_controller.get_user_forecast.assert_called_with(None)
 
+
     def test_get_forecast_data__should_return_success_response(self, mock_controller):
         mock_controller.get_user_forecast.return_value = self.DAILY_FORECAST
         actual = get_forecast_data()
@@ -89,13 +97,19 @@ class TestThermostatRoutes:
     def test_get_extended_forecast_data__should_call_controller_with_bearer_token(self, mock_controller):
         mock_controller.get_user_extended_forecast.return_value = ExtendedForecast(forecast=[])
         get_extended_forecast_data()
-        mock_controller.get_user_extended_forecast.assert_called_with(self.BEARER_TOKEN)
+        mock_controller.get_user_extended_forecast.assert_called_with(self.BEARER_TOKEN, None)
+
+    def test_get_extended_forecast_data__should_forward_timezone_header_to_controller(self, mock_controller):
+        self.ctx = setup_request(self.app, self.ctx, headers={'Authorization': self.BEARER_TOKEN, 'X-User-Timezone': 'America/Chicago'})
+        mock_controller.get_user_extended_forecast.return_value = ExtendedForecast(forecast=[])
+        get_extended_forecast_data()
+        mock_controller.get_user_extended_forecast.assert_called_with(self.BEARER_TOKEN, 'America/Chicago')
 
     def test_get_extended_forecast_data__should_call_controller_with_none_when_no_auth_header(self, mock_controller):
         self.ctx = setup_request(self.app, self.ctx)
         mock_controller.get_user_extended_forecast.return_value = ExtendedForecast(forecast=[])
         get_extended_forecast_data()
-        mock_controller.get_user_extended_forecast.assert_called_with(None)
+        mock_controller.get_user_extended_forecast.assert_called_with(None, None)
 
     def test_get_extended_forecast_data__should_return_success_response(self, mock_controller):
         mock_controller.get_user_extended_forecast.return_value = ExtendedForecast(forecast=[])

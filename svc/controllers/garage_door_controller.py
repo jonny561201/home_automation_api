@@ -4,18 +4,24 @@ from svc.constants.home_automation import Automation, AuthClaims
 from svc.db.repositories.device_repository import DeviceRepository
 from svc.db.repositories.user_repository import UserRepository
 from svc.models.garage import GarageState, GarageOverview
+from svc.services import garage_status_service
 from svc.utilities import api_utils
 from svc.utilities.auth_utils import AuthClient
 from svc.utilities.rabbitmq_client import publish
 
 
 def get_all_status(bearer_token):
-    info = _get_garage_device_info(bearer_token)
+    claims = AuthClient.get_instance().verify_jwt(bearer_token)
+    user_id = claims[AuthClaims.USER_ID]
+    with DeviceRepository() as db:
+        info = db.get_device_info('garage_door')
+    if not info:
+        raise FailedDependency(description="device not registered")
+    with UserRepository() as database:
+        preferences = database.get_preferences_by_user(user_id)
     url = f'http://{info.ip_address}:{info.ip_port}'
     status = api_utils.get_all_garage_doors_status(info.api_key, url)
-
-    user_doors = [_update_door(door, info) for door in status['doors'] if door['garageId'] in info.nodes]
-    status['doors'] = user_doors
+    status['doors'] = garage_status_service.build_user_doors(status['doors'], info, preferences.garageAlertTime)
     return GarageOverview.from_dict(status)
 
 
@@ -60,10 +66,3 @@ def _get_garage_device_info(bearer_token):
     if not info:
         raise FailedDependency(description="device not registered")
     return info
-
-
-def _update_door(door, info):
-    node = info.nodes.get(door['garageId'])
-    door['doorName'] = node.name
-    door['nodeId'] = node.nodeId
-    return door
