@@ -3,13 +3,14 @@ import json
 import pytest
 from mock import patch, ANY
 from requests import Response, ReadTimeout, ConnectTimeout
-from werkzeug.exceptions import FailedDependency, Unauthorized
+from werkzeug.exceptions import BadRequest, FailedDependency, Unauthorized
 
 from svc.config.settings_state import Settings
 from svc.utilities.api_utils import (get_city_coordinates, set_light_groups, set_light_state, get_light_groups,
                                      get_forecast_by_coords, get_extended_forecast_by_coords, exchange_auth0_code,
                                      create_auth0_user, assign_auth0_roles, send_auth0_password_reset,
-                                     register_home_automation_device, get_census_reverse_geocode)
+                                     register_home_automation_device, get_census_reverse_geocode,
+                                     stream_garage_door_events)
 
 
 @patch('svc.utilities.api_utils.requests')
@@ -609,3 +610,39 @@ class TestSendAuth0PasswordReset:
         with pytest.raises(FailedDependency):
             send_auth0_password_reset(self.EMAIL)
 
+
+@patch('svc.utilities.api_utils.requests')
+class TestStreamGarageDoorEvents:
+    API_KEY = 'fake-api-key'
+    BASE_URL = 'http://1.1.1.1:5001'
+    STATUS = {'coordinates': {'latitude': 1.0, 'longitude': 2.0}, 'doors': []}
+
+    def test_stream_garage_door_events__should_request_events_with_api_key_as_stream(self, mock_requests):
+        mock_requests.get.return_value.__enter__.return_value.status_code = 200
+        mock_requests.get.return_value.__enter__.return_value.iter_lines.return_value = []
+
+        list(stream_garage_door_events(self.API_KEY, self.BASE_URL))
+
+        mock_requests.get.assert_called_with(f'{self.BASE_URL}/garageDoor/events', headers={'X-API-Key': self.API_KEY}, stream=True, timeout=(5, 60))
+
+    def test_stream_garage_door_events__should_yield_parsed_data_lines(self, mock_requests):
+        mock_requests.get.return_value.__enter__.return_value.status_code = 200
+        mock_requests.get.return_value.__enter__.return_value.iter_lines.return_value = ['event: status', f'data: {json.dumps(self.STATUS)}', '']
+
+        actual = list(stream_garage_door_events(self.API_KEY, self.BASE_URL))
+
+        assert actual == [self.STATUS]
+
+    def test_stream_garage_door_events__should_ignore_heartbeat_comments(self, mock_requests):
+        mock_requests.get.return_value.__enter__.return_value.status_code = 200
+        mock_requests.get.return_value.__enter__.return_value.iter_lines.return_value = [': ping', '']
+
+        actual = list(stream_garage_door_events(self.API_KEY, self.BASE_URL))
+
+        assert actual == []
+
+    def test_stream_garage_door_events__should_raise_bad_request_when_garage_returns_failure(self, mock_requests):
+        mock_requests.get.return_value.__enter__.return_value.status_code = 401
+
+        with pytest.raises(BadRequest):
+            list(stream_garage_door_events(self.API_KEY, self.BASE_URL))

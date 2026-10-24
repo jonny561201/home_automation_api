@@ -1,0 +1,13 @@
+[Unit]
+Description=Home Automation SSE Service
+After=network.target
+
+[Service]
+EnvironmentFile=/home/pi/home_automation_api/serviceEnvVariables
+ExecStart=/home/pi/home_automation_api/venv/bin/uwsgi --ini /home/pi/home_automation_api/deployment/sse_wsgi.ini
+WorkingDirectory=/home/pi/home_automation_api
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target

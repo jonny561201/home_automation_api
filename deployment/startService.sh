@@ -5,6 +5,7 @@ WHITE='\033[0m'
 RED='\033[0;31m'
 
 HOME_AUTO_SERVICE_FILE=homeAutomation.service
+HOME_AUTO_SSE_SERVICE_FILE=homeAutomationSse.service
 
 
 function cloneServiceFiles {
@@ -39,18 +40,22 @@ function stopService {
     echo -e "${YELLOW}---------------Stopping Service---------------${WHITE}"
     sudo systemctl stop ${HOME_AUTO_SERVICE_FILE} || true
     sudo rm /lib/systemd/system/${HOME_AUTO_SERVICE_FILE} || true
+    sudo systemctl stop ${HOME_AUTO_SSE_SERVICE_FILE} || true
+    sudo rm /lib/systemd/system/${HOME_AUTO_SSE_SERVICE_FILE} || true
 }
 
 function copyServiceFile {
     echo  -e "${YELLOW}---------------Creating SystemD---------------${WHITE}"
     sudo chmod 666 ${HOME_AUTO_SERVICE_FILE}
     sudo yes | sudo cp ./deployment/${HOME_AUTO_SERVICE_FILE} /lib/systemd/system/${HOME_AUTO_SERVICE_FILE}
+    sudo yes | sudo cp ./deployment/${HOME_AUTO_SSE_SERVICE_FILE} /lib/systemd/system/${HOME_AUTO_SSE_SERVICE_FILE}
 }
 
 function configureSystemD {
     echo  -e "${YELLOW}---------------Configuring SystemD---------------${WHITE}"
     sudo systemctl daemon-reload
     sudo systemctl enable ${HOME_AUTO_SERVICE_FILE}
+    sudo systemctl enable ${HOME_AUTO_SSE_SERVICE_FILE}
 }
 
 function migrateDatabase {

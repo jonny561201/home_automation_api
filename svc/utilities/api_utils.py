@@ -1,9 +1,11 @@
+import json
 import socket
 
 import requests
 from werkzeug.exceptions import FailedDependency, BadRequest, Unauthorized
 
 from svc.config.settings_state import Settings
+from svc.constants.home_automation import Garage, Time
 from svc.utilities.string_utils import generate_password
 
 
@@ -73,6 +75,15 @@ def get_all_garage_doors_status(api_key, base_url):
         raise FailedDependency()
     __validate_garage_response(response)
     return response.json()
+
+
+def stream_garage_door_events(api_key, base_url):
+    header = {'X-API-Key': api_key}
+    with requests.get(f'{base_url}/garageDoor/events', headers=header, stream=True, timeout=(Time.FIVE_SECONDS, Garage.STREAM_READ_TIMEOUT_SECONDS)) as response:
+        __validate_garage_response(response)
+        for line in response.iter_lines(decode_unicode=True):
+            if line.startswith(__SSE_DATA_PREFIX):
+                yield json.loads(line[len(__SSE_DATA_PREFIX):])
 
 
 def cancel_garage_schedule(api_key, base_url, garage_id):
@@ -217,3 +228,6 @@ def __validate_response(response):
 def __validate_garage_response(response):
     if response.status_code > 299:
         raise BadRequest(description='Garage node returned a failure')
+
+
+__SSE_DATA_PREFIX = 'data: '

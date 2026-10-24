@@ -5,6 +5,7 @@ class Mime:
     XML = 'application/xml'
     JPG = 'image/jpeg'
     PNG = 'image/png'
+    EVENT_STREAM = 'text/event-stream'
 
 class Mode:
     BLOWER = 'blower'
@@ -25,6 +26,9 @@ class Garage:
     OPEN = True
     CLOSED = False
     QUEUE = 'home-automation-garage'
+    STREAM_HEARTBEAT_SECONDS = 20
+    STREAM_READ_TIMEOUT_SECONDS = 60
+    STREAM_RECONNECT_SECONDS = 5
 
 
 class Time:
