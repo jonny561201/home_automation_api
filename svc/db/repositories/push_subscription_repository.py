@@ -31,5 +31,5 @@ class PushSubscriptionRepository(DatabaseBase):
         if parent_user_id is None:
             raise BadRequest()
         child_subq = select(ChildAccounts.child_user_id).where(ChildAccounts.parent_user_id == parent_user_id)
-        stmt = select(PushSubscription).where(or_(PushSubscription.user_id == parent_user_id, PushSubscription.user_id.in_(child_subq)))
-        return self.session.execute(stmt).scalars().all()
+        stmt = select(PushSubscription.endpoint, PushSubscription.p256dh_key, PushSubscription.auth_key).where(or_(PushSubscription.user_id == parent_user_id, PushSubscription.user_id.in_(child_subq)))
+        return self.session.execute(stmt).all()

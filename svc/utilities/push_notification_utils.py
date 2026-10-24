@@ -19,6 +19,7 @@ def send_push_to_subscriptions(subscriptions, payload):
 def __send_or_cleanup(subscription, body, private_key, claims):
     info = {'endpoint': subscription.endpoint, 'keys': {'p256dh': subscription.p256dh_key, 'auth': subscription.auth_key}}
     try:
+        print(f'Sending push notification to {subscription.endpoint}')
         webpush(subscription_info=info, data=body, vapid_private_key=private_key, vapid_claims=dict(claims))
     except WebPushException as exc:
         status = exc.response.status_code if exc.response is not None else None

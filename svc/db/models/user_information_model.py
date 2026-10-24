@@ -169,3 +169,12 @@ class PushSubscription(Base):
     endpoint = Column(String, nullable=False, unique=True)
     p256dh_key = Column(String, nullable=False)
     auth_key = Column(String, nullable=False)
+
+
+class DeviceAlertState(Base):
+    __tablename__ = 'device_alert_state'
+
+    id = Column(UUID, nullable=False, primary_key=True, server_default=sqlalchemy.text("gen_random_uuid()"))
+    device_id = Column(UUID, ForeignKey(Devices.id), nullable=False)
+    alert_key = Column(String, nullable=False)
+    last_notified = Column(String, nullable=False)
