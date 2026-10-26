@@ -8,7 +8,6 @@ from svc.endpoints.account_routes import ACCOUNT_BLUEPRINT
 from svc.endpoints.app_routes import APP_BLUEPRINT
 from svc.endpoints.auth_routes import AUTH_BLUEPRINT
 from svc.endpoints.device_routes import DEVICES_BLUEPRINT
-from svc.endpoints.garage_event_routes import GARAGE_EVENTS_BLUEPRINT
 from svc.endpoints.garage_door_routes import GARAGE_BLUEPRINT
 from svc.endpoints.geocode_routes import GEOCODE_BLUEPRINT
 from svc.endpoints.light_routes import LIGHT_BLUEPRINT
@@ -28,6 +27,8 @@ def create_app():
     browser = MdnsListener()
     browser.start()
 
+    GarageEventBroadcaster.get_instance().start()
+
     app = Flask(__name__)
     CORS(app, origins=Settings.get_instance().allowed_origins)
 
@@ -42,18 +43,6 @@ def create_app():
     app.register_blueprint(SCENE_BLUEPRINT)
     app.register_blueprint(GEOCODE_BLUEPRINT)
     app.register_blueprint(PUSH_BLUEPRINT)
-    app.after_request(add_security_headers)
-
-    return app
-
-
-def create_sse_app():
-    GarageEventBroadcaster.get_instance().start()
-
-    app = Flask(__name__)
-    CORS(app, origins=Settings.get_instance().allowed_origins)
-
-    app.register_blueprint(GARAGE_EVENTS_BLUEPRINT)
     app.after_request(add_security_headers)
 
     return app

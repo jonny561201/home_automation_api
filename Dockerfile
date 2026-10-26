@@ -20,11 +20,11 @@ RUN pip install --no-cache-dir /wheels/* && rm -rf /wheels
 
 WORKDIR /app
 COPY svc ./svc
-COPY app.py sse_app.py settings.production.json ./
+COPY app.py settings.production.json ./
 COPY deployment/container ./deployment/container
 
 ENV PYTHON_ENVIRONMENT=production
 USER app
-EXPOSE 8000 8001
+EXPOSE 8000
 
 CMD ["uwsgi", "--ini", "deployment/container/api.ini"]

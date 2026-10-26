@@ -1,4 +1,4 @@
-from flask import Response, Blueprint
+from flask import Response, Blueprint, stream_with_context
 from flask import request
 
 from svc.constants.home_automation import Mime
@@ -13,6 +13,14 @@ def get_all_garage_door_status():
     bearer_token = request.headers.get('Authorization')
     status = garage_door_controller.get_all_status(bearer_token)
     return Response(status.to_json(), status=200, mimetype=Mime.JSON)
+
+
+@GARAGE_BLUEPRINT.route('/events', methods=['GET'])
+def stream_garage_door_status():
+    bearer_token = request.headers.get('Authorization')
+    stream = garage_door_controller.stream_status(bearer_token)
+    headers = {'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'}
+    return Response(stream_with_context(stream), status=200, mimetype=Mime.EVENT_STREAM, headers=headers)
 
 
 @GARAGE_BLUEPRINT.route('/<garage_id>/state', methods=['POST'])
