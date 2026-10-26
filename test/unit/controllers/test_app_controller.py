@@ -92,6 +92,7 @@ class TestResetAccount:
         mock_auth.assert_called_with(self.EMAIL)
 
 
+@patch('svc.controllers.app_controller.hvac_schedule_service')
 @patch('svc.controllers.app_controller.TasksRepository')
 @patch('svc.controllers.app_controller.AuthClient')
 class TestAppControllerTasks:
@@ -99,60 +100,60 @@ class TestAppControllerTasks:
     USER_ID = str(uuid.uuid4())
 
     # TODO: find a way to have the two services authorize and pass tokens
-    # def test_get_user_tasks__should_validate_bearer_token(self, mock_jwt, mock_db):
+    # def test_get_user_tasks__should_validate_bearer_token(self, mock_jwt, mock_db, mock_hvac):
     #     get_user_tasks(self.BEARER_TOKEN, self.USER_ID)
     #     mock_jwt.is_jwt_valid.assert_called_with(self.BEARER_TOKEN)
 
-    def test_get_user_tasks__should_call_get_schedule_tasks_by_user(self, mock_jwt, mock_db):
+    def test_get_user_tasks__should_call_get_schedule_tasks_by_user(self, mock_jwt, mock_db, mock_hvac):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
         get_user_tasks(self.BEARER_TOKEN, 'hvac')
         mock_db.return_value.__enter__.return_value.get_schedule_tasks_by_user.assert_called_with(self.USER_ID, ANY)
 
-    def test_get_user_tasks__should_call_get_schedule_tasks_by_task_type(self, mock_jwt, mock_db):
+    def test_get_user_tasks__should_call_get_schedule_tasks_by_task_type(self, mock_jwt, mock_db, mock_hvac):
         task_type = 'sunrise alarm'
         get_user_tasks(self.BEARER_TOKEN, task_type)
         mock_db.return_value.__enter__.return_value.get_schedule_tasks_by_user.assert_called_with(ANY, task_type)
 
-    def test_get_user_tasks__should_return_user_tasks_from_database(self, mock_jwt, mock_db):
+    def test_get_user_tasks__should_return_user_tasks_from_database(self, mock_jwt, mock_db, mock_hvac):
         response = [{'task_id': '12312bas-12312basdd-12312bjsd-123b123v'}]
         mock_db.return_value.__enter__.return_value.get_schedule_tasks_by_user.return_value = response
         actual = get_user_tasks(self.BEARER_TOKEN, 'turn on')
 
         assert actual == response
 
-    def test_delete_user_task__should_validate_bearer_token(self, mock_jwt, mock_db):
+    def test_delete_user_task__should_validate_bearer_token(self, mock_jwt, mock_db, mock_hvac):
         task_id = 'jklasdf89734'
         delete_user_task(self.BEARER_TOKEN, task_id)
         mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
-    def test_delete_user_task__should_call_get_schedule_tasks_by_user_with_user_id(self, mock_jwt, mock_db):
+    def test_delete_user_task__should_call_get_schedule_tasks_by_user_with_user_id(self, mock_jwt, mock_db, mock_hvac):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
         task_id = 'jklasdf89734'
         delete_user_task(self.BEARER_TOKEN, task_id)
         mock_db.return_value.__enter__.return_value.delete_schedule_task_by_user.assert_called_with(self.USER_ID, ANY)
 
-    def test_delete_user_task__should_call_get_schedule_tasks_by_user_with_task_id(self, mock_jwt, mock_db):
+    def test_delete_user_task__should_call_get_schedule_tasks_by_user_with_task_id(self, mock_jwt, mock_db, mock_hvac):
         task_id = 'jklasdf89734'
         delete_user_task(self.BEARER_TOKEN, task_id)
         mock_db.return_value.__enter__.return_value.delete_schedule_task_by_user.assert_called_with(ANY, task_id)
 
-    def test_insert_user_task__should_validate_bearer_token(self, mock_jwt, mock_db):
+    def test_insert_user_task__should_validate_bearer_token(self, mock_jwt, mock_db, mock_hvac):
         task = {'test': 'data'}
         insert_user_task(self.BEARER_TOKEN, task)
         mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
-    def test_insert_user_task__should_call_insert_schedule_task_by_user_with_user_id(self, mock_jwt, mock_db):
+    def test_insert_user_task__should_call_insert_schedule_task_by_user_with_user_id(self, mock_jwt, mock_db, mock_hvac):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
         task = {'alarm_time': '00:01:00'}
         insert_user_task(self.BEARER_TOKEN, task)
         mock_db.return_value.__enter__.return_value.insert_schedule_task_by_user.assert_called_with(self.USER_ID, ANY)
 
-    def test_insert_user_task__should_call_insert_schedule_task_by_user_with_task(self, mock_jwt, mock_db):
+    def test_insert_user_task__should_call_insert_schedule_task_by_user_with_task(self, mock_jwt, mock_db, mock_hvac):
         task = {'alarm_time': '00:01:00'}
         insert_user_task(self.BEARER_TOKEN, task)
         mock_db.return_value.__enter__.return_value.insert_schedule_task_by_user.assert_called_with(ANY, task)
 
-    def test_insert_user_task__should_return_database_response(self, mock_jwt, mock_db):
+    def test_insert_user_task__should_return_database_response(self, mock_jwt, mock_db, mock_hvac):
         task = {'alarm_time': '00:01:00'}
         response = {'task_id': '123basdf-123basd-345jasdf-asd558'}
         mock_db.return_value.__enter__.return_value.insert_schedule_task_by_user.return_value = response
@@ -160,30 +161,51 @@ class TestAppControllerTasks:
 
         assert actual == response
 
-    def test_update_user_task__should_validate_bearer_token(self, mock_jwt, mock_db):
+    def test_update_user_task__should_validate_bearer_token(self, mock_jwt, mock_db, mock_hvac):
         task = {'alarm_time': '00:01:00'}
         update_user_task(self.BEARER_TOKEN, task)
 
         mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
-    def test_update_user_task__should_call_update_schedule_task_by_user_id_with_user_id(self, mock_jwt, mock_db):
+    def test_update_user_task__should_call_update_schedule_task_by_user_id_with_user_id(self, mock_jwt, mock_db, mock_hvac):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
         task = {'alarm_time': '00:01:00'}
         update_user_task(self.BEARER_TOKEN, task)
 
         mock_db.return_value.__enter__.return_value.update_schedule_task_by_user_id.assert_called_with(self.USER_ID, ANY)
 
-    def test_update_user_task__should_call_update_schedule_task_by_user_id_with_new_task(self, mock_jwt, mock_db):
+    def test_update_user_task__should_call_update_schedule_task_by_user_id_with_new_task(self, mock_jwt, mock_db, mock_hvac):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
         task = {'alarm_time': '00:01:00'}
         update_user_task(self.BEARER_TOKEN, task)
 
         mock_db.return_value.__enter__.return_value.update_schedule_task_by_user_id.assert_called_with(self.USER_ID, task)
 
-    def test_update_user_task__should_return_response_from_db_layer(self, mock_jwt, mock_db):
+    def test_update_user_task__should_return_response_from_db_layer(self, mock_jwt, mock_db, mock_hvac):
         task = {'alarm_time': '00:01:00'}
         response = {'fakeItem': 'item'}
         mock_db.return_value.__enter__.return_value.update_schedule_task_by_user_id.return_value = response
         actual = update_user_task(self.BEARER_TOKEN, task)
 
         assert actual == response
+
+    def test_delete_user_task__should_publish_hvac_schedule(self, mock_jwt, mock_db, mock_hvac):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
+
+        delete_user_task(self.BEARER_TOKEN, str(uuid.uuid4()))
+
+        mock_hvac.publish_hvac_schedule.assert_called_once_with(self.USER_ID)
+
+    def test_insert_user_task__should_publish_hvac_schedule(self, mock_jwt, mock_db, mock_hvac):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
+
+        insert_user_task(self.BEARER_TOKEN, {'taskType': 'hvac'})
+
+        mock_hvac.publish_hvac_schedule.assert_called_once_with(self.USER_ID)
+
+    def test_update_user_task__should_publish_hvac_schedule(self, mock_jwt, mock_db, mock_hvac):
+        mock_jwt.get_instance.return_value.verify_jwt.return_value = {AuthClaims.USER_ID: self.USER_ID}
+
+        update_user_task(self.BEARER_TOKEN, {'taskType': 'hvac'})
+
+        mock_hvac.publish_hvac_schedule.assert_called_once_with(self.USER_ID)

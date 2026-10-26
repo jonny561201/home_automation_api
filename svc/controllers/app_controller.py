@@ -1,6 +1,7 @@
 from svc.constants.home_automation import AuthClaims
 from svc.db.repositories.tasks_repository import TasksRepository
 from svc.db.repositories.user_repository import UserRepository
+from svc.services import hvac_schedule_service
 from svc.utilities.auth_utils import AuthClient
 from svc.utilities.api_utils import send_auth0_password_reset
 
@@ -38,17 +39,22 @@ def delete_user_task(bearer_token, task_id):
     user_id = claims[AuthClaims.USER_ID]
     with TasksRepository() as database:
         database.delete_schedule_task_by_user(user_id, task_id)
+    hvac_schedule_service.publish_hvac_schedule(user_id)
 
 
 def insert_user_task(bearer_token, task):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]
     with TasksRepository() as database:
-        return database.insert_schedule_task_by_user(user_id, task)
+        tasks = database.insert_schedule_task_by_user(user_id, task)
+    hvac_schedule_service.publish_hvac_schedule(user_id)
+    return tasks
 
 
 def update_user_task(bearer_token, task):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]
     with TasksRepository() as database:
-        return database.update_schedule_task_by_user_id(user_id, task)
+        tasks = database.update_schedule_task_by_user_id(user_id, task)
+    hvac_schedule_service.publish_hvac_schedule(user_id)
+    return tasks

@@ -47,4 +47,4 @@ def set_user_temperature(request_data, bearer_token):
     temp = request_data['desiredTemp'] if not request_data['isFahrenheit'] else convert_to_celsius(request_data['desiredTemp'])
     mode = request_data['mode']
     write_desired_temp_to_file(temp, mode)
-    publish(Automation.HVAC.QUEUE, {'desiredTemp': temp, 'mode': mode, 'isAuto': mode == 'auto'})
+    publish(Automation.HVAC.QUEUE, {'action': 'set', 'desiredTemp': temp, 'mode': mode})

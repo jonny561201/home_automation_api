@@ -226,4 +226,4 @@ class TestThermostatSetController:
     def test_set_user_temperature__should_publish_hvac_message(self, mock_jwt, mock_convert, mock_file, mock_publish):
         set_user_temperature(self.REQUEST, self.BEARER_TOKEN)
 
-        mock_publish.assert_called_with(Automation.HVAC.QUEUE, {'desiredTemp': self.DESIRED_CELSIUS_TEMP, 'mode': Automation.HVAC.MODE.HEATING, 'isAuto': False})
+        mock_publish.assert_called_with(Automation.HVAC.QUEUE, {'action': 'set', 'desiredTemp': self.DESIRED_CELSIUS_TEMP, 'mode': Automation.HVAC.MODE.HEATING})
