@@ -57,7 +57,7 @@ class TestAccountRoutesIntegration:
 
         assert actual.status_code == 401
 
-    @patch('svc.controllers.account_controller.api_utils')
+    @patch('svc.controllers.account_controller.auth0_service')
     def test_post_child_account_by_user__should_return_success_after_creating_child_account(self, mock_api):
         post_body = json.dumps({'email': self.CHILD_EMAIL, 'deviceIds': [self.DEVICE_ID]})
         actual = self.TEST_CLIENT.post(f'account/createChildAccount', headers=self.HEADERS, data=post_body)

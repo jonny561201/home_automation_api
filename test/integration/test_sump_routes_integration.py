@@ -6,7 +6,7 @@ from sqlalchemy import select, delete
 
 from test.integration.integration_helpers import mock_jwks_token
 from svc.db.models.user_information_model import UserInformation, DailySumpPumpLevel, AverageSumpPumpLevel, \
-    UserPreference, DeviceType, Devices
+    UserPreference, DeviceType, Devices, DeviceAlertState
 from svc.db.repositories.database_base import DatabaseBase
 from svc.manager import create_app
 
@@ -47,6 +47,7 @@ class TestSumpRoutes:
         with DatabaseBase() as database:
             database.session.execute(delete(DailySumpPumpLevel).where(DailySumpPumpLevel.device_id == self.DEVICE_ID))
             database.session.execute(delete(AverageSumpPumpLevel).where(AverageSumpPumpLevel.device_id == self.DEVICE_ID))
+            database.session.execute(delete(DeviceAlertState).where(DeviceAlertState.device_id == self.DEVICE_ID))
             database.session.execute(delete(Devices).where(Devices.user_id == self.USER_ID))
             database.session.execute(delete(UserPreference).where(UserPreference.user_id == self.USER_ID))
             database.session.execute(delete(UserInformation).where(UserInformation.id == self.USER_ID))
