@@ -1,6 +1,6 @@
 from mock import patch, ANY
 
-from svc.controllers.registration_controller import register_garage_door, register_sump_pump
+from svc.controllers.registration_controller import register_garage_door, register_sump_pump, register_thermostat
 
 
 @patch('svc.controllers.registration_controller.register_home_automation_device')
@@ -70,3 +70,64 @@ class TestRegisterSumpPump:
             self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT, existing_key, self.MAX_NODES, [], 'sump_pump'
         )
         mock_api.assert_called_with(self.IP_ADDRESS, self.IP_PORT, {'api_key': existing_key, 'ip_address': '192.168.0.1', 'port': 5000})
+
+
+@patch('svc.controllers.registration_controller.hvac_schedule_service')
+@patch('svc.controllers.registration_controller.register_home_automation_device')
+@patch('svc.controllers.registration_controller.DeviceRepository')
+class TestRegisterThermostat:
+    SERVICE_NAME = 'thermostat'
+    IP_ADDRESS = '192.168.0.102'
+    IP_PORT = 5003
+    API_KEY = 'thermostat-api-key'
+    DEVICE_ID = 'device-1234'
+    USER_ID = 'user-1234'
+
+    def __arrange(self, mock_db, mock_api, existing_key=None, user_id=None):
+        mock_db.return_value.__enter__.return_value.get_existing_api_key.return_value = existing_key
+        mock_db.return_value.__enter__.return_value.upsert_discovered_device.return_value = self.DEVICE_ID
+        mock_db.return_value.__enter__.return_value.get_user_id_by_device.return_value = user_id
+        mock_api.return_value = {'api_key': self.API_KEY}
+
+    def test_register_thermostat__should_look_up_existing_key_for_thermostat_type(self, mock_db, mock_api, mock_hvac):
+        self.__arrange(mock_db, mock_api)
+
+        register_thermostat(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
+
+        mock_db.return_value.__enter__.return_value.get_existing_api_key.assert_called_with(self.SERVICE_NAME, 'thermostat')
+
+    def test_register_thermostat__should_register_without_body_when_no_existing_key(self, mock_db, mock_api, mock_hvac):
+        self.__arrange(mock_db, mock_api)
+
+        register_thermostat(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
+
+        mock_api.assert_called_with(self.IP_ADDRESS, self.IP_PORT, None)
+
+    def test_register_thermostat__should_send_existing_api_key_when_present(self, mock_db, mock_api, mock_hvac):
+        self.__arrange(mock_db, mock_api, existing_key='persisted-key')
+
+        register_thermostat(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
+
+        mock_api.assert_called_with(self.IP_ADDRESS, self.IP_PORT, {'api_key': 'persisted-key'})
+
+    def test_register_thermostat__should_upsert_discovered_device_as_thermostat(self, mock_db, mock_api, mock_hvac):
+        self.__arrange(mock_db, mock_api)
+
+        register_thermostat(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
+
+        mock_db.return_value.__enter__.return_value.upsert_discovered_device.assert_called_with(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT, self.API_KEY, 0, [], 'thermostat')
+
+    def test_register_thermostat__should_publish_schedule_when_device_has_owner(self, mock_db, mock_api, mock_hvac):
+        self.__arrange(mock_db, mock_api, user_id=self.USER_ID)
+
+        register_thermostat(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
+
+        mock_db.return_value.__enter__.return_value.get_user_id_by_device.assert_called_with(self.DEVICE_ID)
+        mock_hvac.publish_hvac_schedule.assert_called_once_with(self.USER_ID)
+
+    def test_register_thermostat__should_not_publish_schedule_when_device_unowned(self, mock_db, mock_api, mock_hvac):
+        self.__arrange(mock_db, mock_api)
+
+        register_thermostat(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT)
+
+        mock_hvac.publish_hvac_schedule.assert_not_called()

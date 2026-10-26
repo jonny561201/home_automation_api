@@ -2,6 +2,7 @@ from zeroconf import ServiceListener, Zeroconf, ServiceBrowser
 
 from svc.controllers.registration_controller import register_sump_pump
 from svc.controllers.registration_controller import register_garage_door
+from svc.controllers.registration_controller import register_thermostat
 
 
 class MdnsListener(ServiceListener):
@@ -36,6 +37,10 @@ class MdnsListener(ServiceListener):
             port = info.port
             max_nodes = int(info.properties.get(b'max_nodes', b'0'))
             register_sump_pump(service_name, ip, port, max_nodes)
+        if service_name == 'thermostat':
+            ip = info.parsed_addresses()[0]
+            port = info.port
+            register_thermostat(service_name, ip, port)
 
     def remove_service(self, zc, type_, name):
         pass

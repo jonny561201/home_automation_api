@@ -1,6 +1,7 @@
 import secrets
 
 from svc.db.repositories.device_repository import DeviceRepository
+from svc.services import hvac_schedule_service
 from svc.utilities.api_utils import register_home_automation_device, get_host_ip
 
 
@@ -22,3 +23,14 @@ def register_sump_pump(service_name: str, ip: str, port: int, max_nodes: int):
 
     request = {'api_key': api_key, 'ip_address': get_host_ip(), 'port': 5000}
     register_home_automation_device(ip, port, request)
+
+
+def register_thermostat(service_name: str, ip: str, port: int):
+    with DeviceRepository() as database:
+        existing_key = database.get_existing_api_key(service_name, 'thermostat')
+        body = {'api_key': existing_key} if existing_key != None else None
+        response = register_home_automation_device(ip, port, body)
+        device_id = database.upsert_discovered_device(service_name, ip, port, response['api_key'], 0, [], 'thermostat')
+        user_id = database.get_user_id_by_device(device_id)
+    if user_id != None:
+        hvac_schedule_service.publish_hvac_schedule(user_id)
