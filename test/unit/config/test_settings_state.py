@@ -14,7 +14,6 @@ class TestSettings:
         'WeatherAppId': '435hadsf',
         'JwtSecret': 'other_secret',
         'UserId': 'other_user_id',
-        'TempFileName': 'other_file_name',
         'LightApiKey': (str(uuid.uuid4())),
         'AllowedOrigins': ['http://example.com']
     }
@@ -67,9 +66,6 @@ class TestSettings:
 
     def test_jwt_secret__should_pull_from_settings(self):
         assert self.SETTINGS.jwt_secret == self.test_settings['JwtSecret']
-
-    def test_file_name__should_pull_from_settings(self):
-        assert self.SETTINGS.temp_file_name == self.test_settings['TempFileName']
 
     def test_light_api_key__should_pull_from_settings(self):
         assert self.SETTINGS.light_api_key == self.test_settings['LightApiKey']

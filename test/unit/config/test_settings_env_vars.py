@@ -8,7 +8,7 @@ class TestSettingsEnvVars:
     ENV_VARS = {
         'SQL_USERNAME': 'test_user', 'SQL_PASSWORD': 'test_pass', 'SQL_PORT': '5231',
         'SQL_DBNAME': 'fake_name', 'EMAIL_APP_ID': 'abc123', 'WEATHER_APP_ID': '345def',
-        'JWT_SECRET': 'FakeSecret', 'TEMP_FILE_NAME': 'test.json', 'USER_ID': 'sdf234',
+        'JWT_SECRET': 'FakeSecret', 'USER_ID': 'sdf234',
         'LIGHT_API_KEY': str(uuid.uuid4()), 'QUEUE_USER_NAME': 'queue_user', 'QUEUE_PASSWORD': 'queue_pass',
         'QUEUE_HOST': 'localhost', 'QUEUE_PORT': '5642', 'QUEUE_VHOST': 'vhost', 'QUEUE_EXCHANGE': 'exchange'
     }
@@ -26,7 +26,6 @@ class TestSettingsEnvVars:
     def teardown_method(self):
         os.environ.pop('USER_ID')
         os.environ.pop('SQL_PORT')
-        os.environ.pop('TEMP_FILE_NAME')
         os.environ.pop('JWT_SECRET')
         os.environ.pop('SQL_DBNAME')
         os.environ.pop('SQL_USERNAME')
@@ -81,9 +80,6 @@ class TestSettingsEnvVars:
     def test_jwt_secret__should_return_value(self):
         assert self.SETTINGS.jwt_secret == self.ENV_VARS['JWT_SECRET']
 
-    def test_file_name__should_return_value(self):
-        assert self.SETTINGS.temp_file_name == self.ENV_VARS['TEMP_FILE_NAME']
-
     def test_light_api_key__should_return_value(self):
         assert self.SETTINGS.light_api_key == self.ENV_VARS['LIGHT_API_KEY']
 
@@ -102,10 +98,6 @@ class TestSettingsEnvVars:
     def test_light_api_key__should_favor_environment_variables_above_settings(self):
         self.SETTINGS._settings = {'LightApiKey': '1234'}
         assert self.SETTINGS.light_api_key == self.ENV_VARS['LIGHT_API_KEY']
-
-    def test_temp_file_name__should_favor_environment_variables_above_settings(self):
-        self.SETTINGS._settings = {'TempFileName': '1234'}
-        assert self.SETTINGS.temp_file_name == self.ENV_VARS['TEMP_FILE_NAME']
 
     def test_queue_user_name__should_return_value(self):
         assert self.SETTINGS.Queue.user_name == self.ENV_VARS['QUEUE_USER_NAME']

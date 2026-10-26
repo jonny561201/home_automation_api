@@ -10,7 +10,7 @@ from svc.utilities.api_utils import (get_city_coordinates, set_light_groups, set
                                      get_forecast_by_coords, get_extended_forecast_by_coords, exchange_auth0_code,
                                      create_auth0_user, assign_auth0_roles, send_auth0_password_reset,
                                      register_home_automation_device, get_census_reverse_geocode,
-                                     stream_garage_door_events)
+                                     stream_garage_door_events, get_thermostat_status)
 
 
 @patch('svc.utilities.api_utils.requests')
@@ -646,3 +646,37 @@ class TestStreamGarageDoorEvents:
 
         with pytest.raises(BadRequest):
             list(stream_garage_door_events(self.API_KEY, self.BASE_URL))
+
+
+@patch('svc.utilities.api_utils.requests')
+class TestGetThermostatStatus:
+    API_KEY = 'fake-api-key'
+    BASE_URL = 'http://1.1.1.1:5003'
+    STATUS = {'currentTemp': 21.5, 'desiredTemp': 22.0, 'mode': 'heating'}
+
+    def test_get_thermostat_status__should_request_status_with_api_key(self, mock_requests):
+        mock_requests.get.return_value.status_code = 200
+
+        get_thermostat_status(self.API_KEY, self.BASE_URL)
+
+        mock_requests.get.assert_called_with(f'{self.BASE_URL}/thermostat/status', headers={'X-API-Key': self.API_KEY}, timeout=5)
+
+    def test_get_thermostat_status__should_return_json_response(self, mock_requests):
+        mock_requests.get.return_value.status_code = 200
+        mock_requests.get.return_value.json.return_value = self.STATUS
+
+        actual = get_thermostat_status(self.API_KEY, self.BASE_URL)
+
+        assert actual == self.STATUS
+
+    def test_get_thermostat_status__should_raise_failed_dependency_when_request_fails(self, mock_requests):
+        mock_requests.get.side_effect = ConnectTimeout()
+
+        with pytest.raises(FailedDependency):
+            get_thermostat_status(self.API_KEY, self.BASE_URL)
+
+    def test_get_thermostat_status__should_raise_bad_request_when_thermostat_returns_failure(self, mock_requests):
+        mock_requests.get.return_value.status_code = 401
+
+        with pytest.raises(BadRequest):
+            get_thermostat_status(self.API_KEY, self.BASE_URL)

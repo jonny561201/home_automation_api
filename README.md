@@ -31,7 +31,6 @@
     * `WeatherAppId` app id for the weather provider
     * `JwtSecret` jwt secret for encoding/decoding jwts
     * `EmailAppId` app id for the email provider
-    * `TempFileName` filename used to persist desired temperature state
     * `Database` object to be created for persistent storage
       * `Port` database port
       * `Name` database name

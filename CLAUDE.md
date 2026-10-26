@@ -12,7 +12,7 @@ Flask-based REST API for whole-home automation (thermostat, garage door, lights,
 ```
 python local_app.py
 ```
-Production entry point (`app.py`) requires RPi.GPIO and cannot run on non-Pi machines.
+Production entry point (`app.py`) is served by uwsgi; `local_app.py` runs the Flask dev server on port 5000.
 
 ### Run all tests (unit + integration)
 ```

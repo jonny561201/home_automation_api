@@ -3,12 +3,10 @@ from datetime import datetime, time, timedelta
 from svc.models.thermostat import ActiveTask, NextTask, ThermostatState
 from svc.services import weather_request
 from svc.utilities.conversion_utils import convert_to_fahrenheit
-from svc.utilities.file_utils import get_desired_temp
 from svc.utilities.timezone_utils import now_in_timezone, weekday_label
 
 
-def build_thermostat_state(internal_temp, is_fahrenheit, hvac_tasks, tz):
-    state = get_desired_temp()
+def build_thermostat_state(internal_temp, state, is_fahrenheit, hvac_tasks, tz):
     desired_temp = __convert_desired_temp(is_fahrenheit, internal_temp, state)
     mode = state['mode']
     min_temp = 50.0 if is_fahrenheit else 10.0

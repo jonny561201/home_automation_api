@@ -9,6 +9,7 @@ from test.integration.integration_helpers import mock_jwks_token
 from svc.constants.home_automation import Automation
 from svc.db.models.user_information_model import UserInformation, UserPreference
 from svc.db.repositories.database_base import DatabaseBase
+from svc.models.devices import DeviceInfo
 from svc.manager import create_app
 
 
@@ -37,17 +38,11 @@ class TestThermostatRoutesIntegration:
 
         assert actual.status_code == 401
 
-    @patch('svc.controllers.thermostat_controller.read_temperature_file')
-    @patch('svc.controllers.thermostat_controller.get_desired_temp')
+    @patch('svc.controllers.thermostat_controller.DeviceRepository')
     @patch('svc.utilities.api_utils.requests')
-    def test_get_temperature__should_return_temperature(self, mock_requests, mock_file, mock_temp_file):
-        first = self._create_response(content={'results': [{'latitude': -93.1232, 'longitude': 12.323}]})
-        second = self._create_response(content={'daily': {'temp': {'min': 21.0, 'max': 25.1}}})
-        mock_file.return_value = {'desiredTemp': 22.2, 'mode': Automation.HVAC.MODE.HEATING}
-        mock_temp_file.return_value = ['72 01 4b 46 7f ff 0e 10 57 : crc=57 YES',
-                                       '72 01 4b 46 7f ff 0e 10 57 t=23125']
-
-        mock_requests.get.side_effect = [first, second]
+    def test_get_temperature__should_return_temperature(self, mock_requests, mock_device):
+        mock_device.return_value.__enter__.return_value.get_device_info.return_value = DeviceInfo(id='fake-device-id', ip_address='1.1.1.1', ip_port=5003, api_key='fake-api-key')
+        mock_requests.get.return_value = self._create_response(content={'currentTemp': 23.125, 'desiredTemp': 22.2, 'mode': Automation.HVAC.MODE.HEATING})
 
         actual = self.TEST_CLIENT.get(f'thermostat/temperature', headers=self.HEADERS)
 
@@ -60,8 +55,8 @@ class TestThermostatRoutesIntegration:
 
         assert actual.status_code == 401
 
-    @patch('svc.controllers.thermostat_controller.write_desired_temp_to_file')
-    def test_set_temperature__should_return_successfully(self, mock_file):
+    @patch('svc.controllers.thermostat_controller.publish')
+    def test_set_temperature__should_return_successfully(self, mock_publish):
         request = {'desiredTemp': 23.7, 'mode': Automation.HVAC.MODE.HEATING, 'isFahrenheit': True}
 
         url = f'thermostat/temperature/desired'
