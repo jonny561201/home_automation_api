@@ -1,4 +1,4 @@
-from mock import patch, ANY
+from mock import patch, ANY, MagicMock
 
 from svc.controllers.registration_controller import register_garage_door, register_sump_pump, register_thermostat
 
@@ -36,6 +36,7 @@ class TestRegisterGarageDoor:
         mock_api.assert_called_with(self.IP_ADDRESS, self.IP_PORT, {'api_key': existing_key})
 
 
+@patch('svc.controllers.registration_controller.Settings')
 @patch('svc.controllers.registration_controller.get_host_ip')
 @patch('svc.controllers.registration_controller.register_home_automation_device')
 @patch('svc.controllers.registration_controller.DeviceRepository')
@@ -44,8 +45,13 @@ class TestRegisterSumpPump:
     IP_ADDRESS = '192.168.0.101'
     IP_PORT = 5001
     MAX_NODES = 1
+    HUB_PORT = 5000
 
-    def test_register_sump_pump__should_upsert_with_sump_pump_type(self, mock_db, mock_api, mock_host):
+    def setup_method(self):
+        self.HUB = MagicMock(host=None, port=self.HUB_PORT)
+
+    def test_register_sump_pump__should_upsert_with_sump_pump_type(self, mock_db, mock_api, mock_host, mock_settings):
+        mock_settings.get_instance.return_value.Hub = self.HUB
         mock_db.return_value.__enter__.return_value.get_existing_api_key.return_value = None
         register_sump_pump(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT, self.MAX_NODES)
 
@@ -53,14 +59,16 @@ class TestRegisterSumpPump:
             self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT, ANY, self.MAX_NODES, [], 'sump_pump'
         )
 
-    def test_register_sump_pump__should_call_register_home_automation_device(self, mock_db, mock_api, mock_host):
+    def test_register_sump_pump__should_call_register_home_automation_device(self, mock_db, mock_api, mock_host, mock_settings):
+        mock_settings.get_instance.return_value.Hub = self.HUB
         mock_db.return_value.__enter__.return_value.get_existing_api_key.return_value = None
         mock_host.return_value = '192.168.0.1'
         register_sump_pump(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT, self.MAX_NODES)
 
         mock_api.assert_called_with(self.IP_ADDRESS, self.IP_PORT, {'api_key': ANY, 'ip_address': '192.168.0.1', 'port': 5000})
 
-    def test_register_sump_pump__should_reuse_existing_api_key_when_present(self, mock_db, mock_api, mock_host):
+    def test_register_sump_pump__should_reuse_existing_api_key_when_present(self, mock_db, mock_api, mock_host, mock_settings):
+        mock_settings.get_instance.return_value.Hub = self.HUB
         existing_key = 'persisted-sump-key'
         mock_db.return_value.__enter__.return_value.get_existing_api_key.return_value = existing_key
         mock_host.return_value = '192.168.0.1'
@@ -70,6 +78,16 @@ class TestRegisterSumpPump:
             self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT, existing_key, self.MAX_NODES, [], 'sump_pump'
         )
         mock_api.assert_called_with(self.IP_ADDRESS, self.IP_PORT, {'api_key': existing_key, 'ip_address': '192.168.0.1', 'port': 5000})
+
+    def test_register_sump_pump__should_send_configured_hub_host_when_set(self, mock_db, mock_api, mock_host, mock_settings):
+        self.HUB.host = '10.0.0.5'
+        mock_settings.get_instance.return_value.Hub = self.HUB
+        mock_db.return_value.__enter__.return_value.get_existing_api_key.return_value = None
+
+        register_sump_pump(self.SERVICE_NAME, self.IP_ADDRESS, self.IP_PORT, self.MAX_NODES)
+
+        mock_host.assert_not_called()
+        mock_api.assert_called_with(self.IP_ADDRESS, self.IP_PORT, {'api_key': ANY, 'ip_address': '10.0.0.5', 'port': self.HUB_PORT})
 
 
 @patch('svc.controllers.registration_controller.hvac_schedule_service')

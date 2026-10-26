@@ -11,6 +11,7 @@ class Settings:
     def __init__(self):
         self.__load_settings()
         self.Queue = Queue(self._settings)
+        self.Hub = Hub(self._settings)
         self.Database = Database(self._settings)
         self.BaseUrls = BaseUrls(self._settings)
         self.Authority = Authority(self._settings)
@@ -76,8 +77,26 @@ class Database:
         return _get_setting('SQL_DBNAME', 'Name', self._settings)
 
     @property
+    def host(self):
+        return self._settings.get('Host')
+
+    @property
     def port(self):
         return _get_setting('SQL_PORT', 'Port', self._settings)
+
+
+class Hub:
+
+    def __init__(self, settings):
+        self._settings = settings.get('Hub', {}) if settings is not None else {}
+
+    @property
+    def host(self):
+        return self._settings.get('Host')
+
+    @property
+    def port(self):
+        return self._settings.get('Port')
 
 
 class Queue:

@@ -1,5 +1,6 @@
 import secrets
 
+from svc.config.settings_state import Settings
 from svc.db.repositories.device_repository import DeviceRepository
 from svc.services import hvac_schedule_service
 from svc.utilities.api_utils import register_home_automation_device, get_host_ip
@@ -21,7 +22,9 @@ def register_sump_pump(service_name: str, ip: str, port: int, max_nodes: int):
         api_key = existing_key if existing_key != None else secrets.token_hex(32)
         database.upsert_discovered_device(service_name, ip, port, api_key, max_nodes, [], 'sump_pump')
 
-    request = {'api_key': api_key, 'ip_address': get_host_ip(), 'port': 5000}
+    hub = Settings.get_instance().Hub
+    hub_host = hub.host if hub.host != None else get_host_ip()
+    request = {'api_key': api_key, 'ip_address': hub_host, 'port': hub.port}
     register_home_automation_device(ip, port, request)
 
 

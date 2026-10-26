@@ -11,7 +11,7 @@ class DatabaseBase:
     def __init__(self):
         if DatabaseBase._engine is None:
             settings = Settings.get_instance().Database
-            connection = f'postgresql://{settings.user}:{settings.password}@localhost:{settings.port}/{settings.name}'
+            connection = f'postgresql://{settings.user}:{settings.password}@{settings.host}:{settings.port}/{settings.name}'
             DatabaseBase._engine = create_engine(connection)
             DatabaseBase._scoped_session = orm.scoped_session(orm.sessionmaker(bind=DatabaseBase._engine))
         self.session = None

@@ -1,8 +1,12 @@
 {
   "Environment": "dev",
   "Database": {
+    "Host": "localhost",
     "Port": "5432",
     "Name": "garage_door_dev"
+  },
+  "Hub": {
+    "Port": 5000
   },
   "Authority": {
     "Domain": "dev-mx0anv661qiyofk8.us.auth0.com",

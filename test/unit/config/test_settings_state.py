@@ -4,7 +4,8 @@ from svc.config.settings_state import Settings
 
 
 class TestSettings:
-    db_settings = {'User': 'other_user', 'Password': 'other_pass', 'Port': '1234', 'Name': 'other_name'}
+    db_settings = {'User': 'other_user', 'Password': 'other_pass', 'Port': '1234', 'Name': 'other_name', 'Host': 'db_host'}
+    hub_settings = {'Host': 'hub_host', 'Port': 5000}
     q_settings = {'Host': 'localhost', 'Port': 564, 'VHost': '/', 'User': 'guest', 'Password': 'fake+pass', 'Exchange': 'test_exchange'}
     urls = {'Lights': 'http://lights.api', 'Weather': 'http://weather.api', 'Email': 'http://email.com'}
     auth_settings = {'Domain': 'fake.domain.com', 'Audience': 'https://fake.com'}
@@ -23,12 +24,14 @@ class TestSettings:
         self._original_settings = self.SETTINGS._settings
         self._original_db = self.SETTINGS.Database._settings
         self._original_queue = self.SETTINGS.Queue._settings
+        self._original_hub = self.SETTINGS.Hub._settings
         self._original_urls = self.SETTINGS.BaseUrls._settings
         self._original_auth = self.SETTINGS.Authority._settings
 
         self.SETTINGS._settings = self.test_settings
         self.SETTINGS.Database._settings = self.db_settings
         self.SETTINGS.Queue._settings = self.q_settings
+        self.SETTINGS.Hub._settings = self.hub_settings
         self.SETTINGS.BaseUrls._settings = self.urls
         self.SETTINGS.Authority._settings = self.auth_settings
 
@@ -36,6 +39,7 @@ class TestSettings:
         self.SETTINGS._settings = self._original_settings
         self.SETTINGS.Database._settings = self._original_db
         self.SETTINGS.Queue._settings = self._original_queue
+        self.SETTINGS.Hub._settings = self._original_hub
         self.SETTINGS.BaseUrls._settings = self._original_urls
         self.SETTINGS.Authority._settings = self._original_auth
 
@@ -57,6 +61,19 @@ class TestSettings:
 
     def test_db_name__should_pull_from_settings(self):
         assert self.SETTINGS.Database.name == self.db_settings['Name']
+
+    def test_database_host__should_pull_from_settings(self):
+        assert self.SETTINGS.Database.host == self.db_settings['Host']
+
+    def test_hub_host__should_pull_from_settings(self):
+        assert self.SETTINGS.Hub.host == self.hub_settings['Host']
+
+    def test_hub_port__should_pull_from_settings(self):
+        assert self.SETTINGS.Hub.port == self.hub_settings['Port']
+
+    def test_hub_host__should_be_none_when_not_configured(self):
+        self.SETTINGS.Hub._settings = {}
+        assert self.SETTINGS.Hub.host is None
 
     def test_email_app_id__should_pull_from_settings(self):
         assert self.SETTINGS.email_app_id == self.test_settings['EmailAppId']
