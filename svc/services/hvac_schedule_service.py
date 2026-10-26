@@ -28,7 +28,7 @@ def __build_schedule_task(task, is_fahrenheit):
         'hvacStop': task.hvacStop,
         'hvacStartTemp': __to_celsius(task.hvacStartTemp, is_fahrenheit),
         'hvacStopTemp': __to_celsius(task.hvacStopTemp, is_fahrenheit),
-        'hvacMode': task.hvacMode
+        'hvacMode': __to_device_mode(task.hvacMode)
     }
 
 
@@ -36,3 +36,11 @@ def __to_celsius(temp, is_fahrenheit):
     if temp is None or not is_fahrenheit:
         return temp
     return convert_to_celsius(temp)
+
+
+def __to_device_mode(hvac_mode):
+    if hvac_mode == 'HEAT':
+        return Automation.HVAC.MODE.HEATING
+    if hvac_mode == 'COOL':
+        return Automation.HVAC.MODE.COOLING
+    return Automation.HVAC.MODE.AUTO
