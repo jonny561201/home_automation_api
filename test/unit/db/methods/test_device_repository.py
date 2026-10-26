@@ -17,7 +17,7 @@ class TestDeviceRepository:
     IP_ADDRESS = '0.0.0.0'
     IP_PORT = 8080
     DEVICE_NAME = 'garage_door'
-    NOW = datetime.now(tz=ZoneInfo('US/Central'))
+    NOW = datetime.now(tz=ZoneInfo('America/Chicago'))
 
     def setup_method(self, _):
         self.SESSION = mock.create_autospec(orm.scoped_session)

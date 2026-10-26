@@ -1,0 +1,13 @@
+.git
+.github
+.claude
+.idea
+venv
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+test
+docker
+settings.local.json
+settings.development.json
+*.log

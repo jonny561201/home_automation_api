@@ -13,7 +13,7 @@ from svc.db.repositories.tasks_repository import TasksRepository
 
 class TestTaskRepository:
     USER_ID = '1234abcd'
-    NOW = datetime.now(tz=ZoneInfo('US/Central'))
+    NOW = datetime.now(tz=ZoneInfo('America/Chicago'))
 
     def setup_method(self, _):
         self.SESSION = mock.create_autospec(orm.scoped_session)
