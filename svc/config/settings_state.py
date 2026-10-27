@@ -21,18 +21,6 @@ class Settings:
         return self._settings.get('Environment', 'local') if self._settings is not None else 'local'
 
     @property
-    def email_app_id(self):
-        return _get_setting('EMAIL_APP_ID', 'EmailAppId', self._settings)
-
-    @property
-    def weather_app_id(self):
-        return _get_setting('WEATHER_APP_ID', 'WeatherAppId', self._settings)
-
-    @property
-    def jwt_secret(self):
-        return _get_setting('JWT_SECRET', 'JwtSecret', self._settings)
-
-    @property
     def light_api_key(self):
         return _get_setting('LIGHT_API_KEY', 'LightApiKey', self._settings)
 
@@ -141,10 +129,6 @@ class BaseUrls:
     @property
     def weather(self):
         return self._settings.get('Weather')
-
-    @property
-    def email(self):
-        return self._settings.get('Email')
 
 
 class Authority:

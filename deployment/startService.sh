@@ -86,14 +86,11 @@ function createFile {
     read SQL_PASS
     echo -e "Enter LIGHT_API_KEY:${WHITE}"
     read LIGHT_API_KEY
-    echo -e "Enter WEATHER_APP_ID:${WHITE}"
-    read WEATHER_APP
 
     echo "PYTHON_ENVIRONMENT=production" > serviceEnvVariables
     echo "SQL_USERNAME=${SQL_USER}" >> serviceEnvVariables
     echo "SQL_PASSWORD=${SQL_PASS}" >> serviceEnvVariables
     echo "LIGHT_API_KEY=${LIGHT_API_KEY}" >> serviceEnvVariables
-    echo "WEATHER_APP_ID=${WEATHER_APP}" >> serviceEnvVariables
 }
 
 

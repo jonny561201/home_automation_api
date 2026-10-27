@@ -7,14 +7,10 @@ class TestSettings:
     db_settings = {'User': 'other_user', 'Password': 'other_pass', 'Port': '1234', 'Name': 'other_name', 'Host': 'db_host'}
     hub_settings = {'Host': 'hub_host', 'Port': 5000}
     q_settings = {'Host': 'localhost', 'Port': 564, 'VHost': '/', 'User': 'guest', 'Password': 'fake+pass', 'Exchange': 'test_exchange'}
-    urls = {'Lights': 'http://lights.api', 'Weather': 'http://weather.api', 'Email': 'http://email.com'}
+    urls = {'Lights': 'http://lights.api', 'Weather': 'http://weather.api'}
     auth_settings = {'Domain': 'fake.domain.com', 'Audience': 'https://fake.com'}
     test_settings = {
         'Environment': 'Testing',
-        'EmailAppId': '098zyx',
-        'WeatherAppId': '435hadsf',
-        'JwtSecret': 'other_secret',
-        'UserId': 'other_user_id',
         'LightApiKey': (str(uuid.uuid4())),
         'AllowedOrigins': ['http://example.com']
     }
@@ -75,15 +71,6 @@ class TestSettings:
         self.SETTINGS.Hub._settings = {}
         assert self.SETTINGS.Hub.host is None
 
-    def test_email_app_id__should_pull_from_settings(self):
-        assert self.SETTINGS.email_app_id == self.test_settings['EmailAppId']
-
-    def test_weather_app_id__should_pull_from_settings(self):
-        assert self.SETTINGS.weather_app_id == self.test_settings['WeatherAppId']
-
-    def test_jwt_secret__should_pull_from_settings(self):
-        assert self.SETTINGS.jwt_secret == self.test_settings['JwtSecret']
-
     def test_light_api_key__should_pull_from_settings(self):
         assert self.SETTINGS.light_api_key == self.test_settings['LightApiKey']
 
@@ -113,9 +100,6 @@ class TestSettings:
 
     def test_base_url_weather__should_pull_from_settings(self):
         assert self.SETTINGS.BaseUrls.weather == self.urls['Weather']
-
-    def test_base_url_email__should_pull_from_settings(self):
-        assert self.SETTINGS.BaseUrls.email == self.urls['Email']
 
     def test_auth_domain__should_pull_from_settings(self):
         assert self.SETTINGS.Authority.domain == self.auth_settings['Domain']

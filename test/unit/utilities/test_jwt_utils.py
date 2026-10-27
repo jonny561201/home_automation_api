@@ -1,7 +1,7 @@
 import pytest
 from jwt import DecodeError, ExpiredSignatureError, InvalidSignatureError
 from mock import patch
-from werkzeug.exceptions import Unauthorized, Forbidden
+from werkzeug.exceptions import Unauthorized
 
 from svc.config.settings_state import Settings
 from svc.utilities.auth_utils import AuthClient
@@ -88,41 +88,3 @@ class TestAuthClient:
 
         with pytest.raises(Unauthorized):
             client.verify_jwt(self.TOKEN)
-
-    def test_verify_and_authorize__should_return_claims_when_roles_match(self, mock_jwt, mock_jwks):
-        claims = {'sub': self.USER_ID, 'roles': ['lighting', 'security']}
-        mock_jwt.decode.return_value = claims
-        client = AuthClient.get_instance()
-        actual = client.verify_and_authorize(self.TOKEN, 'lighting')
-
-        assert actual == claims
-
-    def test_verify_and_authorize__should_return_claims_when_all_required_roles_present(self, mock_jwt, mock_jwks):
-        claims = {'sub': self.USER_ID, 'roles': ['lighting', 'security', 'thermostat']}
-        mock_jwt.decode.return_value = claims
-        client = AuthClient.get_instance()
-        actual = client.verify_and_authorize(self.TOKEN, 'lighting', 'security')
-
-        assert actual == claims
-
-    def test_verify_and_authorize__should_raise_forbidden_when_role_missing(self, mock_jwt, mock_jwks):
-        claims = {'sub': self.USER_ID, 'roles': ['lighting']}
-        mock_jwt.decode.return_value = claims
-        client = AuthClient.get_instance()
-        with pytest.raises(Forbidden):
-            client.verify_and_authorize(self.TOKEN, 'security')
-
-    def test_verify_and_authorize__should_raise_forbidden_when_roles_claim_missing(self, mock_jwt, mock_jwks):
-        claims = {'sub': self.USER_ID}
-        mock_jwt.decode.return_value = claims
-        client = AuthClient.get_instance()
-        with pytest.raises(Forbidden):
-            client.verify_and_authorize(self.TOKEN, 'lighting')
-
-    def test_verify_and_authorize__should_succeed_with_no_required_roles(self, mock_jwt, mock_jwks):
-        claims = {'sub': self.USER_ID, 'roles': []}
-        mock_jwt.decode.return_value = claims
-        client = AuthClient.get_instance()
-        actual = client.verify_and_authorize(self.TOKEN)
-
-        assert actual == claims

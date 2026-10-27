@@ -24,7 +24,7 @@ class TestSumpRoutes:
         flask_app = create_app()
         self.TEST_CLIENT = flask_app.test_client()
         user = UserInformation(id=self.USER_ID, first_name='Jon', last_name='Test')
-        preference = UserPreference(user=user, is_imperial=False, is_fahrenheit=True)
+        preference = UserPreference(user_id=self.USER_ID, is_imperial=False, is_fahrenheit=True)
 
         with DatabaseBase() as database:
             stmt = select(DeviceType).where(DeviceType.type == 'sump_pump')

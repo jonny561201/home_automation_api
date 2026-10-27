@@ -28,9 +28,6 @@
 3. Create `settings.local.json` file to create local test values for keys
     * `Environment` flag to know what environment you are in based on PYTHON_ENVIRONMENT env var
     * `LightApiKey` api key for the lights microservice
-    * `WeatherAppId` app id for the weather provider
-    * `JwtSecret` jwt secret for encoding/decoding jwts
-    * `EmailAppId` app id for the email provider
     * `Database` object to be created for persistent storage
       * `Port` database port
       * `Name` database name
@@ -46,7 +43,6 @@
     * `BaseUrls` object with external service base urls
       * `Lights` lights microservice url
       * `Weather` weather api url
-      * `Email` email api url
     * `Authority` Auth0 configuration
       * `Domain` Auth0 tenant domain
       * `Audience` Auth0 audience

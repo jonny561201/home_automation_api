@@ -17,15 +17,6 @@ class Coordinates:
 
 @dataclass_json
 @dataclass
-class GarageStatus:
-    isGarageOpen: bool
-    duration: datetime
-    coordinates: Coordinates
-    doorName: str
-
-
-@dataclass_json
-@dataclass
 class GarageState:
     isGarageOpen: bool
 

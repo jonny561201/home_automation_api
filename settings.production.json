@@ -12,12 +12,10 @@
     "Domain": "dev-mx0anv661qiyofk8.us.auth0.com",
     "Audience": "https://soaringleafsolutions.com"
   },
-  "UserId": "e97febc0-fd10-11e9-8f0b-362b9e155667",
   "VapidSubject": "mailto:admin@soaringleafsolutions.com",
   "BaseUrls": {
     "Lights": "http://127.0.0.1:5002/api/lights",
-    "Weather": "https://api.openweathermap.org/data/2.5",
-    "Email": "https://api.sendinblue.com/v3/smtp/email/"
+    "Weather": "https://api.openweathermap.org/data/2.5"
   },
   "Queue": {
     "Port": 123,

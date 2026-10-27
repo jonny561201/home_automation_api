@@ -20,21 +20,6 @@ class TestCredentialRepository:
         self.SESSION = mock.create_autospec(orm.scoped_session)
         self.DATABASE = UserRepository()
         self.DATABASE.session = self.SESSION
-    def test_get_user_info__should_return_the_matching_user_info(self):
-        user = UserInformation(id=self.USER_ID, first_name=self.FIRST_NAME, last_name=self.LAST_NAME)
-        self.SESSION.execute.return_value.scalars.return_value.first.return_value = user
-
-        actual = self.DATABASE.get_user_info(self.USER_ID)
-
-        assert actual['user_id'] == self.USER_ID
-        assert actual['first_name'] == self.FIRST_NAME
-        assert actual['last_name'] == self.LAST_NAME
-
-    def test_get_user_info__should_raise_unauthorized_if_user_is_none(self):
-        self.SESSION.execute.return_value.scalars.return_value.first.return_value = None
-        with pytest.raises(Unauthorized):
-            self.DATABASE.get_user_info('123abc')
-
     def test_insert_preferences_by_user__should_not_throw_when_preferences_empty(self):
         preference_info = {}
         user_id = uuid.uuid4()
@@ -231,7 +216,7 @@ class TestPreference:
     @staticmethod
     def __create_user_preference(user, city='Moline', is_fahrenheit=False, is_imperial=False):
         preference = UserPreference()
-        preference.user = user
+        preference.user_id = user.id
         preference.city = city
         preference.is_fahrenheit = is_fahrenheit
         preference.is_imperial = is_imperial

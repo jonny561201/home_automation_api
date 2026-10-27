@@ -7,7 +7,7 @@ import json
 from flask import Flask
 from mock import patch
 
-from svc.models.garage import GarageDoor, GarageOverview, GarageStatus, Coordinates, GarageState
+from svc.models.garage import GarageDoor, GarageOverview, Coordinates, GarageState
 from svc.endpoints.garage_door_routes import get_all_garage_door_status, update_garage_door_state, toggle_garage_door, stream_garage_door_status
 
 
@@ -25,7 +25,6 @@ class TestAppRoutes:
         self.ctx.push()
         self.STATE = GarageState(isGarageOpen=False)
         self.COORDINATES = Coordinates(latitude=19.00, longitude=-99.00)
-        self.STATUS = GarageStatus(isGarageOpen=True, duration=datetime.now(), coordinates=self.COORDINATES, doorName='Left Garage')
         self.DOORS = [GarageDoor(garageId='1', isGarageOpen=True, duration=datetime.now(), doorName='Left Garage', nodeId=str(uuid.uuid4()))]
         self.OVERVIEW = GarageOverview(coordinates=self.COORDINATES, doors=self.DOORS)
 

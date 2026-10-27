@@ -6,11 +6,8 @@ from svc.config.settings_state import Settings
 
 class TestSettingsEnvVars:
     ENV_VARS = {
-        'SQL_USERNAME': 'test_user', 'SQL_PASSWORD': 'test_pass', 'SQL_PORT': '5231',
-        'SQL_DBNAME': 'fake_name', 'EMAIL_APP_ID': 'abc123', 'WEATHER_APP_ID': '345def',
-        'JWT_SECRET': 'FakeSecret', 'USER_ID': 'sdf234',
-        'LIGHT_API_KEY': str(uuid.uuid4()), 'QUEUE_USER_NAME': 'queue_user', 'QUEUE_PASSWORD': 'queue_pass',
-        'QUEUE_HOST': 'localhost', 'QUEUE_PORT': '5642', 'QUEUE_VHOST': 'vhost', 'QUEUE_EXCHANGE': 'exchange'
+        'SQL_USERNAME': 'test_user', 'SQL_PASSWORD': 'test_pass', 'SQL_PORT': '5231', 'SQL_DBNAME': 'fake_name',
+        'LIGHT_API_KEY': str(uuid.uuid4()), 'QUEUE_USER_NAME': 'queue_user', 'QUEUE_PASSWORD': 'queue_pass'
     }
 
     def setup_method(self):
@@ -24,21 +21,13 @@ class TestSettingsEnvVars:
         self.SETTINGS.Queue._settings = None
 
     def teardown_method(self):
-        os.environ.pop('USER_ID')
         os.environ.pop('SQL_PORT')
-        os.environ.pop('JWT_SECRET')
         os.environ.pop('SQL_DBNAME')
         os.environ.pop('SQL_USERNAME')
         os.environ.pop('SQL_PASSWORD')
-        os.environ.pop('EMAIL_APP_ID')
-        os.environ.pop('WEATHER_APP_ID')
         os.environ.pop('LIGHT_API_KEY')
         os.environ.pop('QUEUE_USER_NAME')
         os.environ.pop('QUEUE_PASSWORD')
-        os.environ.pop('QUEUE_HOST')
-        os.environ.pop('QUEUE_PORT')
-        os.environ.pop('QUEUE_VHOST')
-        os.environ.pop('QUEUE_EXCHANGE')
         self.SETTINGS._settings = self._original_settings
         self.SETTINGS.Database._settings = self._original_db
         self.SETTINGS.Queue._settings = self._original_queue
@@ -71,29 +60,8 @@ class TestSettingsEnvVars:
         self.SETTINGS.Database._settings = {'Port': '1234'}
         assert self.SETTINGS.Database.port == self.ENV_VARS['SQL_PORT']
 
-    def test_email_app_id__should_return_value(self):
-        assert self.SETTINGS.email_app_id == self.ENV_VARS['EMAIL_APP_ID']
-
-    def test_weather_app_id__should_return_value(self):
-        assert self.SETTINGS.weather_app_id == self.ENV_VARS['WEATHER_APP_ID']
-
-    def test_jwt_secret__should_return_value(self):
-        assert self.SETTINGS.jwt_secret == self.ENV_VARS['JWT_SECRET']
-
     def test_light_api_key__should_return_value(self):
         assert self.SETTINGS.light_api_key == self.ENV_VARS['LIGHT_API_KEY']
-
-    def test_email_app_id__should_favor_environment_variables_above_settings(self):
-        self.SETTINGS._settings = {'EmailAppId': '1234'}
-        assert self.SETTINGS.email_app_id == self.ENV_VARS['EMAIL_APP_ID']
-
-    def test_weather_app_id__should_favor_environment_variables_above_settings(self):
-        self.SETTINGS._settings = {'WeatherAppId': '1234'}
-        assert self.SETTINGS.weather_app_id == self.ENV_VARS['WEATHER_APP_ID']
-
-    def test_jwt_secret__should_favor_environment_variables_above_settings(self):
-        self.SETTINGS._settings = {'JwtSecret': '1234'}
-        assert self.SETTINGS.jwt_secret == self.ENV_VARS['JWT_SECRET']
 
     def test_light_api_key__should_favor_environment_variables_above_settings(self):
         self.SETTINGS._settings = {'LightApiKey': '1234'}

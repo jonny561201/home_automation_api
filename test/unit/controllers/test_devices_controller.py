@@ -5,7 +5,7 @@ from werkzeug.exceptions import BadRequest
 from svc.db.models.user_information_model import Devices, DeviceType
 from svc.models.devices import Device
 from svc.constants.home_automation import AuthClaims
-from svc.controllers.devices_controller import add_device, get_user_devices, discover_device, register_discovered_device_to_user
+from svc.controllers.devices_controller import add_device, get_user_devices, register_discovered_device_to_user
 
 
 @patch('svc.controllers.devices_controller.auth0_service')

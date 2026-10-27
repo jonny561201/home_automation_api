@@ -104,9 +104,7 @@ def __compute_current_desired_temp(mode, active_task, enabled_tasks, now_local, 
     fallback = __first_today_stop_temp(enabled_tasks, today_label)
     if fallback is not None:
         return fallback
-    if min_temp is not None and max_temp is not None:
-        return (min_temp + max_temp) / 2
-    return desired_temp
+    return (min_temp + max_temp) / 2
 
 
 def __first_today_stop_temp(enabled_tasks, today_label):

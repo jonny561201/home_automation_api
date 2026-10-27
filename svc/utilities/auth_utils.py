@@ -1,6 +1,6 @@
 import jwt
 from jwt import PyJWKClient
-from werkzeug.exceptions import Unauthorized, Forbidden
+from werkzeug.exceptions import Unauthorized
 
 from svc.config.settings_state import Settings
 from svc.config.singleton import Singleton
@@ -28,11 +28,3 @@ class AuthClient:
             )
         except Exception:
             raise Unauthorized()
-
-    def verify_and_authorize(self, token: str, *required_roles: str):
-        claims = self.verify_jwt(token)
-        user_roles = set(claims.get('roles', []))
-        if not set(required_roles).issubset(user_roles):
-            raise Forbidden()
-
-        return claims

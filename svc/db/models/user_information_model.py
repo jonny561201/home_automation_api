@@ -14,8 +14,6 @@ class UserInformation(Base):
     last_name = Column(String, nullable=False)
     email = Column(String, nullable=True)
 
-    child_accounts = relationship("ChildAccounts", primaryjoin="and_(ChildAccounts.parent_user_id == UserInformation.id)", viewonly=True)
-
 
 class ChildAccounts(Base):
     __tablename__ = 'child_accounts'
@@ -67,8 +65,6 @@ class UserDevices(Base):
     user_id = Column(UUID, ForeignKey(UserInformation.id))
     device_id = Column(UUID, ForeignKey(Devices.id))
 
-    device = relationship('Devices', foreign_keys='UserDevices.device_id')
-
 
 class Scenes(Base):
     __tablename__ = 'scenes'
@@ -77,7 +73,7 @@ class Scenes(Base):
     name = Column(String, nullable=False)
     user_id = Column(UUID, ForeignKey(UserInformation.id))
 
-    details = relationship('SceneDetails', cascade='delete', backref="parent", lazy='joined')
+    details = relationship('SceneDetails', cascade='delete', lazy='joined')
 
 
 class SceneDetails(Base):
@@ -105,9 +101,6 @@ class UserPreference(Base):
     garage_alert_time = Column(Integer, nullable=False, server_default='0')
     garage_node_id = Column(UUID, ForeignKey(DeviceNodes.id), nullable=True)
 
-    user = relationship('UserInformation', foreign_keys='UserPreference.user_id')
-    garage_node = relationship('DeviceNodes', foreign_keys='UserPreference.garage_node_id')
-
 
 class ScheduledTaskTypes(Base):
     __tablename__ = 'scheduled_task_types'
@@ -134,7 +127,6 @@ class ScheduleTasks(Base):
     enabled = Column(Boolean, nullable=False)
     task_type_id = Column(UUID, ForeignKey(ScheduledTaskTypes.id))
 
-    user = relationship('UserInformation', foreign_keys='ScheduleTasks.user_id')
     task_type = relationship('ScheduledTaskTypes', foreign_keys='ScheduleTasks.task_type_id')
 
 
@@ -147,8 +139,6 @@ class DailySumpPumpLevel(Base):
     warning_level = Column(Integer, nullable=False)
     create_date = Column(TIMESTAMP, nullable=False)
 
-    device = relationship('Devices', foreign_keys='DailySumpPumpLevel.device_id')
-
 
 class AverageSumpPumpLevel(Base):
     __tablename__ = 'average_daily_sump_level'
@@ -157,8 +147,6 @@ class AverageSumpPumpLevel(Base):
     device_id = Column(UUID, ForeignKey(Devices.id))
     distance = Column(DECIMAL, nullable=False)
     create_day = Column(DATE, nullable=False)
-
-    device = relationship('Devices', foreign_keys='AverageSumpPumpLevel.device_id')
 
 
 class PushSubscription(Base):
