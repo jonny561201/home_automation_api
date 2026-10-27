@@ -1,4 +1,3 @@
-import uuid
 from datetime import time
 
 from sqlalchemy import select, delete
@@ -16,17 +15,16 @@ class TasksRepository(DatabaseBase):
         stmt = select(ScheduleTasks).filter_by(user_id=user_id, id=task.get('taskId'))
         old_task = self.session.execute(stmt).scalars().first()
         self._validate_property(old_task)
-        old_task.id = str(uuid.uuid4())
-        old_task.alarm_days = task['alarmDays'] if task.get('alarmDays') else old_task.alarm_days
-        old_task.alarm_time = time.fromisoformat(task['alarmTime']) if task.get('alarmTime') else old_task.alarm_time
-        old_task.alarm_group_name = task['alarmGroupName'] if task.get('alarmGroupName') else old_task.alarm_group_name
-        old_task.alarm_light_group = task['alarmLightGroup'] if task.get('alarmLightGroup') else old_task.alarm_light_group
+        old_task.alarm_days = task['alarmDays'] if 'alarmDays' in task else old_task.alarm_days
+        old_task.alarm_time = self.__parse_time(task['alarmTime']) if 'alarmTime' in task else old_task.alarm_time
+        old_task.alarm_group_name = task['alarmGroupName'] if 'alarmGroupName' in task else old_task.alarm_group_name
+        old_task.alarm_light_group = task['alarmLightGroup'] if 'alarmLightGroup' in task else old_task.alarm_light_group
         old_task.enabled = task['enabled'] if task.get('enabled') is not None else old_task.enabled
-        old_task.hvac_start = time.fromisoformat(task['hvacStart']) if task.get('hvacStart') else old_task.hvac_start
-        old_task.hvac_stop = time.fromisoformat(task['hvacStop']) if task.get('hvacStop') else old_task.hvac_stop
-        old_task.hvac_mode = task['hvacMode'] if task.get('hvacMode') else old_task.hvac_mode
-        old_task.hvac_start_temp = task['hvacStartTemp'] if task.get('hvacStartTemp') else old_task.hvac_start_temp
-        old_task.hvac_stop_temp = task['hvacStopTemp'] if task.get('hvacStopTemp') else old_task.hvac_stop_temp
+        old_task.hvac_start = self.__parse_time(task['hvacStart']) if 'hvacStart' in task else old_task.hvac_start
+        old_task.hvac_stop = self.__parse_time(task['hvacStop']) if 'hvacStop' in task else old_task.hvac_stop
+        old_task.hvac_mode = task['hvacMode'] if 'hvacMode' in task else old_task.hvac_mode
+        old_task.hvac_start_temp = task['hvacStartTemp'] if 'hvacStartTemp' in task else old_task.hvac_start_temp
+        old_task.hvac_stop_temp = task['hvacStopTemp'] if 'hvacStopTemp' in task else old_task.hvac_stop_temp
 
         if old_task.task_type.activity_name != task.get('taskType'):
             stmt = select(ScheduledTaskTypes).filter_by(activity_name=task.get('taskType'))
@@ -73,3 +71,7 @@ class TasksRepository(DatabaseBase):
         return Task(alarmDays=task.alarm_days, alarmTime=alarm_time, alarmGroupName=task.alarm_group_name, alarmLightGroup=task.alarm_light_group,
                     hvacMode=task.hvac_mode, hvacStart=hvac_start, hvacStop=hvac_stop, hvacStartTemp=task.hvac_start_temp, hvacStopTemp=task.hvac_stop_temp,
                     taskId=str(task.id), enabled=task.enabled, taskType=task.task_type.activity_name)
+
+    @staticmethod
+    def __parse_time(value):
+        return time.fromisoformat(value) if value not in (None, '') else None

@@ -192,18 +192,15 @@ class TestTaskRepository:
 
         self.SESSION.execute.return_value.scalars.return_value.first.assert_called()
 
-    @patch('svc.db.repositories.tasks_repository.uuid')
-    def test_update_schedule_task_by_user_id__should_update_task_id(self, mock_uuid):
-        task_id = 'asd123'
-        task = {'taskId': task_id, 'alarmLightGroup': '1', 'alarmGroupName': 'asdf', 'alarmDays': 'Mon', 'alarmTime': '00:00', }
-        new_task_id = uuid.uuid4()
-        mock_uuid.uuid4.return_value = new_task_id
-        existing_task = ScheduleTasks(user_id=self.USER_ID, task_type=ScheduledTaskTypes())
+    def test_update_schedule_task_by_user_id__should_keep_task_id(self):
+        task_id = str(uuid.uuid4())
+        task = {'taskId': task_id, 'alarmLightGroup': '1', 'alarmGroupName': 'asdf', 'alarmDays': 'Mon', 'alarmTime': '00:00'}
+        existing_task = ScheduleTasks(id=task_id, user_id=self.USER_ID, task_type=ScheduledTaskTypes())
         self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
         self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
         assert existing_task.user_id == self.USER_ID
-        assert existing_task.id == str(new_task_id)
+        assert existing_task.id == task_id
 
     def test_update_schedule_task_by_user_id__should_update_task_group_id(self):
         new_group_id = '1'
@@ -405,15 +402,38 @@ class TestTaskRepository:
             self.DATABASE.update_schedule_task_by_user_id(None, {})
         self.SESSION.execute.assert_not_called()
 
-    @patch('svc.db.repositories.tasks_repository.uuid')
-    def test_update_schedule_task_by_user_id__should_return_revised_task(self, mock_uuid):
-        task = {'taskId': 'asdfasd', 'alarmGroupName': 'bedroom', 'alarmLightGroup': '3', 'alarmTime': '00:00:00'}
-        new_task_id = uuid.uuid4()
-        mock_uuid.uuid4.return_value = new_task_id
-        self.SESSION.execute.return_value.scalars.return_value.first.return_value = ScheduleTasks(task_type=ScheduledTaskTypes())
+    def test_update_schedule_task_by_user_id__should_return_revised_task_with_same_id(self):
+        task_id = str(uuid.uuid4())
+        task = {'taskId': task_id, 'alarmGroupName': 'bedroom', 'alarmLightGroup': '3', 'alarmTime': '00:00:00'}
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = ScheduleTasks(id=task_id, task_type=ScheduledTaskTypes())
         actual = self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
 
-        assert actual.taskId == str(new_task_id)
+        assert actual.taskId == task_id
+        assert actual.alarmGroupName == 'bedroom'
+
+    def test_update_schedule_task_by_user_id__should_clear_field_when_value_is_none(self):
+        task = {'taskId': 'asdfasd', 'hvacMode': None}
+        existing_task = ScheduleTasks(hvac_mode='HEAT', task_type=ScheduledTaskTypes())
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
+        self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
+
+        assert existing_task.hvac_mode is None
+
+    def test_update_schedule_task_by_user_id__should_save_zero_temperature(self):
+        task = {'taskId': 'asdfasd', 'hvacStartTemp': 0}
+        existing_task = ScheduleTasks(hvac_start_temp=18, task_type=ScheduledTaskTypes())
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
+        self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
+
+        assert existing_task.hvac_start_temp == 0
+
+    def test_update_schedule_task_by_user_id__should_clear_time_when_value_is_blank(self):
+        task = {'taskId': 'asdfasd', 'alarmTime': ''}
+        existing_task = ScheduleTasks(alarm_time=time(6, 30), task_type=ScheduledTaskTypes())
+        self.SESSION.execute.return_value.scalars.return_value.first.return_value = existing_task
+        self.DATABASE.update_schedule_task_by_user_id(self.USER_ID, task)
+
+        assert existing_task.alarm_time is None
 
     def test_update_schedule_task_by_user_id__should_return_task_type_with_response(self):
         task_type = 'turn on'
