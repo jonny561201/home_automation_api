@@ -16,12 +16,10 @@ from svc.utilities.rabbitmq_client import publish
 def get_all_status(bearer_token):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]
-    with DeviceRepository() as db:
-        info = db.get_device_info('garage_door')
+    info = __get_device_info()
     with UserRepository() as database:
         preferences = database.get_preferences_by_user(user_id)
-    url = f'http://{info.ip_address}:{info.ip_port}'
-    status = api_utils.get_all_garage_doors_status(info.api_key, url)
+    status = api_utils.get_all_garage_doors_status(info.api_key, info.base_url)
     status['doors'] = garage_status_service.build_user_doors(status['doors'], info, preferences.garageAlertTime)
     return GarageOverview.from_dict(status)
 
@@ -29,8 +27,7 @@ def get_all_status(bearer_token):
 def stream_status(bearer_token):
     claims = AuthClient.get_instance().verify_jwt(bearer_token)
     user_id = claims[AuthClaims.USER_ID]
-    with DeviceRepository() as db:
-        info = db.get_device_info('garage_door')
+    info = __get_device_info()
     with UserRepository() as database:
         preferences = database.get_preferences_by_user(user_id)
     return __status_stream(info, preferences.garageAlertTime)
@@ -44,7 +41,7 @@ def update_state(bearer_token, garage_id, request):
     message = {'id': garage_id, 'action': 'update', 'open': garage_open}
     publish(Automation.GARAGE.QUEUE, message)
 
-    return GarageState(isGarageOpen=request['garageDoorOpen'])
+    return GarageState(isGarageOpen=garage_open)
 
 
 def toggle_door(bearer_token, garage_id):
@@ -65,16 +62,14 @@ def schedule_close(bearer_token, garage_id):
 
 
 def cancel_scheduled_close(bearer_token, garage_id):
-    info = _get_garage_device_info(bearer_token)
-    url = f'http://{info.ip_address}:{info.ip_port}'
-    api_utils.cancel_garage_schedule(info.api_key, url, garage_id)
-
-
-def _get_garage_device_info(bearer_token):
     AuthClient.get_instance().verify_jwt(bearer_token)
-    with DeviceRepository() as db:
-        info = db.get_device_info('garage_door')
-    return info
+    info = __get_device_info()
+    api_utils.cancel_garage_schedule(info.api_key, info.base_url, garage_id)
+
+
+def __get_device_info():
+    with DeviceRepository() as database:
+        return database.get_device_info('garage_door')
 
 
 def __status_stream(info, alert_time_minutes):

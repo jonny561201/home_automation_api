@@ -19,7 +19,7 @@ def get_user_temp(bearer_token, timezone_header=None):
         tasks = database.get_schedule_tasks_by_user(user_id, 'hvac')
     with DeviceRepository() as database:
         info = database.get_device_info('thermostat')
-    status = api_utils.get_thermostat_status(info.api_key, f'http://{info.ip_address}:{info.ip_port}')
+    status = api_utils.get_thermostat_status(info.api_key, info.base_url)
     is_fahrenheit = preference.tempUnit == 'fahrenheit'
     internal_temp = __to_user_unit(status['currentTemp'], is_fahrenheit)
     tz = resolve_timezone(timezone_header)

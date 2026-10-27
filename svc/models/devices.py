@@ -24,6 +24,10 @@ class DeviceInfo:
     api_key: str
     nodes: Dict[str, NodeInfo] = field(default_factory=dict)
 
+    @property
+    def base_url(self):
+        return f'http://{self.ip_address}:{self.ip_port}'
+
 
 @dataclass_json
 @dataclass

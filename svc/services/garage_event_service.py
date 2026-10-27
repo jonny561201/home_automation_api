@@ -40,8 +40,7 @@ class GarageEventBroadcaster:
     def consume_upstream(self):
         with DeviceRepository() as database:
             info = database.get_device_info('garage_door')
-        url = f'http://{info.ip_address}:{info.ip_port}'
-        for status in api_utils.stream_garage_door_events(info.api_key, url):
+        for status in api_utils.stream_garage_door_events(info.api_key, info.base_url):
             self.publish(status)
 
     def __listen(self):
