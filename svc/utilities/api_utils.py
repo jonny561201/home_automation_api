@@ -73,7 +73,7 @@ def get_all_garage_doors_status(api_key, base_url):
         response = requests.get(f'{base_url}/garageDoor/status', headers=header, timeout=5)
     except Exception:
         raise FailedDependency()
-    __validate_garage_response(response)
+    __validate_device_response(response)
     return response.json()
 
 
@@ -83,14 +83,14 @@ def get_thermostat_status(api_key, base_url):
         response = requests.get(f'{base_url}/thermostat/status', headers=header, timeout=5)
     except Exception:
         raise FailedDependency()
-    __validate_thermostat_response(response)
+    __validate_device_response(response)
     return response.json()
 
 
 def stream_garage_door_events(api_key, base_url):
     header = {'X-API-Key': api_key}
     with requests.get(f'{base_url}/garageDoor/events', headers=header, stream=True, timeout=(Time.FIVE_SECONDS, Garage.STREAM_READ_TIMEOUT_SECONDS)) as response:
-        __validate_garage_response(response)
+        __validate_device_response(response)
         for line in response.iter_lines(decode_unicode=True):
             if line.startswith(__SSE_DATA_PREFIX):
                 yield json.loads(line[len(__SSE_DATA_PREFIX):])
@@ -102,7 +102,7 @@ def cancel_garage_schedule(api_key, base_url, garage_id):
         response = requests.delete(f'{base_url}/garageDoor/{garage_id}/schedule', headers=header, timeout=5)
     except Exception:
         raise FailedDependency()
-    __validate_garage_response(response)
+    __validate_device_response(response)
 
 
 def register_home_automation_device(ip, port, body=None):
@@ -246,14 +246,9 @@ def __validate_response(response):
         raise FailedDependency()
 
 
-def __validate_garage_response(response):
+def __validate_device_response(response):
     if response.status_code > 299:
-        raise BadRequest(description='Garage node returned a failure')
-
-
-def __validate_thermostat_response(response):
-    if response.status_code > 299:
-        raise BadRequest(description='Thermostat returned a failure')
+        raise BadRequest(description='Device returned a failure')
 
 
 __SSE_DATA_PREFIX = 'data: '
