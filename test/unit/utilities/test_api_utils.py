@@ -10,7 +10,8 @@ from svc.utilities.api_utils import (get_city_coordinates, set_light_groups, set
                                      get_forecast_by_coords, get_extended_forecast_by_coords, exchange_auth0_code,
                                      create_auth0_user, assign_auth0_roles, send_auth0_password_reset,
                                      register_home_automation_device, get_census_reverse_geocode,
-                                     stream_garage_door_events, get_thermostat_status)
+                                     stream_garage_door_events, get_thermostat_status, get_unregistered_lights,
+                                     assign_light_group)
 
 
 @patch('svc.utilities.api_utils.requests')
@@ -284,7 +285,7 @@ class TestLightApiRequests:
         expected_url = f'{self.BASE_URL}/group/state'
         set_light_groups(self.API_KEY, group_id, True, 132)
 
-        mock_requests.post.assert_called_with(expected_url, json=ANY, headers={'LightApiKey': self.API_KEY})
+        mock_requests.post.assert_called_with(expected_url, json=ANY, headers={'LightApiKey': self.API_KEY}, timeout=10)
 
     def test_set_light_groups__should_call_state_with_on_off_set(self, mock_requests):
         brightness = 222
@@ -293,7 +294,7 @@ class TestLightApiRequests:
         set_light_groups(self.API_KEY, group_id, True, brightness)
 
         expected_request = {'groupId': group_id, 'on': True, 'brightness': brightness}
-        mock_requests.post.assert_called_with(ANY, json=expected_request, headers={'LightApiKey': self.API_KEY})
+        mock_requests.post.assert_called_with(ANY, json=expected_request, headers={'LightApiKey': self.API_KEY}, timeout=10)
 
     def test_set_light_groups__should_call_state_with_on_to_false_when_brightness_zero(self, mock_requests):
         mock_requests.post.return_value = self.__create_response()
@@ -301,7 +302,7 @@ class TestLightApiRequests:
         set_light_groups(self.API_KEY, group_id, True, 0)
 
         expected_request = {'groupId': group_id, 'on': False}
-        mock_requests.post.assert_called_with(ANY, json=expected_request, headers={'LightApiKey': self.API_KEY})
+        mock_requests.post.assert_called_with(ANY, json=expected_request, headers={'LightApiKey': self.API_KEY}, timeout=10)
 
     def test_set_light_groups__should_call_state_with_dimmer_value(self, mock_requests):
         brightness = 233
@@ -310,7 +311,7 @@ class TestLightApiRequests:
         set_light_groups(self.API_KEY, group_id, True, brightness)
 
         expected_request = {'groupId': group_id, 'on': True, 'brightness': brightness}
-        mock_requests.post.assert_called_with(ANY, json=expected_request, headers={'LightApiKey': self.API_KEY})
+        mock_requests.post.assert_called_with(ANY, json=expected_request, headers={'LightApiKey': self.API_KEY}, timeout=10)
 
     def test_set_light_groups__should_call_state_with_on_set_true_if_dimmer_value(self, mock_requests):
         brightness = 155
@@ -319,7 +320,7 @@ class TestLightApiRequests:
         set_light_groups(self.API_KEY, group_id, True, brightness)
 
         expected_request = {'groupId': group_id, 'on': True, 'brightness': brightness}
-        mock_requests.post.assert_called_with(ANY, json=expected_request, headers={'LightApiKey': self.API_KEY})
+        mock_requests.post.assert_called_with(ANY, json=expected_request, headers={'LightApiKey': self.API_KEY}, timeout=10)
 
     def test_set_light_groups__should_raise_failed_dependency_when_returns_failure(self, mock_requests):
         brightness = 155
@@ -333,7 +334,7 @@ class TestLightApiRequests:
         set_light_groups(self.API_KEY, group_id, False, None)
         expected = {'groupId': group_id, 'on': False}
 
-        mock_requests.post.assert_called_with(ANY, json=expected, headers={'LightApiKey': self.API_KEY})
+        mock_requests.post.assert_called_with(ANY, json=expected, headers={'LightApiKey': self.API_KEY}, timeout=10)
 
     def test_set_light_state__should_make_call_to_api(self, mock_requests):
         light_id = '7'
@@ -341,7 +342,7 @@ class TestLightApiRequests:
         mock_requests.post.return_value = self.__create_response()
         set_light_state(self.API_KEY, light_id, None)
 
-        mock_requests.post.assert_called_with(expected_url, json=ANY, headers={'LightApiKey': self.API_KEY})
+        mock_requests.post.assert_called_with(expected_url, json=ANY, headers={'LightApiKey': self.API_KEY}, timeout=10)
 
     def test_set_light_state__should_submit_data_to_requested_url(self, mock_requests):
         light_id = '9'
@@ -350,7 +351,7 @@ class TestLightApiRequests:
         mock_requests.post.return_value = self.__create_response()
         set_light_state(self.API_KEY, light_id, brightness)
 
-        mock_requests.post.assert_called_with(ANY, json=expected_data, headers={'LightApiKey': self.API_KEY})
+        mock_requests.post.assert_called_with(ANY, json=expected_data, headers={'LightApiKey': self.API_KEY}, timeout=10)
 
     def test_set_light_state__should_set_light_on_state_to_false_when_brightness_zero(self, mock_requests):
         light_id = '9'
@@ -359,12 +360,44 @@ class TestLightApiRequests:
         mock_requests.post.return_value = self.__create_response()
         set_light_state(self.API_KEY, light_id, brightness)
 
-        mock_requests.post.assert_called_with(ANY, json=expected_data, headers={'LightApiKey': self.API_KEY})
+        mock_requests.post.assert_called_with(ANY, json=expected_data, headers={'LightApiKey': self.API_KEY}, timeout=10)
 
     def test_set_light_state__should_raise_failed_dependency_when_exception(self, mock_requests):
         mock_requests.post.return_value = self.__create_response(400)
         with pytest.raises(FailedDependency):
             set_light_state(self.API_KEY, '4', 255)
+
+    def test_set_light_groups__should_raise_failed_dependency_when_request_raises_connection_error(self, mock_requests):
+        mock_requests.post.side_effect = ConnectionError()
+        with pytest.raises(FailedDependency):
+            set_light_groups(self.API_KEY, '1', True, 100)
+
+    def test_set_light_state__should_raise_failed_dependency_when_request_raises_connection_error(self, mock_requests):
+        mock_requests.post.side_effect = ConnectionError()
+        with pytest.raises(FailedDependency):
+            set_light_state(self.API_KEY, '4', 255)
+
+    def test_get_unregistered_lights__should_raise_unauthorized_when_response_401(self, mock_requests):
+        mock_requests.get.return_value = self.__create_response(status=401)
+        with pytest.raises(Unauthorized):
+            get_unregistered_lights(self.API_KEY)
+
+    def test_get_unregistered_lights__should_raise_failed_dependency_when_request_raises_connection_error(self, mock_requests):
+        mock_requests.get.side_effect = ConnectionError()
+        with pytest.raises(FailedDependency):
+            get_unregistered_lights(self.API_KEY)
+
+    def test_assign_light_group__should_call_assign_url_with_timeout(self, mock_requests):
+        mock_requests.post.return_value = self.__create_response()
+        assign_light_group(self.API_KEY, '2', '7', 'Lamp', 1)
+
+        expected = {'name': 'Lamp', 'groupId': '2', 'lightId': '7', 'switchTypeId': 1}
+        mock_requests.post.assert_called_with(f'{self.BASE_URL}/group/assign', json=expected, headers={'LightApiKey': self.API_KEY}, timeout=10)
+
+    def test_assign_light_group__should_raise_failed_dependency_when_response_500(self, mock_requests):
+        mock_requests.post.return_value = self.__create_response(status=500)
+        with pytest.raises(FailedDependency):
+            assign_light_group(self.API_KEY, '2', '7', 'Lamp', 1)
 
     def test_get_full_state__should_make_call_to_api(self, mock_requests):
         mock_requests.get.return_value = self.__create_response()

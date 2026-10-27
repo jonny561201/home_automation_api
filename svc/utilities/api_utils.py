@@ -133,7 +133,10 @@ def set_light_groups(api_key, group_id, on, brightness):
     if brightness != 0 and brightness is not None:
         request['brightness'] = brightness
 
-    response = requests.post(f'{base_url}/group/state', json=request, headers={'LightApiKey': api_key})
+    try:
+        response = requests.post(f'{base_url}/group/state', json=request, headers={'LightApiKey': api_key}, timeout=10)
+    except Exception:
+        raise FailedDependency()
     __validate_response(response)
 
 
@@ -141,7 +144,11 @@ def set_light_state(api_key, light_id, brightness):
     base_url = Settings.get_instance().BaseUrls.lights
 
     request = {'lightId': light_id, 'on': False if brightness == 0 else True, 'brightness': brightness}
-    __validate_response(requests.post(f'{base_url}/light/state', json=request, headers={'LightApiKey': api_key}))
+    try:
+        response = requests.post(f'{base_url}/light/state', json=request, headers={'LightApiKey': api_key}, timeout=10)
+    except Exception:
+        raise FailedDependency()
+    __validate_response(response)
 
 
 def get_unregistered_lights(api_key):
@@ -149,17 +156,21 @@ def get_unregistered_lights(api_key):
 
     try:
         response = requests.get(f'{base_url}/unregistered', headers={'LightApiKey': api_key}, timeout=10)
-        __validate_response(response)
-        return response.json()
     except Exception:
         raise FailedDependency()
+    __validate_response(response)
+    return response.json()
 
 
 def assign_light_group(api_key, group_id, light_id, name, switch_type):
     base_url = Settings.get_instance().BaseUrls.lights
 
     request = {'name': name, 'groupId': group_id, 'lightId': light_id, 'switchTypeId': switch_type}
-    requests.post(f'{base_url}/group/assign', json=request, headers={'LightApiKey': api_key})
+    try:
+        response = requests.post(f'{base_url}/group/assign', json=request, headers={'LightApiKey': api_key}, timeout=10)
+    except Exception:
+        raise FailedDependency()
+    __validate_response(response)
 
 
 def exchange_auth0_code(code, code_verifier, redirect_uri):
