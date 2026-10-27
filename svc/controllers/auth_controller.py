@@ -17,7 +17,7 @@ def exchange_auth_code(request_data):
 
 
 def provision_user(api_key, request_data):
-    _validate_api_key(api_key)
+    __validate_api_key(api_key)
     first_name = request_data.get('first_name')
     last_name = request_data.get('last_name')
     email = request_data.get('email')
@@ -27,7 +27,7 @@ def provision_user(api_key, request_data):
         return database.provision_user(first_name, last_name, email)
 
 
-def _validate_api_key(api_key):
+def __validate_api_key(api_key):
     settings = Settings.get_instance()
-    if not api_key or api_key != settings.Authority.provision_api_key:
+    if api_key == None or api_key != settings.Authority.provision_api_key:
         raise Unauthorized()

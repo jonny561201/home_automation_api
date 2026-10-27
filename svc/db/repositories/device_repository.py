@@ -35,18 +35,18 @@ class DeviceRepository(DatabaseBase):
         return device.id
 
     def upsert_discovered_device(self, name, ip_address, ip_port, api_key, max_nodes, nodes, device_type_name):
-        device_type = self._get_device_type(device_type_name)
-        existing = self._get_device_by_name(name, device_type.id)
-        if existing:
+        device_type = self.__get_device_type(device_type_name)
+        existing = self.__get_device_by_name(name, device_type.id)
+        if existing != None:
             existing.ip_address = ip_address
             existing.ip_port = ip_port
             existing.max_nodes = max_nodes
-            self._upsert_device_nodes(existing.id, nodes)
+            self.__upsert_device_nodes(existing.id, nodes)
             return existing.id
         device = Devices(ip_address=ip_address, ip_port=ip_port, name=name, device_type_id=device_type.id, registered=False, api_key=api_key, max_nodes=max_nodes)
         self.session.add(device)
         self.session.flush()
-        self._upsert_device_nodes(device.id, nodes)
+        self.__upsert_device_nodes(device.id, nodes)
         return device.id
 
     def get_device_info(self, device_type: str):
@@ -66,7 +66,7 @@ class DeviceRepository(DatabaseBase):
         self._validate_property(user)
         device.user_id = user_id
         device.registered = True
-        self._upsert_device_nodes(device_id, nodes)
+        self.__upsert_device_nodes(device_id, nodes)
         return device.id
 
     def get_node_id_by_device(self, device_id, node_device):
@@ -85,7 +85,7 @@ class DeviceRepository(DatabaseBase):
     def get_device_id_by_api_key(self, api_key):
         stmt = select(Devices).filter_by(api_key=api_key)
         device = self.session.execute(stmt).scalars().first()
-        return str(device.id) if device else None
+        return str(device.id) if device != None else None
 
     def get_user_id_by_device(self, device_id):
         stmt = select(Devices).filter_by(id=device_id)
@@ -95,25 +95,25 @@ class DeviceRepository(DatabaseBase):
         return str(device.user_id)
 
     def get_existing_api_key(self, name, device_type_name):
-        device_type = self._get_device_type(device_type_name)
-        existing = self._get_device_by_name(name, device_type.id)
+        device_type = self.__get_device_type(device_type_name)
+        existing = self.__get_device_by_name(name, device_type.id)
         return existing.api_key if existing != None else None
 
-    def _get_device_type(self, type_name):
+    def __get_device_type(self, type_name):
         stmt = select(DeviceType).filter_by(type=type_name)
         device_type = self.session.execute(stmt).scalars().first()
         self._validate_property(device_type)
         return device_type
 
-    def _get_device_by_name(self, name, device_type_id):
+    def __get_device_by_name(self, name, device_type_id):
         stmt = select(Devices).where(Devices.name == name, Devices.device_type_id == device_type_id)
         return self.session.execute(stmt).scalars().first()
 
-    def _upsert_device_nodes(self, device_id, nodes):
+    def __upsert_device_nodes(self, device_id, nodes):
         for node in nodes:
             stmt = select(DeviceNodes).where(DeviceNodes.device_id == device_id, DeviceNodes.node_device == node['nodeDevice'])
             existing = self.session.execute(stmt).scalars().first()
-            if existing:
+            if existing != None:
                 existing.node_name = node['nodeName']
             else:
                 self.session.add(DeviceNodes(device_id=device_id, node_device=node['nodeDevice'], node_name=node['nodeName']))

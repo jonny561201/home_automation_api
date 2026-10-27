@@ -111,7 +111,7 @@ def register_home_automation_device(ip, port, body=None):
     except Exception:
         raise FailedDependency()
     __validate_response(response)
-    if response.content:
+    if len(response.content) > 0:
         return response.json()
     return None
 

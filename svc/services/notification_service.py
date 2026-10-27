@@ -11,7 +11,7 @@ def notify_household_for_device(device_id, payload):
         return
     with PushSubscriptionRepository() as database:
         subscriptions = database.get_subscriptions_for_household(owner_id)
-    if not subscriptions:
+    if len(subscriptions) == 0:
         return
     send_push_to_subscriptions(subscriptions, payload)
 

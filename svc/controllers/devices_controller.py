@@ -29,7 +29,7 @@ def get_user_devices(bearer_token):
     with DeviceRepository() as database:
         is_child = database.is_child_user(user_id)
         devices = database.get_registered_devices(user_id) if is_child else database.get_all_devices()
-        user_devices = [_create_user_device(device) for device in devices]
+        user_devices = [__create_user_device(device) for device in devices]
         return UserDevices(devices=user_devices)
 
 
@@ -43,7 +43,7 @@ def register_discovered_device_to_user(bearer_token, device_id, request_data):
         role_ids = database.get_role_ids_by_device_ids(user_id, [device_id])
     auth0_service.assign_roles(auth0_id, role_ids)
     preferred = next((n for n in nodes if n.get('preferred')), None)
-    if preferred:
+    if preferred != None:
         with DeviceRepository() as database:
             preferred_node_id = database.get_node_id_by_device(device_id, preferred['nodeDevice'])
         with UserRepository() as database:
@@ -51,7 +51,7 @@ def register_discovered_device_to_user(bearer_token, device_id, request_data):
     return Device(deviceId=registered_id)
 
 
-def _create_user_device(device: Devices):
+def __create_user_device(device: Devices):
     nodes = [DeviceNodeDetail(nodeDevice=n.node_device, nodeName=n.node_name) for n in device.nodes]
     return UserDevice(deviceId=str(device.id), registered=device.registered, type=device.device_type.type,
                       name=device.name, maxNodes=device.max_nodes, nodes=nodes)

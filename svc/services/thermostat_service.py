@@ -83,7 +83,7 @@ def __compute_next_task(enabled_tasks, now_local):
         day_matches = __tasks_starting_on(enabled_tasks, label)
         if offset == 0:
             day_matches = [task for task in day_matches if __combine_local(candidate_day, task.hvacStart) > now_local]
-        if not day_matches:
+        if len(day_matches) == 0:
             continue
         soonest = min(day_matches, key=lambda task: task.hvacStart)
         day_label = 'Today' if offset == 0 else label
@@ -128,6 +128,6 @@ def __apply_localized_forecast_fields(forecast, tz):
 
 
 def __weekday_for_forecast_date(date_string, tz):
-    if not date_string:
+    if date_string in (None, ''):
         return None
     return weekday_label(datetime.fromisoformat(date_string).replace(tzinfo=tz))

@@ -11,8 +11,8 @@ def initialize_queue(queue_name: str):
 
     connection = None
     try:
-        connection = _open_connection(settings)
-        _declare_queue(connection.channel(), settings, queue_name)
+        connection = __open_connection(settings)
+        __declare_queue(connection.channel(), settings, queue_name)
     except Exception:
         logging.warning(f'Failed to initialize queue: {queue_name}')
     finally:
@@ -26,12 +26,12 @@ def publish(queue_name: str, payload: dict):
     settings = Settings.get_instance().Queue
 
     try:
-        connection = _open_connection(settings)
+        connection = __open_connection(settings)
     except Exception as exc:
         raise Exception(f'Broker Unavailable: \n {str(exc)}')
     try:
         channel = connection.channel()
-        _declare_queue(channel, settings, queue_name)
+        __declare_queue(channel, settings, queue_name)
         body = json.dumps(payload).encode('utf-8')
         props = pika.BasicProperties(content_type='application/json', delivery_mode=1)
         channel.basic_publish(exchange=settings.exchange, routing_key=queue_name, body=body, properties=props)
@@ -42,13 +42,13 @@ def publish(queue_name: str, payload: dict):
             pass
 
 
-def _declare_queue(channel, settings: Queue, queue_name: str):
+def __declare_queue(channel, settings: Queue, queue_name: str):
     channel.exchange_declare(exchange=settings.exchange, exchange_type='direct', durable=False)
     channel.queue_declare(queue=queue_name, durable=True)
     channel.queue_bind(queue=queue_name, exchange=settings.exchange, routing_key=queue_name)
 
 
-def _open_connection(settings: Queue):
+def __open_connection(settings: Queue):
     credentials = pika.PlainCredentials(settings.user_name, settings.password)
     params = pika.ConnectionParameters(host=settings.host, port=settings.port, virtual_host=settings.vhost, credentials=credentials, socket_timeout=2)
 

@@ -19,7 +19,7 @@ class UserRepository(DatabaseBase):
                           longitude=float(preference.longitude) if preference.longitude is not None else None,
                           garageAlertTime=preference.garage_alert_time,
                           measureUnit='imperial' if preference.is_imperial else 'metric',
-                          garageNodeId=str(preference.garage_node_id) if preference.garage_node_id else None,
+                          garageNodeId=str(preference.garage_node_id) if preference.garage_node_id != None else None,
                           tempUnit='fahrenheit' if preference.is_fahrenheit else 'celsius')
 
     def insert_preferences_by_user(self, user_id, preference_info, garage_node_id=None):
