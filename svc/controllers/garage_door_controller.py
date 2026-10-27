@@ -1,6 +1,6 @@
 import copy
 
-from werkzeug.exceptions import BadRequest, FailedDependency
+from werkzeug.exceptions import BadRequest
 
 from svc.constants.home_automation import Automation, AuthClaims, Garage
 from svc.db.repositories.device_repository import DeviceRepository
@@ -18,8 +18,6 @@ def get_all_status(bearer_token):
     user_id = claims[AuthClaims.USER_ID]
     with DeviceRepository() as db:
         info = db.get_device_info('garage_door')
-    if not info:
-        raise FailedDependency(description="device not registered")
     with UserRepository() as database:
         preferences = database.get_preferences_by_user(user_id)
     url = f'http://{info.ip_address}:{info.ip_port}'
@@ -33,8 +31,6 @@ def stream_status(bearer_token):
     user_id = claims[AuthClaims.USER_ID]
     with DeviceRepository() as db:
         info = db.get_device_info('garage_door')
-    if info is None:
-        raise FailedDependency(description="device not registered")
     with UserRepository() as database:
         preferences = database.get_preferences_by_user(user_id)
     return __status_stream(info, preferences.garageAlertTime)
@@ -78,8 +74,6 @@ def _get_garage_device_info(bearer_token):
     AuthClient.get_instance().verify_jwt(bearer_token)
     with DeviceRepository() as db:
         info = db.get_device_info('garage_door')
-    if not info:
-        raise FailedDependency(description="device not registered")
     return info
 
 

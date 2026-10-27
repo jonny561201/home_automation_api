@@ -2,8 +2,6 @@ import logging
 import threading
 import time
 
-from werkzeug.exceptions import FailedDependency
-
 from svc.config.singleton import Singleton
 from svc.constants.home_automation import Garage
 from svc.db.repositories.device_repository import DeviceRepository
@@ -42,8 +40,6 @@ class GarageEventBroadcaster:
     def consume_upstream(self):
         with DeviceRepository() as database:
             info = database.get_device_info('garage_door')
-        if info is None:
-            raise FailedDependency(description='device not registered')
         url = f'http://{info.ip_address}:{info.ip_port}'
         for status in api_utils.stream_garage_door_events(info.api_key, url):
             self.publish(status)

@@ -5,7 +5,7 @@ import uuid
 import jwt
 import pytest
 from mock import patch
-from werkzeug.exceptions import BadRequest, FailedDependency, Unauthorized
+from werkzeug.exceptions import BadRequest, NotFound, Unauthorized
 
 from svc.constants.home_automation import Automation, AuthClaims
 from svc.controllers.garage_door_controller import get_all_status, toggle_door, update_state, schedule_close, cancel_scheduled_close, stream_status
@@ -209,11 +209,11 @@ class TestStreamStatus:
         with pytest.raises(Unauthorized):
             stream_status(self.JWT_TOKEN)
 
-    def test_stream_status__should_raise_failed_dependency_when_device_not_registered(self, mock_jwt, mock_db, mock_user, mock_service, mock_broadcaster):
+    def test_stream_status__should_raise_not_found_when_device_not_registered(self, mock_jwt, mock_db, mock_user, mock_service, mock_broadcaster):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
-        mock_db.return_value.__enter__.return_value.get_device_info.return_value = None
+        mock_db.return_value.__enter__.return_value.get_device_info.side_effect = NotFound()
 
-        with pytest.raises(FailedDependency):
+        with pytest.raises(NotFound):
             stream_status(self.JWT_TOKEN)
 
     def test_stream_status__should_yield_cached_status_first(self, mock_jwt, mock_db, mock_user, mock_service, mock_broadcaster):

@@ -1,6 +1,6 @@
 from mock import patch
 import pytest
-from werkzeug.exceptions import FailedDependency
+from werkzeug.exceptions import NotFound
 
 from svc.models.devices import DeviceInfo
 from svc.services.garage_event_service import GarageEventBroadcaster
@@ -67,10 +67,10 @@ class TestConsumeUpstream:
 
         assert self.broadcaster.latest() == (2, second)
 
-    def test_consume_upstream__should_raise_failed_dependency_when_device_not_registered(self, mock_db, mock_api):
-        mock_db.return_value.__enter__.return_value.get_device_info.return_value = None
+    def test_consume_upstream__should_raise_not_found_when_device_not_registered(self, mock_db, mock_api):
+        mock_db.return_value.__enter__.return_value.get_device_info.side_effect = NotFound()
 
-        with pytest.raises(FailedDependency):
+        with pytest.raises(NotFound):
             self.broadcaster.consume_upstream()
 
         mock_api.stream_garage_door_events.assert_not_called()

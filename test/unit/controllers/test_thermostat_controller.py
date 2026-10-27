@@ -3,7 +3,7 @@ import uuid
 import jwt
 import pytest
 from mock import patch, ANY
-from werkzeug.exceptions import FailedDependency
+from werkzeug.exceptions import NotFound
 
 from svc.constants.home_automation import AuthClaims
 from svc.constants.home_automation import Automation
@@ -69,11 +69,11 @@ class TestThermostatTempController:
         mock_device.return_value.__enter__.return_value.get_device_info.assert_called_with('thermostat')
         mock_api.get_thermostat_status.assert_called_with('fake-api-key', 'http://1.1.1.1:5003')
 
-    def test_get_user_temp__should_raise_failed_dependency_when_thermostat_not_registered(self, mock_jwt, mock_db, mock_tasks, mock_device, mock_api, mock_service):
+    def test_get_user_temp__should_raise_not_found_when_thermostat_not_registered(self, mock_jwt, mock_db, mock_tasks, mock_device, mock_api, mock_service):
         self.__arrange(mock_jwt, mock_db, mock_tasks, mock_device, mock_api)
-        mock_device.return_value.__enter__.return_value.get_device_info.return_value = None
+        mock_device.return_value.__enter__.return_value.get_device_info.side_effect = NotFound()
 
-        with pytest.raises(FailedDependency):
+        with pytest.raises(NotFound):
             get_user_temp(self.JWT_TOKEN, self.TIMEZONE_HEADER)
 
     def test_get_user_temp__should_delegate_fahrenheit_temp_and_device_state_to_service(self, mock_jwt, mock_db, mock_tasks, mock_device, mock_api, mock_service):

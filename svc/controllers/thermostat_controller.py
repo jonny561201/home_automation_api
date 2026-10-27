@@ -1,5 +1,3 @@
-from werkzeug.exceptions import FailedDependency
-
 from svc.db.repositories.device_repository import DeviceRepository
 from svc.db.repositories.tasks_repository import TasksRepository
 from svc.db.repositories.user_repository import UserRepository
@@ -21,8 +19,6 @@ def get_user_temp(bearer_token, timezone_header=None):
         tasks = database.get_schedule_tasks_by_user(user_id, 'hvac')
     with DeviceRepository() as database:
         info = database.get_device_info('thermostat')
-    if info is None:
-        raise FailedDependency(description="device not registered")
     status = api_utils.get_thermostat_status(info.api_key, f'http://{info.ip_address}:{info.ip_port}')
     is_fahrenheit = preference.tempUnit == 'fahrenheit'
     internal_temp = __to_user_unit(status['currentTemp'], is_fahrenheit)
