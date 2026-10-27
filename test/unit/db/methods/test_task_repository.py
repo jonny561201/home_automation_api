@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 import pytest
 from mock import mock, patch
 from sqlalchemy import orm
-from werkzeug.exceptions import NotFound
+from werkzeug.exceptions import BadRequest, NotFound
 
 from svc.db.models.user_information_model import ScheduleTasks, ScheduledTaskTypes
 from svc.db.repositories.tasks_repository import TasksRepository
@@ -61,9 +61,9 @@ class TestTaskRepository:
         self.DATABASE.insert_schedule_task_by_user(self.USER_ID, task)
         self.SESSION.execute.return_value.scalars.return_value.first.assert_called()
 
-    def test_insert_schedule_task_by_user__should_raise_not_found_when_alarm_days_missing(self):
+    def test_insert_schedule_task_by_user__should_raise_bad_request_when_alarm_days_missing(self):
         preference_info = {'alarmGroupName': 'bedroom', 'alarmLightGroup': '1', 'alarmTime': '00:01:00', 'taskType': 'all on', 'enabled': False}
-        with pytest.raises(NotFound):
+        with pytest.raises(BadRequest):
             self.DATABASE.insert_schedule_task_by_user(self.USER_ID, preference_info)
 
     def test_insert_schedule_task_by_user__should_raise_not_found_when_user_id_is_none(self):

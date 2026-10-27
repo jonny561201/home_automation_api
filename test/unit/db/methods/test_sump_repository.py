@@ -3,7 +3,7 @@ import uuid
 import pytest
 from mock import mock
 from sqlalchemy import orm
-from werkzeug.exceptions import NotFound
+from werkzeug.exceptions import BadRequest, NotFound
 
 from svc.db.models.user_information_model import ChildAccounts, Devices
 from svc.db.repositories.sump_repository import SumpRepository
@@ -48,10 +48,10 @@ class TestSumpDatabase:
 
         self.SESSION.add.assert_called()
 
-    def test_insert_current_sump_level__should_raise_not_found_when_depth_info_none(self):
+    def test_insert_current_sump_level__should_raise_bad_request_when_depth_info_none(self):
         depth_info = None
         device_id = 1234
-        with pytest.raises(NotFound):
+        with pytest.raises(BadRequest):
             self.DATABASE.insert_current_sump_level(device_id, depth_info)
 
     def test_insert_current_sump_level__should_raise_not_found_when_device_id_is_none(self):
@@ -62,10 +62,10 @@ class TestSumpDatabase:
             self.DATABASE.insert_current_sump_level(None, depth_info)
         self.SESSION.add.assert_not_called()
 
-    def test_insert_current_sump_level__should_raise_not_found_when_depth_info_missing_keys(self):
+    def test_insert_current_sump_level__should_raise_bad_request_when_depth_info_missing_keys(self):
         depth_info = {'badKey': 1234}
         device_id = 1234
-        with pytest.raises(NotFound):
+        with pytest.raises(BadRequest):
             self.DATABASE.insert_current_sump_level(device_id, depth_info)
 
     def test_insert_average_sump_level__should_call_add(self):
@@ -75,8 +75,8 @@ class TestSumpDatabase:
 
         self.SESSION.add.assert_called()
 
-    def test_insert_average_sump_level__should_raise_not_found_when_depth_info_none(self):
-        with pytest.raises(NotFound):
+    def test_insert_average_sump_level__should_raise_bad_request_when_depth_info_none(self):
+        with pytest.raises(BadRequest):
             self.DATABASE.insert_average_sump_level(1234, None)
 
     def test_insert_average_sump_level__should_raise_not_found_when_device_id_is_none(self):
@@ -84,8 +84,8 @@ class TestSumpDatabase:
             self.DATABASE.insert_average_sump_level(None, {'depth': None})
         self.SESSION.add.assert_not_called()
 
-    def test_insert_average_sump_level__should_raise_not_found_when_depth_info_missing_keys(self):
-        with pytest.raises(NotFound):
+    def test_insert_average_sump_level__should_raise_bad_request_when_depth_info_missing_keys(self):
+        with pytest.raises(BadRequest):
             self.DATABASE.insert_average_sump_level(1234, {'badKey': 1234})
 
     def test_get_sump_device_id_by_user__should_return_device_id_for_parent_user(self):

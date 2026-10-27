@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 
 from sqlalchemy import select, func
-from werkzeug.exceptions import NotFound
+from werkzeug.exceptions import BadRequest
 
 from svc.db.models.user_information_model import ChildAccounts, DailySumpPumpLevel, AverageSumpPumpLevel, Devices, DeviceType
 from svc.db.repositories.database_base import DatabaseBase
@@ -55,7 +55,7 @@ class SumpRepository(DatabaseBase):
             current_depth = DailySumpPumpLevel(distance=depth_info['depth'], create_date=depth_info['datetime'], warning_level=depth_info['alert_level'], device_id=device_id)
             self.session.add(current_depth)
         except (TypeError, KeyError):
-            raise NotFound
+            raise BadRequest
 
     def insert_average_sump_level(self, device_id, depth_info):
         self._validate_property(device_id)
@@ -63,4 +63,4 @@ class SumpRepository(DatabaseBase):
             average_depth = AverageSumpPumpLevel(distance=depth_info['depth'], device_id=device_id, create_day=depth_info['date'])
             self.session.add(average_depth)
         except (TypeError, KeyError):
-            raise NotFound
+            raise BadRequest

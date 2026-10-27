@@ -3,7 +3,7 @@ from datetime import datetime
 
 import pytest
 from sqlalchemy import select, delete
-from werkzeug.exceptions import NotFound
+from werkzeug.exceptions import BadRequest, NotFound
 
 from svc.db.models.user_information_model import ChildAccounts, DailySumpPumpLevel, AverageSumpPumpLevel, \
     UserInformation, Devices, DeviceType
@@ -105,10 +105,10 @@ class TestDbSumpIntegration:
 
             assert float(actual.distance) == self.UPDATED_DEPTH
 
-    def test_insert_current_sump_level__should_raise_not_found_with_bad_data(self):
+    def test_insert_current_sump_level__should_raise_bad_request_with_bad_data(self):
         depth_info = {'badData': None}
         device_id = 1234
-        with pytest.raises(NotFound):
+        with pytest.raises(BadRequest):
             with SumpRepository() as database:
                 database.insert_current_sump_level(device_id, depth_info)
 
