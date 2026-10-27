@@ -39,7 +39,7 @@ def update_state(bearer_token, garage_id, request):
     if garage_open is None:
         raise BadRequest('Field "garageDoorOpen" is required.')
     message = {'id': garage_id, 'action': 'update', 'open': garage_open}
-    publish(Automation.GARAGE.QUEUE, message)
+    publish(Automation.GARAGE.QUEUE, message, Garage.MESSAGE_TTL_SECONDS)
 
     return GarageState(isGarageOpen=garage_open)
 
@@ -48,7 +48,7 @@ def toggle_door(bearer_token, garage_id):
     AuthClient.get_instance().verify_jwt(bearer_token)
     message = {'id': garage_id, 'action': 'toggle'}
 
-    publish(Automation.GARAGE.QUEUE, message)
+    publish(Automation.GARAGE.QUEUE, message, Garage.MESSAGE_TTL_SECONDS)
 
 
 def schedule_close(bearer_token, garage_id):
@@ -58,7 +58,7 @@ def schedule_close(bearer_token, garage_id):
         preferences = database.get_preferences_by_user(user_id)
     delay_seconds = preferences.garageAlertTime * 60
     message = {'id': garage_id, 'action': 'schedule', 'delay_seconds': delay_seconds}
-    publish(Automation.GARAGE.QUEUE, message)
+    publish(Automation.GARAGE.QUEUE, message, Garage.MESSAGE_TTL_SECONDS)
 
 
 def cancel_scheduled_close(bearer_token, garage_id):

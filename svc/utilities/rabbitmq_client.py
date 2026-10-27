@@ -22,7 +22,7 @@ def initialize_queue(queue_name: str):
             pass
 
 
-def publish(queue_name: str, payload: dict):
+def publish(queue_name: str, payload: dict, ttl_seconds: int = None):
     settings = Settings.get_instance().Queue
 
     try:
@@ -33,7 +33,8 @@ def publish(queue_name: str, payload: dict):
         channel = connection.channel()
         __declare_queue(channel, settings, queue_name)
         body = json.dumps(payload).encode('utf-8')
-        props = pika.BasicProperties(content_type='application/json', delivery_mode=1)
+        expiration = str(ttl_seconds * 1000) if ttl_seconds != None else None
+        props = pika.BasicProperties(content_type='application/json', delivery_mode=1, expiration=expiration)
         channel.basic_publish(exchange=settings.exchange, routing_key=queue_name, body=body, properties=props)
     finally:
         try:

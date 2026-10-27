@@ -26,6 +26,20 @@ class TestRabbitMqClient:
             call.basic_publish(exchange=self.EXCHANGE, routing_key=self.QUEUE_NAME, body=b'{"action": "set"}', properties=ANY),
         ]
 
+    def test_publish__should_set_message_expiration_in_milliseconds_when_ttl_given(self, mock_pika, mock_settings):
+        self.__arrange(mock_pika, mock_settings)
+
+        publish(self.QUEUE_NAME, {'action': 'toggle'}, 30)
+
+        mock_pika.BasicProperties.assert_called_with(content_type='application/json', delivery_mode=1, expiration='30000')
+
+    def test_publish__should_not_expire_message_when_no_ttl_given(self, mock_pika, mock_settings):
+        self.__arrange(mock_pika, mock_settings)
+
+        publish(self.QUEUE_NAME, {'action': 'set'})
+
+        mock_pika.BasicProperties.assert_called_with(content_type='application/json', delivery_mode=1, expiration=None)
+
     def test_publish__should_close_connection(self, mock_pika, mock_settings):
         self.__arrange(mock_pika, mock_settings)
 

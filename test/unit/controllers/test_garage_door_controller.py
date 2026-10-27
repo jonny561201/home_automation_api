@@ -49,7 +49,7 @@ class TestGarageController:
     def test_update_state__should_call_publish(self, mock_jwt, mock_db, mock_util, mock_publish, mock_user, mock_service):
         update_state(self.JWT_TOKEN, self.GARAGE_ID, self.REQUEST)
 
-        mock_publish.assert_called_with(Automation.GARAGE.QUEUE, {'id': self.GARAGE_ID, 'action': 'update', 'open': self.REQUEST['garageDoorOpen']})
+        mock_publish.assert_called_with(Automation.GARAGE.QUEUE, {'id': self.GARAGE_ID, 'action': 'update', 'open': self.REQUEST['garageDoorOpen']}, 30)
 
     def test_update_state__should_throw_bad_request_when_field_missing(self, mock_jwt, mock_db, mock_util, mock_publish, mock_user, mock_service):
         bad_request = {'badKey': 'fakerequest'}
@@ -69,7 +69,7 @@ class TestGarageController:
     def test_toggle_garage_door_state__should_call_publish(self, mock_jwt, mock_db, mock_util, mock_publish, mock_user, mock_service):
         toggle_door(self.JWT_TOKEN, self.GARAGE_ID)
 
-        mock_publish.assert_called_with(Automation.GARAGE.QUEUE, {'id': self.GARAGE_ID, 'action': 'toggle'})
+        mock_publish.assert_called_with(Automation.GARAGE.QUEUE, {'id': self.GARAGE_ID, 'action': 'toggle'}, 30)
 
     def test_get_all_status__should_call_is_jwt_valid(self, mock_jwt, mock_db, mock_util, mock_publish, mock_user, mock_service):
         mock_jwt.get_instance.return_value.verify_jwt.return_value = self.CLAIMS
@@ -176,7 +176,7 @@ class TestScheduleClose:
         mock_user.return_value.__enter__.return_value.get_preferences_by_user.return_value = self.PREFERENCE
         schedule_close(self.JWT_TOKEN, self.GARAGE_ID)
 
-        mock_publish.assert_called_with(Automation.GARAGE.QUEUE, {'id': self.GARAGE_ID, 'action': 'schedule', 'delay_seconds': 300})
+        mock_publish.assert_called_with(Automation.GARAGE.QUEUE, {'id': self.GARAGE_ID, 'action': 'schedule', 'delay_seconds': 300}, 30)
 
 
 @patch('svc.controllers.garage_door_controller.GarageEventBroadcaster')

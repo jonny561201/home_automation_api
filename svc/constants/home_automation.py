@@ -17,6 +17,7 @@ class Hvac:
 
 class Garage:
     QUEUE = 'home-automation-garage'
+    MESSAGE_TTL_SECONDS = 30
     STREAM_HEARTBEAT_SECONDS = 20
     STREAM_READ_TIMEOUT_SECONDS = 60
     STREAM_RECONNECT_SECONDS = 5
