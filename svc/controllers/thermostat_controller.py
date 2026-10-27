@@ -44,9 +44,9 @@ def get_user_extended_forecast(bearer_token, timezone_header=None):
     return thermostat_service.get_extended_forecast_for_preference(preference, tz)
 
 
-def set_user_temperature(request_data, bearer_token):
+def set_user_temperature(bearer_token, request_data):
     AuthClient.get_instance().verify_jwt(bearer_token)
-    temp = request_data['desiredTemp'] if not request_data['isFahrenheit'] else convert_to_celsius(request_data['desiredTemp'])
+    temp = convert_to_celsius(request_data['desiredTemp']) if request_data['isFahrenheit'] else request_data['desiredTemp']
     mode = request_data['mode']
     publish(Automation.HVAC.QUEUE, {'action': 'set', 'desiredTemp': temp, 'mode': mode})
 

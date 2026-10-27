@@ -213,22 +213,22 @@ class TestThermostatSetController:
         self.REQUEST = {'mode': Automation.HVAC.MODE.HEATING, 'isFahrenheit': False, 'desiredTemp': self.DESIRED_CELSIUS_TEMP}
 
     def test_set_user_temperature__should_call_is_jwt_valid(self, mock_jwt, mock_convert, mock_publish):
-        set_user_temperature(self.REQUEST, self.BEARER_TOKEN)
+        set_user_temperature(self.BEARER_TOKEN, self.REQUEST)
 
         mock_jwt.get_instance.return_value.verify_jwt.assert_called_with(self.BEARER_TOKEN)
 
     def test_set_user_temperature__should_convert_fahrenheit_to_celsius(self, mock_jwt, mock_convert, mock_publish):
         request = {'mode': Automation.HVAC.MODE.COOLING, 'isFahrenheit': True, 'desiredTemp': self.DESIRED_FAHRENHEIT_TEMP}
-        set_user_temperature(request, self.BEARER_TOKEN)
+        set_user_temperature(self.BEARER_TOKEN, request)
 
         mock_convert.assert_called_with(self.DESIRED_FAHRENHEIT_TEMP)
 
     def test_set_user_temperature__should_not_convert_celsius_request(self, mock_jwt, mock_convert, mock_publish):
-        set_user_temperature(self.REQUEST, self.BEARER_TOKEN)
+        set_user_temperature(self.BEARER_TOKEN, self.REQUEST)
 
         mock_convert.assert_not_called()
 
     def test_set_user_temperature__should_publish_hvac_message(self, mock_jwt, mock_convert, mock_publish):
-        set_user_temperature(self.REQUEST, self.BEARER_TOKEN)
+        set_user_temperature(self.BEARER_TOKEN, self.REQUEST)
 
         mock_publish.assert_called_with(Automation.HVAC.QUEUE, {'action': 'set', 'desiredTemp': self.DESIRED_CELSIUS_TEMP, 'mode': Automation.HVAC.MODE.HEATING})

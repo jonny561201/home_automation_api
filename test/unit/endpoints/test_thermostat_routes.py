@@ -57,7 +57,7 @@ class TestThermostatRoutes:
     def test_set_desired_temperature__should_call_thermostat_controller_with_bearer_token(self, mock_controller):
         set_desired_temperature()
 
-        mock_controller.set_user_temperature.assert_called_with(ANY, self.BEARER_TOKEN)
+        mock_controller.set_user_temperature.assert_called_with(self.BEARER_TOKEN, ANY)
 
     def test_set_desired_temperature__should_call_thermostat_controller_with_request_body(self, mock_controller):
         request_data = {'desiredTemp': 34.1}
@@ -65,7 +65,7 @@ class TestThermostatRoutes:
 
         set_desired_temperature()
 
-        mock_controller.set_user_temperature.assert_called_with(request_data, ANY)
+        mock_controller.set_user_temperature.assert_called_with(ANY, request_data)
 
     def test_get_forecast_data__should_call_thermostat_controller_with_bearer_token(self, mock_controller):
         mock_controller.get_user_forecast.return_value = self.DAILY_FORECAST
