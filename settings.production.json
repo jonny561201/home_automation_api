@@ -15,7 +15,7 @@
   "VapidSubject": "mailto:admin@soaringleafsolutions.com",
   "BaseUrls": {
     "Lights": "http://127.0.0.1:5002/api/lights",
-    "Weather": "https://api.openweathermap.org/data/2.5"
+    "Weather": "api.open-meteo.com/v1"
   },
   "Queue": {
     "Port": 123,
